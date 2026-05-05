@@ -1,0 +1,36 @@
+package com.aizuda.snail.ai.common.execption;
+
+import lombok.Data;
+
+/**
+ * (复制自 snail-job)
+ */
+@Data
+public abstract class AbstractError {
+
+    public static final AbstractError SUCCESS = new AbstractError("Operation succeeded", "success") {
+    };
+
+    public static final AbstractError ERROR = new AbstractError("Operation failed", "error") {
+    };
+
+    public static final AbstractError PARAM_INCORRECT = new AbstractError("Parameter exception", "param incorrect") {
+    };
+
+    private final String zhMsg;
+    private final String enMsg;
+
+    protected AbstractError(String zhMsg, String enMsg) {
+        this.zhMsg = zhMsg;
+        this.enMsg = enMsg;
+    }
+
+    public static String getMsg(AbstractError abstractError) {
+        return abstractError.zhMsg;
+    }
+
+    @Override
+    public String toString() {
+        return this.zhMsg;
+    }
+}

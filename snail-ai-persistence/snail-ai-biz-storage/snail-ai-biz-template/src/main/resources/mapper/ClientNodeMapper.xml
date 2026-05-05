@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aizuda.snail.ai.persistence.app.mapper.ClientNodeMapper">
+
+    <insert id="insertBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO snail_ai_client_node (app_id, host_id, host_ip, grpc_port,
+                                          max_concurrent, active_chats, supported_providers,
+                                          labels, expire_dt)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.appId},
+                #{item.hostId},
+                #{item.hostIp},
+                #{item.grpcPort},
+                #{item.maxConcurrent},
+                #{item.activeChats},
+                #{item.supportedProviders},
+                #{item.labels},
+                #{item.expireDt}
+            )
+        </foreach>
+    </insert>
+
+    <update id="updateBatchExpireAt" parameterType="java.util.List">
+        UPDATE snail_ai_client_node rt,
+               (
+                    <foreach collection="list" item="item" separator="UNION ALL">
+                        SELECT
+                            #{item.appId}              AS app_id,
+                            #{item.hostId}             AS host_id,
+                            #{item.maxConcurrent}      AS max_concurrent,
+                            #{item.activeChats}        AS active_chats,
+                            #{item.supportedProviders} AS supported_providers,
+                            #{item.labels}             AS labels,
+                            #{item.expireDt}           AS expire_dt
+                    </foreach>
+               ) tt
+           SET rt.max_concurrent      = tt.max_concurrent,
+               rt.active_chats        = tt.active_chats,
+               rt.supported_providers = tt.supported_providers,
+               rt.labels              = tt.labels,
+               rt.expire_dt           = tt.expire_dt
+         WHERE rt.app_id  = tt.app_id
+           AND rt.host_id = tt.host_id
+    </update>
+
+</mapper>

@@ -1,0 +1,67 @@
+{
+  "groups": [
+    {
+      "name": "snail-ai.openapi",
+      "type": "com.aizuda.snail.ai.openapi.client.core.config.SnailAiOpenApiProperties",
+      "sourceType": "com.aizuda.snail.ai.openapi.client.core.config.SnailAiOpenApiProperties",
+      "description": "Snail AI OpenAPI 客户端配置"
+    }
+  ],
+  "properties": [
+    {
+      "name": "snail-ai.openapi.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "是否启用 OpenAPI 客户端",
+      "sourceType": "com.aizuda.snail.ai.openapi.client.core.config.SnailAiOpenApiProperties"
+    },
+    {
+      "name": "snail-ai.openapi.server-host",
+      "type": "java.lang.String",
+      "description": "OpenAPI 服务端地址，不配置则取 snail-ai.server-host",
+      "sourceType": "com.aizuda.snail.ai.openapi.client.core.config.SnailAiOpenApiProperties"
+    },
+    {
+      "name": "snail-ai.openapi.web-port",
+      "type": "java.lang.Integer",
+      "defaultValue": 8080,
+      "description": "OpenAPI 服务端 Web 端口号",
+      "sourceType": "com.aizuda.snail.ai.openapi.client.core.config.SnailAiOpenApiProperties"
+    },
+    {
+      "name": "snail-ai.openapi.https",
+      "type": "java.lang.Boolean",
+      "defaultValue": false,
+      "description": "是否使用 HTTPS 协议",
+      "sourceType": "com.aizuda.snail.ai.openapi.client.core.config.SnailAiOpenApiProperties"
+    },
+    {
+      "name": "snail-ai.openapi.prefix",
+      "type": "java.lang.String",
+      "defaultValue": "snail-ai",
+      "description": "API 公共前缀",
+      "sourceType": "com.aizuda.snail.ai.openapi.client.core.config.SnailAiOpenApiProperties"
+    },
+    {
+      "name": "snail-ai.openapi.connect-timeout-ms",
+      "type": "java.lang.Long",
+      "defaultValue": 5000,
+      "description": "连接超时时间（毫秒）",
+      "sourceType": "com.aizuda.snail.ai.openapi.client.core.config.SnailAiOpenApiProperties"
+    },
+    {
+      "name": "snail-ai.openapi.read-timeout-ms",
+      "type": "java.lang.Long",
+      "defaultValue": 60000,
+      "description": "读取超时时间（毫秒）",
+      "sourceType": "com.aizuda.snail.ai.openapi.client.core.config.SnailAiOpenApiProperties"
+    },
+    {
+      "name": "snail-ai.openapi.chat-timeout-ms",
+      "type": "java.lang.Long",
+      "defaultValue": 300000,
+      "description": "对话超时时间（毫秒），用于 SSE 流式请求",
+      "sourceType": "com.aizuda.snail.ai.openapi.client.core.config.SnailAiOpenApiProperties"
+    }
+  ]
+}

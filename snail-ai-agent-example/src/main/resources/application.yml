@@ -1,0 +1,66 @@
+server:
+  port: 8081  # Demo 服务端口
+
+# Swagger UI 配置
+springdoc:
+  api-docs:
+    enabled: true
+    path: /v3/api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+
+# 日志配置
+logging:
+  config: classpath:logback-boot.xml
+  level:
+    # 抑制 Micrometer Observation 的 Scope 父子关系不匹配警告
+    # 这个警告在响应式流式调用中是正常的，不影响功能
+    io.micrometer.observation.contextpropagation: ERROR
+    # OpenAPI Client 日志
+    com.aizuda.snail.ai.openapi.client: DEBUG
+
+snail-ai:
+    # 启用客户端模式
+    enabled: true
+
+    # ==================== Server 连接 ====================
+    # Server 端 gRPC 地址（即 snail-ai-starter 的 snail-ai.server.grpc-port）
+    server:
+      host: 127.0.0.1
+      port: 18888
+
+    # ==================== 客户端配置 ====================
+    # 本客户端 gRPC 端口（Server 通过此端口分发 Chat 请求）
+  # 应用 ID（在 Server「应用管理」页面创建后获取）
+    app-id: snail-ai-agent-demo
+
+    # 认证令牌（在 Server「应用管理」页面创建时自动生成）
+    token: SAI_ad27bd9de937499c8387336c8deb4cf0
+
+    port: 18889
+
+    # Skill 文件临时目录
+    skill-temp-dir: /tmp/snail-ai-agent/skills
+
+    # ==================== OpenAPI Client 配置 ====================
+    open-api:
+      # 启用 OpenAPI Client
+      enabled: true
+
+      # Server HTTP 端口
+      web-port: 8080
+
+      # 是否使用 HTTPS
+      https: false
+
+      # API 路径前缀
+      prefix: snail-ai
+
+      # 超时配置（毫秒）
+      connect-timeout-ms: 5000
+      read-timeout-ms: 60000
+      chat-timeout-ms: 300000
+

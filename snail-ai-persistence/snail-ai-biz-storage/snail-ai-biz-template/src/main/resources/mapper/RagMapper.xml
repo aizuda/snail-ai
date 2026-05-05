@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aizuda.snail.ai.persistence.agent.mapper.TraceMapper">
+
+    <insert id="insertBatch" parameterType="java.util.List">
+        INSERT INTO snail_ai_trace (id, agent_id, user_id, conversation_id, name,
+                                    input, output, start_time, end_time, duration_ms,
+                                    metadata, tags, model, app_release, version,
+                                    environment, bookmarked, status, status_message)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.id}, #{item.agentId}, #{item.userId}, #{item.conversationId}, #{item.name},
+             #{item.input}, #{item.output}, #{item.startTime}, #{item.endTime}, #{item.durationMs},
+             #{item.metadata}, #{item.tags}, #{item.model}, #{item.appRelease}, #{item.version},
+             #{item.environment}, #{item.bookmarked}, #{item.status}, #{item.statusMessage})
+        </foreach>
+    </insert>
+
+</mapper>

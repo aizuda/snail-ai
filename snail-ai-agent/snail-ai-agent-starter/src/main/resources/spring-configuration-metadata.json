@@ -1,0 +1,100 @@
+{
+  "groups": [
+    {
+      "name": "snail-ai",
+      "type": "com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties",
+      "sourceType": "com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties",
+      "description": "Snail AI Agent 客户端配置"
+    },
+    {
+      "name": "snail-ai.server-callback",
+      "type": "com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties$ServerCallbackConfig",
+      "sourceType": "com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties",
+      "sourceMethod": "getServerCallback()",
+      "description": "Server 回调配置"
+    }
+  ],
+  "properties": [
+    {
+      "name": "snail-ai.enabled",
+      "type": "java.lang.Boolean",
+      "defaultValue": true,
+      "description": "是否启用 Snail AI Agent",
+      "sourceType": "com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties"
+    },
+    {
+      "name": "snail-ai.app-id",
+      "type": "java.lang.String",
+      "description": "应用 ID，用于标识客户端身份",
+      "sourceType": "com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties"
+    },
+    {
+      "name": "snail-ai.token",
+      "type": "java.lang.String",
+      "description": "认证令牌，用于服务端鉴权",
+      "sourceType": "com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties"
+    },
+    {
+      "name": "snail-ai.server-host",
+      "type": "java.lang.String",
+      "defaultValue": "127.0.0.1",
+      "description": "Snail AI Server 地址",
+      "sourceType": "com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties"
+    },
+    {
+      "name": "snail-ai.server-port",
+      "type": "java.lang.Integer",
+      "defaultValue": 18888,
+      "description": "Snail AI Server RPC 端口号",
+      "sourceType": "com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties"
+    },
+    {
+      "name": "snail-ai.port",
+      "type": "java.lang.Integer",
+      "defaultValue": 17889,
+      "description": "Agent 客户端监听端口",
+      "sourceType": "com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties"
+    },
+    {
+      "name": "snail-ai.host",
+      "type": "java.lang.String",
+      "description": "Agent 客户端 IP 地址，默认自动获取本地 IP",
+      "sourceType": "com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties"
+    },
+    {
+      "name": "snail-ai.max-concurrent-chats",
+      "type": "java.lang.Integer",
+      "defaultValue": 10,
+      "description": "最大并发对话数",
+      "sourceType": "com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties"
+    },
+    {
+      "name": "snail-ai.skill-temp-dir",
+      "type": "java.lang.String",
+      "defaultValue": "/tmp/snail-ai-agent/skills",
+      "description": "Skill 文件临时目录",
+      "sourceType": "com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties"
+    },
+    {
+      "name": "snail-ai.server-callback.timeout",
+      "type": "java.lang.Long",
+      "defaultValue": 5000,
+      "description": "Server 回调超时时间（毫秒）",
+      "sourceType": "com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties$ServerCallbackConfig"
+    },
+    {
+      "name": "snail-ai.server-callback.retry-times",
+      "type": "java.lang.Integer",
+      "defaultValue": 3,
+      "description": "Server 回调重试次数",
+      "sourceType": "com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties$ServerCallbackConfig"
+    },
+    {
+      "name": "snail-ai.server-callback.retry-interval",
+      "type": "java.lang.Integer",
+      "defaultValue": 1000,
+      "description": "Server 回调重试间隔（毫秒）",
+      "sourceType": "com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties$ServerCallbackConfig"
+    }
+  ]
+}
