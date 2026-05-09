@@ -487,3 +487,27 @@ CREATE TABLE snail_ai_openapi_user
     INDEX            idx_platform_user (platform_user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='OpenAPI 外部用户映射表';
+
+-- ----------------------------
+-- 通用资源存储
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS snail_ai_resource
+(
+    id            BIGINT        NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    storage_key   VARCHAR(512)  NOT NULL COMMENT '存储键（相对路径或对象Key）',
+    original_name VARCHAR(255)  NOT NULL COMMENT '原始文件名',
+    file_size     BIGINT        DEFAULT 0 COMMENT '文件大小(bytes)',
+    mime_type     VARCHAR(128)  COMMENT 'MIME类型',
+    storage_type  VARCHAR(32)   NOT NULL DEFAULT 'LOCAL' COMMENT '存储类型: LOCAL/MINIO',
+    access_url    VARCHAR(1024) COMMENT '访问URL',
+    biz_type      VARCHAR(64)   NOT NULL DEFAULT 'GENERAL' COMMENT '业务类型: AVATAR/ATTACHMENT/DOCUMENT/GENERAL',
+    biz_id        BIGINT        COMMENT '关联业务ID',
+    creator_id    BIGINT        COMMENT '上传者ID',
+    create_dt     TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+    update_dt     TIMESTAMP     DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_storage_key (storage_key),
+    INDEX idx_biz (biz_type, biz_id),
+    INDEX idx_creator (creator_id)
+    ) ENGINE = InnoDB
+    DEFAULT CHARSET = utf8mb4
+    COLLATE = utf8mb4_unicode_ci COMMENT = '通用资源存储';
