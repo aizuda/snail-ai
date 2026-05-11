@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://github.com/aizuda/snail-ai">
-   <img alt="Snail-AI-Logo" src="doc/images/logo.svg" width="200px">
+   <img alt="Snail-AI-Logo" src="docs/images/favicon.svg" width="200px">
   </a>
 </p>
 
