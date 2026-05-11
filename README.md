@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-     🔥🔥🔥 灵活，易扩展的企业级 AI 智能体平台<br><br/>
+     🔥🔥🔥 灵活，易用和可扩展的企业级 AI 智能体平台<br><br/>
 </p>
 
 <p align="center">
