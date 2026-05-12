@@ -19,6 +19,10 @@
 
 > Snail AI 是一个灵活、可扩展的企业级 AI 智能体平台。基于 Spring Boot 4 和 Spring AI 构建，提供多模型管理、智能体编排、RAG 知识库、长期记忆、技能管理等核心能力。拥有完善的后台管理界面和 OpenAPI 接口，支持快速接入和二次开发。
 
+# 开源地址
+- [snail-job-admin](https://gitee.com/opensnail/snail-job-admin.git)(基于[soybean-admin](https://github.com/soybeanjs/soybean-admin)开源项目搭建)
+- [snail-job](https://gitee.com/aizuda/snail-job.git)
+
 # 核心特性
 
 - **多模型管理** — 统一接入和管理多种大语言模型（LLM），灵活切换
@@ -28,14 +32,27 @@
 - **技能管理** — 可配置的技能（Skill）体系，扩展 Agent 能力边界
 - **资源管理** — 文档解析（PDF、Office）、对象存储（MinIO）
 - **OpenAPI** — 标准化 API 接口，方便第三方系统集成
-- **后台管理** — 基于 Vue 3 + Ant Design Vue 的现代化管理界面
+- **后台管理** — 基于 SoybeanAdmin 的现代化管理界面
 
 # 快速开始
-- [QuickStart](https://snailjob.opensnail.com/docs/quickstart/quick_start.html)
+- [QuickStart](https://snailai.opensnail.com/guide/quick-start.html)
 
 # 期望
 
 欢迎提出更好的意见，帮助完善 Snail AI。
+
+## 系统截图
+
+|                                                                                              |                                                                                              |
+|----------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------|
+| ![系统截图](https://foruda.gitee.com/images/1778548151052200487/8110b826_5705488.png "屏幕截图") | ![系统截图](https://foruda.gitee.com/images/1778548259929534435/4a637132_5705488.png "屏幕截图") |
+| ![系统截图](https://foruda.gitee.com/images/1778548393302983265/7f62b626_5705488.png "屏幕截图") | ![系统截图](https://foruda.gitee.com/images/1778548415201930078/b3def0ad_5705488.png "屏幕截图") |
+| ![系统截图](https://foruda.gitee.com/images/1778548458453654504/5a955292_5705488.png "屏幕截图") | ![系统截图](https://foruda.gitee.com/images/1778548483651093760/8827bbaa_5705488.png "屏幕截图") |
+| ![系统截图](https://foruda.gitee.com/images/1778548510660280272/c582410f_5705488.png "屏幕截图") | ![系统截图](https://foruda.gitee.com/images/1778548539192977119/0d476c6b_5705488.png "屏幕截图") |
+| ![系统截图](https://foruda.gitee.com/images/1778548554716070174/5d13562e_5705488.png "屏幕截图") | ![系统截图](https://foruda.gitee.com/images/1778548585615181750/26aa8967_5705488.png "屏幕截图") |
+| ![系统截图](https://foruda.gitee.com/images/1778548596937179249/ff95b81b_5705488.png "屏幕截图") | ![系统截图](https://foruda.gitee.com/images/1778548616880644283/e1585de4_5705488.png "屏幕截图") |
+| ![系统截图](https://foruda.gitee.com/images/1778548634259005753/d30e9255_5705488.png "屏幕截图") | ![系统截图](https://foruda.gitee.com/images/1778548846501718976/b325242f_5705488.png "屏幕截图")     |
+
 
 # 版权
 
