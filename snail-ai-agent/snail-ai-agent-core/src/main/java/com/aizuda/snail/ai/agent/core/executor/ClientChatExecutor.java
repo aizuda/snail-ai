@@ -17,7 +17,6 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.model.tool.DefaultToolCallingManager;
 import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
@@ -164,12 +163,12 @@ public class ClientChatExecutor {
         applyConfigOptions(optionsBuilder, modelConfig.getConfigJson());
 
         ToolCallingManager toolCallingManager = ToolCallingManager.builder()
-                .observationRegistry(observationRegistry)
+                // .observationRegistry(observationRegistry)
                 .build();
         ChatModel chatModel = OpenAiChatModel.builder()
                 .openAiApi(api)
                 .defaultOptions(optionsBuilder.build())
-                .observationRegistry(observationRegistry)
+                // .observationRegistry(observationRegistry)
                 .toolCallingManager(toolCallingManager)
                 .build();
 
@@ -177,7 +176,7 @@ public class ClientChatExecutor {
                 .map(TracingToolCallbackWrapper::new)
                 .collect(java.util.stream.Collectors.toList());
 
-        return ChatClient.builder(chatModel, observationRegistry, null, null)
+        return ChatClient.builder(chatModel)
                 .defaultAdvisors(defaultAdvisors)
                 .defaultToolCallbacks(tracedTools)
                 .defaultToolContext(new HashMap<>())
