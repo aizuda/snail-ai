@@ -19,7 +19,7 @@
 
     <properties>
         <java.version>17</java.version>
-        <snail-ai.version>1.0.1</snail-ai.version>
+        <snail-ai.version>0.0.1</snail-ai.version>
     </properties>
 
     <dependencies>
