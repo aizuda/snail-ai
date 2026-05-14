@@ -1,0 +1,1 @@
+import{d as a,o as s,a as r,b as o}from"./index-0ChY-CaP.js";const t={class:"h-full"},c=["src"],m=a({name:"iframe-page",__name:"[url]",props:{url:{}},setup(e){return(l,n)=>(s(),r("div",t,[o("iframe",{id:"iframePage",class:"size-full",src:e.url},null,8,c)]))}});export{m as default};
