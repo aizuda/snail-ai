@@ -115,7 +115,7 @@ public class AgentCreateService {
                                 }
                             },
                             () -> {
-                                // onComplete: 流结束，保存到数据库
+                                // onComplete: 流结束，只推送完整数据，不落表
                                 try {
                                     String jsonContent = extractJson(buffer.get().toString());
                                     AgentInfo agentInfo = parseAgentInfo(jsonContent);
@@ -123,32 +123,13 @@ public class AgentCreateService {
                                     // 确保所有字段都推送了（防止漏推）
                                     ensureAllFieldsPushed(agentInfo, pushedFields, emitter);
 
-                                    // 保存到数据库
-                                    AgentPO agent = AgentPO.builder()
-                                            .name(agentInfo.name())
-                                            .description(agentInfo.description())
-                                            .instruction(agentInfo.instruction())
-                                            .greeting(agentInfo.greeting())
-                                            .presetQuestions(agentInfo.presetQuestions().isEmpty() ? null : JsonUtil.toJsonString(agentInfo.presetQuestions()))
-                                            .avatar(null)
-                                            .chatModelId(defaultModel.getId())
-                                            .creatorId(userId)
-                                            .ragId(0L)
-                                            .status(AgentStatusEnum.ACTIVE.getStatus())
-                                            .viewCount(0)
-                                            .mcpEnabled(false)
-                                            .webSearchEnabled(false)
-                                            .ragEnabled(false)
-                                            .isFeatured(false)
-                                            .build();
-                                    agentMapper.insert(agent);
-
-                                    emitter.send("[DONE]" + agent.getId() + "\n");
+                                    // 生成完成，但不保存到数据库。用户在确认页点确认后才会落表
+                                    emitter.send("[DONE]\n");
                                     emitter.complete();
                                 } catch (Exception e) {
-                                    log.error("保存智能体失败", e);
+                                    log.error("生成内容失败", e);
                                     try {
-                                        emitter.send("[ERROR]保存失败\n");
+                                        emitter.send("[ERROR]" + e.getMessage() + "\n");
                                         emitter.completeWithError(e);
                                     } catch (IOException ignored) {
                                     }

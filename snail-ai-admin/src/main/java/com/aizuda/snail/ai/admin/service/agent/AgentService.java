@@ -2,6 +2,7 @@ package com.aizuda.snail.ai.admin.service.agent;
 
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
+import com.aizuda.snail.ai.common.enums.agent.AgentStatusEnum;
 import com.aizuda.snail.ai.common.execption.SnailAiCommonException;
 import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.aizuda.snail.ai.persistence.security.UserSessionUtils;
@@ -79,6 +80,72 @@ public class AgentService {
                 .collect(Collectors.toList());
 
         return new PageResult<>(pageDTO, records);
+    }
+
+    public AgentResponseVO create(AgentRequestVO request) {
+        Long userId = UserSessionUtils.currentUserSession().getId();
+        
+        // 获取默认 CHAT 模型
+        AiModelConfigVO defaultModel = null;
+        if (request.getChatModelId() != null) {
+            defaultModel = aiModelConfigService.getModelConfig(request.getChatModelId());
+        } else {
+            defaultModel = aiModelConfigService.getDefaultModelByType(ModelTypeEnum.CHAT.getValue());
+        }
+        
+        if (defaultModel == null) {
+            throw new SnailAiCommonException("未找到可用的 CHAT 模型");
+        }
+        
+        // 构建 AgentPO
+        List<String> normalizedQuestions = normalizePresetQuestions(request.getPresetQuestions());
+        
+        AgentPO agent = AgentPO.builder()
+                .name(request.getName())
+                .description(request.getDescription())
+                .instruction(request.getInstruction())
+                .greeting(request.getGreeting() != null ? request.getGreeting().trim() : null)
+                .presetQuestions(normalizedQuestions.isEmpty() ? null : JsonUtil.toJsonString(normalizedQuestions))
+                .avatar(request.getAvatar())
+                .chatModelId(defaultModel.getId())
+                .creatorId(userId)
+                .ragId(request.getRagId() != null ? request.getRagId() : RAG_ID_NONE)
+                .status(AgentStatusEnum.ACTIVE.getStatus())
+                .viewCount(0)
+                .mcpEnabled(Boolean.TRUE.equals(request.getMcpEnabled()))
+                .skillEnabled(Boolean.TRUE.equals(request.getSkillEnabled()))
+                .webSearchEnabled(Boolean.TRUE.equals(request.getWebSearchEnabled()))
+                .ragEnabled(Boolean.TRUE.equals(request.getRagEnabled()))
+                .memoryEnabled(Boolean.TRUE.equals(request.getMemoryEnabled()))
+                .shortTermMemorySize(request.getShortTermMemorySize())
+                .isFeatured(false)
+                .appId(request.getAppId())
+                .build();
+        
+        agentMapper.insert(agent);
+        Long agentId = agent.getId();
+        
+        if (agentId == null) {
+            throw new SnailAiCommonException("创建智能体失败：无法获取生成的ID");
+        }
+        
+        // 关联 MCP 服务
+        if (request.getMcpServerIds() != null && !request.getMcpServerIds().isEmpty()) {
+            mcpServerService.updateAgentMcpServers(agentId, request.getMcpServerIds());
+        }
+        
+        // 关联 Skill
+        if (request.getSkillIds() != null && !request.getSkillIds().isEmpty()) {
+            skillService.updateAgentSkills(agentId, request.getSkillIds());
+        }
+        
+        // 重新查询以确保返回最新的数据
+        AgentPO savedAgent = agentMapper.selectById(agentId);
+        if (savedAgent == null) {
+            throw new SnailAiCommonException("创建智能体失败：保存后无法查询到数据");
+        }
+        
+        return toResponseVO(savedAgent);
     }
 
     public AgentResponseVO getById(Long id) {

@@ -83,6 +83,12 @@ public class AgentController {
         return emitter;
     }
 
+    @PostMapping
+    @LoginRequired
+    public Result<AgentResponseVO> create(@RequestBody @Validated AgentRequestVO request) {
+        return Result.ok(agentService.create(request));
+    }
+
     // ==================== Chat (SSE) ====================
 
     @PostMapping(value = "/{id}/chat", produces = MediaType.TEXT_PLAIN_VALUE)
