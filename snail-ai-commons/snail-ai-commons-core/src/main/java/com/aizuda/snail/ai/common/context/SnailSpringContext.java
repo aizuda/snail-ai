@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 /**
  * (复制自 snail-job)
  */
-@Component
+@Component("snailAiSpringContext")
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @Slf4j
 public class SnailSpringContext implements BeanFactoryPostProcessor, ApplicationContextAware {
