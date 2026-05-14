@@ -295,19 +295,14 @@ public class AgentCreateService {
 
                 java.util.regex.Matcher arrayMatcher = arrayPattern.matcher(content);
                 if (arrayMatcher.find()) {
-                    String arrayContent = arrayMatcher.group(0); // 包含完整的 "presetQuestions": [...]
-                    
-                    // 提取数组部分 [...]
-                    int bracketStart = arrayContent.indexOf('[');
-                    if (bracketStart != -1) {
-                        String arrayJson = arrayContent.substring(bracketStart);
-                        
-                        // 字段完成，推送完整 JSON 数组
-                        emitter.send("[FIELD_DONE]presetQuestions:" + arrayJson + "\n");
-                        pushedFields.add("presetQuestions");
+                    // 用捕获组拼出完整数组 JSON，并压缩为单行（避免换行被前端 split 截断）
+                    String arrayJson = "[" + arrayMatcher.group(1).replaceAll("\\s*\\n\\s*", " ").trim() + "]";
 
-                        log.info("字段 presetQuestions 完成并推送");
-                    }
+                    // 字段完成，推送完整 JSON 数组
+                    emitter.send("[FIELD_DONE]presetQuestions:" + arrayJson + "\n");
+                    pushedFields.add("presetQuestions");
+
+                    log.info("字段 presetQuestions 完成并推送");
                 }
             }
         } catch (Exception e) {
