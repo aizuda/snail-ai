@@ -141,8 +141,6 @@ public class UserService {
         // 如果提供了邮箱则使用邮箱，否则使用用户名
         if (StrUtil.isNotBlank(requestVO.getEmail())) {
             userPO.setEmail(requestVO.getEmail());
-        } else {
-            userPO.setEmail(requestVO.getUsername());
         }
         userPO.setPassword(encryptPassword(requestVO.getPassword()));
         userMapper.insert(userPO);
