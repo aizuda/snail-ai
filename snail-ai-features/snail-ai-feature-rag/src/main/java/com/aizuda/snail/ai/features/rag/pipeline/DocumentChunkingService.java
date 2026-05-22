@@ -58,10 +58,10 @@ public class DocumentChunkingService {
     }
 
     private int resolveChunkMaxTokens(RagConfigDO.ChunkParams cp) {
-        return Math.max(50, cp.getMaxChunkTokens());
+        return Math.max(50, cp.getMaxChunkTokens() != null ? cp.getMaxChunkTokens() : 500);
     }
 
     private int resolveChunkOverlap(RagConfigDO.ChunkParams cp) {
-        return Math.max(0, cp.getChunkOverlap());
+        return Math.max(0, cp.getChunkOverlap() != null ? cp.getChunkOverlap() : 0);
     }
 }

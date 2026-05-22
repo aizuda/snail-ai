@@ -6,14 +6,12 @@ import com.aizuda.snail.ai.vector.storage.vector.core.AbstractSnailAiVectorStore
 import com.aizuda.snail.ai.model.model.embedding.SnailEmbeddingModel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.ai.vectorstore.filter.Filter;
-import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 
 /**
  * PostgreSQL：单表 {@code vector_store} + metadata 区分 RAG / 记忆分区；
@@ -24,6 +22,7 @@ public class PgSnailAiVectorStore extends AbstractSnailAiVectorStore {
 
     private final JdbcTemplate jdbcTemplate;
     private final PgVectorSettings config;
+    private final DataSource dataSource;
 
     public PgSnailAiVectorStore(SnailEmbeddingModel snailEmbeddingModel,
                                 Integer embeddingDimensions,
@@ -54,27 +53,24 @@ public class PgSnailAiVectorStore extends AbstractSnailAiVectorStore {
         return VectorStoreType.PG_VECTOR.getType();
     }
 
-
     @Override
     public void deleteByIndexName(String indexName) {
         if (indexName == null || indexName.isBlank()) {
             throw new VectorStoreException("indexName 不能为空");
         }
 
-        jdbcTemplate.execute("drop table " + indexName);
+        jdbcTemplate.execute("DROP TABLE IF EXISTS " + indexName);
     }
 
     @Override
     public boolean test() {
-
-        try (Connection conn = jdbcTemplate.getDataSource().getConnection()) {
+        try (Connection conn = dataSource.getConnection()) {
             return conn.isValid(5);
         } catch (Exception e) {
             log.warn("PostgreSQL 连接测试失败: {}", e.getMessage());
             return false;
         }
     }
-
 
     @Override
     protected VectorStore getVectorStore(String indexName) {
