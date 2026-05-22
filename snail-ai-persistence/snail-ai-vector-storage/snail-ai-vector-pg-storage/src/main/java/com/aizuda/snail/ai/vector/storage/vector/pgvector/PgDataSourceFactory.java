@@ -41,7 +41,7 @@ public final class PgDataSourceFactory {
             return new HikariDataSource(hikariConfig);
         } catch (Exception e) {
             log.error("Failed to create PostgreSQL DataSource for pgvector", e);
-            throw new SnailAiException("Failed to create PostgreSQL DataSource for pgvector", e);
+            throw new SnailAiException("Failed to create PostgreSQL DataSource for pgvector, {}", e.getMessage());
         }
     }
 

@@ -1,6 +1,5 @@
 package com.aizuda.snail.ai.vector.storage.vector.pgvector;
 
-import com.aizuda.snail.ai.common.context.SnailSpringContext;
 import com.aizuda.snail.ai.vector.storage.enums.VectorStoreType;
 import com.aizuda.snail.ai.vector.storage.exception.VectorStoreException;
 import com.aizuda.snail.ai.vector.storage.vector.core.AbstractSnailAiVectorStore;
@@ -30,8 +29,8 @@ public class PgSnailAiVectorStore extends AbstractSnailAiVectorStore {
                                 Integer embeddingDimensions,
                                 PgVectorSettings config) {
         super(snailEmbeddingModel, embeddingDimensions);
-        this.jdbcTemplate = SnailSpringContext.getBean(JdbcTemplate.class);
         this.config = config;
+        this.jdbcTemplate = new JdbcTemplate(PgDataSourceFactory.createDataSource(config));
     }
 
     private PgVectorStore getStore(String indexName) {
