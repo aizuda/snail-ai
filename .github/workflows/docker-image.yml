@@ -50,7 +50,7 @@ jobs:
           DOCKER_NAMESPACE: ${{ secrets.DOCKER_NAMESPACE }}
           VERSION: ${{ steps.version.outputs.version }}
         with:
-          context: snail-ai-server-starter/
+          context: snail-ai-starter/
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
