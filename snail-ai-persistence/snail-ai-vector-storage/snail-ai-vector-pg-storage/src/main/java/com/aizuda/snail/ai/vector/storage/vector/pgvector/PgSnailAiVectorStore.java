@@ -22,7 +22,6 @@ public class PgSnailAiVectorStore extends AbstractSnailAiVectorStore {
 
     private final JdbcTemplate jdbcTemplate;
     private final PgVectorSettings config;
-    private final DataSource dataSource;
 
     public PgSnailAiVectorStore(SnailEmbeddingModel snailEmbeddingModel,
                                 Integer embeddingDimensions,
@@ -64,7 +63,7 @@ public class PgSnailAiVectorStore extends AbstractSnailAiVectorStore {
 
     @Override
     public boolean test() {
-        try (Connection conn = dataSource.getConnection()) {
+        try (Connection conn = jdbcTemplate.getDataSource().getConnection()) {
             return conn.isValid(5);
         } catch (Exception e) {
             log.warn("PostgreSQL 连接测试失败: {}", e.getMessage());
