@@ -7,6 +7,7 @@ import com.aizuda.snail.ai.common.dto.agent.SkillContentRequest;
 import com.aizuda.snail.ai.common.dto.agent.SkillContentResponse;
 import com.aizuda.snail.ai.common.dto.memory.ShortTermMemoryRequest;
 import com.aizuda.snail.ai.common.dto.rag.RagSearchRequest;
+import com.aizuda.snail.ai.common.dto.rag.RagSearchResponse;
 import com.aizuda.snail.ai.common.grpc.constant.UriConstants;
 
 import java.util.List;
@@ -50,7 +51,7 @@ public interface RpcClient {
      * 知识库搜索
      */
     @Mapping(path = UriConstants.CALLBACK_RAG_SEARCH, timeout = 120_000)
-    com.aizuda.snail.ai.common.dto.rag.RagSearchResponse searchRag(RagSearchRequest request);
+    RagSearchResponse searchRag(RagSearchRequest request);
 
 
 }

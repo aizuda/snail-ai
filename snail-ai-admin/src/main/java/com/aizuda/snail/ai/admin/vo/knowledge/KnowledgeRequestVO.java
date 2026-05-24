@@ -18,6 +18,10 @@ public class KnowledgeRequestVO {
     /** 向量库存储实例 ID（VECTOR_STORE） */
     private Long vectorStoreInstanceId;
 
+    /** 向量维度(必填)，不能超过模型与向量库最大支持维度 */
+    @NotNull(message = "dimensionOfVectorModel is required")
+    private Integer dimensionOfVectorModel;
+
     @NotNull(message = "embeddingModelId is required")
     private Long embeddingModelId;
 

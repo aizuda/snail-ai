@@ -34,10 +34,14 @@ public class VectorStoreFactory {
     private final EmbeddingModelDimensionService embeddingModelDimensionService;
 
     public SnailAiVectorStore create(RagPO knowledge) {
+        Integer dimension = knowledge.getDimensionOfVectorModel();
+        if (dimension == null) {
+            dimension = embeddingModelDimensionService.getEmbeddingDimension(knowledge.getEmbeddingModelId());
+        }
         return createForStoreInstance(
                 knowledge.getVectorStoreInstanceId(),
                 knowledge.getEmbeddingModelId(),
-                embeddingModelDimensionService.getEmbeddingDimension(knowledge.getEmbeddingModelId()));
+                dimension);
     }
 
 

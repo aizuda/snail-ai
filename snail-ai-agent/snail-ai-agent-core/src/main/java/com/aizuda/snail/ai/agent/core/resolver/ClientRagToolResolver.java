@@ -1,9 +1,13 @@
 package com.aizuda.snail.ai.agent.core.resolver;
 
+import com.aizuda.snail.ai.agent.common.rpc.RpcClient;
+import com.aizuda.snail.ai.agent.core.tool.RagSearchTool;
 import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.ToolCallback;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -13,12 +17,23 @@ import java.util.List;
  */
 @Slf4j
 public class ClientRagToolResolver {
+    private final RpcClient rpcClient;
 
-    public ClientRagToolResolver() {
+    public ClientRagToolResolver(RpcClient rpcClient) {
+        this.rpcClient = rpcClient;
     }
 
     public List<ToolCallback> resolve(ChatDispatchRequest request) {
-        // RAG tools are now handled by the backend without independent tool registration
-        return List.of();
+        ChatDispatchRequest.AgentConfig agentConfig = request.getAgentConfig();
+        if (agentConfig == null
+                || !Boolean.TRUE.equals(agentConfig.getRagEnabled())
+                || agentConfig.getRagId() == null) {
+            return List.of();
+        }
+
+        log.info("RAG tool resolved: ragId={}", agentConfig.getRagId());
+        return Arrays.asList(ToolCallbacks.from(
+                new RagSearchTool(agentConfig.getRagId(), rpcClient)
+        ));
     }
 }

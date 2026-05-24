@@ -134,8 +134,8 @@ public class SnailAiAgentAutoConfiguration {
     }
 
     @Bean
-    public ClientRagToolResolver clientRagToolResolver() {
-        return new ClientRagToolResolver();
+    public ClientRagToolResolver clientRagToolResolver(RpcClient rpcClient) {
+        return new ClientRagToolResolver(rpcClient);
     }
 
     @Bean

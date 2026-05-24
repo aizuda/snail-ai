@@ -7,6 +7,7 @@ import com.aizuda.snail.ai.admin.vo.StoreInstanceQueryVO;
 import com.aizuda.snail.ai.admin.vo.StoreInstanceRequestVO;
 import com.aizuda.snail.ai.admin.vo.StoreInstanceTestRequestVO;
 import com.aizuda.snail.ai.admin.vo.StoreInstanceVO;
+import com.aizuda.snail.ai.admin.vo.VectorDimensionConstraintVO;
 import com.aizuda.snail.ai.admin.service.StoreInstanceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -41,6 +42,13 @@ public class StoreInstanceController {
             return Result.fail("存储实例不存在");
         }
         return Result.ok(vo);
+    }
+
+    @GetMapping("/{id}/dimension-constraint")
+    @LoginRequired
+    public Result<VectorDimensionConstraintVO> getDimensionConstraint(@PathVariable("id") Long id,
+                                                                      @RequestParam("embeddingModelId") Long embeddingModelId) {
+        return Result.ok(storeInstanceService.getDimensionConstraint(id, embeddingModelId));
     }
 
     @PostMapping

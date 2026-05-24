@@ -16,6 +16,7 @@ import com.aizuda.snail.ai.persistence.rag.po.RagDocumentPO;
 import com.aizuda.snail.ai.admin.vo.knowledge.KnowledgeConfigRequestVO;
 import com.aizuda.snail.ai.persistence.rag.dataobject.RagConfigDO;
 import com.aizuda.snail.ai.admin.vo.knowledge.KnowledgeQueryVO;
+import com.aizuda.snail.ai.admin.service.VectorDimensionConstraintService;
 import com.aizuda.snail.ai.admin.service.model.AiModelConfigService;
 import com.aizuda.snail.ai.admin.vo.model.AiModelConfigVO;
 import com.aizuda.snail.ai.admin.vo.knowledge.KnowledgeRequestVO;
@@ -50,10 +51,12 @@ public class KnowledgeService {
     private final RagChunkMapper ragChunkMapper;
     private final StoreInstanceMapper storeInstanceMapper;
     private final AiModelConfigService aiModelConfigService;
+    private final VectorDimensionConstraintService vectorDimensionConstraintService;
     private final VectorStoreFactory vectorStoreFactory;
 
     public KnowledgeResponseVO create(KnowledgeRequestVO request) {
         validateKnowledgeStorage(request);
+        validateDimension(request);
         RagConfigDO chunkCfg = buildChunkConfigForCreate(request);
         validateMergedChunk(chunkCfg);
         Long vectorInst = request.getVectorStoreInstanceId();
@@ -63,6 +66,7 @@ public class KnowledgeService {
                 .description(request.getDescription())
                 .icon(request.getIcon())
                 .vectorStoreInstanceId(vectorInst)
+                .dimensionOfVectorModel(request.getDimensionOfVectorModel())
                 .embeddingModelId(request.getEmbeddingModelId())
                 .rerankModelId(request.getRerankModelId())
                 .searchEngineEnable(request.getSearchEngineEnable() != null && request.getSearchEngineEnable())
@@ -86,10 +90,12 @@ public class KnowledgeService {
         }
 
         validateKnowledgeStorage(request);
+        validateDimension(request);
         po.setName(request.getName());
         po.setDescription(request.getDescription());
         po.setIcon(request.getIcon());
         po.setVectorStoreInstanceId(request.getVectorStoreInstanceId());
+        po.setDimensionOfVectorModel(request.getDimensionOfVectorModel());
         po.setEmbeddingModelId(request.getEmbeddingModelId());
         po.setRerankModelId(request.getRerankModelId());
         po.setSearchEngineEnable(request.getSearchEngineEnable() != null && request.getSearchEngineEnable());
@@ -220,6 +226,7 @@ public class KnowledgeService {
                 .description(po.getDescription())
                 .icon(po.getIcon())
                 .vectorStoreInstanceId(po.getVectorStoreInstanceId())
+                .dimensionOfVectorModel(po.getDimensionOfVectorModel())
                 .embeddingModelId(po.getEmbeddingModelId())
                 .rerankModelId(po.getRerankModelId())
                 .searchEngineEnable(po.getSearchEngineEnable())
@@ -249,6 +256,13 @@ public class KnowledgeService {
                 throw new SnailAiCommonException("无效的搜索引擎实例");
             }
         }
+    }
+
+    private void validateDimension(KnowledgeRequestVO request) {
+        vectorDimensionConstraintService.validateRequestedDimension(
+                request.getDimensionOfVectorModel(),
+                request.getEmbeddingModelId(),
+                request.getVectorStoreInstanceId());
     }
 
     private Long resolveSearchEngineInstanceIdForUpdate(KnowledgeRequestVO request, RagPO existing) {

@@ -15,6 +15,7 @@ CREATE TABLE snail_ai_rag
     description               TEXT,
     icon                      VARCHAR(512),
     embedding_model_id        BIGINT(128)  NOT NULL,
+    dimension_of_vector_model INT          NOT NULL DEFAULT NULL COMMENT '向量维度',
     rerank_model_id           BIGINT(128),
     search_engine_instance_id BIGINT(128),
     vector_store_instance_id  BIGINT(128),

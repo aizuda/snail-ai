@@ -61,6 +61,12 @@ public class RagPO {
     private Long vectorStoreInstanceId;
 
     /**
+     * 向量维度（可选）
+     * 为空时使用嵌入模型默认维度
+     */
+    private Integer dimensionOfVectorModel;
+
+    /**
      * 嵌入模型ID (外键)
      * 关联到 snail_ai_model_config.id
      * 用于将文本转换为向量的嵌入模型

@@ -25,6 +25,9 @@ public class KnowledgeResponseVO {
 
     private Long vectorStoreInstanceId;
 
+    /** 向量维度（为空时使用模型默认维度） */
+    private Integer dimensionOfVectorModel;
+
     private Long embeddingModelId;
 
     /** 向量模型展示名（由 embeddingModelId 解析，仅响应用） */

@@ -18,6 +18,7 @@ import com.aizuda.snail.ai.persistence.admin.po.StoreInstancePO;
 import com.aizuda.snail.ai.admin.vo.PageResult;
 import com.aizuda.snail.ai.admin.vo.StoreInstanceQueryVO;
 import com.aizuda.snail.ai.admin.vo.StoreInstanceVO;
+import com.aizuda.snail.ai.admin.vo.VectorDimensionConstraintVO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -45,6 +46,7 @@ public class StoreInstanceService {
 
     private final StoreInstanceMapper mapper;
     private final RagMapper knowledgeMapper;
+    private final VectorDimensionConstraintService vectorDimensionConstraintService;
 
     public List<StoreInstanceVO> listByCategory(Integer category) {
         LambdaQueryWrapper<StoreInstancePO> qw = new LambdaQueryWrapper<>();
@@ -84,6 +86,10 @@ public class StoreInstanceService {
             return null;
         }
         return toVo(po);
+    }
+
+    public VectorDimensionConstraintVO getDimensionConstraint(Long id, Long embeddingModelId) {
+        return vectorDimensionConstraintService.resolveConstraint(embeddingModelId, id);
     }
 
     @Transactional
