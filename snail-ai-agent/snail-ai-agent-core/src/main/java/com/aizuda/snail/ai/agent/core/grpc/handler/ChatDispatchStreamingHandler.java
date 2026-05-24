@@ -1,13 +1,10 @@
 package com.aizuda.snail.ai.agent.core.grpc.handler;
 
 import com.aizuda.snail.ai.agent.common.counter.ActiveChatCounter;
+import com.aizuda.snail.ai.agent.core.resolver.*;
 import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
 import com.aizuda.snail.ai.common.dto.agent.ChatStreamResponse;
 import com.aizuda.snail.ai.agent.core.executor.ClientChatExecutor;
-import com.aizuda.snail.ai.agent.core.resolver.ClientMcpToolResolver;
-import com.aizuda.snail.ai.agent.core.resolver.ClientMemoryToolResolver;
-import com.aizuda.snail.ai.agent.core.resolver.ClientRagToolResolver;
-import com.aizuda.snail.ai.agent.core.resolver.ClientSkillToolResolver;
 import com.aizuda.snail.ai.common.constants.SystemConstants;
 import com.aizuda.snail.ai.common.grpc.auto.GrpcSnailAiResult;
 import com.aizuda.snail.ai.common.grpc.constant.UriConstants;
@@ -20,6 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.ToolCallback;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -38,6 +36,7 @@ public class ChatDispatchStreamingHandler implements GrpcStreamingRequestHandler
     private final ClientSkillToolResolver skillToolResolver;
     private final ClientRagToolResolver ragToolResolver;
     private final ClientMemoryToolResolver memoryToolResolver;
+    private final CustomToolCallbackProvider customToolCallbackProvider;
 
     @Override
     public boolean supports(String uri) {
@@ -99,6 +98,9 @@ public class ChatDispatchStreamingHandler implements GrpcStreamingRequestHandler
         } catch (Exception e) {
             log.warn("Failed to resolve Memory tools", e);
         }
+
+        // 用户自定义 @Tool Bean（启动时已缓存）
+        tools.addAll(Arrays.asList(customToolCallbackProvider.getToolCallbacks()));
 
         return tools;
     }
