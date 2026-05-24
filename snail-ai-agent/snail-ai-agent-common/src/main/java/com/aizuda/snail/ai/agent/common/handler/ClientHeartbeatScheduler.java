@@ -1,5 +1,6 @@
 package com.aizuda.snail.ai.agent.common.handler;
 
+import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties;
 import com.aizuda.snail.ai.agent.common.counter.ActiveChatCounter;
 import com.aizuda.snail.ai.agent.common.rpc.GrpcChannelProvider;
@@ -94,7 +95,7 @@ public class ClientHeartbeatScheduler {
 
     private ManagedChannel createServerChannel() {
         return NettyChannelBuilder
-                .forAddress(properties.getServerHost(), properties.getServer().getPort())
+                .forAddress(properties.getServer().getHost(), properties.getServer().getPort())
                 .usePlaintext()
                 .keepAliveTime(GRPC_KEEP_ALIVE_TIME_SECONDS, TimeUnit.SECONDS)
                 .keepAliveTimeout(GRPC_KEEP_ALIVE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -198,6 +199,10 @@ public class ClientHeartbeatScheduler {
 
     private String resolveLocalIp() {
         try {
+            String host = properties.getHost();
+            if (StrUtil.isNotBlank(host)) {
+                return host;
+            }
             return InetAddress.getLocalHost().getHostAddress();
         } catch (Exception e) {
             log.warn("Failed to resolve local IP, using default: {}", DEFAULT_HOST_IP);

@@ -70,7 +70,7 @@ public class OpenApiHttpInvokeHandler implements InvocationHandler {
     private String buildBaseUrl() {
         String host = openApiProperties.getServerHost();
         if (host == null || host.trim().isEmpty()) {
-            host = agentProperties.getServerHost();
+            host = agentProperties.getServer().getHost();
         }
 
         String protocol = openApiProperties.isHttps() ? "https" : "http";

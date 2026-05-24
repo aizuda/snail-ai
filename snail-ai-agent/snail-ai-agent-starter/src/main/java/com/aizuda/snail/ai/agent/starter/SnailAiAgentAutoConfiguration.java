@@ -196,7 +196,7 @@ public class SnailAiAgentAutoConfiguration {
         heartbeatTask.start();
 
         log.info("Snail-AI Agent started: appId={}, grpcPort={}, server={}:{}",
-                props.getAppId(), props.getPort(), props.getServerHost(), props.getServerPort());
+                props.getAppId(), props.getPort(), props.getServer().getHost(), props.getServer().getPort());
     }
 
     @PreDestroy

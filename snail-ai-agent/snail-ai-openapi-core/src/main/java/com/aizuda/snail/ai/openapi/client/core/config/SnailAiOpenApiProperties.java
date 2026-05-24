@@ -15,7 +15,7 @@ public class SnailAiOpenApiProperties {
     private boolean enabled = false;
 
     /**
-     * 默认可以不配置，不配置则取{@link SnailAiAgentProperties#getServerHost()}
+     * 默认可以不配置，不配置则取{@link SnailAiAgentProperties#getServer().gethost()} }
      */
     private String serverHost;
     /**

@@ -17,12 +17,6 @@ public class SnailAiAgentProperties {
     /** 认证令牌 */
     private String token;
 
-    /** Server地址 */
-    private String serverHost = "127.0.0.1";
-
-    /** ServerPRC端口 */
-    private int serverPort = 18888;
-
     /** 指定客户端端口 */
     private int port = 17889;
 
