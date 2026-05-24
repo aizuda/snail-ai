@@ -22,7 +22,7 @@ spring:
   datasource:
     name: snail_ai
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/snail_ai_dev?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&useUnicode=true
+    url: jdbc:mysql://localhost:3306/snail_ai?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&useUnicode=true
     username: root
     password: 123456
     type: com.zaxxer.hikari.HikariDataSource
