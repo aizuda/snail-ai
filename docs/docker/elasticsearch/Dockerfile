@@ -1,0 +1,5 @@
+FROM docker.elastic.co/elasticsearch/elasticsearch:9.4.1
+LABEL maintainer="snail-ai"
+LABEL description="elasticsearch9"
+RUN elasticsearch-plugin install --batch https://release.infinilabs.com/analysis-ik/stable/elasticsearch-analysis-ik-9.4.1.zip && \
+    elasticsearch-plugin install --batch https://release.infinilabs.com/analysis-pinyin/stable/elasticsearch-analysis-pinyin-9.4.1.zip
