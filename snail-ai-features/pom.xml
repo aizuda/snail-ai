@@ -13,6 +13,8 @@
 
     <artifactId>snail-ai-features</artifactId>
     <packaging>pom</packaging>
+    <name>snail-ai-features</name>
+    <description>snail-ai-features</description>
 
     <modules>
         <module>snail-ai-feature-common</module>

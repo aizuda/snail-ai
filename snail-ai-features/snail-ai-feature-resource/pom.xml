@@ -13,6 +13,8 @@
 
     <artifactId>snail-ai-feature-resource</artifactId>
     <packaging>jar</packaging>
+    <name>snail-ai-feature-resource</name>
+    <description>snail-ai-feature-resource</description>
 
     <dependencies>
         <dependency>

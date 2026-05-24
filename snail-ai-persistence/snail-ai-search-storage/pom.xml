@@ -14,7 +14,7 @@
     <artifactId>snail-ai-search-storage</artifactId>
     <packaging>pom</packaging>
     <name>snail-ai-search-storage</name>
-    <description>搜索持久化聚合：template + 各搜索后端实现</description>
+    <description>snail-ai-search-storage</description>
 
     <modules>
         <module>snail-ai-search-template</module>

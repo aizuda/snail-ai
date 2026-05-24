@@ -13,6 +13,8 @@
 
     <artifactId>snail-ai-openapi-starter</artifactId>
     <packaging>jar</packaging>
+    <name>snail-ai-openapi-starter</name>
+    <description>snail-ai-openapi-starter</description>
 
     <dependencies>
         <dependency>

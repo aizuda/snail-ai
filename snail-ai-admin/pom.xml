@@ -13,6 +13,8 @@
 
     <artifactId>snail-ai-admin</artifactId>
     <packaging>jar</packaging>
+    <name>snail-ai-admin</name>
+    <description>snail-ai-admin</description>
 
     <dependencies>
         <dependency>

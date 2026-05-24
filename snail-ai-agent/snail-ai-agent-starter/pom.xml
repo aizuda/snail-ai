@@ -13,6 +13,8 @@
 
     <artifactId>snail-ai-agent-starter</artifactId>
     <packaging>jar</packaging>
+    <name>snail-ai-agent-starter</name>
+    <description>snail-ai-agent-starter</description>
 
     <dependencies>
         <dependency>

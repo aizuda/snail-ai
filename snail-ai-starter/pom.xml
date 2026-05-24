@@ -13,6 +13,8 @@
 
     <artifactId>snail-ai-starter</artifactId>
     <packaging>jar</packaging>
+    <name>snail-ai-starter</name>
+    <description>snail-ai-starter</description>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>

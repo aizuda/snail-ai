@@ -14,6 +14,7 @@
     <artifactId>snail-ai-vector-pg-storage</artifactId>
     <packaging>jar</packaging>
     <name>snail-ai-vector-pg-storage</name>
+    <description>snail-ai-vector-pg-storage</description>
 
     <dependencies>
         <dependency>

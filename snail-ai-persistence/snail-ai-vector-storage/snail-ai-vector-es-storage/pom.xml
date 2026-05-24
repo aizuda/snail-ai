@@ -14,6 +14,7 @@
     <artifactId>snail-ai-vector-es-storage</artifactId>
     <packaging>jar</packaging>
     <name>snail-ai-vector-es-storage</name>
+    <description>snail-ai-vector-es-storage</description>
 
     <dependencies>
         <dependency>

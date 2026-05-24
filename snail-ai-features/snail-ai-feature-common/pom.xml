@@ -13,6 +13,8 @@
 
     <artifactId>snail-ai-feature-common</artifactId>
     <packaging>jar</packaging>
+    <name>snail-ai-feature-common</name>
+    <description>snail-ai-feature-common</description>
 
     <dependencies>
         <dependency>

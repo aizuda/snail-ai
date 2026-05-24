@@ -13,6 +13,8 @@
 
     <artifactId>snail-ai-persistence</artifactId>
     <packaging>pom</packaging>
+    <name>snail-ai-persistence</name>
+    <description>snail-ai-persistence</description>
 
     <modules>
         <module>snail-ai-biz-storage</module>

@@ -14,7 +14,7 @@
     <artifactId>snail-ai-biz-template</artifactId>
     <packaging>jar</packaging>
     <name>snail-ai-biz-template</name>
-    <description>业务库持久化抽象（方言/公共契约等可放此处）</description>
+    <description>snail-ai-biz-template</description>
 
     <dependencies>
         <dependency>

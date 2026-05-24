@@ -13,6 +13,8 @@
 
     <artifactId>snail-ai-feature-memory</artifactId>
     <packaging>jar</packaging>
+    <name>snail-ai-feature-memory</name>
+    <description>snail-ai-feature-memory</description>
 
     <dependencies>
         <dependency>

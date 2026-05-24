@@ -14,6 +14,7 @@
     <artifactId>snail-ai-vector-milvus-storage</artifactId>
     <packaging>jar</packaging>
     <name>snail-ai-vector-milvus-storage</name>
+    <description>snail-ai-vector-milvus-storage</description>
 
     <dependencies>
         <dependency>

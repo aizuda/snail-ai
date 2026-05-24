@@ -7,6 +7,8 @@
     <groupId>com.aizuda</groupId>
     <version>${revision}</version>
     <name>snail-ai</name>
+    <description>snail-ai</description>
+    <url>https://gitee.com/aizuda/snail-ai</url>
     <artifactId>snail-ai</artifactId>
     <packaging>pom</packaging>
 

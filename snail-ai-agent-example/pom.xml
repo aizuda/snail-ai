@@ -15,7 +15,8 @@
     <artifactId>snail-ai-agent-example</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
-    <description>Snail-AI Agent 客户端示例工程</description>
+    <name>snail-ai-agent-example</name>
+    <description>snail-ai-agent-example</description>
 
     <properties>
         <java.version>21</java.version>

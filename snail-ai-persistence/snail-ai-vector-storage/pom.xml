@@ -14,7 +14,7 @@
     <artifactId>snail-ai-vector-storage</artifactId>
     <packaging>pom</packaging>
     <name>snail-ai-vector-storage</name>
-    <description>向量持久化聚合：template + 各后端实现 + bootstrap 装配</description>
+    <description>snail-ai-vector-storage</description>
 
     <modules>
         <module>snail-ai-vector-template</module>

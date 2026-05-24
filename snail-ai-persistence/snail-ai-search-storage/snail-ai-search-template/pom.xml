@@ -14,7 +14,7 @@
     <artifactId>snail-ai-search-template</artifactId>
     <packaging>jar</packaging>
     <name>snail-ai-search-template</name>
-    <description>搜索引擎 API、工厂与公共定义</description>
+    <description>snail-ai-search-template</description>
 
     <dependencies>
         <dependency>

@@ -13,6 +13,8 @@
 
     <artifactId>snail-ai-feature-model</artifactId>
     <packaging>jar</packaging>
+    <name>snail-ai-feature-model</name>
+    <description>snail-ai-feature-model</description>
 
     <dependencies>
         <dependency>

@@ -14,7 +14,7 @@
     <artifactId>snail-ai-vector-template</artifactId>
     <packaging>jar</packaging>
     <name>snail-ai-vector-template</name>
-    <description>向量存储 API、抽象与公共枚举/异常</description>
+    <description>snail-ai-vector-template</description>
 
     <dependencies>
         <dependency>

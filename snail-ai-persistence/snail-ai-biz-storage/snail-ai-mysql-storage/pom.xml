@@ -14,7 +14,7 @@
     <artifactId>snail-ai-mysql-storage</artifactId>
     <packaging>jar</packaging>
     <name>snail-ai-mysql-storage</name>
-    <description>应用主库 MyBatis PO/Mapper（当前 MySQL；可扩展其他厂商 storage 模块）</description>
+    <description>snail-ai-mysql-storage</description>
 
     <dependencies>
         <dependency>

@@ -13,6 +13,8 @@
 
     <artifactId>snail-ai-feature-rag</artifactId>
     <packaging>jar</packaging>
+    <name>snail-ai-feature-rag</name>
+    <description>snail-ai-feature-rag</description>
 
     <dependencies>
         <dependency>

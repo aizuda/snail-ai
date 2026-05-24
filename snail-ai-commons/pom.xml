@@ -13,6 +13,8 @@
 
     <artifactId>snail-ai-commons</artifactId>
     <packaging>pom</packaging>
+    <name>snail-ai-commons</name>
+    <description>snail-ai-commons</description>
 
     <modules>
         <module>snail-ai-commons-core</module>

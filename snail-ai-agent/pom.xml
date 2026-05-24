@@ -13,6 +13,8 @@
 
     <artifactId>snail-ai-agent</artifactId>
     <packaging>pom</packaging>
+    <name>snail-ai-agent</name>
+    <description>snail-ai-agent</description>
 
     <modules>
         <module>snail-ai-agent-common</module>

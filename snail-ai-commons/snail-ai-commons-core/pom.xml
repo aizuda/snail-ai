@@ -13,6 +13,8 @@
 
     <artifactId>snail-ai-commons-core</artifactId>
     <packaging>jar</packaging>
+    <name>snail-ai-commons-core</name>
+    <description>snail-ai-commons-core</description>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
