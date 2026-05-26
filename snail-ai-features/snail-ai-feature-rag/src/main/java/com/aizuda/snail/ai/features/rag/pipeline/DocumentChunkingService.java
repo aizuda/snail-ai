@@ -22,6 +22,10 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class DocumentChunkingService {
+    private static final int DEFAULT_MAX_CHUNK_TOKENS = 2000;
+    private static final int MIN_CHUNK_TOKENS = 50;
+    private static final int DEFAULT_CHUNK_OVERLAP = 0;
+
     private final ChunkStrategyFactory chunkStrategyFactory;
 
     public List<ChunkDTO> chunk(String content, RagPO knowledge) {
@@ -35,8 +39,8 @@ public class DocumentChunkingService {
                 .maxTokens(resolveChunkMaxTokens(cp))
                 .overlap(resolveChunkOverlap(cp))
                 .customDelimiter(resolveDelimiterForChunk(knowledge, cp))
-                .chunkRegex( cp.getChunkRegex())
-                .chunkModelId(cp.getChunkModelId())
+                .chunkRegex(resolveChunkRegex(cp))
+                .chunkModelId(resolveChunkModelId(cp))
                 .build();
 
         ChunkStrategy strategy = chunkStrategyFactory.getStrategy(mode);
@@ -58,10 +62,24 @@ public class DocumentChunkingService {
     }
 
     private int resolveChunkMaxTokens(RagConfigDO.ChunkParams cp) {
-        return Math.max(50, cp.getMaxChunkTokens() != null ? cp.getMaxChunkTokens() : 500);
+        if (cp == null || cp.getMaxChunkTokens() == null) {
+            return DEFAULT_MAX_CHUNK_TOKENS;
+        }
+        return Math.max(MIN_CHUNK_TOKENS, cp.getMaxChunkTokens());
     }
 
     private int resolveChunkOverlap(RagConfigDO.ChunkParams cp) {
-        return Math.max(0, cp.getChunkOverlap() != null ? cp.getChunkOverlap() : 0);
+        if (cp == null || cp.getChunkOverlap() == null) {
+            return DEFAULT_CHUNK_OVERLAP;
+        }
+        return Math.max(DEFAULT_CHUNK_OVERLAP, cp.getChunkOverlap());
+    }
+
+    private String resolveChunkRegex(RagConfigDO.ChunkParams cp) {
+        return cp != null ? cp.getChunkRegex() : null;
+    }
+
+    private Long resolveChunkModelId(RagConfigDO.ChunkParams cp) {
+        return cp != null ? cp.getChunkModelId() : null;
     }
 }
