@@ -10,6 +10,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -30,19 +33,17 @@ public class ShellTool {
     public String execute(
             @ToolParam(description = "The shell command to execute") String command,
             @ToolParam(description = "Working directory (optional, defaults to skill directory)", required = false) String workDir) {
-        log.info("shell:{}", command);
+        log.info("shell command requested");
 
         if (command == null || command.trim().isEmpty()) {
             return "Error: command cannot be empty";
         }
 
         try {
-            // 确定工作目录
-            String effectiveWorkDir = (workDir != null && !workDir.trim().isEmpty())
-                    ? workDir : workingDirectory;
-            Path workPath = Paths.get(effectiveWorkDir);
+            Path basePath = Paths.get(workingDirectory).toAbsolutePath().normalize();
+            Path workPath = resolveWorkPath(basePath, workDir);
             if (!Files.exists(workPath) || !Files.isDirectory(workPath)) {
-                return "Error: 工作目录不存在: " + effectiveWorkDir;
+                return "Error: 工作目录不存在: " + workPath;
             }
 
             // 检测操作系统，构建命令
@@ -56,32 +57,25 @@ public class ShellTool {
 
             // 读取输出
             StringBuilder output = new StringBuilder();
-            int lineCount = 0;
-            boolean truncated = false;
-
-            try (BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    lineCount++;
-                    if (lineCount <= maxOutputLines) {
-                        if (output.length() > 0) {
-                            output.append("\n");
-                        }
-                        output.append(line);
-                    } else {
-                        truncated = true;
-                    }
-                }
-            }
+            OutputStats stats = new OutputStats();
+            ExecutorService readerExecutor = Executors.newSingleThreadExecutor(r -> {
+                Thread thread = new Thread(r, "shell-output-reader");
+                thread.setDaemon(true);
+                return thread;
+            });
+            Future<?> readerFuture = readerExecutor.submit(() -> readOutput(process, output, stats));
 
             // 等待进程结束，超时则杀死
             boolean finished = process.waitFor(commandTimeout, TimeUnit.MILLISECONDS);
             if (!finished) {
                 process.destroyForcibly();
+                readerFuture.cancel(true);
+                readerExecutor.shutdownNow();
                 return "Error: 命令执行超时 (" + (commandTimeout / 1000) + "秒)";
             }
 
+            readerFuture.get(5, TimeUnit.SECONDS);
+            readerExecutor.shutdownNow();
             int exitCode = process.exitValue();
 
             // 构建结果
@@ -92,10 +86,10 @@ public class ShellTool {
                 result.append(output);
             }
 
-            if (truncated) {
+            if (stats.truncated) {
                 result.append("\n\n... 输出已截断，显示前 ")
                         .append(maxOutputLines).append(" 行 (共 ")
-                        .append(lineCount).append(" 行)");
+                        .append(stats.lineCount).append(" 行)");
             }
 
             if (exitCode != 0) {
@@ -110,6 +104,39 @@ public class ShellTool {
         }
     }
 
+    private Path resolveWorkPath(Path basePath, String workDir) {
+        Path requestedPath = (workDir != null && !workDir.trim().isEmpty())
+                ? Paths.get(workDir.trim())
+                : basePath;
+        Path resolved = requestedPath.isAbsolute()
+                ? requestedPath.toAbsolutePath().normalize()
+                : basePath.resolve(requestedPath).normalize();
+        if (!resolved.startsWith(basePath)) {
+            throw new IllegalArgumentException("工作目录必须位于技能目录内");
+        }
+        return resolved;
+    }
+
+    private void readOutput(Process process, StringBuilder output, OutputStats stats) {
+        try (BufferedReader reader = new BufferedReader(
+                new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                stats.lineCount++;
+                if (stats.lineCount <= maxOutputLines) {
+                    if (output.length() > 0) {
+                        output.append("\n");
+                    }
+                    output.append(line);
+                } else {
+                    stats.truncated = true;
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Failed to read shell output: {}", e.getMessage());
+        }
+    }
+
     private String[] getShellCommand(String command) {
         String os = System.getProperty("os.name", "").toLowerCase();
         if (os.contains("win")) {
@@ -117,5 +144,10 @@ public class ShellTool {
         } else {
             return new String[]{"/bin/sh", "-c", command};
         }
+    }
+
+    private static class OutputStats {
+        private int lineCount;
+        private boolean truncated;
     }
 }

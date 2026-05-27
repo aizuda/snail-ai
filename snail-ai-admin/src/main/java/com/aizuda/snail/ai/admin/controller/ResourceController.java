@@ -2,6 +2,7 @@ package com.aizuda.snail.ai.admin.controller;
 
 import com.aizuda.snail.ai.admin.security.annotation.LoginRequired;
 import com.aizuda.snail.ai.admin.security.annotation.OriginalControllerReturnValue;
+import com.aizuda.snail.ai.admin.enums.RoleEnum;
 import com.aizuda.snail.ai.admin.service.resource.ResourceAdminService;
 import com.aizuda.snail.ai.admin.vo.PageResult;
 import com.aizuda.snail.ai.admin.vo.resource.ResourceQueryVO;
@@ -39,6 +40,7 @@ public class ResourceController {
     }
 
     @GetMapping("/{id}/preview")
+    @LoginRequired(role = RoleEnum.USER)
     @OriginalControllerReturnValue
     public ResponseEntity<InputStreamResource> preview(@PathVariable("id") Long id) {
         ResourcePO resource = resourceService.getById(id);
@@ -60,6 +62,7 @@ public class ResourceController {
     }
 
     @GetMapping("/{id}/download")
+    @LoginRequired(role = RoleEnum.USER)
     @OriginalControllerReturnValue
     public ResponseEntity<InputStreamResource> download(@PathVariable("id") Long id) {
         ResourcePO resource = resourceService.getById(id);

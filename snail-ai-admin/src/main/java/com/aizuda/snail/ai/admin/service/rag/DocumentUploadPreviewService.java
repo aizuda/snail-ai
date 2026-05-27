@@ -59,6 +59,7 @@ public class DocumentUploadPreviewService {
 
     // 内存 Token 缓存：token -> {state, expiresAt}
     private final Map<String, TokenEntry> tokenCache = new ConcurrentHashMap<>();
+    private final Map<Long, Object> uploadLocks = new ConcurrentHashMap<>();
 
     private final RagDocumentService ragDocumentService;
     private final ResourceService resourceService;
@@ -172,8 +173,9 @@ public class DocumentUploadPreviewService {
         UploadPreviewState state = loadState(request.getPreviewToken());
         RagPO knowledge = ragDocumentService.requireKnowledgeOrThrow(state.getRagId());
 
-        // 使用本地锁替代分布式锁 (单机场景下足够)
-        synchronized (ragDocumentService.uploadLockKey(knowledge.getId())) {
+        // 使用稳定锁对象，避免对临时 String 加锁导致同一知识库并发提交。
+        Object lock = uploadLocks.computeIfAbsent(knowledge.getId(), ignored -> new Object());
+        synchronized (lock) {
             UploadCommitResultVO result = doCommit(knowledge, state, request);
             
             // 整批 commit 完成才删除 token，避免部分失败时用户无法重试

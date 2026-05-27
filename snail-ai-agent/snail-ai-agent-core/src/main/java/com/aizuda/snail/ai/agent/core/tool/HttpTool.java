@@ -4,11 +4,13 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 
+import java.net.InetAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Locale;
 
 /**
  * 内置 HTTP 工具 — 支持 LLM 直接发起 HTTP 请求调用远程接口
@@ -28,7 +30,7 @@ public class HttpTool {
         this.timeoutMs = timeoutMs;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(Duration.ofMillis(timeoutMs))
-                .followRedirects(HttpClient.Redirect.NORMAL)
+                .followRedirects(HttpClient.Redirect.NEVER)
                 .build();
     }
 
@@ -40,7 +42,7 @@ public class HttpTool {
             @ToolParam(description = "Request body (POST only, typically a JSON string)", required = false) String body,
             @ToolParam(description = "Content-Type header (optional, defaults to application/json)", required = false) String contentType,
             @ToolParam(description = "Additional headers, format: Header1:Value1\\nHeader2:Value2", required = false) String headers) {
-        log.info("http_request url:{} body:{}", url, body);
+        log.info("http_request url:{}", url);
 
         if (url == null || url.trim().isEmpty()) {
             return "Error: URL cannot be empty";
@@ -58,8 +60,11 @@ public class HttpTool {
         }
 
         try {
+            URI uri = URI.create(trimmedUrl);
+            validatePublicHttpTarget(uri);
+
             HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
-                    .uri(URI.create(trimmedUrl))
+                    .uri(uri)
                     .timeout(Duration.ofMillis(timeoutMs));
 
             String effectiveContentType = (contentType != null && !contentType.trim().isEmpty())
@@ -72,6 +77,9 @@ public class HttpTool {
                     if (colonIdx > 0 && colonIdx < trimmed.length() - 1) {
                         String key = trimmed.substring(0, colonIdx).trim();
                         String value = trimmed.substring(colonIdx + 1).trim();
+                        if ("host".equalsIgnoreCase(key)) {
+                            return "Error: 不允许覆盖 Host 请求头";
+                        }
                         requestBuilder.header(key, value);
                     }
                 }
@@ -110,5 +118,39 @@ public class HttpTool {
             log.error("HTTP 请求失败: {} {}", httpMethod, trimmedUrl, e);
             return "Error: " + e.getMessage();
         }
+    }
+
+    private void validatePublicHttpTarget(URI uri) throws Exception {
+        String scheme = uri.getScheme();
+        if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
+            throw new IllegalArgumentException("URL 必须以 http:// 或 https:// 开头");
+        }
+        String host = uri.getHost();
+        if (host == null || host.isBlank()) {
+            throw new IllegalArgumentException("URL host 不能为空");
+        }
+
+        String normalizedHost = host.toLowerCase(Locale.ROOT);
+        if ("localhost".equals(normalizedHost) || normalizedHost.endsWith(".localhost")) {
+            throw new IllegalArgumentException("禁止访问本机地址");
+        }
+
+        InetAddress[] addresses = InetAddress.getAllByName(host);
+        for (InetAddress address : addresses) {
+            if (isBlockedAddress(address)) {
+                throw new IllegalArgumentException("禁止访问本机或内网地址: " + host);
+            }
+        }
+    }
+
+    private boolean isBlockedAddress(InetAddress address) {
+        byte[] raw = address.getAddress();
+        boolean uniqueLocalIpv6 = raw.length == 16 && (raw[0] & 0xfe) == 0xfc;
+        return address.isAnyLocalAddress()
+                || address.isLoopbackAddress()
+                || address.isLinkLocalAddress()
+                || address.isSiteLocalAddress()
+                || address.isMulticastAddress()
+                || uniqueLocalIpv6;
     }
 }

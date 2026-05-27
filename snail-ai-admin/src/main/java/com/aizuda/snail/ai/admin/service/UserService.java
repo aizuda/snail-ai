@@ -26,14 +26,19 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.nio.charset.StandardCharsets;
+import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 
 /**
  * 用户服务
@@ -48,6 +53,11 @@ public class UserService {
     private final UserMapper userMapper;
     
     private static final String PASSWORD_SALT = "snail_ai_2026";
+    private static final String PASSWORD_HASH_PREFIX = "pbkdf2";
+    private static final int PBKDF2_ITERATIONS = 120_000;
+    private static final int PBKDF2_SALT_BYTES = 16;
+    private static final int PBKDF2_KEY_BITS = 256;
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     /**
      * 生成随机字符串（用于JWT签名密钥）
@@ -63,9 +73,20 @@ public class UserService {
     }
 
     /**
-     * 加密密码 (SHA-256)
+     * 加密密码 (PBKDF2WithHmacSHA256)
      */
     private String encryptPassword(String password) {
+        byte[] salt = new byte[PBKDF2_SALT_BYTES];
+        SECURE_RANDOM.nextBytes(salt);
+        byte[] hash = pbkdf2(password, salt, PBKDF2_ITERATIONS);
+        return String.join("$",
+                PASSWORD_HASH_PREFIX,
+                String.valueOf(PBKDF2_ITERATIONS),
+                Base64.getEncoder().encodeToString(salt),
+                Base64.getEncoder().encodeToString(hash));
+    }
+
+    private String legacySha256Password(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest((password + PASSWORD_SALT).getBytes(StandardCharsets.UTF_8));
@@ -87,7 +108,43 @@ public class UserService {
      * 验证密码
      */
     private boolean verifyPassword(String rawPassword, String encryptedPassword) {
-        return encryptPassword(rawPassword).equals(encryptedPassword);
+        if (StrUtil.isBlank(rawPassword) || StrUtil.isBlank(encryptedPassword)) {
+            return false;
+        }
+        if (encryptedPassword.startsWith(PASSWORD_HASH_PREFIX + "$")) {
+            return verifyPbkdf2Password(rawPassword, encryptedPassword);
+        }
+        return legacySha256Password(rawPassword).equals(encryptedPassword);
+    }
+
+    private boolean isLegacyPasswordHash(String encryptedPassword) {
+        return StrUtil.isNotBlank(encryptedPassword) && !encryptedPassword.startsWith(PASSWORD_HASH_PREFIX + "$");
+    }
+
+    private boolean verifyPbkdf2Password(String rawPassword, String encryptedPassword) {
+        try {
+            String[] parts = encryptedPassword.split("\\$");
+            if (parts.length != 4 || !PASSWORD_HASH_PREFIX.equals(parts[0])) {
+                return false;
+            }
+            int iterations = Integer.parseInt(parts[1]);
+            byte[] salt = Base64.getDecoder().decode(parts[2]);
+            byte[] expected = Base64.getDecoder().decode(parts[3]);
+            byte[] actual = pbkdf2(rawPassword, salt, iterations);
+            return MessageDigest.isEqual(expected, actual);
+        } catch (Exception e) {
+            log.warn("Invalid password hash format");
+            return false;
+        }
+    }
+
+    private byte[] pbkdf2(String password, byte[] salt, int iterations) {
+        try {
+            PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, PBKDF2_KEY_BITS);
+            return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).getEncoded();
+        } catch (GeneralSecurityException e) {
+            throw new SnailAiCommonException("密码加密失败", e);
+        }
     }
 
     /**
@@ -211,6 +268,11 @@ public class UserService {
         // 验证密码
         if (!verifyPassword(requestVO.getPassword(), userPO.getPassword())) {
             throw new SnailAiCommonException("账号或密码错误");
+        }
+
+        if (isLegacyPasswordHash(userPO.getPassword())) {
+            userPO.setPassword(encryptPassword(requestVO.getPassword()));
+            userMapper.updateById(userPO);
         }
 
         // 生成token（使用授权码作为JWT签名密钥）
