@@ -14,7 +14,7 @@ public interface RagChunkMapper extends BaseMapper<RagChunkPO> {
             SELECT id AS chunkId, content,
                    ts_rank(to_tsvector('simple', content_segment),
                            to_tsquery('simple', #{tsQuery})) AS score
-            FROM snail_ai_rag_chunk
+            FROM sai_rag_chunk
             WHERE rag_id = #{ragId}
               AND content_segment IS NOT NULL
               AND to_tsvector('simple', content_segment) @@ to_tsquery('simple', #{tsQuery})
@@ -25,6 +25,6 @@ public interface RagChunkMapper extends BaseMapper<RagChunkPO> {
                                       @Param("ragId") Long ragId,
                                       @Param("limit") int limit);
 
-    @Select("SELECT MAX(chunk_index) FROM snail_ai_rag_chunk WHERE document_id = #{documentId}")
+    @Select("SELECT MAX(chunk_index) FROM sai_rag_chunk WHERE document_id = #{documentId}")
     Integer selectMaxChunkIndex(@Param("documentId") Long documentId);
 }

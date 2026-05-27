@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 /**
  * RAG文档持久化对象
- * 表: snail_ai_rag_document
+ * 表: sai_rag_document
  *
  * 表示知识库中的一个完整文档
  * 支持多种文件类型（PDF、Word、TXT等）和存储后端（本地、OSS、S3等）
@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
  * @author opensnail
  * @date 2026-04-14
  */
-@TableName("snail_ai_rag_document")
+@TableName("sai_rag_document")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -38,7 +38,7 @@ public class RagDocumentPO {
 
     /**
      * RAG ID (外键)
-     * 关联到 snail_ai_rag.id
+     * 关联到 sai_rag.id
      * 该文档所属的 RAG
      */
     @TableField("rag_id")
@@ -96,7 +96,7 @@ public class RagDocumentPO {
 
     /**
      * 资源库ID (外键)
-     * 关联到 snail_ai_resource.id
+     * 关联到 sai_resource.id
      * 文件通过资源模块统一存储
      */
     private Long resourceId;

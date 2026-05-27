@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 /**
  * RAG 持久化对象
- * 表: snail_ai_rag
+ * 表: sai_rag
  *
  * 表示一个知识库
  * 知识库由多个文档和向量库组成
@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
  * @author opensnail
  * @date 2026-04-14
  */
-@TableName("snail_ai_rag")
+@TableName("sai_rag")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -55,7 +55,7 @@ public class RagPO {
 
     /**
      * 向量库实例ID (外键, 可为null)
-     * 关联到 snail_ai_store_instance.id
+     * 关联到 sai_store_instance.id
      * 通过此ID可关联查询向量库的类型信息
      */
     private Long vectorStoreInstanceId;
@@ -68,14 +68,14 @@ public class RagPO {
 
     /**
      * 嵌入模型ID (外键)
-     * 关联到 snail_ai_model_config.id
+     * 关联到 sai_model_config.id
      * 用于将文本转换为向量的嵌入模型
      */
     private Long embeddingModelId;
 
     /**
      * 重排模型ID (外键, 可为null)
-     * 关联到 snail_ai_model_config.id
+     * 关联到 sai_model_config.id
      * 用于对检索结果进行重排
      */
     private Long rerankModelId;
@@ -89,7 +89,7 @@ public class RagPO {
 
     /**
      * 搜索引擎实例ID (外键, 可为null)
-     * 关联到 snail_ai_store_instance.id
+     * 关联到 sai_store_instance.id
      * 通过此ID可关联查询搜索引擎的类型信息
      */
     private Long searchEngineInstanceId;

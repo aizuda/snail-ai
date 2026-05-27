@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 /**
  * Agent使用统计持久化对象
- * 表: snail_ai_agent_usage_stat
+ * 表: sai_agent_usage_stat
  *
  * 按Agent和用户维度统计使用情况
  * 按天聚合统计消息数、会话数等指标
@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
  * @author opensnail
  * @date 2026-04-14
  */
-@TableName("snail_ai_agent_usage_stat")
+@TableName("sai_agent_usage_stat")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -37,13 +37,13 @@ public class AgentUsageStatPO {
 
     /**
      * Agent ID (外键)
-     * 关联到 snail_ai_agent.id
+     * 关联到 sai_agent.id
      */
     private Long agentId;
 
     /**
      * 用户ID (外键)
-     * 关联到 snail_ai_user.id
+     * 关联到 sai_user.id
      */
     private Long userId;
 

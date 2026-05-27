@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 /**
  * RAG文本块持久化对象
- * 表: snail_ai_rag_chunk
+ * 表: sai_rag_chunk
  *
  * 表示知识库文档分割后的最小语义单元
  * 每个chunk是一个可独立向量化和检索的文本片段
@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
  * @author opensnail
  * @date 2026-04-14
  */
-@TableName("snail_ai_rag_chunk")
+@TableName("sai_rag_chunk")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -37,7 +37,7 @@ public class RagChunkPO {
 
     /**
      * RAG ID (外键)
-     * 关联到 snail_ai_rag.id
+     * 关联到 sai_rag.id
      * 该 chunk 所属的 RAG
      */
     @TableField("rag_id")
@@ -45,7 +45,7 @@ public class RagChunkPO {
 
     /**
      * 文档ID (外键)
-     * 关联到 snail_ai_rag_document.id
+     * 关联到 sai_rag_document.id
      * 该chunk来源的文档
      */
     private Long documentId;

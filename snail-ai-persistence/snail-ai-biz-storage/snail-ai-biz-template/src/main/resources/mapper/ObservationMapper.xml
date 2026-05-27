@@ -3,7 +3,7 @@
 <mapper namespace="com.aizuda.snail.ai.persistence.agent.mapper.ObservationMapper">
 
     <insert id="insertBatch" parameterType="java.util.List">
-        INSERT INTO snail_ai_observation (id, trace_id, parent_observation_id, type, name,
+        INSERT INTO sai_observation (id, trace_id, parent_observation_id, type, name,
                                           input, output, start_time, end_time,
                                           model, level, environment,
                                           input_tokens, output_tokens, total_cost, attributes)

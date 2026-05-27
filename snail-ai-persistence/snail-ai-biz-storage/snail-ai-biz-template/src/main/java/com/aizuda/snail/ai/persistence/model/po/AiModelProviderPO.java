@@ -12,13 +12,13 @@ import java.time.LocalDateTime;
 
 /**
  * AI模型提供商信息持久化对象
- * 表: snail_ai_model_provider
+ * 表: sai_model_provider
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("snail_ai_model_provider")
+@TableName("sai_model_provider")
 public class AiModelProviderPO {
 
     /**

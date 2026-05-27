@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 /**
  * MCP (Model Context Protocol) 服务器持久化对象
- * 表: snail_ai_mcp_server
+ * 表: sai_mcp_server
  *
  * 表示一个外部MCP服务器配置
  * 支持多种传输方式：SSE、HTTP流、Stdio进程
@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
  * @author opensnail
  * @date 2026-04-14
  */
-@TableName("snail_ai_mcp_server")
+@TableName("sai_mcp_server")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -142,7 +142,7 @@ public class McpServerPO implements McpServerRef {
 
     /**
      * 创建者用户ID (外键)
-     * 关联到 snail_ai_user.id
+     * 关联到 sai_user.id
      * 该MCP服务器的配置创建人
      */
     private Long creatorId;

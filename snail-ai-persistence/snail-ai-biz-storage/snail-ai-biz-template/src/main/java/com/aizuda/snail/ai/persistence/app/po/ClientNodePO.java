@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 /**
  * 客户端节点信息持久化对象
- * 表: snail_ai_client_node
+ * 表: sai_client_node
  *
  * 记录分布式系统中各个client节点的信息和状态
  * 用于负载均衡、健康检查和资源分配
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
  * @author opensnail
  * @date 2026-04-14
  */
-@TableName("snail_ai_client_node")
+@TableName("sai_client_node")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -36,7 +36,7 @@ public class ClientNodePO {
 
     /**
      * 应用ID (外键)
-     * 关联到 snail_ai_app.app_id
+     * 关联到 sai_app.app_id
      * 标识该节点属于哪个应用
      */
     private String appId;

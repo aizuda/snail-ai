@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 /**
  * 技能(Skill)信息持久化对象
- * 表: snail_ai_skill
+ * 表: sai_skill
  *
  * 表示一个可被Agent执行的技能
  * 技能可以包含SKILL.md定义和支撑文件（脚本、参考资料等）
@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
  * @author opensnail
  * @date 2026-04-14
  */
-@TableName("snail_ai_skill")
+@TableName("sai_skill")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -98,7 +98,7 @@ public class SkillPO {
 
     /**
      * 创建者用户ID (外键)
-     * 关联到 snail_ai_user.id
+     * 关联到 sai_user.id
      * 该技能的创建人
      */
     private Long creatorId;

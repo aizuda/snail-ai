@@ -236,7 +236,7 @@ public class AgentService {
     }
 
     /**
-     * 删除单个对话及其关联数据（不删除长期记忆 {@code snail_ai_conversation_memory}）
+     * 删除单个对话及其关联数据（不删除长期记忆 {@code sai_memory_conversation}）
      */
     @Transactional
     public void deleteConversation(Long agentId, String conversationId) {
@@ -273,7 +273,7 @@ public class AgentService {
     }
 
     /**
-     * 分页查询当前用户在指定 Agent 下的会话列表（{@code snail_ai_agent_conversation} + 记录表聚合统计）
+     * 分页查询当前用户在指定 Agent 下的会话列表（{@code sai_agent_conversation} + 记录表聚合统计）
      */
     public PageResult<List<ConversationSummaryVO>> listConversations(Long agentId, AgentConversationQueryVO query) {
         Long userId = UserSessionUtils.currentUserSession().getId();

@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 /**
  * 记忆变更历史持久化对象
- * 表: snail_ai_memory_conversation_history
+ * 表: sai_memory_conversation_history
  *
  * 记录每条记忆的完整变更审计日志
  * 支持版本回溯、审计追踪、变更分析等
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
  * @author opensnail
  * @date 2026-04-14
  */
-@TableName("snail_ai_memory_conversation_history")
+@TableName("sai_memory_conversation_history")
 @Data
 @Builder
 @NoArgsConstructor
@@ -36,7 +36,7 @@ public class ConversationMemoryHistoryPO {
 
     /**
      * 记忆ID (外键)
-     * 关联到 snail_ai_conversation_memory.id
+     * 关联到 sai_memory_conversation.id
      * 该历史记录所属的记忆
      */
     private Long memoryId;
@@ -75,7 +75,7 @@ public class ConversationMemoryHistoryPO {
 
     /**
      * 操作者用户ID (外键, 可为null)
-     * 关联到 snail_ai_user.id
+     * 关联到 sai_user.id
      * 执行该变更的用户（如果是自动操作则为null）
      */
     private Long actorId;

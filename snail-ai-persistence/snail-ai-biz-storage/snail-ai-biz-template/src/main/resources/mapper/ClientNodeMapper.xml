@@ -3,7 +3,7 @@
 <mapper namespace="com.aizuda.snail.ai.persistence.app.mapper.ClientNodeMapper">
 
     <insert id="insertBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
-        INSERT INTO snail_ai_client_node (app_id, host_id, host_ip, grpc_port,
+        INSERT INTO sai_client_node (app_id, host_id, host_ip, grpc_port,
                                           max_concurrent, active_chats, supported_providers,
                                           labels, expire_dt)
         VALUES
@@ -23,7 +23,7 @@
     </insert>
 
     <update id="updateBatchExpireAt" parameterType="java.util.List">
-        UPDATE snail_ai_client_node rt,
+        UPDATE sai_client_node rt,
                (
                     <foreach collection="list" item="item" separator="UNION ALL">
                         SELECT

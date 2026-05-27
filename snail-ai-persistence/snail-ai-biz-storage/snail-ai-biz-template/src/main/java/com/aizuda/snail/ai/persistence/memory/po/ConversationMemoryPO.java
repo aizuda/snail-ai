@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 
 /**
  * 对话记忆持久化对象
- * 表: snail_ai_memory_conversation
+ * 表: sai_memory_conversation
  *
  * 存储从多轮对话中LLM提取出来的结构化记忆
  * 包括事实、决策、偏好、任务进度等
@@ -23,7 +23,7 @@ import java.time.LocalDateTime;
  * @author opensnail
  * @date 2026-04-14
  */
-@TableName("snail_ai_memory_conversation")
+@TableName("sai_memory_conversation")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -39,21 +39,21 @@ public class ConversationMemoryPO {
 
     /**
      * 智能体ID (外键)
-     * 关联到 snail_ai_agent.id
+     * 关联到 sai_agent.id
      * 该记忆属于的Agent
      */
     private Long agentId;
 
     /**
      * 用户ID (外键)
-     * 关联到 snail_ai_user.id
+     * 关联到 sai_user.id
      * 该记忆涉及的用户
      */
     private Long userId;
 
     /**
      * 创建者ID (外键, 可为null)
-     * 关联到 snail_ai_user.id
+     * 关联到 sai_user.id
      * 创建或更新该记忆的操作者
      */
     private Long actorId;
@@ -68,14 +68,14 @@ public class ConversationMemoryPO {
 
     /**
      * 会话ID (外键)
-     * 关联到 snail_ai_agent_conversation.id
+     * 关联到 sai_agent_conversation.id
      * 该记忆来源的会话
      */
     private String conversationId;
 
     /**
      * 源消息ID (外键, 可为null)
-     * 关联到 snail_ai_agent_conversation_record.id
+     * 关联到 sai_agent_conversation_record.id
      * 该记忆提取自的原始消息
      */
     private Long sourceMessageId;
@@ -125,7 +125,7 @@ public class ConversationMemoryPO {
 
     /**
      * 向量库实例ID (外键)
-     * 关联到 snail_ai_store_instance.id
+     * 关联到 sai_store_instance.id
      * 该记忆的向量存储位置
      */
     private Long vectorStoreInstanceId;

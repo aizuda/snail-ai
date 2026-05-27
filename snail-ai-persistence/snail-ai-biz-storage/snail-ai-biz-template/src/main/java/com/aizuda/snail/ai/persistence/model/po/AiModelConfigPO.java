@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 /**
  * AI模型配置持久化对象
- * 表: snail_ai_model_config
+ * 表: sai_model_config
  *
  * 支持多提供商、多模型类型的灵活配置
  * 支持全局配置(owner_id=null)和个人配置(owner_id=userId)
@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("snail_ai_model_config")
+@TableName("sai_model_config")
 public class AiModelConfigPO {
 
     /**
@@ -32,7 +32,7 @@ public class AiModelConfigPO {
 
     /**
      * 提供商ID (外键)
-     * 关联到 snail_ai_model_provider.id
+     * 关联到 sai_model_provider.id
      */
     private Long providerId;
 

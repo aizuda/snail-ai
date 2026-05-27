@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 /**
  * 模型使用统计持久化对象
- * 表: snail_ai_model_usage_stat
+ * 表: sai_model_usage_stat
  *
  * 按模型和用户维度统计使用情况
  * 定期从usage_log表聚合更新
@@ -22,7 +22,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@TableName("snail_ai_model_usage_stat")
+@TableName("sai_model_usage_stat")
 public class AiModelUsageStatPO {
 
     /**
@@ -33,13 +33,13 @@ public class AiModelUsageStatPO {
 
     /**
      * 模型ID (外键)
-     * 关联到 snail_ai_model_config.id
+     * 关联到 sai_model_config.id
      */
     private Long modelId;
 
     /**
      * 用户ID (外键)
-     * 关联到 snail_ai_user.id
+     * 关联到 sai_user.id
      */
     private Long userId;
 

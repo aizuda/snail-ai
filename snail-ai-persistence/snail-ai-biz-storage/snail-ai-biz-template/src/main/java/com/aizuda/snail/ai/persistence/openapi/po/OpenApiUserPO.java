@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
-@TableName("snail_ai_openapi_user")
+@TableName("sai_openapi_user")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

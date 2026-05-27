@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 /**
  * 对话摘要PO
  */
-@TableName("snail_ai_memory_conversation_summary")
+@TableName("sai_memory_conversation_summary")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

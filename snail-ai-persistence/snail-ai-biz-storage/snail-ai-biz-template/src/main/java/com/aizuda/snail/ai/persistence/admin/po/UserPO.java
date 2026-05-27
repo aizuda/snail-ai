@@ -9,13 +9,13 @@ import java.time.LocalDateTime;
 
 /**
  * 用户信息持久化对象
- * 表: snail_ai_user
+ * 表: sai_user
  *
  * @author opensnail
  * @date 2026-04-14
  */
 @Data
-@TableName("snail_ai_user")
+@TableName("sai_user")
 public class UserPO {
 
     /**

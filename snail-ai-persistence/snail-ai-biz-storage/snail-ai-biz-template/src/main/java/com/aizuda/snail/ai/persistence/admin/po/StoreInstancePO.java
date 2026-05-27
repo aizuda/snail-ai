@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 /**
  * 存储实例持久化对象
- * 表: snail_ai_store_instance
+ * 表: sai_store_instance
  *
  * 表示一个外部存储服务的配置实例
  * 支持多种存储类型：向量库(PG_VECTOR/Milvus/ES)、文件存储等
@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
  * @author opensnail
  * @date 2026-04-14
  */
-@TableName("snail_ai_store_instance")
+@TableName("sai_store_instance")
 @Data
 @Builder
 @NoArgsConstructor

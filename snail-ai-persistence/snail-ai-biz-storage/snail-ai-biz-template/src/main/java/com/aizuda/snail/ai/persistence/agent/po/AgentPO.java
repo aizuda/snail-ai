@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 
 /**
  * 智能体（Agent）信息持久化对象
- * 表: snail_ai_agent
+ * 表: sai_agent
  * <p>
  * 代表一个AI助手/Agent，包含其配置、能力、记忆、知识库等信息
  * 支持多种能力组合：MCP、技能、网络搜索、知识库、记忆等
@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
  * @author opensnail
  * @date 2026-04-14
  */
-@TableName("snail_ai_agent")
+@TableName("sai_agent")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -73,7 +73,7 @@ public class AgentPO {
 
     /**
      * 聊天模型ID (外键)
-     * 关联到 snail_ai_model_config.id
+     * 关联到 sai_model_config.id
      * 该Agent使用的主要LLM模型
      */
     private Long chatModelId;
@@ -109,7 +109,7 @@ public class AgentPO {
 
     /**
      * 绑定的 RAG ID (外键, 可为null)
-     * 关联到 snail_ai_rag.id
+     * 关联到 sai_rag.id
      * 禁用时显式写入 NULL，覆盖全局 NOT_EMPTY 策略
      */
     @TableField("rag_id")
@@ -131,7 +131,7 @@ public class AgentPO {
 
     /**
      * 创建者用户ID (外键, 可为null)
-     * 关联到 snail_ai_user.id
+     * 关联到 sai_user.id
      * 该Agent的创建人，用于权限管理和溯源
      */
     private Long creatorId;
@@ -164,7 +164,7 @@ public class AgentPO {
 
     /**
      * 关联应用ID (外键, 可为null)
-     * 关联到 snail_ai_app.app_id
+     * 关联到 sai_app.app_id
      * NULL: 本地执行
      * 具体值: 远程应用执行（分布式模式）
      */

@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 /**
  * 技能支撑文件持久化对象
- * 表: snail_ai_skill_file
+ * 表: sai_skill_file
  *
  * 存储Skill包中的支撑文件（脚本、文档、参考资料等）
  * 这些文件与SKILL.md定义一起组成完整的技能包
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
  * @author opensnail
  * @date 2026-04-14
  */
-@TableName("snail_ai_skill_file")
+@TableName("sai_skill_file")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -36,7 +36,7 @@ public class SkillFilePO {
 
     /**
      * 技能ID (外键)
-     * 关联到 snail_ai_skill.id
+     * 关联到 sai_skill.id
      * 该文件属于的技能包
      */
     private Long skillId;

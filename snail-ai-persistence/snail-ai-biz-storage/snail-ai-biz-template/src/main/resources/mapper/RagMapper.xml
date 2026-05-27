@@ -3,7 +3,7 @@
 <mapper namespace="com.aizuda.snail.ai.persistence.agent.mapper.TraceMapper">
 
     <insert id="insertBatch" parameterType="java.util.List">
-        INSERT INTO snail_ai_trace (id, agent_id, user_id, conversation_id, name,
+        INSERT INTO sai_trace (id, agent_id, user_id, conversation_id, name,
                                     input, output, start_time, end_time, duration_ms,
                                     metadata, tags, model, app_release, version,
                                     environment, bookmarked, status, status_message)

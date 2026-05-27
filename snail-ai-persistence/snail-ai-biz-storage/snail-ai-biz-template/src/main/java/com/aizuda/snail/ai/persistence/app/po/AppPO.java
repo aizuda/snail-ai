@@ -12,14 +12,14 @@ import java.time.LocalDateTime;
 
 /**
  * App应用信息持久化对象
- * 表: snail_ai_app
+ * 表: sai_app
  *
  * 用于管理和隔离不同应用的配置、数据、Agent等资源
  *
  * @author opensnail
  * @date 2026-04-14
  */
-@TableName("snail_ai_app")
+@TableName("sai_app")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

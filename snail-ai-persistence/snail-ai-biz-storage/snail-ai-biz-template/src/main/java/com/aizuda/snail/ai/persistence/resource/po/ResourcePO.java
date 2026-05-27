@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 /**
  * 资源文件持久化对象
- * 表: snail_ai_resource
+ * 表: sai_resource
  *
  * 表示系统中的文件资源
  * 支持多种存储后端和业务类型的关联
@@ -21,7 +21,7 @@ import java.time.LocalDateTime;
  * @author opensnail
  * @date 2026-04-14
  */
-@TableName("snail_ai_resource")
+@TableName("sai_resource")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -95,7 +95,7 @@ public class ResourcePO {
 
     /**
      * 创建者用户ID (外键)
-     * 关联到 snail_ai_user.id
+     * 关联到 sai_user.id
      * 上传或创建该资源的用户
      */
     private Long creatorId;

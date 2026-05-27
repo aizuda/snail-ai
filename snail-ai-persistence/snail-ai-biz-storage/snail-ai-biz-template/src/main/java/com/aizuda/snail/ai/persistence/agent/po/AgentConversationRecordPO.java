@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 
 /**
  * 对话记录持久化对象
- * 表: snail_ai_agent_conversation_record
+ * 表: sai_agent_conversation_record
  *
  * 记录用户与Agent间的每条对话消息
  * 支持多轮对话追踪、上下文恢复、记忆提取等
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
  * @author opensnail
  * @date 2026-04-14
  */
-@TableName("snail_ai_agent_conversation_record")
+@TableName("sai_agent_conversation_record")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -37,21 +37,21 @@ public class AgentConversationRecordPO {
 
     /**
      * 智能体ID (外键)
-     * 关联到 snail_ai_agent.id
+     * 关联到 sai_agent.id
      * 标识该消息来自于哪个Agent
      */
     private Long agentId;
 
     /**
      * 会话ID (外键)
-     * 关联到 snail_ai_agent_conversation.id
+     * 关联到 sai_agent_conversation.id
      * 同一会话内的消息共享相同的conversationId，用于多轮对话关联
      */
     private String conversationId;
 
     /**
      * 用户ID (外键)
-     * 关联到 snail_ai_user.id
+     * 关联到 sai_user.id
      * 发送消息的用户
      */
     private Long userId;
