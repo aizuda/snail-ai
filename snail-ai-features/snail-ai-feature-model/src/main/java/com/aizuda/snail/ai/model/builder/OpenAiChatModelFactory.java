@@ -6,16 +6,12 @@ import io.micrometer.observation.ObservationRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
-import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
-import org.springframework.ai.openai.api.OpenAiApi;
-import org.springframework.ai.retry.RetryUtils;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.RestClient;
 
 import java.time.Duration;
+import java.util.Map;
 
 /**
  * OpenAI ChatModel 工厂实现
@@ -45,36 +41,13 @@ public class OpenAiChatModelFactory implements ChatModelFactory {
 
             log.debug("Creating OpenAiChatModel for provider: {}, model: {}, baseUrl: {}",
                     providerKey, modelKey, baseUrl);
-            // 2. 超时时间：读取超时用配置的 timeoutMs，未配置默认 60s；连接超时取 min(timeoutMs, 10s)
-            Long timeoutMs = configExtAttrsDTO.getTimeoutMs();
-            long readTimeoutMs = (timeoutMs != null && timeoutMs > 0) ? timeoutMs : 60_000L;
-            long connectTimeoutMs = Math.min(readTimeoutMs, 10_000L);
 
-            SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-            requestFactory.setConnectTimeout(Duration.ofMillis(connectTimeoutMs));
-            requestFactory.setReadTimeout(Duration.ofMillis(readTimeoutMs));
+            OpenAiChatOptions chatOptions = buildChatOptions(baseUrl, apiKey, modelKey, configExtAttrsDTO);
 
-            RestClient.Builder restClientBuilder = RestClient.builder()
-                    .requestFactory(requestFactory);
-
-            // 3. 创建 OpenAiApi（带超时的 RestClient）
-            OpenAiApi openAiApi = OpenAiApi.builder()
-                    .apiKey(apiKey)
-                    .baseUrl(baseUrl)
-                    .completionsPath(configExtAttrsDTO.getCompletionsPath())
-                    .restClientBuilder(restClientBuilder)
-                    .build();
-
-            // 3. 解析配置JSON，构建 OpenAiChatOptions
-            OpenAiChatOptions chatOptions = buildChatOptions(modelKey, configExtAttrsDTO);
-
-            // 4. 创建 ChatModel（使用全局共享 ObservationRegistry，由 ObservationConfig 统一配置）
+            // Spring AI 2.0.0-M7 使用 OpenAI Java SDK，客户端由 OpenAiChatOptions 统一初始化。
             OpenAiChatModel chatModel = OpenAiChatModel.builder()
-                    .openAiApi(openAiApi)
-                    .defaultOptions(chatOptions)
-                    .retryTemplate(RetryUtils.DEFAULT_RETRY_TEMPLATE)
+                    .options(chatOptions)
                     .observationRegistry(observationRegistry)
-                    .toolCallingManager(ToolCallingManager.builder().observationRegistry(observationRegistry).build())
                     .build();
 
 
@@ -93,11 +66,17 @@ public class OpenAiChatModelFactory implements ChatModelFactory {
         }
     }
 
-    private OpenAiChatOptions buildChatOptions(String modelKey, ConfigExtAttrsDTO config) {
-        OpenAiChatOptions.Builder builder = OpenAiChatOptions.builder().model(modelKey);
+    private OpenAiChatOptions buildChatOptions(String baseUrl, String apiKey, String modelKey, ConfigExtAttrsDTO config) {
+        OpenAiChatOptions.Builder builder = OpenAiChatOptions.builder()
+                .baseUrl(baseUrl)
+                .apiKey(apiKey)
+                .model(modelKey);
         if (config == null) {
             return builder.build();
         }
+        Long timeoutMs = config.getTimeoutMs();
+        long readTimeoutMs = (timeoutMs != null && timeoutMs > 0) ? timeoutMs : 60_000L;
+        builder.timeout(Duration.ofMillis(readTimeoutMs));
         if (config.getTemperature() != null) {
             builder.temperature(config.getTemperature());
         }
@@ -118,6 +97,14 @@ public class OpenAiChatModelFactory implements ChatModelFactory {
         }
         if (config.getSeed() != null) {
             builder.seed(config.getSeed().intValue());
+        }
+        if (config.getTopK() != null) {
+            builder.extraBody(Map.of("top_k", config.getTopK()));
+        }
+        if (config.getCompletionsPath() != null && !config.getCompletionsPath().isBlank()
+                && !"/v1/chat/completions".equals(config.getCompletionsPath())) {
+            log.warn("Spring AI 2.0.0-M7 OpenAI SDK no longer supports per-model completionsPath directly: {}",
+                    config.getCompletionsPath());
         }
         return builder.build();
     }

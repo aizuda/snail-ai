@@ -10,6 +10,7 @@ import com.aizuda.snail.ai.common.util.JsonUtil;
 import io.micrometer.observation.ObservationRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.ToolCallAdvisor;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -20,10 +21,7 @@ import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
-import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.ai.tool.ToolCallback;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.web.client.RestClient;
 import reactor.core.publisher.Flux;
 
 import java.time.Duration;
@@ -136,50 +134,46 @@ public class ClientChatExecutor {
             throw new IllegalArgumentException("Model config is required");
         }
 
-        ConfigExtAttrsDTO extConfig = modelConfig.getConfigJson();
+        ConfigExtAttrsDTO extConfig = modelConfig.getConfigJson() != null
+                ? modelConfig.getConfigJson()
+                : new ConfigExtAttrsDTO();
 
         Long timeoutMs = extConfig.getTimeoutMs();
         long readTimeoutMs = (timeoutMs != null && timeoutMs > 0) ? timeoutMs : 60_000L;
-        long connectTimeoutMs = Math.min(readTimeoutMs, 10_000L);
-
-        SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
-        requestFactory.setConnectTimeout(Duration.ofMillis(connectTimeoutMs));
-        requestFactory.setReadTimeout(Duration.ofMillis(readTimeoutMs));
-
-        OpenAiApi.Builder apiBuilder = OpenAiApi.builder()
-                .baseUrl(modelConfig.getApiEndpoint())
-                .apiKey(modelConfig.getApiKey())
-                .restClientBuilder(RestClient.builder().requestFactory(requestFactory));
-        if (extConfig.getCompletionsPath() != null && !extConfig.getCompletionsPath().isEmpty()) {
-            apiBuilder.completionsPath(extConfig.getCompletionsPath());
+        if (extConfig.getCompletionsPath() != null && !extConfig.getCompletionsPath().isBlank()
+                && !"/v1/chat/completions".equals(extConfig.getCompletionsPath())) {
+            log.warn("Spring AI 2.0.0-M7 OpenAI SDK no longer supports per-model completionsPath directly: {}",
+                    extConfig.getCompletionsPath());
         }
-        OpenAiApi api = apiBuilder.build();
 
         OpenAiChatOptions.Builder optionsBuilder = OpenAiChatOptions.builder()
-                .internalToolExecutionEnabled(true)  // ✅ 启用自动工具执行，支持 ReAct 循环
+                .baseUrl(modelConfig.getApiEndpoint())
+                .apiKey(modelConfig.getApiKey())
+                .timeout(Duration.ofMillis(readTimeoutMs))
                 .model(modelConfig.getModelKey())
-                .streamUsage(true);  // ✅ 让 OpenAI API 在流式最终 chunk 中返回 usage
+                .streamUsage(true);
 
         applyConfigOptions(optionsBuilder, modelConfig.getConfigJson());
 
-        ToolCallingManager toolCallingManager = ToolCallingManager.builder()
-                // .observationRegistry(observationRegistry)
-                .build();
         ChatModel chatModel = OpenAiChatModel.builder()
-                .openAiApi(api)
-                .defaultOptions(optionsBuilder.build())
+                .options(optionsBuilder.build())
                 // .observationRegistry(observationRegistry)
-                .toolCallingManager(toolCallingManager)
                 .build();
 
         List<ToolCallback> tracedTools = tools.stream()
                 .map(TracingToolCallbackWrapper::new)
                 .collect(java.util.stream.Collectors.toList());
 
+        ToolCallAdvisor toolCallAdvisor = ToolCallAdvisor.builder()
+                .toolCallingManager(ToolCallingManager.builder().build())
+                .build();
+
         return ChatClient.builder(chatModel)
                 .defaultAdvisors(defaultAdvisors)
-                .defaultToolCallbacks(tracedTools)
-                .defaultToolContext(new HashMap<>())
+                .defaultTools(toolSpec -> toolSpec
+                        .callbacks(tracedTools)
+                        .context(new HashMap<>())
+                        .advisor(toolCallAdvisor))
                 .build();
     }
 
