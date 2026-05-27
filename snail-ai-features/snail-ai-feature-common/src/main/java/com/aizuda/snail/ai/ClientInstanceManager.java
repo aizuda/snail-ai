@@ -18,6 +18,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -419,7 +421,16 @@ public class ClientInstanceManager {
                 new LambdaQueryWrapper<AppPO>()
                         .eq(AppPO::getAppId, appId)
                         .eq(AppPO::getStatus, APP_STATUS_ENABLED));
-        return app != null && app.getToken().equals(token);
+        return app != null && tokenEquals(token, app.getToken());
+    }
+
+    private boolean tokenEquals(String actual, String expected) {
+        if (actual == null || expected == null) {
+            return false;
+        }
+        return MessageDigest.isEqual(
+                actual.getBytes(StandardCharsets.UTF_8),
+                expected.getBytes(StandardCharsets.UTF_8));
     }
 
     // ==================== 实例移除 ====================

@@ -25,11 +25,11 @@ import com.aizuda.snail.ai.vector.storage.vector.api.VectorAddRequest;
 import com.aizuda.snail.ai.vector.storage.vector.api.VectorDocument;
 import com.aizuda.snail.ai.vector.storage.vector.api.SnailAiVectorStore;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.google.common.collect.Lists;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.support.TransactionTemplate;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -49,7 +49,6 @@ public class DocumentPipeline {
     private final DocumentChunkingService documentChunkingService;
     private final VectorStoreFactory vectorStoreFactory;
     private final SearchEngineFactory searchEngineFactory;
-    private final TransactionTemplate transactionTemplate;
     private final ResourceService resourceService;
 
     public void processDocument(Long documentId) {
@@ -59,15 +58,19 @@ public class DocumentPipeline {
             return;
         }
 
-        RagPO knowledge = knowledgeMapper.selectById(document.getRagId());
-        if (knowledge == null) {
-            log.error("Knowledge not found: {} for document: {}", document.getRagId(), documentId);
-            updateStatus(documentId, RagDocumentStatus.FAILED, "Knowledge not found");
+        if (!claimPendingDocument(documentId)) {
+            log.info("Skip document processing, document is not pending: [{}]", documentId);
             return;
         }
 
         try {
-            updateStatus(documentId, RagDocumentStatus.PROCESSING, null);
+            RagPO knowledge = knowledgeMapper.selectById(document.getRagId());
+            if (knowledge == null) {
+                log.error("Knowledge not found: {} for document: {}", document.getRagId(), documentId);
+                updateStatus(documentId, RagDocumentStatus.FAILED, "Knowledge not found");
+                return;
+            }
+
             log.info("Start processing document: [{}] {}", documentId, document.getName());
 
             String content = parseContent(document);
@@ -98,16 +101,14 @@ public class DocumentPipeline {
                         .build());
             }
 
-            transactionTemplate.executeWithoutResult(transactionStatus -> {
-                ragChunkMapper.insert(chunkPOs);
-                // ── Dual write: VectorStore + SearchEngine ──
-                dualWrite(chunkPOs, knowledge);
+            ragChunkMapper.insert(chunkPOs);
+            // ── Dual write: VectorStore + SearchEngine ──
+            dualWrite(chunkPOs, knowledge);
 
-                document.setChunkCount(chunkPOs.size());
-                document.setStatus(RagDocumentStatus.SUCCESS.getStatus());
-                document.setErrorMsg(null);
-                ragDocumentMapper.updateById(document);
-            });
+            document.setChunkCount(chunkPOs.size());
+            document.setStatus(RagDocumentStatus.SUCCESS.getStatus());
+            document.setErrorMsg(null);
+            ragDocumentMapper.updateById(document);
 
             log.info("Document processed successfully: [{}], chunks: {}", documentId, chunkPOs.size());
 
@@ -115,6 +116,15 @@ public class DocumentPipeline {
             log.error("Document processing failed: [{}]", documentId, e);
             updateStatus(documentId, RagDocumentStatus.FAILED, e.getMessage());
         }
+    }
+
+    private boolean claimPendingDocument(Long documentId) {
+        RagDocumentPO update = new RagDocumentPO();
+        update.setStatus(RagDocumentStatus.PROCESSING.getStatus());
+        update.setErrorMsg(null);
+        return ragDocumentMapper.update(update, new LambdaUpdateWrapper<RagDocumentPO>()
+                .eq(RagDocumentPO::getId, documentId)
+                .eq(RagDocumentPO::getStatus, RagDocumentStatus.PENDING.getStatus())) > 0;
     }
 
     /**
@@ -241,7 +251,6 @@ public class DocumentPipeline {
                             "documentId", chunk.getDocumentId(),
                             "chunkId", chunk.getId()))
                     .build());
-            ragChunkMapper.updateById(chunk);
         }
 
         if (!toEmbed.isEmpty()) {
@@ -250,6 +259,11 @@ public class DocumentPipeline {
                     .indexName(indexName)
                     .documents(toEmbed)
                     .build());
+            for (RagChunkPO chunk : batch) {
+                if (StrUtil.isNotBlank(chunk.getVectorId())) {
+                    ragChunkMapper.updateById(chunk);
+                }
+            }
         }
     }
 

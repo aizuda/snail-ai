@@ -9,7 +9,6 @@ import com.aizuda.snail.ai.admin.vo.resource.ResourceQueryVO;
 import com.aizuda.snail.ai.admin.vo.resource.ResourceResponseVO;
 import com.aizuda.snail.ai.admin.vo.resource.ResourceUploadRequestVO;
 import com.aizuda.snail.ai.common.model.Result;
-import com.aizuda.snail.ai.features.resource.ResourceService;
 import com.aizuda.snail.ai.persistence.resource.po.ResourcePO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.InputStreamResource;
@@ -30,7 +29,6 @@ import java.util.List;
 public class ResourceController {
 
     private final ResourceAdminService resourceAdminService;
-    private final ResourceService resourceService;
 
     @PostMapping("/upload")
     @LoginRequired
@@ -43,12 +41,8 @@ public class ResourceController {
     @LoginRequired(role = RoleEnum.USER)
     @OriginalControllerReturnValue
     public ResponseEntity<InputStreamResource> preview(@PathVariable("id") Long id) {
-        ResourcePO resource = resourceService.getById(id);
-        if (resource == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        InputStream is = resourceService.load(id);
+        ResourcePO resource = resourceAdminService.getAuthorizedResource(id);
+        InputStream is = resourceAdminService.loadAuthorized(id);
         String encodedName = URLEncoder.encode(resource.getOriginalName(), StandardCharsets.UTF_8)
                 .replace("+", "%20");
         MediaType mediaType = resource.getMimeType() != null
@@ -65,12 +59,8 @@ public class ResourceController {
     @LoginRequired(role = RoleEnum.USER)
     @OriginalControllerReturnValue
     public ResponseEntity<InputStreamResource> download(@PathVariable("id") Long id) {
-        ResourcePO resource = resourceService.getById(id);
-        if (resource == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        InputStream is = resourceService.load(id);
+        ResourcePO resource = resourceAdminService.getAuthorizedResource(id);
+        InputStream is = resourceAdminService.loadAuthorized(id);
         String encodedName = URLEncoder.encode(resource.getOriginalName(), StandardCharsets.UTF_8)
                 .replace("+", "%20");
 

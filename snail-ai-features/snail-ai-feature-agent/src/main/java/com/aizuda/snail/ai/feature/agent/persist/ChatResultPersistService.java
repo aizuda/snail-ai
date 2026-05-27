@@ -7,10 +7,10 @@ import com.aizuda.snail.ai.persistence.agent.mapper.AgentConversationRecordMappe
 import com.aizuda.snail.ai.persistence.agent.mapper.AgentUsageStatMapper;
 import com.aizuda.snail.ai.persistence.agent.po.AgentConversationRecordPO;
 import com.aizuda.snail.ai.persistence.agent.po.AgentUsageStatPO;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -64,25 +64,29 @@ public class ChatResultPersistService {
         try {
             LocalDate today = LocalDate.now();
             LocalDateTime now = LocalDateTime.now();
-            AgentUsageStatPO existing = usageStatMapper.selectOne(
-                    new LambdaQueryWrapper<AgentUsageStatPO>()
-                            .eq(AgentUsageStatPO::getAgentId, agentId)
-                            .eq(AgentUsageStatPO::getUserId, userId)
-                            .eq(AgentUsageStatPO::getStatDate, today));
-            if (existing != null) {
-                usageStatMapper.update(null, new LambdaUpdateWrapper<AgentUsageStatPO>()
-                        .eq(AgentUsageStatPO::getId, existing.getId())
-                        .set(AgentUsageStatPO::getMessageCount, existing.getMessageCount() + 1)
-                        .set(AgentUsageStatPO::getUpdateDt, now));
-            } else {
-                usageStatMapper.insert(AgentUsageStatPO.builder()
-                        .agentId(agentId).userId(userId).userName(userName)
-                        .statDate(today).messageCount(1).conversationCount(1)
-                        .createDt(now).updateDt(now)
-                        .build());
+            int updated = incrementUsageStat(agentId, userId, today, now);
+            if (updated == 0) {
+                try {
+                    usageStatMapper.insert(AgentUsageStatPO.builder()
+                            .agentId(agentId).userId(userId).userName(userName)
+                            .statDate(today).messageCount(1).conversationCount(1)
+                            .createDt(now).updateDt(now)
+                            .build());
+                } catch (DuplicateKeyException e) {
+                    incrementUsageStat(agentId, userId, today, now);
+                }
             }
         } catch (Exception e) {
             log.warn("Failed to update usage stat", e);
         }
+    }
+
+    private int incrementUsageStat(Long agentId, Long userId, LocalDate today, LocalDateTime now) {
+        return usageStatMapper.update(null, new LambdaUpdateWrapper<AgentUsageStatPO>()
+                .eq(AgentUsageStatPO::getAgentId, agentId)
+                .eq(AgentUsageStatPO::getUserId, userId)
+                .eq(AgentUsageStatPO::getStatDate, today)
+                .setSql("message_count = message_count + 1")
+                .set(AgentUsageStatPO::getUpdateDt, now));
     }
 }

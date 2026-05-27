@@ -90,7 +90,7 @@ CREATE TABLE snail_ai_user
     totals         INT,
     username       VARCHAR(255),
     email          VARCHAR(64),
-    password       VARCHAR(64) NOT NULL,
+    password       VARCHAR(255) NOT NULL,
     create_dt      DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     update_dt      DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uk_username (username)

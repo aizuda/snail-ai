@@ -78,6 +78,11 @@ public class LocalResourceStorageService implements ResourceStorageService {
     }
 
     private Path resolveAbsolute(String storageKey) {
-        return Paths.get(resourceConfig.getUploadDir()).resolve(storageKey);
+        Path root = Paths.get(resourceConfig.getUploadDir()).toAbsolutePath().normalize();
+        Path resolved = root.resolve(storageKey).normalize();
+        if (!resolved.startsWith(root)) {
+            throw new SnailAiException("Invalid resource storage key: " + storageKey);
+        }
+        return resolved;
     }
 }

@@ -15,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -66,7 +68,7 @@ public class OpenApiAuthInterceptor implements HandlerInterceptor {
             throw new SnailAiAuthenticationException("应用已禁用: {}", appId);
         }
 
-        if (!token.equals(app.getToken())) {
+        if (!tokenEquals(token, app.getToken())) {
             throw new SnailAiAuthenticationException("Token 验证失败");
         }
 
@@ -76,6 +78,15 @@ public class OpenApiAuthInterceptor implements HandlerInterceptor {
                 .build());
 
         return true;
+    }
+
+    private boolean tokenEquals(String actual, String expected) {
+        if (actual == null || expected == null) {
+            return false;
+        }
+        return MessageDigest.isEqual(
+                actual.getBytes(StandardCharsets.UTF_8),
+                expected.getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
