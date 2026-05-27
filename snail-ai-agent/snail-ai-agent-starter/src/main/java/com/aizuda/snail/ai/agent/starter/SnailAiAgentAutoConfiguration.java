@@ -25,13 +25,13 @@ import com.aizuda.snail.ai.agent.core.resolver.CustomToolCallbackProvider;
 import com.aizuda.snail.ai.common.grpc.handler.GrpcRequestDispatcher;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.core.env.Environment;
@@ -50,7 +50,7 @@ import com.aizuda.snail.ai.agent.common.counter.ActiveChatCounter;
  * @date 2025-04-08
  */
 @Slf4j
-@Configuration
+@AutoConfiguration
 @EnableConfigurationProperties(SnailAiAgentProperties.class)
 @ConditionalOnProperty(prefix = "snail-ai", name = "enabled", havingValue = "true", matchIfMissing = false)
 public class SnailAiAgentAutoConfiguration {

@@ -1,6 +1,7 @@
 package com.aizuda.snail.ai.openapi.client.core.config;
 
 import com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import lombok.Data;
 
 /**
@@ -10,6 +11,7 @@ import lombok.Data;
  * @date 2026-04-24
  */
 @Data
+@ConfigurationProperties(prefix = "snail-ai.openapi")
 public class SnailAiOpenApiProperties {
 
     private boolean enabled = false;

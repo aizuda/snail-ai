@@ -25,6 +25,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -48,6 +49,7 @@ import java.util.concurrent.CompletableFuture;
 @RestController
 @RequestMapping("/demo")
 @RequiredArgsConstructor
+@ConditionalOnProperty(prefix = "snail-ai.openapi", name = "enabled", havingValue = "true")
 @Tag(name = "OpenAPI Demo", description = "OpenAPI 客户端使用示例")
 public class OpenApiDemoController {
 
