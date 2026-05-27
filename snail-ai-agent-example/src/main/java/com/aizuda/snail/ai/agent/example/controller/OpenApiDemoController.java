@@ -31,7 +31,6 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * OpenAPI 使用示例 Controller
@@ -198,7 +197,7 @@ public class OpenApiDemoController {
         log.info("Stream chat request: agentId={}, content={}", agentId, content);
 
         // 异步执行流式对话
-        CompletableFuture.runAsync(() -> {
+        Thread.startVirtualThread(() -> {
             try {
                 chatClient.chatStream(request, new SseEventListener() {
                     @Override

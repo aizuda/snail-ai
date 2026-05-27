@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.concurrent.CompletableFuture;
 
 /**
  * Chat 流结束后的持久化：助手消息、短期记忆窗口、用量统计。
@@ -30,7 +29,7 @@ public class ChatResultPersistService {
     private final ShortTermMemoryStore shortTermMemoryStore;
 
     public void persistAsync(ChatResultPersistCommand cmd) {
-        CompletableFuture.runAsync(() -> {
+        Thread.startVirtualThread(() -> {
             try {
                 persistAll(cmd);
             } catch (Exception e) {
@@ -89,4 +88,5 @@ public class ChatResultPersistService {
                 .setSql("message_count = message_count + 1")
                 .set(AgentUsageStatPO::getUpdateDt, now));
     }
+
 }

@@ -10,9 +10,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
@@ -58,24 +55,19 @@ public class ShellTool {
             // 读取输出
             StringBuilder output = new StringBuilder();
             OutputStats stats = new OutputStats();
-            ExecutorService readerExecutor = Executors.newSingleThreadExecutor(r -> {
-                Thread thread = new Thread(r, "shell-output-reader");
-                thread.setDaemon(true);
-                return thread;
-            });
-            Future<?> readerFuture = readerExecutor.submit(() -> readOutput(process, output, stats));
+            Thread readerThread = Thread.ofVirtual()
+                    .name("shell-output-reader")
+                    .start(() -> readOutput(process, output, stats));
 
             // 等待进程结束，超时则杀死
             boolean finished = process.waitFor(commandTimeout, TimeUnit.MILLISECONDS);
             if (!finished) {
                 process.destroyForcibly();
-                readerFuture.cancel(true);
-                readerExecutor.shutdownNow();
+                readerThread.interrupt();
                 return "Error: 命令执行超时 (" + (commandTimeout / 1000) + "秒)";
             }
 
-            readerFuture.get(5, TimeUnit.SECONDS);
-            readerExecutor.shutdownNow();
+            readerThread.join(TimeUnit.SECONDS.toMillis(5));
             int exitCode = process.exitValue();
 
             // 构建结果

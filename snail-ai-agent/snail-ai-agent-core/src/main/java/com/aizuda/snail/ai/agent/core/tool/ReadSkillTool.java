@@ -12,7 +12,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -88,7 +87,7 @@ public class ReadSkillTool {
         // 异步写入支撑文件到本地临时目录（不阻塞 read_skill 返回）
         String version = descriptor.getVersion() != null ? descriptor.getVersion() : "1";
         Path skillDir = Path.of(tempDir, String.valueOf(descriptor.getId()), version);
-        CompletableFuture.runAsync(() -> {
+        Thread.startVirtualThread(() -> {
             try {
                 materializeFiles(skillDir, response);
                 log.info("Skill files materialized to: {}", skillDir);

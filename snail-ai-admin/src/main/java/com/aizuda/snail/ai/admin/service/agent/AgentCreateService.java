@@ -23,8 +23,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyEmitter
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Slf4j
@@ -36,7 +34,6 @@ public class AgentCreateService {
     private final AiModelConfigService aiModelConfigService;
     private final ModelConfigHandler modelConfigHandler;
     private final ChatClientBuilder chatClientBuilder;
-    private final Executor snailAiAsyncExecutor;
 
     /**
      * Agent信息记录
@@ -48,7 +45,7 @@ public class AgentCreateService {
      */
     public void createByDescriptionStream(String description, ResponseBodyEmitter emitter) {
         Long userId = UserSessionUtils.currentUserSession().getId();
-        CompletableFuture.runAsync(() -> doCreateStream(description, userId, emitter), snailAiAsyncExecutor);
+        Thread.startVirtualThread(() -> doCreateStream(description, userId, emitter));
     }
 
     private void doCreateStream(String description, Long userId, ResponseBodyEmitter emitter) {

@@ -4,6 +4,9 @@ server:
     context-path: /snail-ai
 
 spring:
+  threads:
+    virtual:
+      enabled: true
   servlet:
     multipart:
       enabled: true

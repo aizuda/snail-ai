@@ -1,6 +1,11 @@
 server:
   port: 8081  # Demo 服务端口
 
+spring:
+  threads:
+    virtual:
+      enabled: true
+
 # Swagger UI 配置
 springdoc:
   api-docs:
