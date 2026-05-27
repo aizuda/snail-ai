@@ -12,7 +12,6 @@ import io.milvus.param.MetricType;
 import io.milvus.param.R;
 import io.milvus.param.collection.DropCollectionParam;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.hadoop.hdfs.protocol.proto.DataTransferProtos;
 import org.springframework.ai.embedding.TokenCountBatchingStrategy;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.milvus.MilvusVectorStore;
@@ -128,7 +127,7 @@ public class MilvusSnailAiVectorStore extends AbstractSnailAiVectorStore {
     @Override
     public boolean test() {
         R<CheckHealthResponse> checkHealthResponseR = milvusClient.checkHealth();
-        return checkHealthResponseR.getStatus() == DataTransferProtos.Status.SUCCESS.getNumber();
+        return Integer.valueOf(R.Status.Success.getCode()).equals(checkHealthResponseR.getStatus());
     }
 
 

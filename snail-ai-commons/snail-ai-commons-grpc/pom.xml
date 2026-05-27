@@ -16,11 +16,6 @@
     <name>snail-ai-commons-grpc</name>
     <description>snail-ai-commons-grpc</description>
 
-    <properties>
-        <grpc-java.version>1.72.0</grpc-java.version>
-        <protobuf-java.version>3.25.5</protobuf-java.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>io.grpc</groupId>
@@ -59,14 +54,14 @@
             <extension>
                 <groupId>kr.motd.maven</groupId>
                 <artifactId>os-maven-plugin</artifactId>
-                <version>1.7.1</version>
+                <version>${os-maven-plugin.version}</version>
             </extension>
         </extensions>
         <plugins>
 <!--            <plugin>-->
 <!--                <groupId>org.xolstice.maven.plugins</groupId>-->
 <!--                <artifactId>protobuf-maven-plugin</artifactId>-->
-<!--                <version>0.6.1</version>-->
+<!--                <version>${protobuf-maven-plugin.version}</version>-->
 <!--                <configuration>-->
 <!--                    <protocArtifact>com.google.protobuf:protoc:${protobuf-java.version}:exe:${os.detected.classifier}</protocArtifact>-->
 <!--                    <pluginId>grpc-java</pluginId>-->

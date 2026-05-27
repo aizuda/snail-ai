@@ -7,7 +7,7 @@ import com.aizuda.snail.ai.features.resource.util.MimeTypeUtils;
 import com.aizuda.snail.ai.features.resource.util.StorageKeyGenerator;
 import io.minio.*;
 import io.minio.errors.ErrorResponseException;
-import io.minio.http.Method;
+import io.minio.Http.Method;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -36,7 +36,7 @@ public class MinioResourceStorageService implements ResourceStorageService {
             getClient().putObject(PutObjectArgs.builder()
                     .bucket(bucket())
                     .object(storageKey)
-                    .stream(inputStream, -1, 10485760)
+                    .stream(inputStream, -1L, 10485760L)
                     .contentType(contentType)
                     .build());
             log.info("Resource stored to MinIO: {}/{}", bucket(), storageKey);
