@@ -11,7 +11,7 @@ WORKDIR /snailai/server
 ADD ./target/snail-ai-server-exec.jar app.jar
 
 # 对外暴漏的端口号
-EXPOSE 8080
+EXPOSE 8900
 # 数据卷, 用于映射日志目录
 VOLUME /snailai/server/data/log
 VOLUME /snailai/server/upload

@@ -56,7 +56,7 @@ snail-ai:
       enabled: true
 
       # Server HTTP 端口
-      web-port: 8080
+      web-port: 8900
 
       # 是否使用 HTTPS
       https: false
