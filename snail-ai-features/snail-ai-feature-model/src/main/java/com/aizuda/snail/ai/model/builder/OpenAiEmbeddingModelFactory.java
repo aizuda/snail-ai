@@ -41,7 +41,7 @@ public class OpenAiEmbeddingModelFactory implements EmbeddingModelFactory {
             if (configExtAttrsDTO != null && configExtAttrsDTO.getEmbeddingsPath() != null
                     && !configExtAttrsDTO.getEmbeddingsPath().isBlank()
                     && !"/v1/embeddings".equals(configExtAttrsDTO.getEmbeddingsPath())) {
-                log.warn("Spring AI 2.0.0-M7 OpenAI SDK no longer supports per-model embeddingsPath directly: {}",
+                log.warn("Spring AI 2.0.0-M8 OpenAI SDK no longer supports per-model embeddingsPath directly: {}",
                         configExtAttrsDTO.getEmbeddingsPath());
             }
 

@@ -142,7 +142,7 @@ public class ClientChatExecutor {
         long readTimeoutMs = (timeoutMs != null && timeoutMs > 0) ? timeoutMs : 60_000L;
         if (extConfig.getCompletionsPath() != null && !extConfig.getCompletionsPath().isBlank()
                 && !"/v1/chat/completions".equals(extConfig.getCompletionsPath())) {
-            log.warn("Spring AI 2.0.0-M7 OpenAI SDK no longer supports per-model completionsPath directly: {}",
+            log.warn("Spring AI 2.0.0-M8 OpenAI SDK no longer supports per-model completionsPath directly: {}",
                     extConfig.getCompletionsPath());
         }
 

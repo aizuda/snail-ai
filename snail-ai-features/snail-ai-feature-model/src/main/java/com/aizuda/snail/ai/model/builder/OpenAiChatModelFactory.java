@@ -44,7 +44,7 @@ public class OpenAiChatModelFactory implements ChatModelFactory {
 
             OpenAiChatOptions chatOptions = buildChatOptions(baseUrl, apiKey, modelKey, configExtAttrsDTO);
 
-            // Spring AI 2.0.0-M7 使用 OpenAI Java SDK，客户端由 OpenAiChatOptions 统一初始化。
+            // Spring AI 2.0.0-M8 使用 OpenAI Java SDK，客户端由 OpenAiChatOptions 统一初始化。
             OpenAiChatModel chatModel = OpenAiChatModel.builder()
                     .options(chatOptions)
                     .observationRegistry(observationRegistry)
@@ -103,7 +103,7 @@ public class OpenAiChatModelFactory implements ChatModelFactory {
         }
         if (config.getCompletionsPath() != null && !config.getCompletionsPath().isBlank()
                 && !"/v1/chat/completions".equals(config.getCompletionsPath())) {
-            log.warn("Spring AI 2.0.0-M7 OpenAI SDK no longer supports per-model completionsPath directly: {}",
+            log.warn("Spring AI 2.0.0-M8 OpenAI SDK no longer supports per-model completionsPath directly: {}",
                     config.getCompletionsPath());
         }
         return builder.build();
