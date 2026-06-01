@@ -16,7 +16,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <revision>1.0.0</revision>
         <spring-boot.version>4.0.6</spring-boot.version>
-        <snail-ai.version>0.0.2</snail-ai.version>
+        <snail-ai.version>0.0.3</snail-ai.version>
         <springdoc-openapi.version>3.0.0</springdoc-openapi.version>
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
     </properties>
