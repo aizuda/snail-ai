@@ -92,13 +92,6 @@ public class ChatDispatchStreamingHandler implements GrpcStreamingRequestHandler
             log.warn("Failed to resolve Skill tools", e);
         }
 
-        // 记忆检索工具（模型自主决定是否召回记忆）
-        try {
-            tools.addAll(memoryToolResolver.resolve(dispatchRequest));
-        } catch (Exception e) {
-            log.warn("Failed to resolve Memory tools", e);
-        }
-
         // 用户自定义 @Tool Bean（启动时已缓存）
         tools.addAll(Arrays.asList(customToolCallbackProvider.getToolCallbacks()));
 

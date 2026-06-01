@@ -3,13 +3,11 @@ package com.aizuda.snail.ai.agent.starter;
 import com.aizuda.snail.ai.agent.common.rpc.RpcClient;
 import com.aizuda.snail.ai.agent.common.rpc.GrpcClientInvokeHandler;
 import com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties;
-import com.aizuda.snail.ai.agent.common.context.AgentChatContextThreadLocalAccessor;
 import com.aizuda.snail.ai.agent.common.rpc.GrpcChannelProvider;
 import com.aizuda.snail.ai.agent.common.handler.ClientHeartbeatScheduler;
 import com.aizuda.snail.ai.agent.common.rpc.ClientGrpcServer;
 import com.aizuda.snail.ai.agent.core.ClientRequestDispatcher;
 import com.aizuda.snail.ai.agent.core.advisor.InterceptorChainAdvisor;
-import com.aizuda.snail.ai.agent.core.advisor.MemoryInjectionAdvisor;
 import com.aizuda.snail.ai.agent.core.advisor.StreamChunkForwarderAdvisor;
 import com.aizuda.snail.ai.agent.core.advisor.ThinkingCollectorAdvisor;
 import com.aizuda.snail.ai.agent.core.advisor.TokenUsageCollectorAdvisor;
@@ -66,10 +64,6 @@ public class SnailAiAgentAutoConfiguration {
         return new ActiveChatCounter();
     }
 
-    @Bean
-    public MemoryInjectionAdvisor memoryInjectionAdvisor() {
-        return new MemoryInjectionAdvisor();
-    }
 
     @Bean
     public InterceptorChainAdvisor interceptorChainAdvisor(List<SnailAiInterceptor> interceptors) {
@@ -99,7 +93,6 @@ public class SnailAiAgentAutoConfiguration {
 
     @Bean
     public ClientChatExecutor clientChatExecutor(Environment env,
-                                                 MemoryInjectionAdvisor memoryInjectionAdvisor,
                                                  InterceptorChainAdvisor interceptorChainAdvisor,
                                                  TokenUsageCollectorAdvisor tokenUsageCollectorAdvisor,
                                                  ThinkingCollectorAdvisor thinkingCollectorAdvisor,
@@ -108,7 +101,6 @@ public class SnailAiAgentAutoConfiguration {
         Hooks.enableAutomaticContextPropagation();
         return new ClientChatExecutor(null,
                 resolveActiveProfile(env),
-                memoryInjectionAdvisor,
                 interceptorChainAdvisor,
                 tokenUsageCollectorAdvisor,
                 thinkingCollectorAdvisor,

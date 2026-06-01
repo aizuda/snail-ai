@@ -9,8 +9,8 @@ import java.util.List;
  * <p>
  * 按模型类型分组：
  * - 通用：timeoutMs
- * - CHAT：temperature, topP, topK, maxTokens, frequencyPenalty, presencePenalty, stopSequences, seed, responseFormat, stream, completionsPath
- * - EMBEDDING：embeddingDimension, embeddingsPath, encodingFormat
+ * - CHAT：temperature, topP, topK, maxTokens, frequencyPenalty, presencePenalty, stopSequences, seed, responseFormat, stream
+ * - EMBEDDING：embeddingDimension, encodingFormat
  * - RERANKER：rerankPath
  *
  * @author opensnail
@@ -35,12 +35,10 @@ public class ConfigExtAttrsDTO {
     private Long seed;
     private String responseFormat;
     private Boolean stream;
-    private String completionsPath;
 
     // ==================== EMBEDDING 向量模型 ====================
 
     private Integer embeddingDimension;
-    private String embeddingsPath;
     private String encodingFormat;
 
     // ==================== RERANKER 重排模型 ====================

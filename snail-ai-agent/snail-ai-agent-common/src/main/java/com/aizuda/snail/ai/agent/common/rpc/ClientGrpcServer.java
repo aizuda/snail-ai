@@ -38,7 +38,7 @@ public class ClientGrpcServer {
                 .maxInboundMessageSize(10 * 1024 * 1024)
                 .keepAliveTime(30, TimeUnit.SECONDS)
                 .keepAliveTimeout(10, TimeUnit.SECONDS)
-                .permitKeepAliveTime(5, TimeUnit.MINUTES)
+                .permitKeepAliveTime(30, TimeUnit.SECONDS)
                 .permitKeepAliveWithoutCalls(true)
                 .build()
                 .start();

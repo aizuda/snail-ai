@@ -101,11 +101,6 @@ public class OpenAiChatModelFactory implements ChatModelFactory {
         if (config.getTopK() != null) {
             builder.extraBody(Map.of("top_k", config.getTopK()));
         }
-        if (config.getCompletionsPath() != null && !config.getCompletionsPath().isBlank()
-                && !"/v1/chat/completions".equals(config.getCompletionsPath())) {
-            log.warn("Spring AI 2.0.0-M8 OpenAI SDK no longer supports per-model completionsPath directly: {}",
-                    config.getCompletionsPath());
-        }
         return builder.build();
     }
 }

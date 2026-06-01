@@ -62,6 +62,7 @@ public class RagSearchTool {
             for (int i = 0; i < results.size(); i++) {
                 sb.append(String.format("[%d] %s\n\n", i + 1, results.get(i).getContent()));
             }
+            log.info("rag_search: ragId={}, result={}", ragId, sb);
             return sb.toString().trim();
 
         } catch (Exception e) {

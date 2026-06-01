@@ -55,8 +55,9 @@ public class AiModelConfigRequestVO {
     private String apiKey;
 
     /**
-     * API端点URL
+     * API端点URL (必填)
      */
+    @NotBlank(message = "API端点不能为空")
     private String apiEndpoint;
 
     /**
