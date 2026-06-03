@@ -62,7 +62,7 @@ public class ChatStreamObserver implements StreamObserver<GrpcSnailAiResult> {
     }
 
     private void handleText(ChatStreamResponse data) throws Exception {
-        String json = JsonUtil.toJsonString(ChatStreamResponse.text(data.getContent()));
+        String json = JsonUtil.toJsonString(ChatStreamResponse.text(data.getSid(), data.getContent()));
         context.getEmitter().send(json + "\n");
     }
 
@@ -71,7 +71,7 @@ public class ChatStreamObserver implements StreamObserver<GrpcSnailAiResult> {
         if (text == null || text.isEmpty()) {
             return;
         }
-        String json = JsonUtil.toJsonString(ChatStreamResponse.thinking(text));
+        String json = JsonUtil.toJsonString(ChatStreamResponse.thinking(data.getSid(), text));
         context.getEmitter().send(json + "\n");
     }
 

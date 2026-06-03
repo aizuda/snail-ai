@@ -93,7 +93,8 @@ public class LlmCallHandler implements AgentChatHandler {
                 .ragEnabled(agent.getRagEnabled())
                 .memoryEnabled(agent.getMemoryEnabled())
                 .embeddingModelId(ctx.getModelId())
-                .ragId(agent.getRagId())
+                .ragIds(agent.getRagIds())
+                .ragCallMode(agent.getRagCallMode())
                 .build();
 
         ChatDispatchRequest.UserInfo userInfo = ChatDispatchRequest.UserInfo.builder()
@@ -104,6 +105,7 @@ public class LlmCallHandler implements AgentChatHandler {
 
         return ChatDispatchRequest.builder()
                 .requestId(UUID.randomUUID().toString())
+                .sid(ctx.getSid())
                 .traceId(traceId)
                 .rootSpanId(rootSpanId)
                 .agentConfig(agentConfig)

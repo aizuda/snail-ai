@@ -50,8 +50,9 @@ public class ChatDispatchStreamingHandler implements GrpcStreamingRequestHandler
         long reqId = request.getReqId();
         ChatDispatchRequest dispatchRequest = parseDispatchRequest(request.getBody());
         String requestId = dispatchRequest.getRequestId();
+        String sid = dispatchRequest.getSid();
 
-        log.info("Chat dispatch received: requestId={}", requestId);
+        log.info("Chat dispatch received: requestId={}, sid={}", requestId, sid);
 
         ClientMcpToolResolver mcpResolver = new ClientMcpToolResolver();
         List<ToolCallback> tools = resolveAllTools(dispatchRequest, mcpResolver);
@@ -59,10 +60,10 @@ public class ChatDispatchStreamingHandler implements GrpcStreamingRequestHandler
         chatExecutor.executeStream(
                 dispatchRequest,
                 tools,
-                text -> handleTextChunk(reqId, text, observer),
-                thinking -> handleThinkingChunk(reqId, thinking, observer),
-                completion -> handleCompletion(reqId, requestId, completion, observer, mcpResolver),
-                error -> handleError(reqId, error, observer, mcpResolver));
+                text -> handleTextChunk(reqId, sid, text, observer),
+                thinking -> handleThinkingChunk(reqId, sid, thinking, observer),
+                completion -> handleCompletion(reqId, requestId, sid, completion, observer, mcpResolver),
+                error -> handleError(reqId, sid, error, observer, mcpResolver));
     }
 
     private ChatDispatchRequest parseDispatchRequest(String body) {
@@ -118,9 +119,9 @@ public class ChatDispatchStreamingHandler implements GrpcStreamingRequestHandler
         }
     }
 
-    private void handleTextChunk(long reqId, String text, StreamObserver<GrpcSnailAiResult> observer) {
+    private void handleTextChunk(long reqId, String sid, String text, StreamObserver<GrpcSnailAiResult> observer) {
         try {
-            ChatStreamResponse response = ChatStreamResponse.text(text);
+            ChatStreamResponse response = ChatStreamResponse.text(sid, text);
             String data = JsonUtil.toJsonString(response);
             observer.onNext(GrpcSnailAiResult.newBuilder()
                     .setReqId(reqId)
@@ -132,9 +133,9 @@ public class ChatDispatchStreamingHandler implements GrpcStreamingRequestHandler
         }
     }
 
-    private void handleThinkingChunk(long reqId, String text, StreamObserver<GrpcSnailAiResult> observer) {
+    private void handleThinkingChunk(long reqId, String sid, String text, StreamObserver<GrpcSnailAiResult> observer) {
         try {
-            ChatStreamResponse response = ChatStreamResponse.thinking(text);
+            ChatStreamResponse response = ChatStreamResponse.thinking(sid, text);
             String data = JsonUtil.toJsonString(response);
             observer.onNext(GrpcSnailAiResult.newBuilder()
                     .setReqId(reqId)
@@ -146,12 +147,13 @@ public class ChatDispatchStreamingHandler implements GrpcStreamingRequestHandler
         }
     }
 
-    private void handleCompletion(long reqId, String requestId,
+    private void handleCompletion(long reqId, String requestId, String sid,
                                   ClientChatExecutor.ChatCompletionResult completion,
                                   StreamObserver<GrpcSnailAiResult> observer,
                                   ClientMcpToolResolver mcpResolver) {
         try {
             ChatStreamResponse response = ChatStreamResponse.completion(
+                    sid,
                     completion.fullText(),
                     completion.fullThinking(),
                     completion.promptTokens(),
@@ -165,18 +167,18 @@ public class ChatDispatchStreamingHandler implements GrpcStreamingRequestHandler
                     .setData(data)
                     .build());
             observer.onCompleted();
-            log.info("Chat completed: requestId={}, duration={}ms", requestId, completion.durationMs());
+            log.info("Chat completed: requestId={}, sid={}, duration={}ms", requestId, sid, completion.durationMs());
         } finally {
             cleanupResources(mcpResolver);
         }
     }
 
-    private void handleError(long reqId, Throwable error,
+    private void handleError(long reqId, String sid, Throwable error,
                              StreamObserver<GrpcSnailAiResult> observer,
                              ClientMcpToolResolver mcpResolver) {
         try {
             String errorMessage = error.getMessage() != null ? error.getMessage() : "Unknown error";
-            ChatStreamResponse response = ChatStreamResponse.error(ERROR_CODE_LLM_FAILED, errorMessage);
+            ChatStreamResponse response = ChatStreamResponse.error(sid, ERROR_CODE_LLM_FAILED, errorMessage);
 
             String data = JsonUtil.toJsonString(response);
             observer.onNext(GrpcSnailAiResult.newBuilder()

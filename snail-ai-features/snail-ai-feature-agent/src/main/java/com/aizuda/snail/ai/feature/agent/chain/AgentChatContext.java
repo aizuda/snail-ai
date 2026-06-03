@@ -34,6 +34,11 @@ public class AgentChatContext {
     private final String openId;
 
     /**
+     * 提交ID，用于区分同一用户在同一对话中的并发请求
+     */
+    private String sid;
+
+    /**
      * 用户禁用的 MCP 服务 ID 列表
      */
     private List<Long> disabledMcpServerIds;

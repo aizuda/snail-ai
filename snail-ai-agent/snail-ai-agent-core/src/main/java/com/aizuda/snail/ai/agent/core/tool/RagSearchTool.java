@@ -14,26 +14,25 @@ import java.util.*;
 /**
  * 客户端本地 RAG 知识库搜索工具
  * <p>
- * 通过 gRPC 回调服务端执行检索，在客户端直接访问 AgentChatContextHolder
- * 获取实时观测性 ID，并发布 RETRIEVER 观测事件。
+ * 通过 gRPC 回调服务端执行检索，支持多知识库（由 LLM 通过 ragId 参数选择）。
  */
 @Slf4j
 public class RagSearchTool {
 
-    private final Long ragId;
+    private final List<Long> ragIds;
     private final RpcClient rpcClient;
 
-    public RagSearchTool(Long ragId, RpcClient rpcClient) {
-        this.ragId = ragId;
+    public RagSearchTool(List<Long> ragIds, RpcClient rpcClient) {
+        this.ragIds = ragIds;
         this.rpcClient = rpcClient;
     }
 
     @Tool(name = "rag_search",
-            description = "Retrieve relevant reference materials from the knowledge base. "
-                    + "Call this tool when the user's question may require professional knowledge, document content, or domain-specific information. "
-                    + "Use keywords relevant to the user's question as query parameters. "
-                    + "Do not call for general chat, greetings, or questions clearly outside the knowledge base scope.")
+            description = "Search a specific knowledge base by ragId. "
+                    + "Use the ragId parameter to specify which knowledge base to search. "
+                    + "Call this tool when the user's question may require professional knowledge or domain-specific information.")
     public String search(
+            @ToolParam(description = "The ID of the knowledge base to search") Long ragId,
             @ToolParam(description = "The user's question or related query") String queryQuestion) {
 
         if (queryQuestion == null || queryQuestion.trim().isEmpty()) {

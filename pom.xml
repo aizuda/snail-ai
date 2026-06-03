@@ -25,7 +25,7 @@
     <properties>
         <java.version>21</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <revision>0.0.3</revision>
+        <revision>0.0.4</revision>
         <skipTests>true</skipTests>
         <spring-boot.version>4.0.6</spring-boot.version>
         <spring-ai.version>2.0.0-M8</spring-ai.version>
@@ -46,8 +46,9 @@
         <elasticsearch-java.version>9.4.1</elasticsearch-java.version>
         <milvus-sdk-java.version>3.0.1</milvus-sdk-java.version>
         <commons-compress.version>1.28.0</commons-compress.version>
-        <grpc-java.version>1.81.0</grpc-java.version>
-        <protobuf-java.version>4.35.0</protobuf-java.version>
+        <grpc-java.version>1.76.0</grpc-java.version>
+        <protobuf-java.version>3.25.8</protobuf-java.version>
+
 
         <!--    plugins    -->
         <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>

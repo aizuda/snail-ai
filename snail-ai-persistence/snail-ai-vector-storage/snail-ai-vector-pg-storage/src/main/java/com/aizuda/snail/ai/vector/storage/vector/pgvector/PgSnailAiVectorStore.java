@@ -9,8 +9,8 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-import javax.sql.DataSource;
 import java.sql.Connection;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -22,23 +22,28 @@ public class PgSnailAiVectorStore extends AbstractSnailAiVectorStore {
 
     private final JdbcTemplate jdbcTemplate;
     private final PgVectorSettings config;
+    private final ConcurrentHashMap<String, PgVectorStore> storeCache = new ConcurrentHashMap<>();
 
     public PgSnailAiVectorStore(SnailEmbeddingModel snailEmbeddingModel,
                                 Integer embeddingDimensions,
                                 PgVectorSettings config) {
         super(snailEmbeddingModel, embeddingDimensions);
         this.config = config;
-        this.jdbcTemplate = new JdbcTemplate(PgDataSourceFactory.createDataSource(config));
+        this.jdbcTemplate = PgDataSourceFactory.getOrCreateJdbcTemplate(config);
     }
 
     private PgVectorStore getStore(String indexName) {
+        return storeCache.computeIfAbsent(indexName, this::createStore);
+    }
+
+    private PgVectorStore createStore(String indexName) {
         int dim = embeddingDimensions != null ? embeddingDimensions : config.getDefaultDimension();
-        var builder = PgVectorStore.builder(jdbcTemplate, springAiEmbeddingModel)
+        var store = PgVectorStore.builder(jdbcTemplate, springAiEmbeddingModel)
                 .initializeSchema(true)
                 .dimensions(dim)
                 .schemaName("public")
-                .vectorTableName(indexName);
-        var store = builder.build();
+                .vectorTableName(indexName)
+                .build();
         try {
             store.afterPropertiesSet();
         } catch (Exception e) {
@@ -59,6 +64,7 @@ public class PgSnailAiVectorStore extends AbstractSnailAiVectorStore {
         }
 
         jdbcTemplate.execute("DROP TABLE IF EXISTS " + indexName);
+        storeCache.remove(indexName);
     }
 
     @Override

@@ -108,12 +108,19 @@ public class AgentPO {
     private Boolean ragEnabled;
 
     /**
-     * 绑定的 RAG ID (外键, 可为null)
+     * 绑定的 RAG ID 列表（逗号分隔，最多5个）
+     * 例如: "1,2,3"
      * 关联到 sai_rag.id
-     * 禁用时显式写入 NULL，覆盖全局 NOT_EMPTY 策略
      */
-    @TableField("rag_id")
-    private Long ragId;
+    @TableField("rag_ids")
+    private String ragIds;
+
+    /**
+     * RAG 调用方式
+     * @see com.aizuda.snail.ai.common.enums.agent.RagCallModeEnum
+     */
+    @TableField("rag_call_mode")
+    private Integer ragCallMode;
 
     /**
      * 是否启用多轮对话长期记忆

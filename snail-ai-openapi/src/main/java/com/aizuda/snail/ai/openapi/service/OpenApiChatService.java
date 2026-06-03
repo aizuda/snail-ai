@@ -12,8 +12,10 @@ import com.aizuda.snail.ai.persistence.admin.po.UserPO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
 /**
@@ -36,9 +38,13 @@ public class OpenApiChatService {
      * 流式对话 — 返回 SseEmitter，通过 SSE 事件推送每个 text chunk
      */
     public SseEmitter chatStream(OpenApiChatRequest request) {
-        SseEmitter sseEmitter = new SseEmitter(0L);
+        SseEmitter sseEmitter = new SseEmitter(request.getTimeout());
         SseWrappingEmitter wrapper = new SseWrappingEmitter(sseEmitter, request.getConversationId());
         UserPO requestUser = resolveRequestUser(request.getOpenId());
+
+        String sid = StringUtils.hasText(request.getSid())
+                ? request.getSid()
+                : UUID.randomUUID().toString();
 
         agentChatService.chat(AgentChatCommand.builder()
                 .agentId(request.getAgentId())
@@ -49,6 +55,7 @@ public class OpenApiChatService {
                 .emitter(wrapper)
                 .requestUser(requestUser)
                 .openId(request.getOpenId())
+                .sid(sid)
                 .build());
 
         return sseEmitter;
@@ -62,6 +69,10 @@ public class OpenApiChatService {
         CollectingEmitter collector = new CollectingEmitter();
         UserPO requestUser = resolveRequestUser(request.getOpenId());
 
+        String sid = StringUtils.hasText(request.getSid())
+                ? request.getSid()
+                : UUID.randomUUID().toString();
+
         agentChatService.chat(AgentChatCommand.builder()
                 .agentId(request.getAgentId())
                 .conversationId(request.getConversationId())
@@ -71,6 +82,7 @@ public class OpenApiChatService {
                 .emitter(collector)
                 .requestUser(requestUser)
                 .openId(request.getOpenId())
+                .sid(sid)
                 .build());
 
         try {

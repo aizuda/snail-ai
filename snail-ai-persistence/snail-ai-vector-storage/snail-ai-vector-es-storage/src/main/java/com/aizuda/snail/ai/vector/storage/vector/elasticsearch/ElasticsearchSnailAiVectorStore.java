@@ -10,8 +10,6 @@ import com.aizuda.snail.ai.vector.storage.exception.VectorStoreException;
 import com.aizuda.snail.ai.vector.storage.vector.core.AbstractSnailAiVectorStore;
 import com.aizuda.snail.ai.model.model.embedding.SnailEmbeddingModel;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.message.BasicHeader;
 import org.springframework.ai.embedding.TokenCountBatchingStrategy;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.elasticsearch.ElasticsearchVectorStore;
@@ -20,9 +18,6 @@ import org.springframework.ai.vectorstore.elasticsearch.SimilarityFunction;
 import org.springframework.ai.vectorstore.filter.Filter;
 
 import java.io.IOException;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -42,7 +37,8 @@ public class ElasticsearchSnailAiVectorStore extends AbstractSnailAiVectorStore 
                                            ElasticsearchVectorSettings config) {
         super(snailEmbeddingModel, embeddingDimensions);
         this.config = config;
-        this.rest5Client = buildRest5Client(config);
+        // 使用工厂获取或创建客户端（复用连接）
+        this.rest5Client = EsClientFactory.getOrCreateClient(config);
     }
 
     @Override
@@ -83,22 +79,6 @@ public class ElasticsearchSnailAiVectorStore extends AbstractSnailAiVectorStore 
         }
     }
 
-    private static Rest5Client buildRest5Client(ElasticsearchVectorSettings config) {
-        try {
-            String uri = config.getScheme() + "://" + config.getHost() + ":" + config.getPort();
-            var builder = Rest5Client.builder(URI.create(uri));
-            if (config.getUsername() != null && !config.getUsername().isBlank()
-                    && config.getPassword() != null) {
-                String raw = config.getUsername() + ":" + config.getPassword();
-                String b64 = Base64.getEncoder().encodeToString(raw.getBytes(StandardCharsets.UTF_8));
-                Header[] headers = new Header[]{new BasicHeader("Authorization", "Basic " + b64)};
-                builder.setDefaultHeaders(headers);
-            }
-            return builder.build();
-        } catch (Exception e) {
-            throw new VectorStoreException("构建 Elasticsearch Rest5Client 失败", e);
-        }
-    }
 
     @Override
     public void delete(String indexName, List<String> ids) {

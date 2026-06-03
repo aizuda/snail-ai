@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
@@ -28,6 +29,7 @@ import java.util.function.Function;
 public class VectorStoreFactory {
 
     public static final Map<VectorStoreType, Function<VectorStoreConfigDTO, SnailAiVectorStore>> REGISTER = new HashMap<>();
+    private static final ConcurrentHashMap<String, SnailAiVectorStore> STORE_INSTANCE_CACHE = new ConcurrentHashMap<>();
 
     private final ModelFactory modelFactory;
     private final StoreInstanceMapper storeInstanceMapper;
@@ -52,24 +54,26 @@ public class VectorStoreFactory {
         if (vectorStoreInstanceId == null) {
             throw new VectorStoreException("vectorStoreInstanceId 不能为空");
         }
-        StoreInstancePO inst = storeInstanceMapper.selectById(vectorStoreInstanceId);
-        if (inst == null) {
-            throw new VectorStoreException("向量库实例不存在: " + vectorStoreInstanceId);
-        }
-        StoreInstanceTypeEnum typeEnum = StoreInstanceTypeEnum.fromType(inst.getType());
-        if (typeEnum == null) {
-            throw new VectorStoreException("不支持的向量库类型: " + inst.getType());
-        }
-        SnailEmbeddingModel model = (SnailEmbeddingModel) modelFactory.getModel(embeddingModelId);
-        return REGISTER.get(VectorStoreType.valueOf(typeEnum.name())).apply(
-                VectorStoreConfigDTO
-                        .builder()
-                        .config(inst.getConfig())
-                        .dimensions(dimensionOfVectorModel)
-                        .embeddingModel(model)
-                        .build()
-        );
-
+        String cacheKey = vectorStoreInstanceId + "_" + embeddingModelId;
+        return STORE_INSTANCE_CACHE.computeIfAbsent(cacheKey, k -> {
+            StoreInstancePO inst = storeInstanceMapper.selectById(vectorStoreInstanceId);
+            if (inst == null) {
+                throw new VectorStoreException("向量库实例不存在: " + vectorStoreInstanceId);
+            }
+            StoreInstanceTypeEnum typeEnum = StoreInstanceTypeEnum.fromType(inst.getType());
+            if (typeEnum == null) {
+                throw new VectorStoreException("不支持的向量库类型: " + inst.getType());
+            }
+            SnailEmbeddingModel model = (SnailEmbeddingModel) modelFactory.getModel(embeddingModelId);
+            return REGISTER.get(VectorStoreType.valueOf(typeEnum.name())).apply(
+                    VectorStoreConfigDTO
+                            .builder()
+                            .config(inst.getConfig())
+                            .dimensions(dimensionOfVectorModel)
+                            .embeddingModel(model)
+                            .build()
+            );
+        });
     }
 
 }

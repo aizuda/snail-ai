@@ -6,7 +6,6 @@ import com.aizuda.snail.ai.vector.storage.vector.core.AbstractSnailAiVectorStore
 import com.aizuda.snail.ai.model.model.embedding.SnailEmbeddingModel;
 import io.milvus.client.MilvusServiceClient;
 import io.milvus.grpc.CheckHealthResponse;
-import io.milvus.param.ConnectParam;
 import io.milvus.param.IndexType;
 import io.milvus.param.MetricType;
 import io.milvus.param.R;
@@ -31,18 +30,8 @@ public class MilvusSnailAiVectorStore extends AbstractSnailAiVectorStore {
                                     MilvusVectorSettings config) {
         super(snailEmbeddingModel, embeddingDimensions);
         this.config = config;
-        this.milvusClient = createClient(config);
-    }
-
-    private static MilvusServiceClient createClient(MilvusVectorSettings config) {
-        ConnectParam.Builder cb = ConnectParam.newBuilder()
-                .withHost(config.getHost())
-                .withPort(config.getPort())
-                .withDatabaseName(config.getDatabase());
-        if (config.getToken() != null && !config.getToken().isBlank()) {
-            cb.withAuthorization(config.getToken());
-        }
-        return new MilvusServiceClient(cb.build());
+        // 使用工厂获取或创建客户端（复用连接）
+        this.milvusClient = MilvusClientFactory.getOrCreateClient(config);
     }
 
     @Override

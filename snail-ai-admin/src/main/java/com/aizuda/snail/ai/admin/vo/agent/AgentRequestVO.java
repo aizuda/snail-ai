@@ -39,9 +39,11 @@ public class AgentRequestVO {
     /** 记忆检索配置 ID */
     private Long memoryConfigId;
 
-    /** 智能体绑定 RAG ID */
-    @JsonAlias("knowledgeId")
-    private Long ragId;
+    /** 智能体绑定 RAG ID 列表（逗号分隔，最多5个） */
+    private String ragIds;
+
+    /** RAG 调用方式: 1=智能调用 2=强制调用 */
+    private Integer ragCallMode;
 
     /** 短期记忆滑动窗口保留条数，默认 20 */
     private Integer shortTermMemorySize;

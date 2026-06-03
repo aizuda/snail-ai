@@ -37,6 +37,7 @@ public class AgentChatService {
                 command.getOpenId());
         context.setDisabledMcpServerIds(command.getDisabledMcpServerIds());
         context.setDisabledSkillIds(command.getDisabledSkillIds());
+        context.setSid(command.getSid());
         context.setTraceId(traceId);
         context.setRootSpanId(rootSpanId);
         context.setRootSpanStartTimeMs(rootSpanStart);

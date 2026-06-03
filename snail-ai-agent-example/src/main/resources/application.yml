@@ -43,7 +43,7 @@ snail-ai:
     app-id: snail-ai-agent-demo
 
     # 认证令牌（在 Server「应用管理」页面创建时自动生成）
-    token: SAI_ad27bd9de937499c8387336c8deb4cf0
+    token: SAI_3ce13fa4e56a43c2b42e380c649629a5
 
     port: 18889
 

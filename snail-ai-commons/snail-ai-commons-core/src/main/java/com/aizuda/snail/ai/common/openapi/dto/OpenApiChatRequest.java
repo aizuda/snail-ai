@@ -27,4 +27,12 @@ public class OpenApiChatRequest {
     private List<Long> disabledMcpServerIds;
 
     private List<Long> disabledSkillIds;
+
+    /**
+     * 提交ID，用于区分同一用户在同一对话中的并发请求。
+     * 可选，不传则服务端自动生成 UUID。
+     */
+    private String sid;
+
+    private long timeout;
 }

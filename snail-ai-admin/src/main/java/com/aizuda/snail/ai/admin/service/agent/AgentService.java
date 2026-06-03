@@ -3,6 +3,7 @@ package com.aizuda.snail.ai.admin.service.agent;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.common.enums.agent.AgentStatusEnum;
+import com.aizuda.snail.ai.common.enums.agent.RagCallModeEnum;
 import com.aizuda.snail.ai.common.execption.SnailAiCommonException;
 import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.aizuda.snail.ai.persistence.security.UserSessionUtils;
@@ -44,8 +45,6 @@ import static com.aizuda.snail.ai.common.constants.SystemConstants.YYYY_MM_DD_HH
 @Service
 @RequiredArgsConstructor
 public class AgentService {
-
-    private static final Long RAG_ID_NONE = 0L;
 
     private final AgentMapper agentMapper;
     private final AgentConversationMapper agentConversationMapper;
@@ -109,7 +108,8 @@ public class AgentService {
                 .avatar(request.getAvatar())
                 .chatModelId(defaultModel.getId())
                 .creatorId(userId)
-                .ragId(request.getRagId() != null ? request.getRagId() : RAG_ID_NONE)
+                .ragIds(request.getRagIds())
+                .ragCallMode(request.getRagCallMode() != null ? request.getRagCallMode() : RagCallModeEnum.SMART.getMode())
                 .status(AgentStatusEnum.ACTIVE.getStatus())
                 .viewCount(0)
                 .mcpEnabled(Boolean.TRUE.equals(request.getMcpEnabled()))
@@ -194,11 +194,15 @@ public class AgentService {
         if (request.getMemoryEnabled() != null) po.setMemoryEnabled(request.getMemoryEnabled());
         if (request.getShortTermMemorySize() != null) po.setShortTermMemorySize(request.getShortTermMemorySize());
         if (request.getIsFeatured() != null) po.setIsFeatured(request.getIsFeatured());
-        if (request.getRagId() != null) {
-            po.setRagId(request.getRagId());
+        if (request.getRagIds() != null) {
+            po.setRagIds(request.getRagIds());
+        }
+        if (request.getRagCallMode() != null) {
+            po.setRagCallMode(request.getRagCallMode());
         }
         if (Boolean.FALSE.equals(request.getRagEnabled())) {
-            po.setRagId(RAG_ID_NONE);
+            po.setRagIds(null);
+            po.setRagCallMode(null);
         }
         // appId 允许设为 null（清空 = 本地执行）
         po.setAppId(request.getAppId());
@@ -419,7 +423,8 @@ public class AgentService {
                 .webSearchEnabled(po.getWebSearchEnabled())
                 .ragEnabled(po.getRagEnabled())
                 .memoryEnabled(po.getMemoryEnabled())
-                .ragId(RAG_ID_NONE.equals(po.getRagId()) ? null : po.getRagId())
+                .ragIds(StrUtil.isBlank(po.getRagIds()) ? null : po.getRagIds())
+                .ragCallMode(po.getRagCallMode())
                 .shortTermMemorySize(po.getShortTermMemorySize())
                 .creator(null)
                 .viewCount(po.getViewCount())

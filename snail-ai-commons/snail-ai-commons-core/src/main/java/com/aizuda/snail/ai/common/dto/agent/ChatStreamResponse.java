@@ -25,6 +25,9 @@ public class ChatStreamResponse {
     /** 响应类型 */
     private String type;
 
+    /** 提交ID，用于区分同一用户在同一对话中的并发请求 */
+    private String sid;
+
     /** 文本内容 */
     private String content;
 
@@ -56,9 +59,25 @@ public class ChatStreamResponse {
                 .build();
     }
 
+    public static ChatStreamResponse text(String sid, String text) {
+        return ChatStreamResponse.builder()
+                .type(TYPE_TEXT)
+                .sid(sid)
+                .content(text)
+                .build();
+    }
+
     public static ChatStreamResponse thinking(String text) {
         return ChatStreamResponse.builder()
                 .type(TYPE_THINKING)
+                .content(text)
+                .build();
+    }
+
+    public static ChatStreamResponse thinking(String sid, String text) {
+        return ChatStreamResponse.builder()
+                .type(TYPE_THINKING)
+                .sid(sid)
                 .content(text)
                 .build();
     }
@@ -75,9 +94,31 @@ public class ChatStreamResponse {
                 .build();
     }
 
+    public static ChatStreamResponse completion(String sid, String fullText, String fullThinking,
+                                                 int promptTokens, int completionTokens, long durationMs) {
+        return ChatStreamResponse.builder()
+                .type(TYPE_COMPLETION)
+                .sid(sid)
+                .fullText(fullText)
+                .fullThinking(fullThinking)
+                .promptTokens(promptTokens)
+                .completionTokens(completionTokens)
+                .durationMs(durationMs)
+                .build();
+    }
+
     public static ChatStreamResponse error(String errorCode, String errorMessage) {
         return ChatStreamResponse.builder()
                 .type(TYPE_ERROR)
+                .errorCode(errorCode)
+                .errorMessage(errorMessage)
+                .build();
+    }
+
+    public static ChatStreamResponse error(String sid, String errorCode, String errorMessage) {
+        return ChatStreamResponse.builder()
+                .type(TYPE_ERROR)
+                .sid(sid)
                 .errorCode(errorCode)
                 .errorMessage(errorMessage)
                 .build();

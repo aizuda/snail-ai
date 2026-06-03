@@ -54,9 +54,11 @@ public class AgentResponseVO {
     /** 是否启用短期记忆上下文 */
     private Boolean memoryEnabled;
 
-    /** 智能体绑定 RAG ID（存储于 agent.config） */
-    @JsonAlias("knowledgeId")
-    private Long ragId;
+    /** 智能体绑定 RAG ID 列表（逗号分隔） */
+    private String ragIds;
+
+    /** RAG 调用方式: 1=智能调用 2=强制调用 */
+    private Integer ragCallMode;
 
     /** 短期记忆滑动窗口保留条数 */
     private Integer shortTermMemorySize;

@@ -24,6 +24,9 @@ public class ChatDispatchRequest {
     /** 请求ID */
     private String requestId;
 
+    /** 提交ID，用于区分同一用户在同一对话中的并发请求 */
+    private String sid;
+
     /** 追踪ID (由 admin 生成，贯穿 agent 侧) */
     private String traceId;
 
@@ -82,7 +85,8 @@ public class ChatDispatchRequest {
         private Boolean memoryEnabled;
         private Long memoryConfigId;
         private Long embeddingModelId;
-        private Long ragId;
+        private String ragIds;
+        private Integer ragCallMode;
     }
     
     /**
