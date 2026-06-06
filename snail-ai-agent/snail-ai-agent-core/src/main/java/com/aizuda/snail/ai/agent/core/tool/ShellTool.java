@@ -26,21 +26,18 @@ public class ShellTool {
     }
 
     @Tool(name = "shell", description = "Execute a shell command. Can be used to run scripts in the skill directory, view files, install dependencies, etc. "
-            + "Ensure the working directory is correct before use. Supports chained commands (&& or ;).")
-    public String execute(
-            @ToolParam(description = "The shell command to execute") String command,
-            @ToolParam(description = "Working directory (optional, defaults to skill directory)", required = false) String workDir) {
-        log.info("shell command requested");
+            + "Supports chained commands (&& or ;).")
+    public String execute(@ToolParam(description = "The shell command to execute") String command) {
+        log.info("shell:{}", command);
 
         if (command == null || command.trim().isEmpty()) {
             return "Error: command cannot be empty";
         }
 
         try {
-            Path basePath = Paths.get(workingDirectory).toAbsolutePath().normalize();
-            Path workPath = resolveWorkPath(basePath, workDir);
+            Path workPath = Paths.get(workingDirectory);
             if (!Files.exists(workPath) || !Files.isDirectory(workPath)) {
-                return "Error: 工作目录不存在: " + workPath;
+                return "Error: 工作目录不存在: " + workingDirectory;
             }
 
             // 检测操作系统，构建命令
@@ -94,19 +91,6 @@ public class ShellTool {
             log.error("Shell 命令执行失败: {}", command, e);
             return "Error: " + e.getMessage();
         }
-    }
-
-    private Path resolveWorkPath(Path basePath, String workDir) {
-        Path requestedPath = (workDir != null && !workDir.trim().isEmpty())
-                ? Paths.get(workDir.trim())
-                : basePath;
-        Path resolved = requestedPath.isAbsolute()
-                ? requestedPath.toAbsolutePath().normalize()
-                : basePath.resolve(requestedPath).normalize();
-        if (!resolved.startsWith(basePath)) {
-            throw new IllegalArgumentException("工作目录必须位于技能目录内");
-        }
-        return resolved;
     }
 
     private void readOutput(Process process, StringBuilder output, OutputStats stats) {

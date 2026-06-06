@@ -29,6 +29,9 @@ public class SnailAiAgentProperties {
     /** Skill 文件临时目录 */
     private String skillTempDir = "/tmp/snail-ai-agent/skills";
 
+    /** shell 文件临时目录 */
+    private String shellTempDir = "/tmp/snail-ai-agent/script/";
+
     /**
      * 服务端配置
      */

@@ -16,10 +16,7 @@ import com.aizuda.snail.ai.agent.core.grpc.handler.ChatDispatchStreamingHandler;
 import com.aizuda.snail.ai.agent.core.grpc.handler.PingRequestHandler;
 import com.aizuda.snail.ai.agent.core.interceptor.SnailAiInterceptor;
 import com.aizuda.snail.ai.agent.core.interceptor.impl.LoggingInterceptor;
-import com.aizuda.snail.ai.agent.core.resolver.ClientMemoryToolResolver;
-import com.aizuda.snail.ai.agent.core.resolver.ClientRagToolResolver;
-import com.aizuda.snail.ai.agent.core.resolver.ClientSkillToolResolver;
-import com.aizuda.snail.ai.agent.core.resolver.CustomToolCallbackProvider;
+import com.aizuda.snail.ai.agent.core.resolver.*;
 import com.aizuda.snail.ai.common.grpc.handler.GrpcRequestDispatcher;
 import jakarta.annotation.PreDestroy;
 import lombok.extern.slf4j.Slf4j;
@@ -133,6 +130,12 @@ public class SnailAiAgentAutoConfiguration {
     }
 
     @Bean
+    public BaseToolResolver baseToolResolver(SnailAiAgentProperties props) {
+        String shellTempDir = props.getShellTempDir();
+        return new BaseToolResolver(shellTempDir);
+    }
+
+    @Bean
     public ClientMemoryToolResolver clientMemoryToolResolver() {
         return new ClientMemoryToolResolver();
     }
@@ -160,10 +163,11 @@ public class SnailAiAgentAutoConfiguration {
                                                                      ClientSkillToolResolver skillToolResolver,
                                                                      ClientRagToolResolver ragToolResolver,
                                                                      ClientMemoryToolResolver memoryToolResolver,
-                                                                     CustomToolCallbackProvider customToolCallbackProvider) {
+                                                                     CustomToolCallbackProvider customToolCallbackProvider,
+                                                                     BaseToolResolver baseToolResolver) {
         return new ChatDispatchStreamingHandler(
                 clientChatExecutor, activeChatCounter, skillToolResolver,
-                ragToolResolver, memoryToolResolver, customToolCallbackProvider);
+                ragToolResolver, baseToolResolver, customToolCallbackProvider);
     }
 
     @Bean

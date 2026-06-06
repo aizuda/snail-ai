@@ -58,11 +58,9 @@ public class ClientSkillToolResolver {
             request.setSystemPrompt(request.getSystemPrompt() + skillPrompt);
 
             callbacks.addAll(Arrays.asList(ToolCallbacks.from(
-                    new ReadSkillTool(skills, rpcClient, skillTempDir),
-                    new ShellTool(skillTempDir, DEFAULT_SHELL_TIMEOUT_MS, DEFAULT_SHELL_MAX_OUTPUT_LINES),
-                    new HttpTool(DEFAULT_HTTP_TIMEOUT_MS)
+                    new ReadSkillTool(skills, rpcClient, skillTempDir)
             )));
-            log.info("Skill tools resolved: {} skills, ReadSkillTool + ShellTool + HttpTool registered", skills.size());
+            log.info("Skill tools resolved: {} skills, ReadSkillTool  registered", skills.size());
         } catch (Exception e) {
             log.warn("Failed to resolve skill tools", e);
         }

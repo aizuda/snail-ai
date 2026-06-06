@@ -35,7 +35,7 @@ public class ChatDispatchStreamingHandler implements GrpcStreamingRequestHandler
     private final ActiveChatCounter activeChatCounter;
     private final ClientSkillToolResolver skillToolResolver;
     private final ClientRagToolResolver ragToolResolver;
-    private final ClientMemoryToolResolver memoryToolResolver;
+    private final BaseToolResolver baseToolResolver;
     private final CustomToolCallbackProvider customToolCallbackProvider;
 
     @Override
@@ -78,6 +78,14 @@ public class ChatDispatchStreamingHandler implements GrpcStreamingRequestHandler
 
         // MCP 工具
         List<ToolCallback> tools = new ArrayList<>(resolveMcpTools(dispatchRequest.getMcpServers(), mcpResolver));
+
+        // ShellTool 、HttpTool 等基础工具注入
+        try {
+            tools.addAll(baseToolResolver.resolve(dispatchRequest));
+        } catch (Exception e) {
+            log.warn("Failed to resolve RAG tools", e);
+        }
+
 
         // RAG 知识库搜索工具（本地 Tool，通过 gRPC 回调服务端）
         try {
