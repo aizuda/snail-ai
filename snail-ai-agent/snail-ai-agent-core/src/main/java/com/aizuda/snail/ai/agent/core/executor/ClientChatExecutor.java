@@ -10,7 +10,7 @@ import com.aizuda.snail.ai.common.util.JsonUtil;
 import io.micrometer.observation.ObservationRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.ToolCallAdvisor;
+import org.springframework.ai.chat.client.advisor.ToolCallingAdvisor;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -112,9 +112,6 @@ public class ClientChatExecutor {
         return ctx;
     }
 
-    /**
-     * 仅包含原始 system + user；memory 与 history 由 {@link com.aizuda.snail.ai.agent.core.advisor.MemoryInjectionAdvisor} 注入。
-     */
     private Prompt buildBasePrompt(ChatDispatchRequest request) {
         List<Message> messages = new ArrayList<>();
         String systemPrompt = request.getSystemPrompt() != null ? request.getSystemPrompt() : "";
@@ -151,37 +148,29 @@ public class ClientChatExecutor {
 
         ChatModel chatModel = OpenAiChatModel.builder()
                 .options(optionsBuilder.build())
-                // .observationRegistry(observationRegistry)
                 .build();
 
         List<ToolCallback> tracedTools = tools.stream()
                 .map(TracingToolCallbackWrapper::new)
                 .collect(java.util.stream.Collectors.toList());
 
-        ToolCallAdvisor toolCallAdvisor = ToolCallAdvisor.builder()
-                .toolCallingManager(ToolCallingManager.builder().build())
-                .build();
+        ObservationRegistry activeObservationRegistry = observationRegistry != null
+                ? observationRegistry
+                : ObservationRegistry.NOOP;
 
-        return ChatClient.builder(chatModel)
+        return ChatClient.builder(
+                        chatModel,
+                        activeObservationRegistry,
+                        null,
+                        null,
+                        ToolCallingAdvisor.builder()
+                                .toolCallingManager(ToolCallingManager.builder()
+                                        .observationRegistry(activeObservationRegistry)
+                                        .build()))
                 .defaultAdvisors(defaultAdvisors)
-                .defaultTools(toolSpec -> toolSpec
-                        .callbacks(tracedTools)
-                        .context(new HashMap<>())
-                        .advisor(toolCallAdvisor))
+                .defaultTools(tracedTools)
+                .defaultToolContext(new HashMap<>())
                 .build();
-    }
-
-    private ConfigExtAttrsDTO parseExtConfig(String configJson) {
-        if (configJson == null || configJson.isEmpty()) {
-            return new ConfigExtAttrsDTO();
-        }
-        try {
-            ConfigExtAttrsDTO dto = JsonUtil.parseObject(configJson, ConfigExtAttrsDTO.class);
-            return dto != null ? dto : new ConfigExtAttrsDTO();
-        } catch (Exception e) {
-            log.warn("Failed to parse configJson: {}", configJson, e);
-            return new ConfigExtAttrsDTO();
-        }
     }
 
     private void applyConfigOptions(OpenAiChatOptions.Builder builder, ConfigExtAttrsDTO config) {
