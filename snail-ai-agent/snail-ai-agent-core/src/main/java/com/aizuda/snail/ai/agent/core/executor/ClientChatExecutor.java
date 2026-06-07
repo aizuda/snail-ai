@@ -6,11 +6,10 @@ import com.aizuda.snail.ai.agent.core.advisor.ClientAdvisorKeys;
 import com.aizuda.snail.ai.agent.core.advisor.ClientStreamExecutionContext;
 import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
 import com.aizuda.snail.ai.common.model.ConfigExtAttrsDTO;
-import com.aizuda.snail.ai.common.util.JsonUtil;
 import io.micrometer.observation.ObservationRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.ToolCallingAdvisor;
+import org.springframework.ai.chat.client.advisor.ToolCallAdvisor;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -37,17 +36,9 @@ import java.util.function.Consumer;
 @Slf4j
 public class ClientChatExecutor {
 
-    private static final String DEFAULT_CONFIG_JSON = "{}";
-
-    private final ObservationRegistry observationRegistry;
-    private final String environment;
     private final Advisor[] defaultAdvisors;
 
-    public ClientChatExecutor(ObservationRegistry observationRegistry,
-                              String environment,
-                              Advisor... defaultAdvisors) {
-        this.observationRegistry = observationRegistry;
-        this.environment = environment;
+    public ClientChatExecutor(Advisor... defaultAdvisors) {
         this.defaultAdvisors = defaultAdvisors != null ? defaultAdvisors : new Advisor[0];
     }
 
@@ -154,22 +145,16 @@ public class ClientChatExecutor {
                 .map(TracingToolCallbackWrapper::new)
                 .collect(java.util.stream.Collectors.toList());
 
-        ObservationRegistry activeObservationRegistry = observationRegistry != null
-                ? observationRegistry
-                : ObservationRegistry.NOOP;
+        ToolCallAdvisor toolCallAdvisor = ToolCallAdvisor.builder()
+                .toolCallingManager(ToolCallingManager.builder().build())
+                .build();
 
-        return ChatClient.builder(
-                        chatModel,
-                        activeObservationRegistry,
-                        null,
-                        null,
-                        ToolCallingAdvisor.builder()
-                                .toolCallingManager(ToolCallingManager.builder()
-                                        .observationRegistry(activeObservationRegistry)
-                                        .build()))
+        return ChatClient.builder(chatModel)
                 .defaultAdvisors(defaultAdvisors)
-                .defaultTools(tracedTools)
-                .defaultToolContext(new HashMap<>())
+                .defaultTools(toolSpec -> toolSpec
+                        .callbacks(tracedTools)
+                        .context(new HashMap<>())
+                        .advisor(toolCallAdvisor))
                 .build();
     }
 

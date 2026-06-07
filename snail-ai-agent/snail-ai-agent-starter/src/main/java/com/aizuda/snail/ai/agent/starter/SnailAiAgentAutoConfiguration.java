@@ -96,8 +96,7 @@ public class SnailAiAgentAutoConfiguration {
                                                  StreamChunkForwarderAdvisor streamChunkForwarderAdvisor) {
 
         Hooks.enableAutomaticContextPropagation();
-        return new ClientChatExecutor(null,
-                resolveActiveProfile(env),
+        return new ClientChatExecutor(
                 interceptorChainAdvisor,
                 tokenUsageCollectorAdvisor,
                 thinkingCollectorAdvisor,
