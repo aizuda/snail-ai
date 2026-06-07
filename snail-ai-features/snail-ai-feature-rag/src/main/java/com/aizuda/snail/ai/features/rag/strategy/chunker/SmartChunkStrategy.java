@@ -13,7 +13,7 @@ import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.openai.OpenAiChatOptions;
+import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -182,8 +182,8 @@ public class SmartChunkStrategy extends AbstractChunkStrategy {
     /**
      * 构建智能切片专用的 ChatOptions，设置足够大的 maxTokens
      */
-    private OpenAiChatOptions buildChunkOptions() {
-        return OpenAiChatOptions.builder()
+    private ChatOptions buildChunkOptions() {
+        return ChatOptions.builder()
                 .maxTokens(CHUNK_MAX_TOKENS)
                 .build();
     }
