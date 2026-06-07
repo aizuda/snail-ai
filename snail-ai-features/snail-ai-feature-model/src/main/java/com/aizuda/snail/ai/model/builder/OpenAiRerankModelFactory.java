@@ -87,7 +87,7 @@ public class OpenAiRerankModelFactory implements RerankModelFactory {
                 return List.of();
             }
             int n = Math.min(Math.max(topN, 1), documents.size());
-            RerankParams params = new RerankParams(modelKey, new RerankOptions(query, documents, n));
+            RerankParams params = new RerankParams(modelKey, query, documents, n);
             log.debug("rerank {}", params);
             Map<String, Object> response = restClient.post()
                     .uri(url)
@@ -141,9 +141,9 @@ public class OpenAiRerankModelFactory implements RerankModelFactory {
         }
     }
 
-    public record RerankParams(String model, RerankOptions input) {
+    public record RerankParams(String model, String query, List<String> documents, int top_n) {
 
     }
 
-    public record RerankOptions(String query, List<String> documents, int top_n){}
+    //public record RerankOptions(String query, List<String> documents, int top_n){}
 }
