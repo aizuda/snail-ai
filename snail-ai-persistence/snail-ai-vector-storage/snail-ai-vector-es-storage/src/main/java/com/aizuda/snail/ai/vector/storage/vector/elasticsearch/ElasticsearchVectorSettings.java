@@ -20,6 +20,9 @@ public class ElasticsearchVectorSettings {
 
     private String password;
 
+    /** 是否关闭 HTTPS 证书和主机名校验，仅用于内网自签名证书 */
+    private boolean sslVerificationDisabled = false;
+
     /** 实际索引名：{indexPrefix}_{ragId} */
     private String indexPrefix = "snail_ai_vector";
 
