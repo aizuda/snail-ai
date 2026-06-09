@@ -6,10 +6,8 @@ import com.aizuda.snail.ai.agent.core.advisor.ClientAdvisorKeys;
 import com.aizuda.snail.ai.agent.core.advisor.ClientStreamExecutionContext;
 import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
 import com.aizuda.snail.ai.common.model.ConfigExtAttrsDTO;
-import io.micrometer.observation.ObservationRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.ToolCallAdvisor;
 import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
@@ -17,7 +15,6 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.model.tool.ToolCallingManager;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.tool.ToolCallback;
@@ -141,20 +138,11 @@ public class ClientChatExecutor {
                 .options(optionsBuilder.build())
                 .build();
 
-        List<ToolCallback> tracedTools = tools.stream()
-                .map(TracingToolCallbackWrapper::new)
-                .collect(java.util.stream.Collectors.toList());
-
-        ToolCallAdvisor toolCallAdvisor = ToolCallAdvisor.builder()
-                .toolCallingManager(ToolCallingManager.builder().build())
-                .build();
-
         return ChatClient.builder(chatModel)
                 .defaultAdvisors(defaultAdvisors)
-                .defaultTools(toolSpec -> toolSpec
-                        .callbacks(tracedTools)
-                        .context(new HashMap<>())
-                        .advisor(toolCallAdvisor))
+                .defaultTools(tools.stream()
+                        .map(TracingToolCallbackWrapper::new).toArray())
+                .defaultToolContext(new HashMap<>())
                 .build();
     }
 
