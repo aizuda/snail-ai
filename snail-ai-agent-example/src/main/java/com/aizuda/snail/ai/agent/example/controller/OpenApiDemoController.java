@@ -1,35 +1,23 @@
 package com.aizuda.snail.ai.agent.example.controller;
 
-import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.common.model.PageResult;
 import com.aizuda.snail.ai.common.model.Result;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiAgentVO;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatRequest;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatSyncResponse;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationIdentityRequest;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationQueryRequest;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationVO;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiCreateConversationRequest;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiMessageVO;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiAgentIdentityRequest;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiUserRegisterRequest;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiUserQueryRequest;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiUserVO;
+import com.aizuda.snail.ai.common.openapi.dto.*;
 import com.aizuda.snail.ai.openapi.client.core.api.OpenApiAgentClient;
 import com.aizuda.snail.ai.openapi.client.core.api.OpenApiChatClient;
 import com.aizuda.snail.ai.openapi.client.core.api.OpenApiConversationClient;
 import com.aizuda.snail.ai.openapi.client.core.api.OpenApiUserClient;
-import com.aizuda.snail.ai.openapi.client.core.listener.SseEventListener;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import reactor.core.publisher.Flux;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -44,18 +32,28 @@ import java.util.List;
  * @author opensnail
  * @date 2026-04-25
  */
-@Slf4j
 @RestController
 @RequestMapping("/demo")
-@RequiredArgsConstructor
 @ConditionalOnProperty(prefix = "snail-ai.openapi", name = "enabled", havingValue = "true")
 @Tag(name = "OpenAPI Demo", description = "OpenAPI 客户端使用示例")
 public class OpenApiDemoController {
+
+    private static final Logger log = LoggerFactory.getLogger(OpenApiDemoController.class);
 
     private final OpenApiAgentClient agentClient;
     private final OpenApiChatClient chatClient;
     private final OpenApiConversationClient conversationClient;
     private final OpenApiUserClient userClient;
+
+    public OpenApiDemoController(OpenApiAgentClient agentClient,
+                                 OpenApiChatClient chatClient,
+                                 OpenApiConversationClient conversationClient,
+                                 OpenApiUserClient userClient) {
+        this.agentClient = agentClient;
+        this.chatClient = chatClient;
+        this.conversationClient = conversationClient;
+        this.userClient = userClient;
+    }
 
     // ==================== User 相关接口 ====================
 
@@ -82,8 +80,8 @@ public class OpenApiDemoController {
 
     @GetMapping("/agents")
     @Operation(summary = "获取所有 Agent 列表", description = "查询当前用户可访问的所有智能体")
-    public Result<List<OpenApiAgentVO>> listAgents() {
-        return agentClient.listAgents();
+    public Result<List<OpenApiAgentVO>> listAgents(OpenApiAgentQueryRequest openApiAgentQueryRequest) {
+        return agentClient.listAgents(openApiAgentQueryRequest);
     }
 
     @GetMapping("/agent/{agentId}")
@@ -174,9 +172,9 @@ public class OpenApiDemoController {
         return chatClient.chatSync(request);
     }
 
-    @GetMapping("/agent/{agentId}/chat/stream")
+    @GetMapping(value = "/agent/{agentId}/chat/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @Operation(summary = "流式对话", description = "发送消息并以 SSE 流式接收 AI 回复")
-    public SseEmitter chatStream(
+    public Flux<ServerSentEvent<String>> chatStream(
             @Parameter(description = "Agent ID", required = true, example = "1")
             @PathVariable Long agentId,
             @Parameter(description = "openId", required = true, example = "demo-open-id")
@@ -186,8 +184,6 @@ public class OpenApiDemoController {
             @Parameter(description = "会话 ID（可选）", example = "conv-123")
             @RequestParam(required = false) String conversationId) {
 
-        SseEmitter emitter = new SseEmitter(300000L); // 5 分钟超时
-
         OpenApiChatRequest request = new OpenApiChatRequest();
         request.setAgentId(agentId);
         request.setOpenId(openId);
@@ -196,66 +192,9 @@ public class OpenApiDemoController {
 
         log.info("Stream chat request: agentId={}, content={}", agentId, content);
 
-        // 异步执行流式对话
-        Thread.startVirtualThread(() -> {
-            try {
-                chatClient.chatStream(request, new SseEventListener() {
-                    @Override
-                    public void onText(String text) {
-                        try {
-                            emitter.send(SseEmitter.event()
-                                    .name("text")
-                                    .data(text));
-                        } catch (IOException e) {
-                            log.error("Failed to send SSE text", e);
-                            emitter.completeWithError(e);
-                        }
-                    }
-
-                    @Override
-                    public void onThinking(String thinking) {
-                        try {
-                            emitter.send(SseEmitter.event()
-                                    .name("thinking")
-                                    .data(thinking));
-                        } catch (IOException e) {
-                            log.error("Failed to send SSE thinking", e);
-                        }
-                    }
-
-                    @Override
-                    public void onComplete(String data) {
-                        try {
-                            emitter.send(SseEmitter.event()
-                                    .name("done")
-                                    .data(data));
-                            emitter.complete();
-                            log.info("Stream chat completed");
-                        } catch (IOException e) {
-                            log.error("Failed to send SSE completion", e);
-                            emitter.completeWithError(e);
-                        }
-                    }
-
-                    @Override
-                    public void onError(String errorMessage) {
-                        log.error("Stream chat error: {}", errorMessage);
-                        try {
-                            emitter.send(SseEmitter.event()
-                                    .name("error")
-                                    .data(errorMessage));
-                        } catch (IOException e) {
-                            log.error("Failed to send SSE error", e);
-                        }
-                        emitter.completeWithError(new SnailAiException(errorMessage));
-                    }
-                });
-            } catch (Exception e) {
-                log.error("Stream chat exception", e);
-                emitter.completeWithError(e);
-            }
-        });
-
-        return emitter;
+        return chatClient.chatStream(request)
+                .map(event -> ServerSentEvent.<String>builder(event.getData())
+                        .event(event.getType())
+                        .build());
     }
 }

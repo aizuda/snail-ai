@@ -134,6 +134,7 @@ CREATE TABLE IF NOT EXISTS sai_model_config
     model_name   VARCHAR(255) NOT NULL COMMENT '模型名称',
     model_key    VARCHAR(100) NOT NULL COMMENT '模型标识符',
     model_type   VARCHAR(50)  NOT NULL COMMENT '模型类型(CHAT/EMBEDDING/RERANKER/IMAGE/SPEECH)',
+    adapter_key  VARCHAR(100) COMMENT '底层协议适配器标识(openai-compatible/http等)',
     description  VARCHAR(1000) COMMENT '模型描述',
     api_key      VARCHAR(1000) COMMENT 'API密钥(加密存储)',
     api_endpoint VARCHAR(500) COMMENT 'API端点URL',
@@ -426,11 +427,6 @@ CREATE TABLE IF NOT EXISTS sai_store_instance
 
 CREATE INDEX idx_store_instance_category ON sai_store_instance (category);
 CREATE INDEX idx_store_instance_type ON sai_store_instance (type);
-
--- ============================================================
--- 记忆系统（配置 / 主表 / 历史 / 摘要 / 统计 / 提取进度）
--- 依赖：sai_store_instance（sai_memory_conversation 外键）
--- ============================================================
 
 -- 客户端应用
 -- ----------------------------

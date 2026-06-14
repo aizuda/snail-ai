@@ -18,6 +18,8 @@ public class OpenApiMessageVO {
 
     private String content;
 
+    private String thinking;
+
     private Integer status;
 
     private String createDt;

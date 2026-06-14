@@ -69,3 +69,10 @@ snail-ai:
       read-timeout-ms: 60000
       chat-timeout-ms: 300000
 
+    # OpenAPI Client canonical prefix used by the starter.
+
+    chat:
+      enabled: true
+      ui:
+        page-title: SnailAIChat11
+        logo: https://snailjob.opensnail.com/logo.svg

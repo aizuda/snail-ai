@@ -44,5 +44,8 @@
 - 不要修改不相关的代码，保持变更最小化
 - 新增 API 端点时同步更新前端 service 层类型定义
 
-## 其他个规范
-其他的开发规范请查看【.Codex/skills】下面的规范信息
+## 开发规范 Skill
+
+- 每次编写或修改代码前，必须先阅读 `.claude/skills/dev-guide/SKILL.md`。
+- 按任务类型继续阅读对应细则：架构调整读 `architecture.md`，Java/编码风格读 `coding-standards.md`，数据库/Mapper/PO 调整读 `database-guide.md`，接口调整读 `api-design.md`，命名不确定时读 `naming-conventions.md`。
+- `.claude/skills/dev-guide/` 中的规范与本文件同时生效；如与当前开源版实际模块结构冲突，以当前代码结构和本文件的开源版约束为准。

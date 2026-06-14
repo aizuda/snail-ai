@@ -14,12 +14,11 @@
 
     <modules>
         <module>snail-ai-commons</module>
-        <module>snail-ai-persistence</module>
-        <module>snail-ai-features</module>
+        <module>snail-ai-models</module>
+        <module>snail-ai-server</module>
         <module>snail-ai-agent</module>
-        <module>snail-ai-admin</module>
-        <module>snail-ai-openapi</module>
         <module>snail-ai-starter</module>
+        <module>snail-ai-agent-example</module>
     </modules>
 
     <properties>
@@ -27,8 +26,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <revision>0.0.5</revision>
         <skipTests>true</skipTests>
-        <spring-boot.version>4.0.6</spring-boot.version>
-        <spring-ai.version>2.0.0-RC1</spring-ai.version>
+        <spring-boot.version>4.1.0</spring-boot.version>
+        <spring-ai.version>2.0.0</spring-ai.version>
         <hutool.version>5.8.46</hutool.version>
         <mybatis-plus.version>3.5.16</mybatis-plus.version>
         <lombok.version>1.18.42</lombok.version>
@@ -120,23 +119,153 @@
             </dependency>
             <dependency>
                 <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-models</artifactId>
+                <version>${revision}</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-model-common</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-model-chat</artifactId>
+                <version>${revision}</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-model-chat-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-model-chat-provider-openai-compatible</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-model-chat-starter</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-model-embedding</artifactId>
+                <version>${revision}</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-model-embedding-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-model-embedding-provider-openai-compatible</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-model-embedding-starter</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-model-rerank</artifactId>
+                <version>${revision}</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-model-rerank-core</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-model-rerank-provider-http</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-model-rerank-starter</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
                 <artifactId>snail-ai-agent-common</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>com.aizuda</groupId>
-                <artifactId>snail-ai-agent-core</artifactId>
+                <artifactId>snail-ai-agent-executor-core</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>com.aizuda</groupId>
-                <artifactId>snail-ai-agent-starter</artifactId>
+                <artifactId>snail-ai-agent-executor-model</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>
                 <groupId>com.aizuda</groupId>
-                <artifactId>snail-ai-persistence</artifactId>
+                <artifactId>snail-ai-agent-executor-starter</artifactId>
                 <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-agent-executor</artifactId>
+                <version>${revision}</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-agent-openapi</artifactId>
+                <version>${revision}</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-agent-chat</artifactId>
+                <version>${revision}</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-agent-chat-api</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-agent-chat-starter</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-server</artifactId>
+                <version>${revision}</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-server-admin</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-server-openapi</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-server-features</artifactId>
+                <version>${revision}</version>
+                <type>pom</type>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-server-persistence</artifactId>
+                <version>${revision}</version>
+                <type>pom</type>
             </dependency>
             <dependency>
                 <groupId>com.aizuda</groupId>
@@ -191,16 +320,6 @@
             <dependency>
                 <groupId>com.aizuda</groupId>
                 <artifactId>snail-ai-feature-resource</artifactId>
-                <version>${revision}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.aizuda</groupId>
-                <artifactId>snail-ai-admin</artifactId>
-                <version>${revision}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.aizuda</groupId>
-                <artifactId>snail-ai-openapi</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>

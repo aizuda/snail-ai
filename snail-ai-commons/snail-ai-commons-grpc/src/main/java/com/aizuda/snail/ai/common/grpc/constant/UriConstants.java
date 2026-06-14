@@ -7,7 +7,6 @@ public interface UriConstants {
 
     // Client → Server
     String BEAT = "/beat";
-    String BATCH_TRACE_REPORT = "/batch/trace/report";
     String CALLBACK_CONVERSATION_CREATE = "/callback/conversation/create";
     String CALLBACK_CONVERSATION_RECORD = "/callback/conversation/record";
     String CALLBACK_MEMORY_RETRIEVE = "/callback/memory/retrieve";

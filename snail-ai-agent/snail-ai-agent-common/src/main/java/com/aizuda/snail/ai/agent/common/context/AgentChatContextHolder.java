@@ -10,7 +10,7 @@ import java.util.Map;
 
 /**
  * 智能体聊天上下文持有器 - 使用 ThreadLocal 存储聊天会话的完整上下文信息
- * 用于在 ObservationHandler、事件监听器、Advisor 等处获取聊天相关的元数据
+ * 用于在事件监听器、Advisor 等处获取聊天相关的元数据
  *
  * 包含信息：
  * - 身份信息：agentId, userId, conversationId
@@ -64,18 +64,7 @@ public class AgentChatContextHolder {
         private String agentName;
         private String agentInstruction;
 
-        // 可观测性链路追踪ID
-        /** 当前 Trace ID (对话轮次) */
-        private String traceId;
-        /** 整个交互的根 SPAN ID（由服务端传递） */
-        private String rootSpanId;
-        /** 客户端执行阶段的 SPAN ID（agent_execution） */
-        private String agentExecutionSpanId;
-        /** 当前 GENERATION Observation ID (供 ToolCalling 作为 parent 使用) */
-        private String currentGenerationId;
-        /** 当前正在执行的 TOOL Observation ID（onStart 写入，供 ToolContext 传播到 MCP Server） */
-        private String currentToolObservationId;
-        /** 当前 GENERATION 的思维链内容（由 ThinkingCollectorAdvisor 写入，由 ObservationHandler 读取） */
+        /** 当前 GENERATION 的思维链内容 */
         private String currentThinkingContent;
 
     }
@@ -102,4 +91,3 @@ public class AgentChatContextHolder {
 
 
 }
-

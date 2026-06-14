@@ -28,6 +28,10 @@ public class OpenApiChatRequest {
 
     private List<Long> disabledSkillIds;
 
+    private Boolean deepPlanEnabled;
+
+    private Boolean webSearchEnabled;
+
     /**
      * 提交ID，用于区分同一用户在同一对话中的并发请求。
      * 可选，不传则服务端自动生成 UUID。

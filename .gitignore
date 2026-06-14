@@ -48,5 +48,7 @@ nbdist/
 .flattened-pom.xml
 /upload
 /temp
-.claude
+.claude/*
+!.claude/skills/
+!.claude/skills/**
 .vscode

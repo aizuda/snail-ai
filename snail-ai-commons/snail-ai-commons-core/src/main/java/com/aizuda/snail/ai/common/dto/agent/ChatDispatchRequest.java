@@ -27,12 +27,6 @@ public class ChatDispatchRequest {
     /** 提交ID，用于区分同一用户在同一对话中的并发请求 */
     private String sid;
 
-    /** 追踪ID (由 admin 生成，贯穿 agent 侧) */
-    private String traceId;
-
-    /** 整个交互的根观测 SPAN ID（服务端创建，客户端 agent_execution 应挂到该节点下） */
-    private String rootSpanId;
-    
     /** 智能体配置 */
     private AgentConfig agentConfig;
     
@@ -110,6 +104,9 @@ public class ChatDispatchRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ModelConfig {
+        private Long modelConfigId;
+        private String providerKey;
+        private String adapterKey;
         private String modelKey;
         private String apiEndpoint;
         private String apiKey;

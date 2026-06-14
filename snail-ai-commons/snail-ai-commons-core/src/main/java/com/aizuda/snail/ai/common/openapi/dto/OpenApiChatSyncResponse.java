@@ -18,7 +18,5 @@ public class OpenApiChatSyncResponse {
 
     private String content;
 
-    private String traceId;
-
     private Long durationMs;
 }

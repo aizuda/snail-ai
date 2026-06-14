@@ -14,8 +14,4 @@ public class RagSearchRequest {
     private Long ragId;
 
     private String query;
-
-    private String traceId;
-
-    private String parentObservationId;
 }

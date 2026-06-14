@@ -18,9 +18,8 @@
 
     <modules>
         <module>snail-ai-agent-common</module>
-        <module>snail-ai-agent-core</module>
-        <module>snail-ai-agent-starter</module>
-        <module>snail-ai-openapi-core</module>
-        <module>snail-ai-openapi-starter</module>
+        <module>snail-ai-agent-executor</module>
+        <module>snail-ai-agent-openapi</module>
+        <module>snail-ai-agent-chat</module>
     </modules>
 </project>

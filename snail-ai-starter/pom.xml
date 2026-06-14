@@ -25,11 +25,11 @@
     <dependencies>
         <dependency>
             <groupId>com.aizuda</groupId>
-            <artifactId>snail-ai-admin</artifactId>
+            <artifactId>snail-ai-server-admin</artifactId>
         </dependency>
         <dependency>
             <groupId>com.aizuda</groupId>
-            <artifactId>snail-ai-openapi</artifactId>
+            <artifactId>snail-ai-server-openapi</artifactId>
         </dependency>
         <dependency>
             <groupId>com.mysql</groupId>

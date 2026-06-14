@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.aizuda</groupId>
+        <artifactId>snail-ai-server-features</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>snail-ai-feature-common</artifactId>
+    <packaging>jar</packaging>
+    <name>snail-ai-feature-common</name>
+    <description>snail-ai-feature-common</description>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.aizuda</groupId>
+            <artifactId>snail-ai-feature-model</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.aizuda</groupId>
+            <artifactId>snail-ai-commons-grpc</artifactId>
+        </dependency>
+    </dependencies>
+</project>

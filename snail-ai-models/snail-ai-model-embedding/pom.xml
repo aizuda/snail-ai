@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.aizuda</groupId>
+        <artifactId>snail-ai-models</artifactId>
+        <version>${revision}</version>
+        <relativePath>../pom.xml</relativePath>
+    </parent>
+
+    <artifactId>snail-ai-model-embedding</artifactId>
+    <packaging>pom</packaging>
+    <name>snail-ai-model-embedding</name>
+    <description>snail-ai-model-embedding</description>
+
+    <modules>
+        <module>snail-ai-model-embedding-core</module>
+        <module>snail-ai-model-embedding-provider-openai-compatible</module>
+        <module>snail-ai-model-embedding-starter</module>
+    </modules>
+</project>

@@ -27,7 +27,7 @@
         <!-- Snail-AI Agent Starter -->
         <dependency>
             <groupId>com.aizuda</groupId>
-            <artifactId>snail-ai-agent-starter</artifactId>
+            <artifactId>snail-ai-agent-executor-starter</artifactId>
             <version>${snail-ai.version}</version>
         </dependency>
 
@@ -42,6 +42,13 @@
         <dependency>
             <groupId>com.aizuda</groupId>
             <artifactId>snail-ai-openapi-starter</artifactId>
+            <version>${snail-ai.version}</version>
+        </dependency>
+
+        <!-- Embedded Chat UI and local OpenAPI gateway -->
+        <dependency>
+            <groupId>com.aizuda</groupId>
+            <artifactId>snail-ai-agent-chat-starter</artifactId>
             <version>${snail-ai.version}</version>
         </dependency>
 
