@@ -108,7 +108,7 @@ public class SnailAiChatAutoConfiguration {
 
             @Override
             public void addResourceHandlers(ResourceHandlerRegistry registry) {
-                registry.addResourceHandler("/chat/**")
+                registry.addResourceHandler("/snail-chat/**")
                         .addResourceLocations(CHAT_RESOURCE_LOCATION);
             }
 

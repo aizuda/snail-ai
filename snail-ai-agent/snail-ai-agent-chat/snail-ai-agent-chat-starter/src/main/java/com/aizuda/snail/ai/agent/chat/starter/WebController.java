@@ -8,10 +8,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class WebController {
 
-    private static final String CHAT_PATH = "/chat";
-    private static final String CHAT_ROOT_PATH = "/chat/";
-    private static final String CHAT_INDEX_FORWARD = "forward:/chat/index.html";
-    private static final String CHAT_ROOT_REDIRECT = "redirect:/chat/";
+    private static final String CHAT_PATH = "/snail-chat";
+    private static final String CHAT_ROOT_PATH = "/snail-chat/";
+    private static final String CHAT_INDEX_FORWARD = "forward:/snail-chat/index.html";
+    private static final String CHAT_ROOT_REDIRECT = "redirect:/snail-chat/";
     private static final String QUERY_SEPARATOR = "?";
 
     @GetMapping(CHAT_PATH)

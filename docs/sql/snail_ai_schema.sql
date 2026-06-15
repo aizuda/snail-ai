@@ -511,7 +511,10 @@ INSERT IGNORE INTO sai_model_provider (provider_name, provider_key, description,
 VALUES ('OpenAI', 'openai', 'OpenAI官方模型 (GPT-4, GPT-3.5等)', 1),
        ('Claude', 'claude', 'Anthropic Claude模型', 1),
        ('Ollama', 'ollama', '本地开源模型 (Llama, Mistral等)', 1),
-       ('Google Gemini', 'gemini', 'Google Gemini模型', 1);
+       ('Google Gemini', 'gemini', 'Google Gemini模型', 1),
+       ('阿里云百炼', 'qwen', '阿里云百炼 OpenAI 兼容模型 (Qwen等)', 1),
+       ('DeepSeek', 'deepseek', 'DeepSeek OpenAI 兼容模型', 1),
+       ('智谱AI', 'zhipu', '智谱AI OpenAI 兼容模型 (GLM等)', 1);
 
 -- 初始化测试应用
 INSERT INTO sai_app (id, app_id, app_name, description, token, route_strategy, status, create_dt, update_dt)
@@ -519,4 +522,4 @@ VALUES (1, 'snail-ai-agent-demo', 'snail-ai-agent-demo', '', 'SAI_3ce13fa4e56a43
 
 -- 初始化测试的openid
 INSERT INTO sai_openapi_user (id, app_id, open_id, platform_user_id, external_id, nickname, create_dt, update_dt)
-VALUES (1, 'snail-ai-agent-demo', '46ed53c6a20044c7bbd870848e80f92f', 2, '1', 'test', NOW(), NOW());
+VALUES (1, 'snail-ai-agent-demo', '46ed53c6a20044c7bbd870848e80f92f', 1, '1', 'test', NOW(), NOW());
