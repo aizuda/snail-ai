@@ -97,11 +97,6 @@ CREATE TABLE sai_user
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
--- 默认管理员：admin / admin123
-INSERT INTO sai_user (id, role, username, email, password, create_dt, update_dt)
-VALUES (1, 2, 'admin', '',  'pbkdf2$120000$c25haWwtYWktYWRtaW4tMQ==$kakglT/wYKOgv/77Ah1stie58d/JbY2nGgq5DwgUBw4=',
-        '2026-02-11 13:56:48.210429', '2026-02-11 13:56:48.210429');
-
 -- ============================================
 -- 1. AI 模型提供商表
 -- ============================================
@@ -183,16 +178,6 @@ CREATE TABLE IF NOT EXISTS sai_model_usage_stat
 CREATE INDEX idx_model_id ON sai_model_usage_stat (model_id);
 CREATE INDEX idx_user_id ON sai_model_usage_stat (user_id);
 CREATE INDEX idx_last_used_dt ON sai_model_usage_stat (last_used_dt);
-
--- ============================================
--- 初始化数据 (可选)
--- ============================================
--- 插入常见的AI提供商（重复 provider_key 则忽略）
-INSERT IGNORE INTO sai_model_provider (provider_name, provider_key, description, is_enabled)
-VALUES ('OpenAI', 'openai', 'OpenAI官方模型 (GPT-4, GPT-3.5等)', 1),
-       ('Claude', 'claude', 'Anthropic Claude模型', 1),
-       ('Ollama', 'ollama', '本地开源模型 (Llama, Mistral等)', 1),
-       ('Google Gemini', 'gemini', 'Google Gemini模型', 1);
 
 -- ============================================
 -- 智能体相关表
@@ -487,6 +472,7 @@ CREATE TABLE sai_openapi_user
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   COMMENT='OpenAPI 外部用户映射表';
 
+
 -- ----------------------------
 -- 通用资源存储
 -- ----------------------------
@@ -510,3 +496,27 @@ CREATE TABLE IF NOT EXISTS sai_resource
     ) ENGINE = InnoDB
     DEFAULT CHARSET = utf8mb4
     COLLATE = utf8mb4_unicode_ci COMMENT = '通用资源存储';
+
+-- ============================================
+-- 初始化数据
+-- ============================================
+
+-- 默认管理员：admin / admin123
+INSERT INTO sai_user (id, role, username, email, password, create_dt, update_dt)
+VALUES (1, 2, 'admin', '',  'pbkdf2$120000$c25haWwtYWktYWRtaW4tMQ==$kakglT/wYKOgv/77Ah1stie58d/JbY2nGgq5DwgUBw4=',
+        '2026-02-11 13:56:48.210429', '2026-02-11 13:56:48.210429');
+
+-- 插入常见的AI提供商
+INSERT IGNORE INTO sai_model_provider (provider_name, provider_key, description, is_enabled)
+VALUES ('OpenAI', 'openai', 'OpenAI官方模型 (GPT-4, GPT-3.5等)', 1),
+       ('Claude', 'claude', 'Anthropic Claude模型', 1),
+       ('Ollama', 'ollama', '本地开源模型 (Llama, Mistral等)', 1),
+       ('Google Gemini', 'gemini', 'Google Gemini模型', 1);
+
+-- 初始化测试应用
+INSERT INTO sai_app (id, app_id, app_name, description, token, route_strategy, status, create_dt, update_dt)
+VALUES (1, 'snail-ai-agent-demo', 'snail-ai-agent-demo', '', 'SAI_3ce13fa4e56a43c2b42e380c649629a5', 'LEAST_LOAD', 1, now(), now());
+
+-- 初始化测试的openid
+INSERT INTO sai_openapi_user (id, app_id, open_id, platform_user_id, external_id, nickname, create_dt, update_dt)
+VALUES (1, 'snail-ai-agent-demo', '46ed53c6a20044c7bbd870848e80f92f', 2, '1', 'test', NOW(), NOW());
