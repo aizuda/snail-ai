@@ -3,13 +3,14 @@ package com.aizuda.snail.ai.common.model;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 模型扩展配置属性
  * <p>
  * 按模型类型分组：
  * - 通用：timeoutMs
- * - CHAT：temperature, topP, topK, maxTokens, frequencyPenalty, presencePenalty, stopSequences, seed, responseFormat, stream
+ * - CHAT：temperature, topP, topK, maxTokens, frequencyPenalty, presencePenalty, stopSequences, seed, responseFormat, stream, extraBody
  * - EMBEDDING：embeddingDimension, encodingFormat
  * - RERANKER：rerankPath
  *
@@ -35,6 +36,7 @@ public class ConfigExtAttrsDTO {
     private Long seed;
     private String responseFormat;
     private Boolean stream;
+    private Map<String, Object> extraBody;
 
     // ==================== EMBEDDING 向量模型 ====================
 

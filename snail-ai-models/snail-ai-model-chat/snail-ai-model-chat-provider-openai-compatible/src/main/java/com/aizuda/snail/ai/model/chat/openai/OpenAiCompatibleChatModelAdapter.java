@@ -10,6 +10,7 @@ import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.core.Ordered;
 
 import java.time.Duration;
+import java.util.HashMap;
 import java.util.Map;
 
 public class OpenAiCompatibleChatModelAdapter implements ChatModelAdapter, Ordered {
@@ -50,6 +51,9 @@ public class OpenAiCompatibleChatModelAdapter implements ChatModelAdapter, Order
         if (config.getTopP() != null) {
             builder.topP(config.getTopP());
         }
+        if (config.getTopK() != null) {
+            builder.topK(config.getTopK());
+        }
         if (config.getFrequencyPenalty() != null) {
             builder.frequencyPenalty(config.getFrequencyPenalty());
         }
@@ -62,8 +66,8 @@ public class OpenAiCompatibleChatModelAdapter implements ChatModelAdapter, Order
         if (config.getSeed() != null) {
             builder.seed(config.getSeed().intValue());
         }
-        if (config.getTopK() != null) {
-            builder.extraBody(Map.of("top_k", config.getTopK()));
+        if (config.getExtraBody() != null && !config.getExtraBody().isEmpty()) {
+            builder.extraBody(config.getExtraBody());
         }
         return builder.build();
     }
