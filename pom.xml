@@ -182,7 +182,7 @@
             </dependency>
             <dependency>
                 <groupId>com.aizuda</groupId>
-                <artifactId>snail-ai-model-rerank-provider-http</artifactId>
+                <artifactId>snail-ai-model-rerank-provider-qwen</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>

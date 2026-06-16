@@ -11,10 +11,10 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>snail-ai-model-rerank-provider-http</artifactId>
+    <artifactId>snail-ai-model-rerank-provider-qwen</artifactId>
     <packaging>jar</packaging>
-    <name>snail-ai-model-rerank-provider-http</name>
-    <description>snail-ai-model-rerank-provider-http</description>
+    <name>snail-ai-model-rerank-provider-qwen</name>
+    <description>snail-ai-model-rerank-provider-qwen</description>
 
     <dependencies>
         <dependency>

@@ -18,7 +18,7 @@
 
     <modules>
         <module>snail-ai-model-rerank-core</module>
-        <module>snail-ai-model-rerank-provider-http</module>
+        <module>snail-ai-model-rerank-provider-qwen</module>
         <module>snail-ai-model-rerank-starter</module>
     </modules>
 </project>
