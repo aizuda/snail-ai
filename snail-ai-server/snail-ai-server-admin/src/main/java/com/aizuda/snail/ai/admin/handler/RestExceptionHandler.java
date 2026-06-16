@@ -5,11 +5,13 @@ import com.aizuda.snail.ai.common.execption.AbstractError;
 import com.aizuda.snail.ai.common.execption.BaseSnailAiException;
 import com.aizuda.snail.ai.common.execption.SnailAiAuthenticationException;
 import com.aizuda.snail.ai.common.model.Result;
+import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.aizuda.snail.ai.common.util.StreamUtils;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.TypeMismatchException;
+import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -20,6 +22,8 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import java.util.List;
@@ -39,6 +43,20 @@ public class RestExceptionHandler {
     public static final String DELIMITER_TO = "@";
     public static final String DELIMITER_COLON = ":";
 
+    private boolean isStreamingRequest() {
+        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if (attrs == null) {
+            return false;
+        }
+        String accept = attrs.getRequest().getHeader("Accept");
+        return accept != null && (accept.contains(MediaType.TEXT_EVENT_STREAM_VALUE)
+                || accept.contains("application/x-ndjson"));
+    }
+
+    private Object streamingError(int status, String message) {
+        return JsonUtil.toJsonString(new Result<String>(status, message));
+    }
+
     /**
      * 业务异常
      *
@@ -46,8 +64,11 @@ public class RestExceptionHandler {
      * @return
      */
     @ExceptionHandler({Exception.class})
-    public Result onException(Exception ex) {
+    public Object onException(Exception ex) {
         log.error("Exception class onException,", ex);
+        if (isStreamingRequest()) {
+            return streamingError(0, "System exception");
+        }
         return new Result<String>(0, "System exception");
     }
 
@@ -58,8 +79,12 @@ public class RestExceptionHandler {
      * @return
      */
     @ExceptionHandler({BaseSnailAiException.class})
-    public Result onBusinessException(BaseSnailAiException ex) {
+    public Object onBusinessException(BaseSnailAiException ex) {
         log.error("Exception class businessException", ex);
+        if (isStreamingRequest()) {
+            int code = (ex instanceof SnailAiAuthenticationException auth) ? auth.getErrorCode() : 0;
+            return streamingError(code, ex.getMessage());
+        }
         if (ex instanceof final SnailAiAuthenticationException authenticationException) {
             return new Result<String>(authenticationException.getErrorCode(), ex.getMessage());
         }
@@ -74,8 +99,11 @@ public class RestExceptionHandler {
      * @return
      */
     @ExceptionHandler({HttpMessageNotReadableException.class})
-    public Result requestNotReadable(HttpMessageNotReadableException ex) {
+    public Object requestNotReadable(HttpMessageNotReadableException ex) {
         log.error("Exception class HttpMessageNotReadableException,", ex);
+        if (isStreamingRequest()) {
+            return streamingError(0, AbstractError.PARAM_INCORRECT.toString());
+        }
         return new Result<String>(0, AbstractError.PARAM_INCORRECT.toString());
     }
 
@@ -86,14 +114,15 @@ public class RestExceptionHandler {
      * @return HttpResult
      */
     @ExceptionHandler(ConstraintViolationException.class)
-    public Result onConstraintViolationException(ConstraintViolationException e) {
+    public Object onConstraintViolationException(ConstraintViolationException e) {
         Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
-        if (CollUtil.isNotEmpty(constraintViolations)) {
-            String errorMessage = StreamUtils.join(constraintViolations, ConstraintViolation::getMessage, ";");
-            return new Result(0, errorMessage);
+        String errorMessage = CollUtil.isNotEmpty(constraintViolations)
+                ? StreamUtils.join(constraintViolations, ConstraintViolation::getMessage, ";")
+                : e.getMessage();
+        if (isStreamingRequest()) {
+            return streamingError(0, errorMessage);
         }
-
-        return new Result<String>(0, e.getMessage());
+        return new Result<String>(0, errorMessage);
     }
 
     /**
@@ -103,7 +132,7 @@ public class RestExceptionHandler {
      * @return HttpResult
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public Result onMethodArgumentNotValidException(MethodArgumentNotValidException e) {
+    public Object onMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         BindingResult result = e.getBindingResult();
         if (result != null && result.hasErrors()) {
             StringBuilder sb = new StringBuilder();
@@ -128,6 +157,9 @@ public class RestExceptionHandler {
                 sb.append(msg);
             }
 
+            if (isStreamingRequest()) {
+                return streamingError(0, sb.toString());
+            }
             return new Result<String>(0, sb.toString());
         }
 
@@ -141,22 +173,26 @@ public class RestExceptionHandler {
      * @return HttpResult
      */
     @ExceptionHandler(HandlerMethodValidationException.class)
-    public Result onHandlerMethodValidationException(HandlerMethodValidationException e) {
+    public Object onHandlerMethodValidationException(HandlerMethodValidationException e) {
         Object[] detailMessageArguments = e.getDetailMessageArguments();
-        if (detailMessageArguments != null && detailMessageArguments.length > 0) {
-            return new Result<String>(0, detailMessageArguments[0].toString());
+        String message = (detailMessageArguments != null && detailMessageArguments.length > 0)
+                ? detailMessageArguments[0].toString()
+                : "Parameter validation failed";
+        if (isStreamingRequest()) {
+            return streamingError(0, message);
         }
-
-        return new Result<>("Parameter validation failed");
-
+        return new Result<String>(0, message);
     }
 
     /**
      * 400错误
      */
     @ExceptionHandler({TypeMismatchException.class})
-    public Result requestTypeMismatch(TypeMismatchException ex) {
+    public Object requestTypeMismatch(TypeMismatchException ex) {
         log.error("Exception class TypeMismatchException {},", ex.getMessage());
+        if (isStreamingRequest()) {
+            return streamingError(0, AbstractError.PARAM_INCORRECT.toString());
+        }
         return new Result<String>(0, AbstractError.PARAM_INCORRECT.toString());
     }
 
@@ -164,8 +200,11 @@ public class RestExceptionHandler {
      * 400错误
      */
     @ExceptionHandler({MissingServletRequestParameterException.class})
-    public Result requestMissingServletRequest(MissingServletRequestParameterException ex) {
+    public Object requestMissingServletRequest(MissingServletRequestParameterException ex) {
         log.error("Exception class MissingServletRequestParameterException {},", ex.getMessage());
+        if (isStreamingRequest()) {
+            return streamingError(0, AbstractError.PARAM_INCORRECT.toString());
+        }
         return new Result<String>(0, AbstractError.PARAM_INCORRECT.toString());
     }
 
@@ -174,8 +213,11 @@ public class RestExceptionHandler {
      */
     @ExceptionHandler({HttpRequestMethodNotSupportedException.class})
     @ResponseBody
-    public Result request405() {
+    public Object request405() {
         log.error(" Exception class HttpRequestMethodNotSupportedException");
+        if (isStreamingRequest()) {
+            return streamingError(0, AbstractError.PARAM_INCORRECT.toString());
+        }
         return new Result<String>(0, AbstractError.PARAM_INCORRECT.toString());
     }
 
@@ -183,8 +225,11 @@ public class RestExceptionHandler {
      * 415错误
      */
     @ExceptionHandler({HttpMediaTypeNotSupportedException.class})
-    public Result request415(HttpMediaTypeNotSupportedException ex) {
+    public Object request415(HttpMediaTypeNotSupportedException ex) {
         log.error("Exception class HttpMediaTypeNotSupportedException {}", ex.getMessage());
+        if (isStreamingRequest()) {
+            return streamingError(0, AbstractError.PARAM_INCORRECT.toString());
+        }
         return new Result<String>(0, AbstractError.PARAM_INCORRECT.toString());
     }
 }

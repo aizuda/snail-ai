@@ -23,12 +23,12 @@ public class SnailAiRerankModelAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public QwenRerankModelAdapter httpRerankModelAdapter() {
+    public QwenRerankModelAdapter qwenRerankModelAdapter() {
         return new QwenRerankModelAdapter();
     }
 
     @Bean
-    public ModelAdapterDescriptor httpRerankAdapterDescriptor() {
+    public ModelAdapterDescriptor qwenRerankAdapterDescriptor() {
         return ModelAdapterDescriptor.of(
                 ModelAdapterDefaults.QWEN_RERANK,
                 "Qwen Rerank",

@@ -91,8 +91,6 @@ public class AgentController {
         return Result.ok(agentService.create(request));
     }
 
-    // ==================== Chat (SSE) ====================
-
     @PostMapping(value = "/{id}/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @LoginRequired(role = RoleEnum.USER)
     public Flux<String> chat(@PathVariable("id") Long id,

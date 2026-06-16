@@ -17,11 +17,19 @@ import java.lang.annotation.Annotation;
 @ControllerAdvice(basePackages = {"com.aizuda.snail.ai.admin"})
 public class GlobalRestfulResponseBodyAdvice implements ResponseBodyAdvice<Object> {
 
+    private static final MediaType NDJSON = MediaType.parseMediaType("application/x-ndjson");
+
     @Override
     public Object beforeBodyWrite(
             Object obj, MethodParameter methodParameter, MediaType mediaType,
             Class<? extends HttpMessageConverter<?>> converterType,
             ServerHttpRequest serverHttpRequest, ServerHttpResponse serverHttpResponse) {
+        // 流式响应不包装
+        if (MediaType.TEXT_EVENT_STREAM.isCompatibleWith(mediaType)
+                || NDJSON.isCompatibleWith(mediaType)) {
+            return obj;
+        }
+
         Annotation originalControllerReturnValue = methodParameter.getMethodAnnotation(OriginalControllerReturnValue.class);
         if (originalControllerReturnValue != null) {
             return obj;
