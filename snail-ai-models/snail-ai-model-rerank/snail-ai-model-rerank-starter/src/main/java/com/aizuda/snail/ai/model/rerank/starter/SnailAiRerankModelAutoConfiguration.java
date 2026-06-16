@@ -5,7 +5,7 @@ import com.aizuda.snail.ai.model.common.ModelAdapterDescriptor;
 import com.aizuda.snail.ai.model.common.ModelCapability;
 import com.aizuda.snail.ai.model.rerank.RerankModelAdapter;
 import com.aizuda.snail.ai.model.rerank.RerankModelRuntime;
-import com.aizuda.snail.ai.model.rerank.http.HttpRerankModelAdapter;
+import com.aizuda.snail.ai.model.rerank.http.QwenRerankModelAdapter;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
@@ -23,15 +23,15 @@ public class SnailAiRerankModelAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public HttpRerankModelAdapter httpRerankModelAdapter() {
-        return new HttpRerankModelAdapter();
+    public QwenRerankModelAdapter httpRerankModelAdapter() {
+        return new QwenRerankModelAdapter();
     }
 
     @Bean
     public ModelAdapterDescriptor httpRerankAdapterDescriptor() {
         return ModelAdapterDescriptor.of(
-                ModelAdapterDefaults.HTTP_ADAPTER,
-                "HTTP",
+                ModelAdapterDefaults.QWEN_RERANK,
+                "Qwen Rerank",
                 ModelCapability.RERANKER);
     }
 }

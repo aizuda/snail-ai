@@ -9,14 +9,14 @@ public final class ModelAdapterDefaults {
     public static final String RERANKER_MODEL_TYPE = "RERANKER";
 
     public static final String OPENAI_COMPATIBLE_ADAPTER = "openai-compatible";
-    public static final String HTTP_ADAPTER = "http";
+    public static final String QWEN_RERANK = "qwen-rerank";
 
     private static final ModelAdapterDescriptor CHAT_OPENAI_COMPATIBLE = ModelAdapterDescriptor.of(
             OPENAI_COMPATIBLE_ADAPTER, "OpenAI Compatible", ModelCapability.CHAT);
     private static final ModelAdapterDescriptor EMBEDDING_OPENAI_COMPATIBLE = ModelAdapterDescriptor.of(
             OPENAI_COMPATIBLE_ADAPTER, "OpenAI Compatible", ModelCapability.EMBEDDING);
-    private static final ModelAdapterDescriptor RERANK_HTTP = ModelAdapterDescriptor.of(
-            HTTP_ADAPTER, "HTTP", ModelCapability.RERANKER);
+    private static final ModelAdapterDescriptor RERANK = ModelAdapterDescriptor.of(
+            QWEN_RERANK, "QWEN RERANK", ModelCapability.RERANKER);
 
     private ModelAdapterDefaults() {
     }
@@ -29,12 +29,12 @@ public final class ModelAdapterDefaults {
             return OPENAI_COMPATIBLE_ADAPTER;
         }
         if (RERANKER_MODEL_TYPE.equalsIgnoreCase(modelType)) {
-            return HTTP_ADAPTER;
+            return QWEN_RERANK;
         }
         return OPENAI_COMPATIBLE_ADAPTER;
     }
 
     public static List<ModelAdapterDescriptor> defaultDescriptors() {
-        return List.of(CHAT_OPENAI_COMPATIBLE, EMBEDDING_OPENAI_COMPATIBLE, RERANK_HTTP);
+        return List.of(CHAT_OPENAI_COMPATIBLE, EMBEDDING_OPENAI_COMPATIBLE, RERANK);
     }
 }

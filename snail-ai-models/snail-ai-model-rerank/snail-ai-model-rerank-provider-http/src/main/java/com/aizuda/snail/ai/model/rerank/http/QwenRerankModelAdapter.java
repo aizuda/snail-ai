@@ -7,6 +7,7 @@ import com.aizuda.snail.ai.model.rerank.RerankModelAdapter;
 import com.aizuda.snail.ai.model.rerank.RerankModelSpec;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.web.client.RestClient;
 
 import java.time.Duration;
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-public class HttpRerankModelAdapter implements RerankModelAdapter, Ordered {
+public class QwenRerankModelAdapter implements RerankModelAdapter, Ordered {
 
     private static final String DEFAULT_RERANK_PATH = "/rerank";
     private static final long DEFAULT_TIMEOUT_MS = 60_000L;
@@ -23,7 +24,7 @@ public class HttpRerankModelAdapter implements RerankModelAdapter, Ordered {
 
     @Override
     public String adapterKey() {
-        return ModelAdapterDefaults.HTTP_ADAPTER;
+        return ModelAdapterDefaults.QWEN_RERANK;
     }
 
     @Override
@@ -62,8 +63,7 @@ public class HttpRerankModelAdapter implements RerankModelAdapter, Ordered {
             this.apiKey = apiKey;
             this.modelKey = modelKey;
             long connectTimeoutMs = Math.min(timeoutMs, MAX_CONNECT_TIMEOUT_MS);
-            org.springframework.http.client.SimpleClientHttpRequestFactory requestFactory =
-                    new org.springframework.http.client.SimpleClientHttpRequestFactory();
+            SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
             requestFactory.setConnectTimeout(Duration.ofMillis(connectTimeoutMs));
             requestFactory.setReadTimeout(Duration.ofMillis(timeoutMs));
             this.restClient = RestClient.builder().requestFactory(requestFactory).build();
