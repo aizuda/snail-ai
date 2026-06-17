@@ -121,10 +121,7 @@ public class AiModelConfigService {
             throw new SnailAiException("模型配置不存在");
         }
 
-        // 加密API Key（如果提供了新的）
-        String apiKey = StringUtils.hasText(requestVO.getApiKey()) ?
-                encryptApiKey(requestVO.getApiKey()) :
-                existing.getApiKey();
+        String apiKey = resolveUpdateApiKey(requestVO.getApiKey(), existing.getApiKey());
         String modelType = requestVO.getModelType() != null ? requestVO.getModelType() : existing.getModelType();
         String adapterKey = resolveUpdateAdapterKey(requestVO, existing, modelType);
 
@@ -452,6 +449,13 @@ public class AiModelConfigService {
         return !oldModelType.equalsIgnoreCase(newModelType);
     }
 
+    private String resolveUpdateApiKey(String apiKey, String existingApiKey) {
+        if (!StringUtils.hasText(apiKey)) {
+            return existingApiKey;
+        }
+        return encryptApiKey(apiKey);
+    }
+
     private ModelCapability resolveCapability(String modelType) {
         if (ModelAdapterDefaults.CHAT_MODEL_TYPE.equalsIgnoreCase(modelType)) {
             return ModelCapability.CHAT;
@@ -478,6 +482,7 @@ public class AiModelConfigService {
                 .modelType(po.getModelType())
                 .adapterKey(resolveAdapterKey(po.getAdapterKey(), po.getModelType()))
                 .description(po.getDescription())
+                .apiKey(decryptApiKey(po.getApiKey()))
                 .apiEndpoint(po.getApiEndpoint())
                 .configJson(JsonUtil.parseObject(Optional.ofNullable(po.getConfigJson()).orElse("{}"), ConfigExtAttrsDTO.class))
                 .ownerId(po.getOwnerId())
@@ -489,18 +494,11 @@ public class AiModelConfigService {
                 .build();
     }
 
-    /**
-     * 脱敏API Key
-     * 仅显示前4位和后4位
-     */
-    private String maskApiKey(String apiKey) {
-        if (apiKey == null || apiKey.length() < 8) {
-            return "****";
+    private String decryptApiKey(String encryptedApiKey) {
+        if (!StringUtils.hasText(encryptedApiKey)) {
+            return "";
         }
-        String prefix = apiKey.substring(0, 4);
-        String suffix = apiKey.substring(apiKey.length() - 4);
-        int middleLength = apiKey.length() - 8;
-        return prefix + "*".repeat(Math.max(0, middleLength)) + suffix;
+        return cryptoHelper.decrypt(encryptedApiKey);
     }
 
     /**
