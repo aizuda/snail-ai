@@ -273,6 +273,16 @@
             </dependency>
             <dependency>
                 <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-mysql-storage</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-postgres-storage</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
                 <artifactId>snail-ai-vector-template</artifactId>
                 <version>${revision}</version>
             </dependency>

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aizuda.snail.ai.persistence.rag.mapper.RagChunkMapper">
+
+    <select id="selectMaxChunkIndex" resultType="java.lang.Integer">
+        SELECT MAX(chunk_index)
+          FROM sai_rag_chunk
+         WHERE document_id = #{documentId}
+    </select>
+
+    <select id="fullTextSearch" resultType="com.aizuda.snail.ai.common.dto.rag.SearchResult">
+        SELECT CAST(id AS VARCHAR) AS id,
+               id AS chunkId,
+               content,
+               ts_rank(to_tsvector('simple', content), to_tsquery('simple', #{tsQuery})) AS score
+          FROM sai_rag_chunk
+         WHERE rag_id = #{ragId}
+           AND content IS NOT NULL
+           AND to_tsvector('simple', content) @@ to_tsquery('simple', #{tsQuery})
+         ORDER BY score DESC
+         LIMIT #{limit}
+    </select>
+
+</mapper>
