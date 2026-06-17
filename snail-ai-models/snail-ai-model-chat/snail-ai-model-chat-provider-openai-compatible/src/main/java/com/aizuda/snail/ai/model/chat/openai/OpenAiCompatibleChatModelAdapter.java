@@ -74,6 +74,6 @@ public class OpenAiCompatibleChatModelAdapter implements ChatModelAdapter, Order
 
     private long readTimeoutMs(ConfigExtAttrsDTO config) {
         Long timeoutMs = config != null ? config.getTimeoutMs() : null;
-        return timeoutMs != null && timeoutMs > 0 ? timeoutMs : 60_000L;
+        return timeoutMs != null && timeoutMs > 0 ? timeoutMs : 300_000L;
     }
 }

@@ -9,7 +9,7 @@ import java.util.Map;
  * 模型扩展配置属性
  * <p>
  * 按模型类型分组：
- * - 通用：timeoutMs
+ * - 通用：timeoutMs, maxRetries
  * - CHAT：temperature, topP, topK, maxTokens, frequencyPenalty, presencePenalty, stopSequences, seed, responseFormat, stream, extraBody
  * - EMBEDDING：embeddingDimension, encodingFormat
  * - RERANKER：rerankPath
@@ -23,6 +23,7 @@ public class ConfigExtAttrsDTO {
     // ==================== 通用配置 ====================
 
     private Long timeoutMs;
+    private Integer maxRetries;
 
     // ==================== CHAT 对话模型 ====================
 

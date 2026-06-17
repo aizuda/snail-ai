@@ -38,7 +38,8 @@ public class OpenAiCompatibleEmbeddingModelAdapter implements EmbeddingModelAdap
                 .baseUrl(spec.baseUrl())
                 .apiKey(spec.apiKey())
                 .model(spec.modelKey())
-                .timeout(Duration.ofMillis(readTimeoutMs(config)));
+                .timeout(Duration.ofMillis(readTimeoutMs(config)))
+                .maxRetries(readMaxRetries(config));
         if (config == null) {
             return builder.build();
         }
@@ -66,5 +67,10 @@ public class OpenAiCompatibleEmbeddingModelAdapter implements EmbeddingModelAdap
     private long readTimeoutMs(ConfigExtAttrsDTO config) {
         Long timeoutMs = config != null ? config.getTimeoutMs() : null;
         return timeoutMs != null && timeoutMs > 0 ? timeoutMs : DEFAULT_TIMEOUT_MS;
+    }
+
+    private int readMaxRetries(ConfigExtAttrsDTO config) {
+        Integer maxRetries = config != null ? config.getMaxRetries() : null;
+        return maxRetries != null && maxRetries >= 0 ? maxRetries : 2;
     }
 }

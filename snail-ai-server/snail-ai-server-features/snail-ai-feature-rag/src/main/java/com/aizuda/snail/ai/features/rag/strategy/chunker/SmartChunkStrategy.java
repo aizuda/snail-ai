@@ -17,7 +17,11 @@ import org.springframework.ai.chat.prompt.ChatOptions;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,12 +32,20 @@ import java.util.regex.Pattern;
 @Component
 public class SmartChunkStrategy extends AbstractChunkStrategy {
 
-    // 每段最大字符数，约等于 4k tokens，保证 LLM 响应稳定
-    private static final int SEGMENT_CHARS = 10_000;
-    // 单次 LLM 调用的最大字符数（小文档直接处理）
-    private static final int MAX_LLM_INPUT_CHARS = 48_000;
-    // 智能切片输出最大 tokens，确保足够输出完整的 JSON 数组
-    private static final int CHUNK_MAX_TOKENS = 16_384;
+    // 每段最大字符数，降低单次 LLM 输入长度以加快推理
+    private static final int SEGMENT_CHARS = 8_000;
+    // 单次 LLM 调用的最大字符数（超过此值走分段处理）
+    private static final int MAX_LLM_INPUT_CHARS = 16_000;
+    // 智能切片输出最大 tokens，缩小输出范围降低超时风险
+    private static final int CHUNK_MAX_TOKENS = 4_096;
+    // LLM 调用最大重试次数
+    private static final int MAX_RETRIES = 2;
+    // 重试间隔基数（毫秒）
+    private static final long RETRY_BASE_DELAY_MS = 1_000L;
+    // 最大并发 LLM 调用数，防止批量文档处理打满模型接口
+    private static final int MAX_CONCURRENT_LLM_CALLS = 3;
+    // 获取信号量许可的超时（秒），防止死等
+    private static final long SEMAPHORE_ACQUIRE_TIMEOUT_SEC = 120L;
 
     private static final String SYSTEM = """
             你是文档切片助手。请将用户提供的文本按语义切分为完整片段。
@@ -50,6 +62,7 @@ public class SmartChunkStrategy extends AbstractChunkStrategy {
 
     private final ModelConfigHandler modelConfigHandler;
     private final ChatClientBuilder chatClientBuilder;
+    private final Semaphore llmSemaphore = new Semaphore(MAX_CONCURRENT_LLM_CALLS);
 
     public SmartChunkStrategy(
             TokenAwareChunker chunker,
@@ -90,59 +103,75 @@ public class SmartChunkStrategy extends AbstractChunkStrategy {
 
         // 小文档直接处理
         if (content.length() <= MAX_LLM_INPUT_CHARS) {
-            return doSmartChunk(chatClient, content);
+            return doSmartChunk(chatClient, content, config);
         }
 
         // 大文档分段处理
         log.info("大文档智能切片：文档长度 {}，采用分段处理", content.length());
-        return doSegmentedSmartChunk(chatClient, content);
+        return doSegmentedSmartChunk(chatClient, content, config);
     }
 
     /**
      * 单次智能切片
      */
-    private String[] doSmartChunk(ChatClient chatClient, String content) {
-        Prompt prompt = new Prompt(List.of(
-                new SystemMessage(SYSTEM.trim()),
-                new UserMessage("全文如下：\n\n" + content)
-        ), buildChunkOptions());
-
-        ChatResponse response = chatClient.prompt(prompt).call().chatResponse();
-        String raw = response.getResult().getOutput().getText();
-        
-        if (StrUtil.isBlank(raw)) {
-            log.warn("智能切片模型返回空，fallback to length mode");
+    private String[] doSmartChunk(ChatClient chatClient, String content, ModelConfigInfoDTO config) {
+        try {
+            UserMessage userMessage = new UserMessage("全文如下：\n\n" + content);
+            String raw = callLLMWithRetry(chatClient, userMessage, config);
+            if (StrUtil.isBlank(raw)) {
+                log.warn("智能切片模型返回空，fallback to length mode");
+                return new String[]{content};
+            }
+            List<String> segments = parseJsonStringArray(raw);
+            if (segments.isEmpty()) {
+                log.warn("智能切片未解析到 JSON 数组，fallback");
+                return new String[]{content};
+            }
+            return segments.toArray(new String[0]);
+        } catch (Exception e) {
+            log.warn("智能切片调用模型异常: {}，fallback to length mode", e.getMessage());
             return new String[]{content};
         }
-        
-        List<String> segments = parseJsonStringArray(raw);
-        if (segments.isEmpty()) {
-            log.warn("智能切片未解析到 JSON 数组，fallback");
-            return new String[]{content};
-        }
-        return segments.toArray(new String[0]);
     }
 
     /**
-     * 大文档分段智能切片
+     * 大文档分段智能切片（并行）。
      */
-    private String[] doSegmentedSmartChunk(ChatClient chatClient, String content) {
-        List<String> allSegments = new ArrayList<>();
+    private String[] doSegmentedSmartChunk(ChatClient chatClient, String content, ModelConfigInfoDTO config) {
         int totalLen = content.length();
         int segmentCount = (int) Math.ceil((double) totalLen / SEGMENT_CHARS);
 
+        @SuppressWarnings("unchecked")
+        CompletableFuture<List<String>>[] futures = new CompletableFuture[segmentCount];
+
         for (int i = 0; i < segmentCount; i++) {
-            int start = i * SEGMENT_CHARS;
+            int segIdx = i;
+            int start = segIdx * SEGMENT_CHARS;
             int end = Math.min(start + SEGMENT_CHARS, totalLen);
             String segment = content.substring(start, end);
 
-            log.info("智能切片分段 {}/{}：字符范围 {}-{}", i + 1, segmentCount, start, end);
+            futures[i] = CompletableFuture.supplyAsync(() -> {
+                log.info("智能切片分段 {}/{}：字符范围 {}-{}", segIdx + 1, segmentCount, start, end);
+                return callLLMForChunk(chatClient, segment, segIdx + 1, segmentCount, config);
+            });
+        }
 
-            List<String> segments = callLLMForChunk(chatClient, segment, i + 1, segmentCount);
-            if (segments.isEmpty()) {
-                allSegments.add(segment);
-            } else {
-                allSegments.addAll(segments);
+        List<String> allSegments = new ArrayList<>();
+        for (int i = 0; i < segmentCount; i++) {
+            try {
+                List<String> segments = futures[i].join();
+                if (segments.isEmpty()) {
+                    int s = i * SEGMENT_CHARS;
+                    int e = Math.min(s + SEGMENT_CHARS, totalLen);
+                    allSegments.add(content.substring(s, e));
+                } else {
+                    allSegments.addAll(segments);
+                }
+            } catch (Exception e) {
+                log.warn("分段 {} 并行执行异常: {}，保留原文", i + 1, e.getMessage());
+                int s = i * SEGMENT_CHARS;
+                int f = Math.min(s + SEGMENT_CHARS, totalLen);
+                allSegments.add(content.substring(s, f));
             }
         }
 
@@ -150,18 +179,13 @@ public class SmartChunkStrategy extends AbstractChunkStrategy {
     }
 
     /**
-     * 调用 LLM 进行切片，带异常处理
+     * 调用 LLM 进行切片，带异常处理和重试
      */
-    private List<String> callLLMForChunk(ChatClient chatClient, String content, int segIndex, int totalSeg) {
+    private List<String> callLLMForChunk(ChatClient chatClient, String content, int segIndex, int totalSeg, ModelConfigInfoDTO config) {
         try {
-            Prompt prompt = new Prompt(List.of(
-                    new SystemMessage(SYSTEM.trim()),
-                    new UserMessage("文档第" + segIndex + "/" + totalSeg + "部分：\n\n" + content)
-            ), buildChunkOptions());
+            UserMessage userMessage = new UserMessage("文档第" + segIndex + "/" + totalSeg + "部分：\n\n" + content);
+            String raw = callLLMWithRetry(chatClient, userMessage, config);
 
-            ChatResponse response = chatClient.prompt(prompt).call().chatResponse();
-            String raw = response.getResult().getOutput().getText();
-            
             if (StrUtil.isBlank(raw)) {
                 log.warn("分段 {} 模型返回空，保留原文", segIndex);
                 return List.of();
@@ -180,6 +204,61 @@ public class SmartChunkStrategy extends AbstractChunkStrategy {
     }
 
     /**
+     * 带重试和并发限流的 LLM 调用。
+     */
+    private String callLLMWithRetry(ChatClient chatClient, UserMessage userMessage, ModelConfigInfoDTO config) {
+        boolean acquired = false;
+        try {
+            acquired = llmSemaphore.tryAcquire(SEMAPHORE_ACQUIRE_TIMEOUT_SEC, TimeUnit.SECONDS);
+            if (!acquired) {
+                throw new RuntimeException("LLM 调用限流：等待信号量超时（" + SEMAPHORE_ACQUIRE_TIMEOUT_SEC + "s）");
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("LLM 调用被中断（等待信号量）", e);
+        }
+
+        try {
+            Exception lastException = null;
+            for (int attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+                try {
+                    Prompt prompt = new Prompt(List.of(
+                            new SystemMessage(SYSTEM.trim()),
+                            userMessage
+                    ), buildChunkOptions());
+
+                    ChatResponse response = chatClient.prompt(prompt).call().chatResponse();
+                    String raw = response.getResult().getOutput().getText();
+                    if (StrUtil.isNotBlank(raw)) {
+                        return raw;
+                    }
+                    lastException = new RuntimeException("模型返回空");
+                } catch (Exception e) {
+                    lastException = e;
+                    if (attempt < MAX_RETRIES) {
+                        long delay = RETRY_BASE_DELAY_MS * (attempt + 1);
+                        log.warn("LLM 调用失败 (attempt {}/{}, endpoint={}, model={}): {}，{}ms 后重试",
+                                attempt + 1, MAX_RETRIES + 1,
+                                config.getApiEndpoint(), config.getModelKey(),
+                                e.getMessage(), delay);
+                        try {
+                            Thread.sleep(delay);
+                        } catch (InterruptedException ie) {
+                            Thread.currentThread().interrupt();
+                            throw new RuntimeException("LLM 调用被中断", ie);
+                        }
+                    }
+                }
+            }
+            throw new RuntimeException("LLM 调用重试耗尽（" + (MAX_RETRIES + 1) + " 次）", lastException);
+        } finally {
+            if (acquired) {
+                llmSemaphore.release();
+            }
+        }
+    }
+
+    /**
      * 构建智能切片专用的 ChatOptions，设置足够大的 maxTokens
      */
     private ChatOptions buildChunkOptions() {
@@ -190,7 +269,7 @@ public class SmartChunkStrategy extends AbstractChunkStrategy {
 
     private List<String> parseJsonStringArray(String raw) {
         String s = raw.trim();
-        
+
         // 移除 Markdown 代码围栏
         if (s.startsWith("```")) {
             int firstNl = s.indexOf('\n');
@@ -234,7 +313,7 @@ public class SmartChunkStrategy extends AbstractChunkStrategy {
      */
     private List<String> extractStringsFromJson(String json) {
         List<String> result = new ArrayList<>();
-        
+
         // 移除外层的 [ ]
         String content = json;
         if (content.startsWith("[")) {
@@ -243,23 +322,23 @@ public class SmartChunkStrategy extends AbstractChunkStrategy {
         if (content.endsWith("]")) {
             content = content.substring(0, content.length() - 1);
         }
-        
+
         // 匹配 "..." 格式的字符串，处理转义引号
         // 使用更健壮的模式：匹配从 " 开始到下一个非转义的 " 结束
         Pattern pattern = Pattern.compile("\"((?:[^\"\\\\]|\\\\.)*)\"");
         Matcher matcher = pattern.matcher(content);
-        
+
         while (matcher.find()) {
             try {
                 String text = matcher.group(1);
                 // 处理常见的 JSON 转义
                 text = text
-                    .replace("\\n", "\n")
-                    .replace("\\r", "\r")
-                    .replace("\\t", "\t")
-                    .replace("\\\"", "\"")
-                    .replace("\\\\", "\\");
-                
+                        .replace("\\n", "\n")
+                        .replace("\\r", "\r")
+                        .replace("\\t", "\t")
+                        .replace("\\\"", "\"")
+                        .replace("\\\\", "\\");
+
                 if (StrUtil.isNotBlank(text) && text.length() > 20) {
                     result.add(text.trim());
                 }
@@ -267,11 +346,11 @@ public class SmartChunkStrategy extends AbstractChunkStrategy {
                 // 忽略单个解析错误
             }
         }
-        
+
         if (!result.isEmpty()) {
             log.info("正则提取了 {} 个片段", result.size());
         }
-        
+
         return result;
     }
 }
