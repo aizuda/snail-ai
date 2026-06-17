@@ -11,10 +11,10 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <artifactId>snail-ai-mysql-storage</artifactId>
+    <artifactId>snail-ai-postgres-storage</artifactId>
     <packaging>jar</packaging>
-    <name>snail-ai-mysql-storage</name>
-    <description>snail-ai-mysql-storage</description>
+    <name>snail-ai-postgres-storage</name>
+    <description>snail-ai-postgres-storage</description>
 
     <dependencies>
         <dependency>
@@ -22,8 +22,8 @@
             <artifactId>snail-ai-biz-template</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
     </dependencies>

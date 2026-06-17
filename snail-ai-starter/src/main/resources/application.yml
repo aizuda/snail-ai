@@ -60,8 +60,7 @@ snail-ai:
       store-type: memory
 
 mybatis-plus:
-  mapper-locations: classpath:/mapper/*.xml
-  typeAliasesPackage: com.example.snail.job.po
+  typeAliasesPackage: com.aizuda.snail.ai.persistence
   global-config:
     db-config:
       capital-mode: false

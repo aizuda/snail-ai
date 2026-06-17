@@ -4,8 +4,8 @@
 
     <insert id="insertBatch" parameterType="java.util.List" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO sai_client_node (app_id, host_id, host_ip, grpc_port,
-                                          max_concurrent, active_chats, supported_providers,
-                                          labels, expire_dt)
+                                     max_concurrent, active_chats, supported_providers,
+                                     labels, expire_dt)
         VALUES
         <foreach collection="list" item="item" separator=",">
             (
