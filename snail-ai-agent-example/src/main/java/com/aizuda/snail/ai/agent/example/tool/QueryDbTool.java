@@ -1,8 +1,11 @@
 package com.aizuda.snail.ai.agent.example.tool;
 
+import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
 
 /**
  * <p>
@@ -16,7 +19,9 @@ import org.springframework.stereotype.Component;
 public class QueryDbTool {
 
     @Tool(name = "query_order", description = "查询订单信息")
-    public String queryOrder(@ToolParam(description = "订单ID") String orderId) {
+    public String queryOrder(@ToolParam(description = "订单ID") String orderId, ToolContext toolContext) {
+        Map<String, Object> context = toolContext.getContext();
+        System.out.println(context);
         return """
         {
           "orderId": "%s",
