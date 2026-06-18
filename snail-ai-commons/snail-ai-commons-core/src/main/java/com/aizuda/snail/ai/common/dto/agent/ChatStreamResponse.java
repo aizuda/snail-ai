@@ -43,6 +43,9 @@ public class ChatStreamResponse {
     /** 完成令牌数 */
     private Integer completionTokens;
 
+    /** 缓存命中令牌数 */
+    private Integer cacheTokens;
+
     /** 执行时长（毫秒） */
     private Long durationMs;
 
@@ -84,18 +87,29 @@ public class ChatStreamResponse {
 
     public static ChatStreamResponse completion(String fullText, String fullThinking,
                                                  int promptTokens, int completionTokens, long durationMs) {
+        return completion(fullText, fullThinking, promptTokens, completionTokens, 0, durationMs);
+    }
+
+    public static ChatStreamResponse completion(String fullText, String fullThinking,
+                                                 int promptTokens, int completionTokens, int cacheTokens, long durationMs) {
         return ChatStreamResponse.builder()
                 .type(TYPE_COMPLETION)
                 .fullText(fullText)
                 .fullThinking(fullThinking)
                 .promptTokens(promptTokens)
                 .completionTokens(completionTokens)
+                .cacheTokens(cacheTokens)
                 .durationMs(durationMs)
                 .build();
     }
 
     public static ChatStreamResponse completion(String sid, String fullText, String fullThinking,
                                                  int promptTokens, int completionTokens, long durationMs) {
+        return completion(sid, fullText, fullThinking, promptTokens, completionTokens, 0, durationMs);
+    }
+
+    public static ChatStreamResponse completion(String sid, String fullText, String fullThinking,
+                                                 int promptTokens, int completionTokens, int cacheTokens, long durationMs) {
         return ChatStreamResponse.builder()
                 .type(TYPE_COMPLETION)
                 .sid(sid)
@@ -103,6 +117,7 @@ public class ChatStreamResponse {
                 .fullThinking(fullThinking)
                 .promptTokens(promptTokens)
                 .completionTokens(completionTokens)
+                .cacheTokens(cacheTokens)
                 .durationMs(durationMs)
                 .build();
     }

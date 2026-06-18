@@ -87,11 +87,29 @@ public class AgentConversationRecordPO {
     private Integer status;
 
     /**
-     * Token数量统计
+     * Token数量统计（已废弃，保留兼容）
      * 该条消息的Token消耗数量
      * 用于统计和费用计算
      */
     private Integer tokenCount;
+
+    /**
+     * 输入Token数（prompt）
+     * 发送给模型的提示词所消耗的Token
+     */
+    private Integer inputTokens;
+
+    /**
+     * 输出Token数（completion）
+     * 模型生成回复所消耗的Token
+     */
+    private Integer outputTokens;
+
+    /**
+     * 缓存命中Token数
+     * 命中Prompt Cache的Token数量，可降低调用成本
+     */
+    private Integer cacheTokens;
 
     /**
      * 创建时间

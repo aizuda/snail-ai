@@ -246,7 +246,10 @@ CREATE TABLE IF NOT EXISTS sai_agent_conversation_record
     content         TEXT COMMENT '消息内容',
     thinking        TEXT COMMENT '思考过程（仅assistant）',
     status          INT         DEFAULT 1 COMMENT '1=成功,2=失败,3=进行中',
-    token_count     INT         DEFAULT 0 COMMENT 'Token数',
+    token_count     INT         DEFAULT 0 COMMENT 'Token数（已废弃，保留兼容）',
+    input_tokens    INT         DEFAULT 0 COMMENT '输入Token数（prompt）',
+    output_tokens   INT         DEFAULT 0 COMMENT '输出Token数（completion）',
+    cache_tokens    INT         DEFAULT 0 COMMENT '缓存命中Token数',
     create_dt       TIMESTAMP   DEFAULT CURRENT_TIMESTAMP
     ) ENGINE = InnoDB
     DEFAULT CHARSET = utf8mb4
