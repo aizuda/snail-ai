@@ -3,9 +3,11 @@ package com.aizuda.snail.ai.persistence.config;
 import java.text.MessageFormat;
 
 import com.aizuda.snail.ai.persistence.enums.BizDbTypeEnum;
+import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration;
 import com.baomidou.mybatisplus.autoconfigure.MybatisPlusPropertiesCustomizer;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
+import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -38,9 +40,13 @@ public class SnailAiBizStorageAutoConfiguration {
 
     @Bean
     @ConditionalOnMissingBean
-    public MybatisPlusInterceptor mybatisPlusInterceptor() {
+    public MybatisPlusInterceptor mybatisPlusInterceptor(Environment environment) {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
-        interceptor.addInnerInterceptor(new PaginationInnerInterceptor());
+        String db = BizDbTypeEnum.from(environment).getDb();
+        DbType dbType = "postgresql".equals(db) ? DbType.POSTGRE_SQL : DbType.MYSQL;
+        interceptor.addInnerInterceptor(new PaginationInnerInterceptor(dbType));
+        // 建议增加防全表更新拦截器
+        interceptor.addInnerInterceptor(new BlockAttackInnerInterceptor());
         return interceptor;
     }
 }
