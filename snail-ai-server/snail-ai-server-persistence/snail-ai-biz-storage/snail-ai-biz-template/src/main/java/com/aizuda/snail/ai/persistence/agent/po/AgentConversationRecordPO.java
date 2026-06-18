@@ -86,12 +86,6 @@ public class AgentConversationRecordPO {
      */
     private Integer status;
 
-    /**
-     * Token数量统计（已废弃，保留兼容）
-     * 该条消息的Token消耗数量
-     * 用于统计和费用计算
-     */
-    private Integer tokenCount;
 
     /**
      * 输入Token数（prompt）
