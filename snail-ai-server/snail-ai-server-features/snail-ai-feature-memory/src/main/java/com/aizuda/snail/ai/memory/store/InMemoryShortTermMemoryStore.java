@@ -90,8 +90,9 @@ public class InMemoryShortTermMemoryStore implements ShortTermMemoryStore {
                         .eq(AgentConversationRecordPO::getAgentId, query.getAgentId())
                         .eq(AgentConversationRecordPO::getConversationId, query.getConversationId())
                         .eq(AgentConversationRecordPO::getUserId, query.getUserId())
-                        .orderByAsc(AgentConversationRecordPO::getCreateDt)
+                        .orderByDesc(AgentConversationRecordPO::getCreateDt)
                         .last("LIMIT " + windowSize));
+        Collections.reverse(records);
 
         if (records.isEmpty()) {
             return Collections.emptyList();

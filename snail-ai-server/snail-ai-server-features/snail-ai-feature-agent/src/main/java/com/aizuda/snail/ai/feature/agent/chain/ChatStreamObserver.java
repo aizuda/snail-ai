@@ -75,8 +75,9 @@ public class ChatStreamObserver implements StreamObserver<GrpcSnailAiResult> {
     private void handleCompletion(ChatStreamResponse data) {
         String fullText = data.getFullText();
         String fullThinking = data.getFullThinking();
-        log.info("Chat completed from client: conversationId={}, durationMs={}",
-                context.getConversationId(), data.getDurationMs());
+        log.info("Chat completed from client: conversationId={}, durationMs={}, inputTokens={}, outputTokens={}, cacheTokens={}",
+                context.getConversationId(), data.getDurationMs(),
+                data.getPromptTokens(), data.getCompletionTokens(), data.getCacheTokens());
 
         persistService.persistAsync(ChatResultPersistCommand.builder()
                 .agentId(context.getAgent().getId())
@@ -84,6 +85,9 @@ public class ChatStreamObserver implements StreamObserver<GrpcSnailAiResult> {
                 .conversationId(context.getConversationId())
                 .fullText(fullText)
                 .thinkingText(fullThinking)
+                .inputTokens(data.getPromptTokens() != null ? data.getPromptTokens() : 0)
+                .outputTokens(data.getCompletionTokens() != null ? data.getCompletionTokens() : 0)
+                .cacheTokens(data.getCacheTokens() != null ? data.getCacheTokens() : 0)
                 .memoryEnabled(context.getAgent().getMemoryEnabled())
                 .agentModelId(context.getModelId())
                 .shortTermWindow(shortTermWindow)

@@ -12,6 +12,9 @@ public class ChatResultPersistCommand {
     private String conversationId;
     private String fullText;
     private String thinkingText;
+    private int inputTokens;
+    private int outputTokens;
+    private int cacheTokens;
     private Boolean memoryEnabled;
     private Long memoryConfigId;
     private Long agentModelId;

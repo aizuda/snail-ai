@@ -110,7 +110,7 @@ public class ClientChatExecutor {
     }
 
     public record ChatCompletionResult(String fullText, String fullThinking,
-                                       int promptTokens, int completionTokens, long durationMs) {
+                                       int promptTokens, int completionTokens, int cacheTokens, long durationMs) {
     }
 
     @Data

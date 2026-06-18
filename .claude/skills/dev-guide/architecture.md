@@ -10,337 +10,404 @@
 - [包结构规范](#包结构规范)
 - [模块间通信](#模块间通信)
 - [依赖注入](#依赖注入)
+- [Agent 与 Server 通信](#agent-与-server-通信)
 
 ## 整体架构
 
-Snail AI 采用**模块化微服务风格架构**,将系统划分为 7 个核心模块:
+Snail AI 采用**模块化分层架构**，将系统划分为 5 个顶层模块：
 
 ```
-snail-ai/
-├── snail-ai-common          # 通用基础模块
-├── snail-ai-persistence     # 数据持久化模块
-├── snail-ai-model          # AI 模型集成模块
-├── snail-ai-memory         # 记忆管理模块
-├── snail-ai-features       # 功能特性模块
-├── snail-ai-admin          # 管理服务模块
-└── snail-ai-starter        # 应用启动模块
+snail-ai (根 POM)
+├── snail-ai-commons          # 通用基础层
+├── snail-ai-models           # 模型适配层（对 Spring AI 的二次封装）
+├── snail-ai-server           # 服务端（管理后台 + 业务逻辑 + 数据库）
+├── snail-ai-agent            # Agent 客户端（独立部署的 LLM 执行进程）
+└── snail-ai-starter          # 最终启动模块（打包入口）
 ```
 
 ### 架构设计原则
 
-1. **模块化**: 每个模块有明确的职责边界
-2. **分层清晰**: 上层依赖下层,同层模块避免循环依赖
-3. **低耦合高内聚**: 模块间通过接口通信
-4. **可扩展性**: 便于添加新功能和模块
-5. **可维护性**: 代码组织清晰,易于理解和修改
+1. **模块化**：每个模块有明确的职责边界，按功能垂直拆分
+2. **分层清晰**：上层依赖下层，同层模块避免循环依赖
+3. **低耦合高内聚**：模块间通过接口/DTO 通信，不直接访问内部实现
+4. **可扩展性**：模型适配器、向量存储、搜索存储均采用 SPI 模式，便于扩展
+5. **可维护性**：代码组织清晰，遵循统一的包结构和命名规范
+
+### 技术栈
+
+| 层次 | 技术选型 |
+|------|---------|
+| 框架 | Spring Boot 4.1 + Spring AI 2.0 |
+| ORM | MyBatis-Plus 3.5 |
+| 通信 | gRPC（Agent↔Server）+ REST（Server↔前端） |
+| 数据库 | MySQL / PostgreSQL（业务数据） |
+| 向量库 | Elasticsearch / Milvus / PGVector |
+| AI 模型 | OpenAI 兼容接口（通义千问、DeepSeek 等） |
+| 前端 | Vue 3 + TypeScript + Ant Design Vue |
+
+---
 
 ## 模块职责
 
-### 1. snail-ai-common (通用模块)
+### 1. snail-ai-commons — 通用基础层
 
-**职责**: 提供全局通用的基础设施和工具类
-
-**包含内容**:
-- **enums**: 全局枚举（StatusEnum、RoleEnum 等）
-- **constant**: 全局常量定义
-- **exception**: 异常体系（BaseSnailAiException、SnailAiCommonException 等）
-- **model**: 通用数据模型（Result、PageResult 等）
-- **util**: 工具类（JsonUtil、DateUtil 等）
-- **vo**: 通用 VO（BaseQueryVO 等）
-
-**依赖关系**: 不依赖任何其他模块
-
-**示例代码位置**:
-- `/snail-ai-common/src/main/java/com/aizuda/snail/ai/common/enums/`
-- `/snail-ai-common/src/main/java/com/aizuda/snail/ai/common/exception/`
-- `/snail-ai-common/src/main/java/com/aizuda/snail/ai/common/model/`
-
-### 2. snail-ai-persistence (持久化模块)
-
-**职责**: 封装所有数据访问逻辑,提供统一的数据访问接口
-
-**包含内容**:
-- **po**: 持久化对象（对应数据库表）
-  - `admin/po/` - 用户、权限等
-  - `memory/po/` - 记忆相关表
-  - `skill/po/` - 技能相关表
-  - `rag/po/` - RAG 文档和分块表
-- **mapper**: MyBatis-Plus Mapper 接口
-  - 继承 `BaseMapper<PO>`
-  - 无需 XML 配置
-
-**依赖关系**: 
-- 依赖 `snail-ai-common`
-- 被 `snail-ai-memory`、`snail-ai-features`、`snail-ai-admin` 依赖
-
-**示例代码位置**:
-- `/snail-ai-persistence/src/main/java/com/aizuda/snail/ai/persistence/memory/po/ConversationMemoryPO.java`
-- `/snail-ai-persistence/src/main/java/com/aizuda/snail/ai/persistence/memory/mapper/ConversationMemoryMapper.java`
-
-### 3. snail-ai-model (AI 模型模块)
-
-**职责**: 封装 AI 模型调用,提供统一的模型访问接口
-
-**包含内容**:
-- **client**: AI 模型客户端封装
-- **dto**: 模型请求/响应 DTO
-- **config**: 模型配置
-- **service**: 模型调用服务
-
-**支持的模型**:
-- DeepSeek
-- OpenAI
-- 火山引擎 Ark
-
-**依赖关系**:
-- 依赖 `snail-ai-common`
-- 依赖 Spring AI 框架
-- 被 `snail-ai-features` 依赖
-
-**示例代码位置**:
-- `/snail-ai-model/src/main/java/com/aizuda/snail/ai/model/`
-
-### 4. snail-ai-memory (记忆模块)
-
-**职责**: 管理对话记忆、上下文和记忆检索
-
-**包含内容**:
-- **service**: （⚠️ 使用 Handler 后缀或特定名称）
-  - `MemoryExtractionService` - 记忆提取
-  - `MemoryRetriever` - 记忆检索
-  - `ContextManager` - 上下文管理
-- **dto**: 记忆相关 DTO
-- **enums**: 记忆类型枚举（FACT、DECISION、PREFERENCE 等）
-
-**核心功能**:
-- 自动提取对话中的关键信息
-- 向量化存储和检索记忆
-- 记忆压缩和归档
-- 多维度记忆检索（语义、时间、类型）
-
-**依赖关系**:
-- 依赖 `snail-ai-persistence`（访问记忆表）
-- 依赖 `snail-ai-common`
-- 被 `snail-ai-features`、`snail-ai-admin` 依赖
-
-**示例代码位置**:
-- `/snail-ai-memory/src/main/java/com/aizuda/snail/ai/memory/service/MemoryRetriever.java`
-- `/snail-ai-memory/src/main/java/com/aizuda/snail/ai/memory/dto/ConversationMemoryDTO.java`
-
-### 5. snail-ai-features (功能特性模块)
-
-**职责**: 实现具体的业务功能特性
-
-**包含内容**:
-- **skill**: 技能系统（⚠️ 使用 Handler 后缀）
-  - `service/SkillService` - 技能管理接口（features层）
-  - `tool/ReadSkillTool` - 读取技能工具
-  - `tool/ShellTool` - Shell 执行工具
-  - `tool/HttpTool` - HTTP 请求工具
-- **rag**: RAG (检索增强生成)（⚠️ 使用 Handler 后缀）
-  - `service/RagService` - RAG 服务接口
-  - `parser/` - 文档解析器（PDF、Word、Excel）
-  - `chunker/` - 文本分块
-  - `vectorstore/` - 向量存储（Milvus）
-- **knowledge**: 知识库管理
-- **search**: 搜索引擎集成（Elasticsearch）
-
-**依赖关系**:
-- 依赖 `snail-ai-persistence`
-- 依赖 `snail-ai-memory`
-- 依赖 `snail-ai-model`
-- 被 `snail-ai-admin` 依赖
-
-**示例代码位置**:
-- `/snail-ai-features/src/main/java/com/aizuda/snail/ai/features/skill/`
-- `/snail-ai-features/src/main/java/com/aizuda/snail/ai/features/rag/`
-
-### 6. snail-ai-admin (管理服务模块)
-
-**职责**: 提供 RESTful API,对外暴露管理接口
-
-**包含内容**:
-- **controller**: Web 控制器
-  - `UserController`, `AgentController`, `MemoryController` 等
-- **service**: 业务服务层（⚠️ 使用 Service 后缀）
-  - `UserService`, `MemoryService`, `SkillService` 等
-  - 实现具体业务逻辑
-  - 调用 features 和 memory 模块
-- **vo**: 视图对象
-  - 按功能分类（`memory/`, `skill/`, `rag/`, `agent/` 等）
-  - 包含 RequestVO、ResponseVO、QueryVO
-- **security**: 安全相关
-  - `@LoginRequired` 注解
-  - JWT 认证
-  - 权限控制
-- **handler**: 异常处理器
-  - `RestExceptionHandler` - 全局异常处理
-
-**依赖关系**:
-- 依赖所有下层模块
-- 是对外服务的入口
-
-**示例代码位置**:
-- `/snail-ai-admin/src/main/java/com/aizuda/snail/ai/admin/controller/MemoryController.java`
-- `/snail-ai-admin/src/main/java/com/aizuda/snail/ai/admin/service/memory/MemoryService.java`
-- `/snail-ai-admin/src/main/java/com/aizuda/snail/ai/admin/vo/memory/`
-
-### 7. snail-ai-starter (启动模块)
-
-**职责**: Spring Boot 应用启动入口
-
-**包含内容**:
-- **SnailAiSpringbootApplication**: 主启动类
-- **application.yml**: 应用配置
-- **数据库驱动**: MySQL/PostgreSQL
-
-**配置**:
-```java
-@ComponentScan(basePackages = {
-    "com.aizuda.snail.ai.admin",
-    "com.aizuda.snail.ai.features",
-    "com.aizuda.snail.ai.memory",
-    "com.aizuda.snail.ai.model",
-    "com.aizuda.snail.ai.persistence",
-    "com.aizuda.snail.ai.common"
-})
-@MapperScan("com.aizuda.snail.ai.persistence")
-@EnableAsync
+```
+snail-ai-commons
+├── snail-ai-commons-core     # DTO、枚举、工具类、通用接口
+└── snail-ai-commons-grpc     # gRPC 通信封装（Agent↔Server 通信）
 ```
 
-**依赖关系**:
-- 依赖 `snail-ai-admin`（传递依赖所有模块）
+**snail-ai-commons-core** 职责：
+- 全局枚举（StatusEnum、RoleEnum 等）
+- 通用 DTO（ChatStreamResponse、ConversationRecordRequest 等）
+- 工具类（JsonUtil、DateUtil 等）
+- 异常体系（SnailAiException 等）
+- 通用模型（Result、PageResult 等）
+
+**snail-ai-commons-grpc** 职责：
+- gRPC 服务端/客户端封装
+- Proto 定义和自动生成代码
+- GrpcRequestDispatcher 请求分发
+- StreamObserver 封装
+
+**依赖关系**：不依赖任何其他内部模块，是最底层模块
+
+---
+
+### 2. snail-ai-models — 模型适配层
+
+对 Spring AI 的二次封装，提供统一的模型访问接口。
+
+```
+snail-ai-models
+├── snail-ai-model-common                  # 模型公共接口（ChatModelSpec、ModelAdapter）
+├── snail-ai-model-chat/                   # Chat 模型
+│   ├── snail-ai-model-chat-core           # 核心：自定义 OpenAiChatModel、ChatModelRuntime
+│   ├── snail-ai-model-chat-provider-openai-compatible  # OpenAI 兼容适配器
+│   └── snail-ai-model-chat-starter        # Spring Boot 自动装配
+├── snail-ai-model-embedding/              # Embedding 模型
+│   ├── snail-ai-model-embedding-core
+│   ├── snail-ai-model-embedding-provider-openai-compatible
+│   └── snail-ai-model-embedding-starter
+└── snail-ai-model-rerank/                 # Rerank 模型
+    ├── snail-ai-model-rerank-core
+    ├── snail-ai-model-rerank-provider-qwen
+    └── snail-ai-model-rerank-starter
+```
+
+**核心设计**：
+- `ChatModelSpec`：模型规格描述（baseUrl、apiKey、modelKey 等）
+- `ChatModelAdapter`：模型适配器接口，不同供应商实现不同 adapter
+- `ChatModelRuntime`：模型运行时，根据 adapterKey 选择合适的适配器创建 ChatModel
+- `OpenAiCompatibleChatModelAdapter`：OpenAI 兼容适配器，支持通义千问、DeepSeek 等
+
+**依赖关系**：
+- 依赖 `snail-ai-commons-core`
+- 依赖 Spring AI（`spring-ai-openai`、`spring-ai-client-chat`）
+- 被 `snail-ai-server`（feature-model）和 `snail-ai-agent`（executor-model）共同依赖
+
+---
+
+### 3. snail-ai-server — 服务端
+
+管理后台 + 业务逻辑 + 数据库访问，是系统的核心业务模块。
+
+```
+snail-ai-server
+├── snail-ai-server-persistence/           # 持久化层（数据库）
+│   ├── snail-ai-biz-storage/              # 业务数据库
+│   │   ├── snail-ai-biz-template          # MyBatis-Plus 通用模板（PO、Mapper）
+│   │   ├── snail-ai-mysql-storage         # MySQL 驱动实现
+│   │   └── snail-ai-postgres-storage      # PostgreSQL 驱动实现
+│   ├── snail-ai-vector-storage/           # 向量数据库
+│   │   ├── snail-ai-vector-template       # 向量存储统一接口
+│   │   ├── snail-ai-vector-es-storage     # Elasticsearch 实现
+│   │   ├── snail-ai-vector-milvus-storage # Milvus 实现
+│   │   └── snail-ai-vector-pg-storage     # PGVector 实现
+│   └── snail-ai-search-storage/           # 全文搜索
+│       ├── snail-ai-search-template       # 搜索统一接口
+│       └── snail-ai-search-elasticsearch-storage  # ES 实现
+├── snail-ai-server-features/              # 业务功能层
+│   ├── snail-ai-feature-common            # 功能公共（日志、配置）
+│   ├── snail-ai-feature-model             # 模型管理（CRUD、调用封装）
+│   ├── snail-ai-feature-agent             # Agent 对话（核心业务：gRPC 调度、结果持久化）
+│   ├── snail-ai-feature-rag               # RAG 检索增强（文档解析、向量检索）
+│   ├── snail-ai-feature-skill             # 技能管理（MCP Server/Tool）
+│   ├── snail-ai-feature-memory            # 记忆管理（短期/长期记忆）
+│   └── snail-ai-feature-resource          # 资源管理（文件上传 MinIO）
+├── snail-ai-server-admin                  # 管理后台 REST API（Controller）
+└── snail-ai-server-openapi                # 开放 API（对外接口、JWT 鉴权）
+```
+
+#### 持久化层（snail-ai-server-persistence）
+
+采用**模板模式**，通过 SPI 机制支持多种数据库：
+
+| 存储类型 | 模板接口 | MySQL 实现 | PostgreSQL 实现 | ES 实现 | Milvus 实现 |
+|---------|---------|-----------|----------------|--------|------------|
+| 业务数据 | biz-template | mysql-storage | postgres-storage | — | — |
+| 向量数据 | vector-template | — | vector-pg-storage | vector-es-storage | vector-milvus-storage |
+| 全文搜索 | search-template | — | — | search-elasticsearch-storage | — |
+
+#### 业务功能层（snail-ai-server-features）
+
+| 模块 | 职责 | 关键类 |
+|------|------|--------|
+| feature-common | 日志、配置、工具 | AbstractLog、LogStrategy |
+| feature-model | 模型 CRUD + 调用封装 | AiModelConfigService、ChatClientBuilder |
+| feature-agent | Agent 对话核心业务 | AgentChatService、ChatStreamObserver、ChatResultPersistService |
+| feature-rag | RAG 检索增强 | RagService、DocumentParser、VectorStore |
+| feature-skill | 技能管理 | SkillService、McpServerService |
+| feature-memory | 记忆管理 | ShortTermMemoryStore、LongTermMemoryStore |
+| feature-resource | 文件资源管理 | ResourceService（MinIO） |
+
+#### 管理后台（snail-ai-server-admin）
+
+提供 RESTful API，是前端的入口：
+
+- Controller 层：AgentController、ModelController、MemoryController 等
+- Service 层：AgentService、ModelService 等（调用 feature 层）
+- VO 层：请求/响应视图对象
+
+#### 开放 API（snail-ai-server-openapi）
+
+对外提供的第三方接口，基于 JWT 鉴权：
+- OpenApiChatService：对话 API
+- OpenApiConversationService：会话管理 API
+
+**依赖关系**：
+- server-admin 依赖所有 feature-* 模块
+- server-openapi 依赖 server-admin
+- feature-* 依赖 biz-template 和对应 models 模块
+- biz-template 依赖 commons-core 和 mybatis-plus
+
+---
+
+### 4. snail-ai-agent — Agent 客户端
+
+独立部署的 LLM 执行进程，通过 gRPC 与 Server 通信。
+
+```
+snail-ai-agent
+├── snail-ai-agent-common                  # Agent 公共（gRPC 客户端、心跳、上下文）
+├── snail-ai-agent-executor/               # 执行引擎
+│   ├── snail-ai-agent-executor-model      # 模型工厂（调用 Models 层创建 ChatModel）
+│   ├── snail-ai-agent-executor-core       # 核心：Advisor 链、流式执行、gRPC Handler
+│   └── snail-ai-agent-executor-starter    # 自动装配
+├── snail-ai-agent-openapi/                # OpenAPI 集成（Agent 端）
+│   ├── snail-ai-openapi-core
+│   └── snail-ai-openapi-starter
+└── snail-ai-agent-chat/                   # 聊天 API
+    ├── snail-ai-agent-chat-api
+    └── snail-ai-agent-chat-starter
+```
+
+**核心设计**：
+
+Agent 端采用 **Advisor 责任链** 模式处理流式请求：
+
+```
+ChatClient 请求
+    ↓
+InterceptorChainAdvisor    → 拦截器链（日志等）
+    ↓
+TokenUsageCollectorAdvisor → 提取 token 使用量（input/output/cache）
+    ↓
+ThinkingCollectorAdvisor   → 收集思维链/推理过程
+    ↓
+StreamChunkForwarderAdvisor → 转发文本 chunk 到 gRPC 流
+    ↓
+LLM 模型调用
+```
+
+**关键类**：
+- `ClientChatExecutor`：流式执行引擎，组装 ChatClient 和 Advisor 链
+- `ClientStreamExecutionContext`：单次流式调用的累积状态（文本、token、工具调用）
+- `ChatDispatchStreamingHandler`：gRPC 流式请求处理，桥接 Agent 和 Server
+- `ChatSessionRuntime`：会话运行时，管理工具准备和资源清理
+
+**依赖关系**：
+- agent-common 依赖 commons-core 和 commons-grpc
+- agent-executor-model 依赖 model-chat-core（Models 层）
+- agent-executor-core 依赖 agent-common 和 agent-executor-model
+- agent-executor-starter 聚合所有 executor 模块并提供自动装配
+
+---
+
+### 5. snail-ai-starter — 启动入口
+
+最终打包成 Spring Boot JAR 的入口模块，不包含业务代码。
+
+```
+snail-ai-starter
+└── 依赖：server-admin + server-openapi + mysql/postgres-storage + actuator + mcp-server
+```
+
+---
 
 ## 分层架构
 
-### 三层架构模式
+### 整体分层
 
 ```
+┌─────────────────────────────────────────────────────────────────┐
+│                        snail-ai-starter                         │  ← 启动入口
+└───────────────────────────────┬─────────────────────────────────┘
+                                │
+        ┌───────────────────────┼───────────────────────┐
+        ▼                       ▼                       ▼
+┌───────────────┐    ┌──────────────────┐    ┌──────────────────┐
+│ server-admin  │    │  server-openapi  │    │  agent-executor  │  ← API/执行层
+│  (REST API)   │    │  (开放 API)      │    │  (LLM 执行)     │
+└───────┬───────┘    └────────┬─────────┘    └────────┬─────────┘
+        │                     │                       │
+        ▼                     ▼                       ▼
+┌─────────────────────────────────────┐    ┌──────────────────┐
+│       server-features               │    │  agent-common    │  ← 业务功能层
+│ agent│model│rag│skill│memory│resource│    │  (gRPC 客户端)   │
+└───────────────┬─────────────────────┘    └────────┬─────────┘
+                │                                   │
+                ▼                                   ▼
+┌─────────────────────────────────────┐    ┌──────────────────┐
+│     server-persistence              │    │  models (chat/   │  ← 模型/数据层
+│  biz│vector│search (template+SPI)   │    │  embedding/rerank)│
+└───────────────┬─────────────────────┘    └────────┬─────────┘
+                │                                   │
+                ▼                                   ▼
+┌─────────────────────────────────────┐    ┌──────────────────┐
+│         commons-core                │◄───│  Spring AI       │  ← 基础层
+│    DTO│枚举│工具类│通用接口          │    │  (框架)          │
+└─────────────────────────────────────┘    └──────────────────┘
+        ▲
+        │
 ┌─────────────────────────────────────┐
-│      Controller Layer (Web层)       │  ← RESTful API 入口
-│  UserController, MemoryController   │
-└──────────────┬──────────────────────┘
-               │ 调用
-               ↓
-┌─────────────────────────────────────┐
-│      Service Layer (业务层)          │  ← 业务逻辑处理
-│   UserService, MemoryService        │
-└──────────────┬──────────────────────┘
-               │ 调用
-               ↓
-┌─────────────────────────────────────┐
-│   Persistence Layer (持久层)        │  ← 数据访问
-│  UserMapper, ConversationMemoryMapper│
-└──────────────┬──────────────────────┘
-               │ 访问
-               ↓
-┌─────────────────────────────────────┐
-│         Database (数据库)            │
-│      MySQL / PostgreSQL             │
+│         commons-grpc                │  ← 通信层
+│    gRPC 封装│Proto│分发器            │
 └─────────────────────────────────────┘
 ```
 
 ### 数据流向
 
-**请求流程**:
-1. **Client** → HTTP Request
-2. **Controller** → 接收请求,参数验证
-3. **Service** → 业务逻辑处理
-4. **Mapper** → 数据库操作
-5. **Database** → 返回数据
-6. **Service** → 数据转换和业务处理
-7. **Controller** → 返回 Response
+**用户请求流程（前端 → Server → Agent → LLM）**：
 
-**VO/DTO/PO 转换**:
 ```
-Client Request
+前端 HTTP 请求
     ↓
-RequestVO (Controller 接收)
+server-admin Controller（参数验证）
     ↓
-DTO (Service 层处理)
+server-admin Service（业务逻辑）
     ↓
-PO (Mapper 层持久化)
+feature-agent AgentChatService（构建 gRPC 请求）
+    ↓ gRPC
+agent ChatDispatchStreamingHandler（接收请求）
+    ↓
+agent ClientChatExecutor（Advisor 链 + LLM 调用）
+    ↓ 流式响应
+agent ChatDispatchStreamingHandler（发送 completion）
+    ↓ gRPC
+server ChatStreamObserver（接收响应）
+    ↓
+ChatResultPersistService（持久化对话记录）
+    ↓ SSE
+前端流式展示
+```
+
+### VO/DTO/PO 转换
+
+```
+前端 Request
+    ↓
+Controller 层：RequestVO / QueryVO
+    ↓
+Service 层：DTO / Command
+    ↓
+Mapper 层：PO（对应数据库表）
     ↓
 Database
     ↓
-PO (从数据库查询)
-    ↓
-DTO (Service 层转换)
-    ↓
-ResponseVO (Controller 返回)
-    ↓
-Client Response
+PO → DTO → ResponseVO → 前端
 ```
+
+---
 
 ## 包结构规范
 
-### 标准包结构
-
-每个模块的包结构遵循统一的规范:
+### Server 端包结构
 
 ```
-com.aizuda.snail.ai.{module}/
-├── config/                 # 配置类
-│   └── {Module}Config.java
-├── constant/               # 常量定义
-│   └── {Module}Constants.java
-├── controller/             # Web 控制器 (仅 admin 模块)
-│   ├── UserController.java
-│   └── MemoryController.java
-├── service/                # 业务服务
-│   ├── UserService.java
-│   └── impl/
-│       └── UserServiceImpl.java
-├── dto/                    # 数据传输对象
-│   ├── UserDTO.java
-│   └── request/
-│       └── CreateUserRequest.java
-├── vo/                     # 视图对象 (仅 admin 模块)
-│   ├── user/
-│   │   ├── UserResponseVO.java
-│   │   └── UserQueryVO.java
-│   └── memory/
-│       ├── MemoryResponseVO.java
-│       └── MemoryQueryVO.java
-├── po/                     # 持久化对象 (仅 persistence 模块)
-│   └── UserPO.java
-├── mapper/                 # MyBatis Mapper (仅 persistence 模块)
-│   └── UserMapper.java
-├── enums/                  # 枚举类型
-│   ├── RoleEnum.java
-│   └── StatusEnum.java
-├── exception/              # 异常定义
-│   └── {Module}Exception.java
-├── handler/                # 处理器
-│   ├── RestExceptionHandler.java
-│   └── EventHandler.java
-├── interceptor/            # 拦截器
-│   └── AuthInterceptor.java
-├── security/               # 安全相关
-│   ├── annotation/
-│   │   └── LoginRequired.java
-│   └── UserSessionUtils.java
-├── util/                   # 工具类
-│   └── {Module}Util.java
-└── tool/                   # 工具（LangChain4j Tool）
-    ├── ReadSkillTool.java
-    └── ShellTool.java
+com.aizuda.snail.ai
+├── admin/                          # server-admin 模块
+│   ├── controller/                 # REST 控制器
+│   ├── service/                    # 业务服务
+│   ├── vo/                         # 视图对象（按功能分子包）
+│   └── handler/                    # 异常处理器
+├── feature/                        # server-features 模块
+│   ├── agent/                      # Agent 对话
+│   │   ├── chain/                  # 处理链（ChatStreamObserver 等）
+│   │   ├── callback/               # 回调处理
+│   │   └── persist/                # 持久化（ChatResultPersistService）
+│   ├── model/                      # 模型管理
+│   ├── rag/                        # RAG
+│   ├── skill/                      # 技能
+│   ├── memory/                     # 记忆
+│   └── resource/                   # 资源
+├── persistence/                    # server-persistence 模块
+│   ├── admin/po/                   # 管理相关 PO
+│   ├── agent/po/                   # Agent 相关 PO
+│   ├── agent/mapper/               # Agent 相关 Mapper
+│   ├── model/po/                   # 模型相关 PO
+│   └── model/mapper/               # 模型相关 Mapper
+└── openapi/                        # server-openapi 模块
+    ├── controller/                 # 开放 API 控制器
+    └── service/                    # 开放 API 服务
 ```
 
-### 包命名规则
+### Agent 端包结构
 
-| 包名 | 用途 | 命名规范 |
-|-----|------|---------|
-| `config` | 配置类 | 单数形式 |
-| `constant` | 常量 | 单数形式 |
-| `controller` | 控制器 | 单数形式 |
-| `service` | 服务 | 单数形式 |
-| `dto` | 数据传输对象 | 单数形式 |
-| `vo` | 视图对象 | 单数形式,按功能分子包 |
-| `po` | 持久化对象 | 单数形式,按模块分子包 |
-| `mapper` | 数据访问 | 单数形式 |
-| `enums` | 枚举 | 复数形式 |
-| `util` | 工具类 | 单数形式 |
+```
+com.aizuda.snail.ai.agent
+├── common/                         # agent-common 模块
+│   ├── rpc/                        # gRPC 客户端
+│   ├── context/                    # 上下文（AgentChatContextHolder）
+│   ├── counter/                    # 计数器（ActiveChatCounter）
+│   └── config/                     # 配置（SnailAiAgentProperties）
+├── core/                           # agent-executor-core 模块
+│   ├── advisor/                    # Advisor 链
+│   │   ├── TokenUsageCollectorAdvisor
+│   │   ├── ThinkingCollectorAdvisor
+│   │   ├── StreamChunkForwarderAdvisor
+│   │   └── InterceptorChainAdvisor
+│   ├── executor/                   # 执行引擎
+│   │   ├── ClientChatExecutor
+│   │   ├── client/                 # ChatClient 工厂
+│   │   ├── model/                  # 模型工厂
+│   │   ├── prompt/                 # Prompt 工厂
+│   │   └── tool/                   # 工具管理
+│   ├── grpc/handler/               # gRPC 请求处理
+│   ├── runtime/                    # 运行时（ChatSessionRuntime）
+│   ├── resolver/                   # 工具解析器
+│   └── interceptor/                # 拦截器
+└── starter/                        # agent-executor-starter 模块
+    └── SnailAiAgentAutoConfiguration  # 自动装配
+```
+
+### 命名规范
+
+| 包名 | 用途 | 说明 |
+|------|------|------|
+| `controller` | REST 控制器 | 仅 server-admin |
+| `service` | 业务服务 | 按功能模块分包 |
+| `vo` | 视图对象 | 仅 server-admin，按功能分子包 |
+| `dto` | 数据传输对象 | commons-core 中定义 |
+| `po` | 持久化对象 | 仅 persistence，对应数据库表 |
+| `mapper` | MyBatis Mapper | 仅 persistence |
+| `enums` | 枚举类型 | 按模块分布 |
+| `config` | 配置类 | @Configuration |
+| `handler` | 处理器 | 回调、异常处理 |
+| `advisor` | Advisor | 仅 agent 端 |
+| `resolver` | 解析器 | 工具解析等 |
+
+---
 
 ## 模块间通信
 
@@ -354,207 +421,156 @@ com.aizuda.snail.ai.{module}/
 
 ### 正确的依赖示例
 
-✅ **允许**:
+✅ **允许**：
 ```
-admin → features → persistence
-admin → memory → persistence
-features → model
-```
-
-❌ **禁止**:
-```
-persistence → admin  (下层依赖上层)
-memory → features    (同层循环依赖)
+server-admin → feature-agent → biz-template → commons-core
+agent-executor-core → agent-common → commons-grpc → commons-core
+feature-model → model-chat-starter → model-chat-core → spring-ai-openai
 ```
 
-### 接口设计原则
-
-**Features 模块向外提供接口**:
-```java
-// snail-ai-features/skill/service/SkillService.java
-public interface SkillService {
-    String loadSkillFilesToTempDir(Long skillId);
-    List<SkillPO> getSkillsWithContentForAgent(Long agentId);
-    String buildSkillsList(List<SkillPO> skills);
-}
+❌ **禁止**：
+```
+commons-core → server-admin    (下层依赖上层)
+feature-agent → feature-model  (同层反向依赖，应通过接口)
 ```
 
-**Admin 模块实现接口并扩展**:
-```java
-// snail-ai-admin/service/skill/SkillService.java
-@Service
-public class SkillService implements com.aizuda.snail.ai.features.skill.service.SkillService {
-    
-    // 实现 features 接口
-    @Override
-    public String loadSkillFilesToTempDir(Long skillId) {
-        // 实现
-    }
-    
-    // 扩展管理功能
-    public SkillResponseVO upload(MultipartFile file) {
-        // admin 特有功能
-    }
-    
-    public PageResult<List<SkillResponseVO>> page(int page, int size, String keyword) {
-        // admin 特有功能
-    }
-}
+### 核心依赖关系图
+
 ```
+                    snail-ai-starter (打包入口)
+                         │
+          ┌──────────────┼──────────────┐
+          ▼              ▼              ▼
+    server-admin    server-openapi   mysql/postgres-storage
+          │              │
+          ▼              ▼
+    feature-agent ──► feature-model ──► model-chat-starter ──► model-chat-core
+          │                                                    (自定义 OpenAiChatModel)
+          ▼
+    biz-template (PO/Mapper)
+          │
+          ▼
+    commons-core + commons-grpc ←──────── agent-executor-core (Agent 客户端)
+                                            │
+                                            ▼
+                                      agent-executor-model ──► model-chat-core
+```
+
+---
+
+## Agent 与 Server 通信
+
+### 通信协议
+
+Agent 和 Server 通过 **gRPC** 通信，支持流式传输。
+
+### 通信流程
+
+```
+Server 端                              Agent 端
+    │                                      │
+    │──── gRPC ChatDispatch ──────────────→│
+    │     (ChatDispatchRequest)            │
+    │                                      │→ LLM 调用
+    │                                      │
+    │←──── gRPC Stream (text chunks) ─────│
+    │←──── gRPC Stream (thinking) ────────│
+    │←──── gRPC Stream (completion) ──────│
+    │     (ChatStreamResponse)            │
+    │                                      │
+```
+
+### 关键 DTO
+
+**ChatDispatchRequest**（Server → Agent）：
+- agentConfig：Agent 配置
+- modelConfig：模型配置
+- conversationId：会话 ID
+- userInfo：用户信息
+- content：用户输入
+
+**ChatStreamResponse**（Agent → Server）：
+- type：text / thinking / completion / error
+- content：文本内容
+- fullText / fullThinking：完整文本
+- promptTokens / completionTokens / cacheTokens：Token 统计
+- durationMs：执行时长
+
+---
 
 ## 依赖注入
 
 ### 使用 Lombok @RequiredArgsConstructor
 
-**推荐方式** (构造函数注入):
+**推荐方式**（构造函数注入）：
 
 ```java
-@RestController
-@RequestMapping("/api/users")
+@Service
 @RequiredArgsConstructor  // Lombok 自动生成构造函数
-public class UserController {
-    
-    private final UserService userService;  // final 字段会被注入
-    private final MemoryService memoryService;
-    
-    // 无需写构造函数,Lombok 自动生成
-}
-```
+public class ChatResultPersistService {
 
-**等价于**:
-```java
-@RestController
-@RequestMapping("/api/users")
-public class UserController {
-    
-    private final UserService userService;
-    private final MemoryService memoryService;
-    
-    @Autowired  // Spring 4.3+ 可省略
-    public UserController(UserService userService, MemoryService memoryService) {
-        this.userService = userService;
-        this.memoryService = memoryService;
-    }
+    private final AgentConversationRecordMapper recordMapper;
+    private final AgentUsageStatMapper usageStatMapper;
+    private final ShortTermMemoryStore shortTermMemoryStore;
+
+    // 无需写构造函数，Lombok 自动生成
 }
 ```
 
 ### 为什么使用构造函数注入
 
-✅ **优点**:
-1. **不可变性**: 使用 `final` 字段,保证线程安全
-2. **强制依赖**: 构造时必须提供依赖,避免 NPE
-3. **易于测试**: 可以直接 new 对象进行测试
-4. **循环依赖检测**: 编译时就能发现循环依赖
+✅ **优点**：
+1. **不可变性**：使用 `final` 字段，保证线程安全
+2. **强制依赖**：构造时必须提供依赖，避免 NPE
+3. **易于测试**：可以直接 new 对象进行测试
+4. **循环依赖检测**：编译时就能发现循环依赖
 
-❌ **避免使用字段注入**:
+❌ **避免使用字段注入**：
 ```java
 // 不推荐
 @Autowired
-private UserService userService;  // 字段不是 final,可能为 null
+private UserService userService;  // 字段不是 final，可能为 null
 ```
-
-## 配置管理
-
-### application.yml 组织
-
-```yaml
-spring:
-  application:
-    name: snail-ai
-  
-  # 数据源配置
-  datasource:
-    url: jdbc:mysql://localhost:3306/snail_ai
-    username: root
-    password: ${DB_PASSWORD}
-  
-  # Redis 配置
-  data:
-    redis:
-      host: localhost
-      port: 6379
-
-# MyBatis-Plus 配置
-mybatis-plus:
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-  global-config:
-    db-config:
-      id-type: auto
-
-# 自定义配置
-snail-ai:
-  memory:
-    auto-extract: true
-    max-context-length: 10
-  skill:
-    storage-path: upload/skills/
-```
-
-### 配置类注入
-
-```java
-@Configuration
-@ConfigurationProperties(prefix = "snail-ai.memory")
-@Data
-public class MemoryConfig {
-    private Boolean autoExtract = true;
-    private Integer maxContextLength = 10;
-    private Integer extractThreshold = 5;
-}
-```
-
-## 实际案例
-
-### 案例 1: 创建新功能模块
-
-**需求**: 添加"标签管理"功能
-
-**步骤**:
-1. **Persistence 层** - 创建 PO 和 Mapper
-2. **Features 层** - 创建 Service 接口
-3. **Admin 层** - 实现 Service,创建 Controller 和 VO
-4. **更新依赖** - 确保依赖关系正确
-
-### 案例 2: 跨模块调用
-
-**场景**: MemoryController 需要调用 SkillService
-
-```java
-@RestController
-@RequestMapping("/api/memory")
-@RequiredArgsConstructor
-public class MemoryController {
-    
-    private final MemoryService memoryService;
-    private final SkillService skillService;  // 跨模块调用
-    
-    @GetMapping("/with-skills/{agentId}")
-    public Result<MemoryWithSkillsVO> getMemoryWithSkills(@PathVariable Long agentId) {
-        List<MemoryDTO> memories = memoryService.getMemories(agentId);
-        List<SkillPO> skills = skillService.getSkillsWithContentForAgent(agentId);
-        
-        return Result.ok(new MemoryWithSkillsVO(memories, skills));
-    }
-}
-```
-
-## 总结
-
-Snail AI 的架构设计遵循以下核心原则:
-
-1. **模块化**: 7 个模块,职责清晰
-2. **分层架构**: Controller → Service → Mapper → Database
-3. **依赖单向**: 上层依赖下层,避免循环
-4. **接口抽象**: Features 提供接口,Admin 实现扩展
-5. **包结构统一**: 所有模块遵循相同的包结构规范
-6. **构造函数注入**: 使用 @RequiredArgsConstructor + final 字段
-
-遵循这些规范,可以保证代码的可维护性、可扩展性和团队协作效率。
 
 ---
 
-**相关文档**:
-- `coding-standards.md` - 编码规范
-- `database-guide.md` - 数据库设计
-- `api-design.md` - API 设计规范
+## 存储 SPI 扩展机制
+
+### 向量存储扩展示例
+
+添加新的向量存储（如 Qdrant）只需：
+
+1. 创建 `snail-ai-vector-qdrant-storage` 模块
+2. 实现 `vector-template` 中的接口
+3. 在 `starter` 中添加依赖
+
+```
+snail-ai-vector-storage
+├── snail-ai-vector-template       # 统一接口
+├── snail-ai-vector-es-storage     # ES 实现
+├── snail-ai-vector-pg-storage     # PGVector 实现
+├── snail-ai-vector-milvus-storage # Milvus 实现
+└── snail-ai-vector-qdrant-storage # 新增：Qdrant 实现
+```
+
+---
+
+## 总结
+
+Snail AI 的架构设计遵循以下核心原则：
+
+1. **5 大顶层模块**：commons（基础）、models（模型）、server（服务端）、agent（客户端）、starter（启动）
+2. **分层架构**：Controller → Service → Feature → Persistence → Database
+3. **依赖单向**：上层依赖下层，避免循环
+4. **模板 + SPI**：数据库、向量、搜索均采用模板模式 + SPI 扩展
+5. **Advisor 责任链**：Agent 端采用 Advisor 模式处理流式请求
+6. **gRPC 通信**：Agent 和 Server 通过 gRPC 流式通信
+7. **构造函数注入**：使用 @RequiredArgsConstructor + final 字段
+
+---
+
+**相关文档**：
+- `coding-standards.md` — 编码规范
+- `database-guide.md` — 数据库设计
+- `api-design.md` — API 设计规范
+- `模块依赖关系.md` — 模块依赖详细表格

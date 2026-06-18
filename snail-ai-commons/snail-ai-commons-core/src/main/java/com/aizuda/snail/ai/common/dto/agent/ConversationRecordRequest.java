@@ -23,4 +23,7 @@ public class ConversationRecordRequest {
     private String role;
     private String content;
     private String thinking;
+    private Integer inputTokens;
+    private Integer outputTokens;
+    private Integer cacheTokens;
 }

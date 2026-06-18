@@ -23,26 +23,16 @@
     </insert>
 
     <update id="updateBatchExpireAt" parameterType="java.util.List">
-        UPDATE sai_client_node rt,
-               (
-                    <foreach collection="list" item="item" separator="UNION ALL">
-                        SELECT
-                            #{item.appId}              AS app_id,
-                            #{item.hostId}             AS host_id,
-                            #{item.maxConcurrent}      AS max_concurrent,
-                            #{item.activeChats}        AS active_chats,
-                            #{item.supportedProviders} AS supported_providers,
-                            #{item.labels}             AS labels,
-                            #{item.expireDt}           AS expire_dt
-                    </foreach>
-               ) tt
-           SET rt.max_concurrent      = tt.max_concurrent,
-               rt.active_chats        = tt.active_chats,
-               rt.supported_providers = tt.supported_providers,
-               rt.labels              = tt.labels,
-               rt.expire_dt           = tt.expire_dt
-         WHERE rt.app_id  = tt.app_id
-           AND rt.host_id = tt.host_id
+        <foreach collection="list" item="item" separator=";">
+            UPDATE snail_ai_client_node
+            SET max_concurrent      = #{item.maxConcurrent},
+            active_chats        = #{item.activeChats},
+            supported_providers = #{item.supportedProviders},
+            labels              = #{item.labels},
+            expire_dt           = #{item.expireDt}
+            WHERE app_id  = #{item.appId}
+            AND host_id = #{item.hostId}
+        </foreach>
     </update>
 
 </mapper>

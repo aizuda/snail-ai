@@ -308,7 +308,9 @@ CREATE TABLE IF NOT EXISTS sai_agent_conversation_record
     content         TEXT,
     thinking        TEXT,
     status          INTEGER     DEFAULT 1,
-    token_count     INTEGER     DEFAULT 0,
+    input_tokens    INTEGER     DEFAULT 0,
+    output_tokens   INTEGER     DEFAULT 0,
+    cache_tokens    INTEGER     DEFAULT 0,
     create_dt       TIMESTAMP   DEFAULT CURRENT_TIMESTAMP
 );
 

@@ -39,24 +39,50 @@ public class ChatResultPersistService {
     }
 
     private void persistAll(ChatResultPersistCommand cmd) {
-        recordMapper.insert(AgentConversationRecordPO.builder()
-                .agentId(cmd.getAgentId()).conversationId(cmd.getConversationId()).userId(cmd.getUserId())
-                .role(ConversationRoleEnum.ASSISTANT.getValue())
-                .content(cmd.getFullText())
-                .thinking(cmd.getThinkingText() != null && !cmd.getThinkingText().isEmpty()
-                        ? cmd.getThinkingText() : null)
-                .status(StatusEnum.RUNNING.getValue())
-                .build());
+        log.info("persistAll start: conversationId={}, inputTokens={}, outputTokens={}, cacheTokens={}",
+                cmd.getConversationId(), cmd.getInputTokens(), cmd.getOutputTokens(), cmd.getCacheTokens());
 
-        if (!Boolean.FALSE.equals(cmd.getMemoryEnabled())) {
-            shortTermMemoryStore.append(cmd.getConversationId(), ConversationRoleEnum.ASSISTANT.getValue(),
-                    cmd.getFullText(), cmd.getShortTermWindow());
+        // 1. 插入对话记录
+        try {
+            int rows = recordMapper.insert(AgentConversationRecordPO.builder()
+                    .agentId(cmd.getAgentId()).conversationId(cmd.getConversationId()).userId(cmd.getUserId())
+                    .role(ConversationRoleEnum.ASSISTANT.getValue())
+                    .content(cmd.getFullText())
+                    .thinking(cmd.getThinkingText() != null && !cmd.getThinkingText().isEmpty()
+                            ? cmd.getThinkingText() : null)
+                    .status(StatusEnum.RUNNING.getValue())
+                    .inputTokens(cmd.getInputTokens())
+                    .outputTokens(cmd.getOutputTokens())
+                    .cacheTokens(cmd.getCacheTokens())
+                    .build());
+            log.info("persistAll insert done: conversationId={}, rows={}", cmd.getConversationId(), rows);
+        } catch (Exception e) {
+            log.error("persistAll insert FAILED: conversationId={}, error={}", cmd.getConversationId(), e.getMessage(), e);
+            throw e;
         }
 
-        log.debug("Assistant message persisted: conversationId={}, length={}", cmd.getConversationId(),
-                cmd.getFullText() != null ? cmd.getFullText().length() : 0);
+        // 2. 短期记忆
+        try {
+            if (!Boolean.FALSE.equals(cmd.getMemoryEnabled())) {
+                shortTermMemoryStore.append(cmd.getConversationId(), ConversationRoleEnum.ASSISTANT.getValue(),
+                        cmd.getFullText(), cmd.getShortTermWindow());
+                log.info("persistAll memory done: conversationId={}", cmd.getConversationId());
+            }
+        } catch (Exception e) {
+            log.error("persistAll memory FAILED: conversationId={}, error={}", cmd.getConversationId(), e.getMessage(), e);
+            throw e;
+        }
 
-        updateUsageStat(cmd.getAgentId(), cmd.getUserId());
+        // 3. 用量统计
+        try {
+            updateUsageStat(cmd.getAgentId(), cmd.getUserId(), cmd.getUserName());
+            log.info("persistAll usageStat done: conversationId={}", cmd.getConversationId());
+        } catch (Exception e) {
+            log.error("persistAll usageStat FAILED: conversationId={}, error={}", cmd.getConversationId(), e.getMessage(), e);
+            throw e;
+        }
+
+        log.info("persistAll ALL done: conversationId={}", cmd.getConversationId());
     }
 
     private void updateUsageStat(Long agentId, Long userId) {

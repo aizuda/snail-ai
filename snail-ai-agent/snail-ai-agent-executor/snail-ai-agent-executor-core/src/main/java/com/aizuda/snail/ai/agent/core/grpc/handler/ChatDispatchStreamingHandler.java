@@ -85,12 +85,16 @@ public class ChatDispatchStreamingHandler implements GrpcStreamingRequestHandler
 
     private void handleCompletion(ChatCompletionContext context) {
         try {
+            log.info("handleCompletion: promptTokens={}, completionTokens={}, cacheTokens={}, durationMs={}",
+                    context.completion().promptTokens(), context.completion().completionTokens(),
+                    context.completion().cacheTokens(), context.completion().durationMs());
             ChatStreamResponse response = ChatStreamResponse.completion(
                     context.sid(),
                     context.completion().fullText(),
                     context.completion().fullThinking(),
                     context.completion().promptTokens(),
                     context.completion().completionTokens(),
+                    context.completion().cacheTokens(),
                     context.completion().durationMs());
 
             String data = JsonUtil.toJsonString(response);
