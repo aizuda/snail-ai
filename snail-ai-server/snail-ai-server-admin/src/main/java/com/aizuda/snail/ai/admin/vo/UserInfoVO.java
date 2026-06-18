@@ -24,6 +24,9 @@ public class UserInfoVO {
 
     private String email;
 
+    /** 头像URL（通过 resourceId 解析） */
+    private String avatarUrl;
+
     private Long tokens;
 
     private Integer totals;

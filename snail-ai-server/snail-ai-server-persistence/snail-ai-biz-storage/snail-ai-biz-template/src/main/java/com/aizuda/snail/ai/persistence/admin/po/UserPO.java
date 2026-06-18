@@ -55,6 +55,12 @@ public class UserPO {
     private String password;
 
     /**
+     * 头像资源ID
+     * 关联 sai_resource.id
+     */
+    private Long resourceId;
+
+    /**
      * 创建时间
      * 用户账户首次创建的时刻
      */

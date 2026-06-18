@@ -3,86 +3,12 @@
 -- 使用：mysql -u user -p database < snail_ai_schema.sql
 -- ============================================================
 
+
 -- ============================================================
--- Enterprise RAG Schema for MySQL
+-- 一、用户与权限
 -- ============================================================
 
--- Knowledge Base
-CREATE TABLE sai_rag
-(
-    id                        BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    name                      VARCHAR(255) NOT NULL,
-    description               TEXT,
-    icon                      VARCHAR(512),
-    embedding_model_id        BIGINT(128)  NOT NULL,
-    dimension_of_vector_model INT          NOT NULL COMMENT '向量维度',
-    rerank_model_id           BIGINT(128),
-    search_engine_instance_id BIGINT(128),
-    vector_store_instance_id  BIGINT(128),
-    search_engine_enable      TINYINT(1)            DEFAULT 0,
-    delimiter                 VARCHAR(32)           DEFAULT '\n\n',
-    rag_enhancement           TEXT,
-    config                    TEXT                  DEFAULT NULL COMMENT 'RAG检索和问答的页面配置参数',
-    dedup_strategy            TINYINT(1)   NOT NULL DEFAULT 2            COMMENT '去重策略: 0=NONE 1=BY_NAME 2=BY_CONTENT 3=BY_NAME_OR_CONTENT',
-    dedup_action              TINYINT(1)   NOT NULL DEFAULT 0            COMMENT '冲突动作: 0=REJECT 1=SKIP 2=OVERWRITE',
-    upload_confirm            TINYINT(1)   NOT NULL DEFAULT 1            COMMENT '上传前二次确认: 0-关 1-开',
-    create_dt                 TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
-    update_dt                 TIMESTAMP             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci;
-
--- RAG Documents
-CREATE TABLE sai_rag_document
-(
-    id           BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    rag_id       BIGINT NOT NULL,
-    name         VARCHAR(255),
-    file_type    VARCHAR(32),
-    source_type  VARCHAR(32),
-    source_path  VARCHAR(1024),
-    storage_path VARCHAR(1024),
-    storage_type VARCHAR(32) DEFAULT 'LOCAL',
-    file_size    BIGINT      DEFAULT 0,
-    content      TEXT,
-    status       TINYINT(1)  DEFAULT 0 COMMENT '状态: 0-待处理 1-解析中 2-处理中 3-处理完成 4-处理失败',
-    error_msg    TEXT,
-    chunk_count  INT         DEFAULT 0,
-    content_hash VARCHAR(64) DEFAULT NULL COMMENT '文件内容SHA-256哈希，用于去重',
-    resource_id  BIGINT      DEFAULT NULL COMMENT '关联资源库 sai_resource.id',
-    create_dt    TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
-    update_dt    TIMESTAMP   DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci;
-
-CREATE INDEX idx_rag_doc_rag ON sai_rag_document (rag_id);
-CREATE INDEX idx_rag_content_hash ON sai_rag_document (rag_id, content_hash);
-CREATE INDEX idx_rag_name ON sai_rag_document (rag_id, name);
-CREATE INDEX idx_rag_doc_resource ON sai_rag_document (resource_id);
-
--- RAG Chunks
-CREATE TABLE sai_rag_chunk
-(
-    id              BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    rag_id          BIGINT NOT NULL,
-    document_id     BIGINT NOT NULL,
-    paragraph_index INT,
-    chunk_index     INT,
-    content         TEXT,
-    token_count     INT,
-    vector_id       VARCHAR(128),
-    content_hash    VARCHAR(64) DEFAULT NULL COMMENT 'chunk内容SHA-256，用于向量去重',
-    create_dt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_dt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci;
-
-CREATE INDEX idx_rag_chunk_rag ON sai_rag_chunk (rag_id);
-CREATE INDEX idx_rag_chunk_document ON sai_rag_chunk (document_id);
-CREATE INDEX idx_chunk_rag_hash ON sai_rag_chunk (rag_id, content_hash);
-
+-- 1.1 用户表
 CREATE TABLE sai_user
 (
     id             BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -91,15 +17,37 @@ CREATE TABLE sai_user
     username       VARCHAR(255),
     email          VARCHAR(64),
     password       VARCHAR(255) NOT NULL,
+    resource_id    BIGINT               DEFAULT NULL COMMENT '头像资源ID，关联 sai_resource.id',
     create_dt      DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     update_dt      DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uk_username (username)
 ) ENGINE = InnoDB
   DEFAULT CHARSET = utf8mb4;
 
--- ============================================
--- 1. AI 模型提供商表
--- ============================================
+-- 1.2 OpenAPI 外部用户映射表
+CREATE TABLE sai_openapi_user
+(
+    id               BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    app_id           VARCHAR(128) NOT NULL COMMENT '关联 sai_app.app_id',
+    open_id          VARCHAR(64)  NOT NULL COMMENT '平台分配的唯一标识（UUID）',
+    platform_user_id BIGINT       NOT NULL COMMENT '关联 sai_user.id，注册时自动创建',
+    external_id      VARCHAR(256) DEFAULT NULL COMMENT '外部系统的用户标识（可选，幂等用）',
+    nickname         VARCHAR(128) DEFAULT NULL COMMENT '外部用户昵称',
+    create_dt        TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+    update_dt        TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_app_open (app_id, open_id),
+    UNIQUE KEY uk_app_external (app_id, external_id),
+    INDEX            idx_open_id (open_id),
+    INDEX            idx_platform_user (platform_user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  COMMENT='OpenAPI 外部用户映射表';
+
+
+-- ============================================================
+-- 二、AI 模型管理
+-- ============================================================
+
+-- 2.1 AI 模型提供商表
 CREATE TABLE IF NOT EXISTS sai_model_provider
 (
     id            BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -119,9 +67,7 @@ CREATE TABLE IF NOT EXISTS sai_model_provider
 CREATE INDEX idx_provider_key ON sai_model_provider (provider_key);
 CREATE INDEX idx_is_enabled ON sai_model_provider (is_enabled);
 
--- ============================================
--- 2. AI模型配置表
--- ============================================
+-- 2.2 AI模型配置表
 CREATE TABLE IF NOT EXISTS sai_model_config
 (
     id           BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -152,9 +98,7 @@ CREATE INDEX idx_is_default ON sai_model_config (is_default);
 CREATE INDEX idx_scope ON sai_model_config (scope);
 CREATE INDEX idx_model_key ON sai_model_config (model_key);
 
--- ============================================
--- 3. 模型使用统计表
--- ============================================
+-- 2.3 模型使用统计表
 CREATE TABLE IF NOT EXISTS sai_model_usage_stat
 (
     id                BIGINT    NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -179,11 +123,12 @@ CREATE INDEX idx_model_id ON sai_model_usage_stat (model_id);
 CREATE INDEX idx_user_id ON sai_model_usage_stat (user_id);
 CREATE INDEX idx_last_used_dt ON sai_model_usage_stat (last_used_dt);
 
--- ============================================
--- 智能体相关表
--- ============================================
 
--- 智能体主表
+-- ============================================================
+-- 三、智能体（Agent）
+-- ============================================================
+
+-- 3.1 智能体主表
 CREATE TABLE IF NOT EXISTS sai_agent
 (
     id                      BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -217,7 +162,7 @@ CREATE TABLE IF NOT EXISTS sai_agent
 CREATE INDEX idx_agent_creator ON sai_agent (creator_id);
 CREATE INDEX idx_agent_featured ON sai_agent (is_featured);
 
--- 智能体对话表
+-- 3.2 智能体对话表
 CREATE TABLE IF NOT EXISTS sai_agent_conversation
 (
     id              BIGINT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -235,7 +180,7 @@ CREATE TABLE IF NOT EXISTS sai_agent_conversation
 CREATE INDEX idx_agent_conv_agent ON sai_agent_conversation (agent_id);
 CREATE INDEX idx_agent_conv_user ON sai_agent_conversation (user_id);
 
--- 智能体对话消息记录表
+-- 3.3 智能体对话消息记录表
 CREATE TABLE IF NOT EXISTS sai_agent_conversation_record
 (
     id              BIGINT      NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -254,14 +199,12 @@ CREATE TABLE IF NOT EXISTS sai_agent_conversation_record
 
 CREATE INDEX idx_agent_rec_conv ON sai_agent_conversation_record (conversation_id);
 
--- 智能体使用统计表
+-- 3.4 智能体使用统计表
 CREATE TABLE IF NOT EXISTS sai_agent_usage_stat
 (
     id                 BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     agent_id           BIGINT NOT NULL COMMENT '智能体ID',
     user_id            BIGINT NOT NULL COMMENT '用户ID',
-    user_name          VARCHAR(255) COMMENT '用户名',
-    department         VARCHAR(255) DEFAULT '' COMMENT '部门',
     message_count      INT          DEFAULT 0 COMMENT '消息条数',
     conversation_count INT          DEFAULT 0 COMMENT '对话轮次',
     stat_date          DATE   NOT NULL COMMENT '统计日期',
@@ -275,11 +218,107 @@ CREATE TABLE IF NOT EXISTS sai_agent_usage_stat
 CREATE INDEX idx_usage_agent ON sai_agent_usage_stat (agent_id);
 CREATE INDEX idx_usage_date ON sai_agent_usage_stat (stat_date);
 
--- ============================================
--- MCP 服务管理
--- ============================================
+-- 3.5 用户订阅的智能体（多对多）
+CREATE TABLE IF NOT EXISTS sai_user_agent
+(
+    id         BIGINT    NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    user_id    BIGINT    NOT NULL COMMENT '用户ID',
+    agent_id   BIGINT    NOT NULL COMMENT '智能体ID',
+    create_dt  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uk_user_agent (user_id, agent_id)
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci COMMENT = '用户订阅的智能体';
 
--- MCP 服务配置表
+CREATE INDEX idx_user_agent_user ON sai_user_agent (user_id);
+
+
+-- ============================================================
+-- 四、RAG 知识库
+-- ============================================================
+
+-- 4.1 知识库主表
+CREATE TABLE sai_rag
+(
+    id                        BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name                      VARCHAR(255) NOT NULL,
+    description               TEXT,
+    icon                      VARCHAR(512),
+    embedding_model_id        BIGINT(128)  NOT NULL,
+    dimension_of_vector_model INT          NOT NULL COMMENT '向量维度',
+    rerank_model_id           BIGINT(128),
+    search_engine_instance_id BIGINT(128),
+    vector_store_instance_id  BIGINT(128),
+    search_engine_enable      TINYINT(1)            DEFAULT 0,
+    delimiter                 VARCHAR(32)           DEFAULT '\n\n',
+    rag_enhancement           TEXT,
+    config                    TEXT                  DEFAULT NULL COMMENT 'RAG检索和问答的页面配置参数',
+    dedup_strategy            TINYINT(1)   NOT NULL DEFAULT 2            COMMENT '去重策略: 0=NONE 1=BY_NAME 2=BY_CONTENT 3=BY_NAME_OR_CONTENT',
+    dedup_action              TINYINT(1)   NOT NULL DEFAULT 0            COMMENT '冲突动作: 0=REJECT 1=SKIP 2=OVERWRITE',
+    upload_confirm            TINYINT(1)   NOT NULL DEFAULT 1            COMMENT '上传前二次确认: 0-关 1-开',
+    create_dt                 TIMESTAMP             DEFAULT CURRENT_TIMESTAMP,
+    update_dt                 TIMESTAMP             DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
+
+-- 4.2 RAG 文档表
+CREATE TABLE sai_rag_document
+(
+    id           BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    rag_id       BIGINT NOT NULL,
+    name         VARCHAR(255),
+    file_type    VARCHAR(32),
+    source_type  VARCHAR(32),
+    source_path  VARCHAR(1024),
+    storage_path VARCHAR(1024),
+    storage_type VARCHAR(32) DEFAULT 'LOCAL',
+    file_size    BIGINT      DEFAULT 0,
+    content      TEXT,
+    status       TINYINT(1)  DEFAULT 0 COMMENT '状态: 0-待处理 1-解析中 2-处理中 3-处理完成 4-处理失败',
+    error_msg    TEXT,
+    chunk_count  INT         DEFAULT 0,
+    content_hash VARCHAR(64) DEFAULT NULL COMMENT '文件内容SHA-256哈希，用于去重',
+    resource_id  BIGINT      DEFAULT NULL COMMENT '关联资源库 sai_resource.id',
+    create_dt    TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
+    update_dt    TIMESTAMP   DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
+
+CREATE INDEX idx_rag_doc_rag ON sai_rag_document (rag_id);
+CREATE INDEX idx_rag_content_hash ON sai_rag_document (rag_id, content_hash);
+CREATE INDEX idx_rag_name ON sai_rag_document (rag_id, name);
+CREATE INDEX idx_rag_doc_resource ON sai_rag_document (resource_id);
+
+-- 4.3 RAG 分块表
+CREATE TABLE sai_rag_chunk
+(
+    id              BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    rag_id          BIGINT NOT NULL,
+    document_id     BIGINT NOT NULL,
+    paragraph_index INT,
+    chunk_index     INT,
+    content         TEXT,
+    token_count     INT,
+    vector_id       VARCHAR(128),
+    content_hash    VARCHAR(64) DEFAULT NULL COMMENT 'chunk内容SHA-256，用于向量去重',
+    create_dt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_dt       TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
+
+CREATE INDEX idx_rag_chunk_rag ON sai_rag_chunk (rag_id);
+CREATE INDEX idx_rag_chunk_document ON sai_rag_chunk (document_id);
+CREATE INDEX idx_chunk_rag_hash ON sai_rag_chunk (rag_id, content_hash);
+
+
+-- ============================================================
+-- 五、MCP 服务管理
+-- ============================================================
+
+-- 5.1 MCP 服务配置表
 CREATE TABLE IF NOT EXISTS sai_mcp_server
 (
     id               BIGINT        NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -307,7 +346,7 @@ CREATE TABLE IF NOT EXISTS sai_mcp_server
 CREATE INDEX idx_mcp_server_creator ON sai_mcp_server (creator_id);
 CREATE INDEX idx_mcp_server_status ON sai_mcp_server (status);
 
--- 智能体与MCP服务关联表(多对多)
+-- 5.2 智能体与MCP服务关联表（多对多）
 CREATE TABLE IF NOT EXISTS sai_agent_mcp_server
 (
     id            BIGINT    NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -322,25 +361,12 @@ CREATE TABLE IF NOT EXISTS sai_agent_mcp_server
 CREATE INDEX idx_agent_mcp_agent ON sai_agent_mcp_server (agent_id);
 CREATE INDEX idx_agent_mcp_server ON sai_agent_mcp_server (mcp_server_id);
 
--- 用户订阅的智能体（多对多）
-CREATE TABLE IF NOT EXISTS sai_user_agent
-(
-    id         BIGINT    NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    user_id    BIGINT    NOT NULL COMMENT '用户ID',
-    agent_id   BIGINT    NOT NULL COMMENT '智能体ID',
-    create_dt  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_user_agent (user_id, agent_id)
-) ENGINE = InnoDB
-  DEFAULT CHARSET = utf8mb4
-  COLLATE = utf8mb4_unicode_ci COMMENT = '用户订阅的智能体';
 
-CREATE INDEX idx_user_agent_user ON sai_user_agent (user_id);
+-- ============================================================
+-- 六、Skill 技能包管理
+-- ============================================================
 
--- ============================================
--- Skill 技能包管理
--- ============================================
-
--- Skill 技能包表
+-- 6.1 Skill 技能包表
 CREATE TABLE IF NOT EXISTS sai_skill
 (
     id            BIGINT        NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -362,7 +388,7 @@ CREATE TABLE IF NOT EXISTS sai_skill
 
 CREATE INDEX idx_skill_creator ON sai_skill (creator_id);
 
--- Skill 支撑文件内容表
+-- 6.2 Skill 支撑文件内容表
 CREATE TABLE IF NOT EXISTS sai_skill_file
 (
     id         BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -379,7 +405,7 @@ CREATE TABLE IF NOT EXISTS sai_skill_file
     DEFAULT CHARSET = utf8mb4
     COLLATE = utf8mb4_unicode_ci COMMENT = 'Skill支撑文件内容表';
 
--- 智能体与Skill关联表(多对多)
+-- 6.3 智能体与Skill关联表（多对多）
 CREATE TABLE IF NOT EXISTS sai_agent_skill
 (
     id         BIGINT    NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -394,27 +420,12 @@ CREATE TABLE IF NOT EXISTS sai_agent_skill
 CREATE INDEX idx_agent_skill_agent ON sai_agent_skill (agent_id);
 CREATE INDEX idx_agent_skill_skill ON sai_agent_skill (skill_id);
 
+
 -- ============================================================
-CREATE TABLE IF NOT EXISTS sai_store_instance
-(
-    id         BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    name       VARCHAR(128) NOT NULL COMMENT '实例名称',
-    category   TINYINT(1)   NOT NULL COMMENT '分类: 1-向量库 2-搜索引擎',
-    type       TINYINT(1)   NOT NULL COMMENT '类型: 1-PG_VECTOR 2-MILVUS 3-ELASTICSEARCH 4-PG_FULLTEXT',
-    config     TEXT         DEFAULT NULL COMMENT '连接参数 JSON',
-    status     TINYINT(1)   DEFAULT 1 COMMENT '状态: 0-停用 1-启用',
-    is_default TINYINT(1)   DEFAULT 0 COMMENT '是否为该 category 下默认实例',
-    create_dt  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-    update_dt  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-    ) ENGINE = InnoDB
-    DEFAULT CHARSET = utf8mb4
-    COLLATE = utf8mb4_unicode_ci COMMENT = '存储实例';
+-- 七、客户端应用与节点
+-- ============================================================
 
-CREATE INDEX idx_store_instance_category ON sai_store_instance (category);
-CREATE INDEX idx_store_instance_type ON sai_store_instance (type);
-
--- 客户端应用
--- ----------------------------
+-- 7.1 客户端应用
 CREATE TABLE IF NOT EXISTS sai_app
 (
     id             BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -431,9 +442,7 @@ CREATE TABLE IF NOT EXISTS sai_app
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci COMMENT = '客户端应用';
 
--- ----------------------------
--- AI客户端实例节点
--- ----------------------------
+-- 7.2 AI客户端实例节点
 CREATE TABLE IF NOT EXISTS sai_client_node
 (
     id                  BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -454,28 +463,31 @@ CREATE TABLE IF NOT EXISTS sai_client_node
   DEFAULT CHARSET = utf8mb4
   COLLATE = utf8mb4_unicode_ci COMMENT = 'AI客户端实例节点';
 
--- OpenAPI 外部用户映射表
-CREATE TABLE sai_openapi_user
+
+-- ============================================================
+-- 八、存储与资源
+-- ============================================================
+
+-- 8.1 存储实例
+CREATE TABLE IF NOT EXISTS sai_store_instance
 (
-    id               BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    app_id           VARCHAR(128) NOT NULL COMMENT '关联 sai_app.app_id',
-    open_id          VARCHAR(64)  NOT NULL COMMENT '平台分配的唯一标识（UUID）',
-    platform_user_id BIGINT       NOT NULL COMMENT '关联 sai_user.id，注册时自动创建',
-    external_id      VARCHAR(256) DEFAULT NULL COMMENT '外部系统的用户标识（可选，幂等用）',
-    nickname         VARCHAR(128) DEFAULT NULL COMMENT '外部用户昵称',
-    create_dt        TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
-    update_dt        TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    UNIQUE KEY uk_app_open (app_id, open_id),
-    UNIQUE KEY uk_app_external (app_id, external_id),
-    INDEX            idx_open_id (open_id),
-    INDEX            idx_platform_user (platform_user_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-  COMMENT='OpenAPI 外部用户映射表';
+    id         BIGINT       NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    name       VARCHAR(128) NOT NULL COMMENT '实例名称',
+    category   TINYINT(1)   NOT NULL COMMENT '分类: 1-向量库 2-搜索引擎',
+    type       TINYINT(1)   NOT NULL COMMENT '类型: 1-PG_VECTOR 2-MILVUS 3-ELASTICSEARCH 4-PG_FULLTEXT',
+    config     TEXT         DEFAULT NULL COMMENT '连接参数 JSON',
+    status     TINYINT(1)   DEFAULT 1 COMMENT '状态: 0-停用 1-启用',
+    is_default TINYINT(1)   DEFAULT 0 COMMENT '是否为该 category 下默认实例',
+    create_dt  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+    update_dt  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    ) ENGINE = InnoDB
+    DEFAULT CHARSET = utf8mb4
+    COLLATE = utf8mb4_unicode_ci COMMENT = '存储实例';
 
+CREATE INDEX idx_store_instance_category ON sai_store_instance (category);
+CREATE INDEX idx_store_instance_type ON sai_store_instance (type);
 
--- ----------------------------
--- 通用资源存储
--- ----------------------------
+-- 8.2 通用资源存储
 CREATE TABLE IF NOT EXISTS sai_resource
 (
     id            BIGINT        NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -497,9 +509,10 @@ CREATE TABLE IF NOT EXISTS sai_resource
     DEFAULT CHARSET = utf8mb4
     COLLATE = utf8mb4_unicode_ci COMMENT = '通用资源存储';
 
--- ============================================
--- 初始化数据
--- ============================================
+
+-- ============================================================
+-- 九、初始化数据
+-- ============================================================
 
 -- 默认管理员：admin / admin123
 INSERT INTO sai_user (id, role, username, email, password, create_dt, update_dt)

@@ -10,7 +10,6 @@ public class ChatResultPersistCommand {
     private Long agentId;
     private Long userId;
     private String conversationId;
-    private String userName;
     private String fullText;
     private String thinkingText;
     private Boolean memoryEnabled;

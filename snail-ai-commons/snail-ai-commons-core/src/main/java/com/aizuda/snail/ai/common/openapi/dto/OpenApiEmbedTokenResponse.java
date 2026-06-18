@@ -29,4 +29,6 @@ public class OpenApiEmbedTokenResponse {
     private String openId;
 
     private String nickname;
+
+    private String avatarUrl;
 }

@@ -10,6 +10,10 @@ import com.aizuda.snail.ai.persistence.admin.mapper.UserMapper;
 import com.aizuda.snail.ai.persistence.admin.po.UserPO;
 import com.aizuda.snail.ai.persistence.openapi.mapper.OpenApiUserMapper;
 import com.aizuda.snail.ai.persistence.openapi.po.OpenApiUserPO;
+import com.aizuda.snail.ai.features.resource.enums.ResourceBizTypeEnum;
+import com.aizuda.snail.ai.features.resource.enums.ResourceStorageTypeEnum;
+import com.aizuda.snail.ai.persistence.resource.mapper.ResourceMapper;
+import com.aizuda.snail.ai.persistence.resource.po.ResourcePO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,6 +34,7 @@ public class OpenApiUserService {
 
     private final OpenApiUserMapper openApiUserMapper;
     private final UserMapper userMapper;
+    private final ResourceMapper resourceMapper;
 
     @Transactional(rollbackFor = Exception.class)
     public OpenApiUserVO register(OpenApiUserRegisterRequest request) {
@@ -41,7 +46,7 @@ public class OpenApiUserService {
                             .eq(OpenApiUserPO::getAppId, appId)
                             .eq(OpenApiUserPO::getExternalId, request.getExternalId()));
             if (existing != null) {
-                return toVO(existing, false);
+                return toVO(existing, false, resolveAvatarUrl(existing.getPlatformUserId()));
             }
         }
 
@@ -55,6 +60,10 @@ public class OpenApiUserService {
         platformUser.setUpdateDt(LocalDateTime.now());
         userMapper.insert(platformUser);
 
+        if (StrUtil.isNotBlank(request.getAvatarUrl())) {
+            createExternalAvatarResource(platformUser, request.getAvatarUrl(), request.getNickname());
+        }
+
         OpenApiUserPO openApiUser = OpenApiUserPO.builder()
                 .appId(appId)
                 .openId(openId)
@@ -66,7 +75,7 @@ public class OpenApiUserService {
                 .build();
         openApiUserMapper.insert(openApiUser);
 
-        return toVO(openApiUser, true);
+        return toVO(openApiUser, true, request.getAvatarUrl());
     }
 
     public OpenApiUserVO getByOpenId(String openId) {
@@ -78,14 +87,43 @@ public class OpenApiUserService {
         if (user == null) {
             throw new SnailAiException("用户不存在: " + openId);
         }
-        return toVO(user, false);
+        return toVO(user, false, resolveAvatarUrl(user.getPlatformUserId()));
     }
 
-    private OpenApiUserVO toVO(OpenApiUserPO po, boolean created) {
+    private void createExternalAvatarResource(UserPO platformUser, String avatarUrl, String nickname) {
+        LocalDateTime now = LocalDateTime.now();
+        ResourcePO resource = ResourcePO.builder()
+                .storageKey(avatarUrl)
+                .originalName(StrUtil.blankToDefault(nickname, "user") + "_avatar")
+                .fileSize(0L)
+                .storageType(ResourceStorageTypeEnum.EXTERNAL.getValue())
+                .accessUrl(avatarUrl)
+                .bizType(ResourceBizTypeEnum.AVATAR.getValue())
+                .bizId(platformUser.getId())
+                .creatorId(platformUser.getId())
+                .createDt(now)
+                .updateDt(now)
+                .build();
+        resourceMapper.insert(resource);
+        platformUser.setResourceId(resource.getId());
+        userMapper.updateById(platformUser);
+    }
+
+    private String resolveAvatarUrl(Long platformUserId) {
+        UserPO user = userMapper.selectById(platformUserId);
+        if (user == null || user.getResourceId() == null) {
+            return null;
+        }
+        ResourcePO resource = resourceMapper.selectById(user.getResourceId());
+        return resource != null ? resource.getAccessUrl() : null;
+    }
+
+    private OpenApiUserVO toVO(OpenApiUserPO po, boolean created, String avatarUrl) {
         return OpenApiUserVO.builder()
                 .openId(po.getOpenId())
                 .externalId(po.getExternalId())
                 .nickname(po.getNickname())
+                .avatarUrl(avatarUrl)
                 .created(created)
                 .build();
     }

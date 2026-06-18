@@ -74,5 +74,5 @@ snail-ai:
     chat:
       enabled: true
       ui:
-        page-title: SnailAIChat11
+        page-title: SnailAIChat
         logo: https://snailjob.opensnail.com/logo.svg

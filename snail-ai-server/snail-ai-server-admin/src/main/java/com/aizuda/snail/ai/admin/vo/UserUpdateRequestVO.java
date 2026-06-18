@@ -28,4 +28,14 @@ public class UserUpdateRequestVO {
      * 密码（可选，为空则不更新密码）
      */
     private String password;
+
+    /**
+     * 头像资源ID（优先使用，关联 sai_resource.id）
+     */
+    private Long resourceId;
+
+    /**
+     * 是否清空头像
+     */
+    private Boolean avatarCleared;
 }

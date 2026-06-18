@@ -15,7 +15,5 @@ public class AgentUsageDetailVO {
 
     private String userName;
 
-    private String department;
-
     private Integer messageCount;
 }

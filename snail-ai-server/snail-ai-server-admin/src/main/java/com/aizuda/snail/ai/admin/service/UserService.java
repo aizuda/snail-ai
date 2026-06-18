@@ -1,7 +1,10 @@
 package com.aizuda.snail.ai.admin.service;
 
 import cn.hutool.core.util.StrUtil;
+import com.aizuda.snail.ai.features.resource.enums.ResourceBizTypeEnum;
 import com.aizuda.snail.ai.persistence.admin.mapper.UserMapper;
+import com.aizuda.snail.ai.persistence.resource.mapper.ResourceMapper;
+import com.aizuda.snail.ai.persistence.resource.po.ResourcePO;
 import com.aizuda.snail.ai.admin.vo.PageResult;
 import com.aizuda.snail.ai.admin.dto.AudienceDTO;
 import com.aizuda.snail.ai.admin.enums.RoleEnum;
@@ -20,6 +23,7 @@ import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,7 +34,6 @@ import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.Date;
 import java.util.List;
@@ -51,6 +54,7 @@ import javax.crypto.spec.PBEKeySpec;
 @Slf4j
 public class UserService {
     private final UserMapper userMapper;
+    private final ResourceMapper resourceMapper;
     
     private static final String PASSWORD_SALT = "snail_ai_2026";
     private static final String PASSWORD_HASH_PREFIX = "pbkdf2";
@@ -309,6 +313,7 @@ public class UserService {
         userInfoVO.setEmail(userPO.getEmail());
         userInfoVO.setRole(userPO.getRole());
         userInfoVO.setRoleName(resolveRoleName(userPO.getRole()));
+        userInfoVO.setAvatarUrl(resolveAvatarUrl(userPO.getResourceId()));
         return userInfoVO;
     }
 
@@ -335,6 +340,7 @@ public class UserService {
             userInfoVO.setEmail(userPO.getEmail());
             userInfoVO.setRole(userPO.getRole());
             userInfoVO.setRoleName(resolveRoleName(userPO.getRole()));
+            userInfoVO.setAvatarUrl(resolveAvatarUrl(userPO.getResourceId()));
             userInfoVO.setCreateDt(userPO.getCreateDt());
             userInfoVO.setUpdateDt(userPO.getUpdateDt());
             return userInfoVO;
@@ -409,11 +415,39 @@ public class UserService {
             }
             userPO.setPassword(encryptPassword(requestVO.getPassword()));
         }
+
+        // 6. 如果提交了头像字段，则更新头像资源绑定
+        if (requestVO.getResourceId() != null || Boolean.TRUE.equals(requestVO.getAvatarCleared())) {
+            updateUserAvatar(userPO, requestVO);
+        }
         
-        // 6. 保存更新
+        // 7. 保存更新
         userMapper.updateById(userPO);
         
         log.info("更新用户信息成功: id={}, role={}, email={}", id, requestVO.getRole(), requestVO.getEmail());
+    }
+
+    private void updateUserAvatar(UserPO userPO, UserUpdateRequestVO requestVO) {
+        if (Boolean.TRUE.equals(requestVO.getAvatarCleared())) {
+            // MyBatis-Plus 默认策略会跳过 null 字段，需显式置空
+            userMapper.update(null, new LambdaUpdateWrapper<UserPO>()
+                    .eq(UserPO::getId, userPO.getId())
+                    .set(UserPO::getResourceId, null));
+            // 同步内存对象，避免后续 updateById 覆盖
+            userPO.setResourceId(null);
+            return;
+        }
+
+        if (requestVO.getResourceId() != null) {
+            ResourcePO resource = resourceMapper.selectById(requestVO.getResourceId());
+            if (resource == null) {
+                throw new SnailAiCommonException("头像资源不存在");
+            }
+            if (!ResourceBizTypeEnum.AVATAR.getValue().equals(resource.getBizType())) {
+                throw new SnailAiCommonException("请选择头像资源");
+            }
+            userPO.setResourceId(resource.getId());
+        }
     }
 
     /**
@@ -493,6 +527,14 @@ public class UserService {
         userMapper.deleteById(id);
         
         log.info("删除用户成功: id={}, email={}", id, userPO.getEmail());
+    }
+
+    private String resolveAvatarUrl(Long resourceId) {
+        if (resourceId == null) {
+            return null;
+        }
+        ResourcePO resource = resourceMapper.selectById(resourceId);
+        return resource != null ? resource.getAccessUrl() : null;
     }
 
     private static String resolveRoleName(Integer roleId) {

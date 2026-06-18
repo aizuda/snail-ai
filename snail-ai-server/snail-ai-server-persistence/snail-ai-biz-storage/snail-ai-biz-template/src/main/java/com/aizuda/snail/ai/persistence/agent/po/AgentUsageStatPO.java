@@ -48,18 +48,6 @@ public class AgentUsageStatPO {
     private Long userId;
 
     /**
-     * 用户名
-     * 快照存储，便于报表显示
-     */
-    private String userName;
-
-    /**
-     * 部门
-     * 用户所属部门（可选）
-     */
-    private String department;
-
-    /**
      * 消息数
      * 该天该Agent该用户的消息总数
      */

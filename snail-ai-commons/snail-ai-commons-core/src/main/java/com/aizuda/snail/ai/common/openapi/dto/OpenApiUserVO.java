@@ -20,5 +20,7 @@ public class OpenApiUserVO {
 
     private String nickname;
 
+    private String avatarUrl;
+
     private boolean created;
 }

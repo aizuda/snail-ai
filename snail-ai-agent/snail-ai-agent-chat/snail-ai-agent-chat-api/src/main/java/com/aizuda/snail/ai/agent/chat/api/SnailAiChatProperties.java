@@ -18,7 +18,7 @@ public class SnailAiChatProperties {
     @Data
     public static class Ui {
         private String pageTitle = DEFAULT_PAGE_TITLE;
-        private String logo = "";
+        private String logo = "https://snailjob.opensnail.com/logo.svg";
     }
 
     @Data

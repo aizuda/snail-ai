@@ -11,4 +11,9 @@ public class OpenApiUserRegisterRequest {
     private String externalId;
 
     private String nickname;
+
+    /**
+     * 外部头像URL
+     */
+    private String avatarUrl;
 }

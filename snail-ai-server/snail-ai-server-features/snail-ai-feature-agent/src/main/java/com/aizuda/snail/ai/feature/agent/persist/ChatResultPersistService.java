@@ -56,10 +56,10 @@ public class ChatResultPersistService {
         log.debug("Assistant message persisted: conversationId={}, length={}", cmd.getConversationId(),
                 cmd.getFullText() != null ? cmd.getFullText().length() : 0);
 
-        updateUsageStat(cmd.getAgentId(), cmd.getUserId(), cmd.getUserName());
+        updateUsageStat(cmd.getAgentId(), cmd.getUserId());
     }
 
-    private void updateUsageStat(Long agentId, Long userId, String userName) {
+    private void updateUsageStat(Long agentId, Long userId) {
         try {
             LocalDate today = LocalDate.now();
             LocalDateTime now = LocalDateTime.now();
@@ -67,7 +67,7 @@ public class ChatResultPersistService {
             if (updated == 0) {
                 try {
                     usageStatMapper.insert(AgentUsageStatPO.builder()
-                            .agentId(agentId).userId(userId).userName(userName)
+                            .agentId(agentId).userId(userId)
                             .statDate(today).messageCount(1).conversationCount(1)
                             .createDt(now).updateDt(now)
                             .build());

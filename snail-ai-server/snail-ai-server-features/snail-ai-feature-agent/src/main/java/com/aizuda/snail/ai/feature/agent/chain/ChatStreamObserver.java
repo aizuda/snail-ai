@@ -82,7 +82,6 @@ public class ChatStreamObserver implements StreamObserver<GrpcSnailAiResult> {
                 .agentId(context.getAgent().getId())
                 .userId(context.getUser().getId())
                 .conversationId(context.getConversationId())
-                .userName(context.getUser().getUsername())
                 .fullText(fullText)
                 .thinkingText(fullThinking)
                 .memoryEnabled(context.getAgent().getMemoryEnabled())

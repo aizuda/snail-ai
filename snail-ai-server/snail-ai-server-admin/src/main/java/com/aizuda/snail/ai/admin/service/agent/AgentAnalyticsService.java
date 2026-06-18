@@ -5,6 +5,8 @@ import com.aizuda.snail.ai.admin.vo.agent.AgentAnalyticsQueryVO;
 import com.aizuda.snail.ai.admin.vo.agent.AgentAnalyticsVO;
 import com.aizuda.snail.ai.admin.vo.agent.AgentUsageDetailQueryVO;
 import com.aizuda.snail.ai.admin.vo.agent.AgentUsageDetailVO;
+import com.aizuda.snail.ai.persistence.admin.mapper.UserMapper;
+import com.aizuda.snail.ai.persistence.admin.po.UserPO;
 import com.aizuda.snail.ai.persistence.agent.mapper.AgentUsageStatMapper;
 import com.aizuda.snail.ai.persistence.agent.po.AgentUsageStatPO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -23,6 +25,7 @@ import java.util.*;
 public class AgentAnalyticsService {
 
     private final AgentUsageStatMapper usageStatMapper;
+    private final UserMapper userMapper;
     /**
      * 获取分析概览
      */
@@ -139,14 +142,24 @@ public class AgentAnalyticsService {
             userMap.merge(stat.getUserId(),
                     AgentUsageDetailVO.builder()
                             .userId(stat.getUserId())
-                            .userName(stat.getUserName())
-                            .department(stat.getDepartment())
                             .messageCount(stat.getMessageCount() != null ? stat.getMessageCount() : 0)
                             .build(),
                     (existing, newVal) -> {
                         existing.setMessageCount(existing.getMessageCount() + newVal.getMessageCount());
                         return existing;
                     });
+        }
+
+        // 批量查询用户名
+        if (!userMap.isEmpty()) {
+            List<UserPO> users = userMapper.selectBatchIds(userMap.keySet());
+            Map<Long, String> userNameMap = new HashMap<>();
+            for (UserPO user : users) {
+                userNameMap.put(user.getId(), user.getUsername());
+            }
+            for (AgentUsageDetailVO detail : userMap.values()) {
+                detail.setUserName(userNameMap.get(detail.getUserId()));
+            }
         }
 
         List<AgentUsageDetailVO> allDetails = new ArrayList<>(userMap.values());

@@ -8,7 +8,8 @@ import lombok.Getter;
 public enum ResourceStorageTypeEnum {
 
     LOCAL("LOCAL"),
-    MINIO("MINIO");
+    MINIO("MINIO"),
+    EXTERNAL("EXTERNAL");
 
     private final String value;
 

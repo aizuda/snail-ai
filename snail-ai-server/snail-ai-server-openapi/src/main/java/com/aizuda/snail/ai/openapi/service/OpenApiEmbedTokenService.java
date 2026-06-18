@@ -9,6 +9,8 @@ import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.aizuda.snail.ai.openapi.security.OpenApiSessionUtils;
 import com.aizuda.snail.ai.openapi.service.OpenApiUserResolver.OpenApiResolvedUser;
 import com.aizuda.snail.ai.persistence.admin.po.UserPO;
+import com.aizuda.snail.ai.persistence.resource.mapper.ResourceMapper;
+import com.aizuda.snail.ai.persistence.resource.po.ResourcePO;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
@@ -30,6 +32,7 @@ public class OpenApiEmbedTokenService {
     private static final String AUTH_HEADER = "Snail-Ai-Auth";
 
     private final OpenApiUserResolver openApiUserResolver;
+    private final ResourceMapper resourceMapper;
 
     public OpenApiEmbedTokenResponse createEmbedToken(OpenApiEmbedTokenRequest request) {
         OpenApiSessionUtils.OpenApiSession session = OpenApiSessionUtils.current();
@@ -47,7 +50,16 @@ public class OpenApiEmbedTokenService {
                 .ttlSeconds(ttlSeconds)
                 .openId(request.getOpenId())
                 .nickname(resolvedUser.getOpenApiUser().getNickname())
+                .avatarUrl(resolveAvatarUrl(requestUser))
                 .build();
+    }
+
+    private String resolveAvatarUrl(UserPO user) {
+        if (user == null || user.getResourceId() == null) {
+            return null;
+        }
+        ResourcePO resource = resourceMapper.selectById(user.getResourceId());
+        return resource != null ? resource.getAccessUrl() : null;
     }
 
     private String createUserAuthToken(UserPO user,
