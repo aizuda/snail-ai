@@ -75,7 +75,7 @@ public class ChatResultPersistService {
 
         // 3. 用量统计
         try {
-            updateUsageStat(cmd.getAgentId(), cmd.getUserId(), cmd.getUserName());
+            updateUsageStat(cmd.getAgentId(), cmd.getUserId());
             log.info("persistAll usageStat done: conversationId={}", cmd.getConversationId());
         } catch (Exception e) {
             log.error("persistAll usageStat FAILED: conversationId={}, error={}", cmd.getConversationId(), e.getMessage(), e);
