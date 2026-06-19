@@ -138,6 +138,7 @@ CREATE TABLE sai_user
     role      INT,
     totals    INT,
     username  VARCHAR(255),
+    nickname  VARCHAR(128) DEFAULT NULL,
     email     VARCHAR(64),
     password  VARCHAR(255) NOT NULL,
     create_dt TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -734,7 +735,6 @@ CREATE TABLE sai_openapi_user
     open_id          VARCHAR(64)  NOT NULL,
     platform_user_id BIGINT       NOT NULL,
     external_id      VARCHAR(256) DEFAULT NULL,
-    nickname         VARCHAR(128) DEFAULT NULL,
     create_dt        TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
     update_dt        TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uk_app_open UNIQUE (app_id, open_id),
@@ -746,7 +746,6 @@ COMMENT ON COLUMN sai_openapi_user.app_id IS '关联 sai_app.app_id';
 COMMENT ON COLUMN sai_openapi_user.open_id IS '平台分配的唯一标识（UUID）';
 COMMENT ON COLUMN sai_openapi_user.platform_user_id IS '关联 sai_user.id，注册时自动创建';
 COMMENT ON COLUMN sai_openapi_user.external_id IS '外部系统的用户标识（可选，幂等用）';
-COMMENT ON COLUMN sai_openapi_user.nickname IS '外部用户昵称';
 
 CREATE TRIGGER trigger_sai_openapi_user_update
     BEFORE UPDATE ON sai_openapi_user

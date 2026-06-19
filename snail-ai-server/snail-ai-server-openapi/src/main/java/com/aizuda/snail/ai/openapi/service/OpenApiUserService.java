@@ -46,14 +46,17 @@ public class OpenApiUserService {
                             .eq(OpenApiUserPO::getAppId, appId)
                             .eq(OpenApiUserPO::getExternalId, request.getExternalId()));
             if (existing != null) {
-                return toVO(existing, false, resolveAvatarUrl(existing.getPlatformUserId()));
+                UserPO existingUser = userMapper.selectById(existing.getPlatformUserId());
+                return buildVO(existing, false, resolveAvatarUrl(existing.getPlatformUserId()),
+                        existingUser != null ? existingUser.getNickname() : null);
             }
         }
 
         String openId = UUID.randomUUID().toString().replace("-", "");
 
         UserPO platformUser = new UserPO();
-        platformUser.setUsername("openapi:" + appId + ":" + openId);
+        platformUser.setUsername(openId);
+        platformUser.setNickname(request.getNickname());
         platformUser.setRole(RoleEnum.USER.getRoleId());
         platformUser.setPassword(encryptPassword(UUID.randomUUID().toString()));
         platformUser.setCreateDt(LocalDateTime.now());
@@ -69,13 +72,12 @@ public class OpenApiUserService {
                 .openId(openId)
                 .platformUserId(platformUser.getId())
                 .externalId(request.getExternalId())
-                .nickname(request.getNickname())
                 .createDt(LocalDateTime.now())
                 .updateDt(LocalDateTime.now())
                 .build();
         openApiUserMapper.insert(openApiUser);
 
-        return toVO(openApiUser, true, request.getAvatarUrl());
+        return buildVO(openApiUser, true, request.getAvatarUrl(), request.getNickname());
     }
 
     public OpenApiUserVO getByOpenId(String openId) {
@@ -87,7 +89,9 @@ public class OpenApiUserService {
         if (user == null) {
             throw new SnailAiException("用户不存在: " + openId);
         }
-        return toVO(user, false, resolveAvatarUrl(user.getPlatformUserId()));
+        UserPO platformUser = userMapper.selectById(user.getPlatformUserId());
+        return buildVO(user, false, resolveAvatarUrl(user.getPlatformUserId()),
+                platformUser != null ? platformUser.getNickname() : null);
     }
 
     private void createExternalAvatarResource(UserPO platformUser, String avatarUrl, String nickname) {
@@ -118,11 +122,11 @@ public class OpenApiUserService {
         return resource != null ? resource.getAccessUrl() : null;
     }
 
-    private OpenApiUserVO toVO(OpenApiUserPO po, boolean created, String avatarUrl) {
+    private OpenApiUserVO buildVO(OpenApiUserPO po, boolean created, String avatarUrl, String nickname) {
         return OpenApiUserVO.builder()
                 .openId(po.getOpenId())
                 .externalId(po.getExternalId())
-                .nickname(po.getNickname())
+                .nickname(nickname)
                 .avatarUrl(avatarUrl)
                 .created(created)
                 .build();

@@ -49,7 +49,7 @@ public class OpenApiEmbedTokenService {
                 .expiresAt(expiresAt)
                 .ttlSeconds(ttlSeconds)
                 .openId(request.getOpenId())
-                .nickname(resolvedUser.getOpenApiUser().getNickname())
+                .nickname(requestUser.getNickname())
                 .avatarUrl(resolveAvatarUrl(requestUser))
                 .build();
     }

@@ -6,7 +6,6 @@ import com.aizuda.snail.ai.common.grpc.client.GrpcChannelUtil;
 import com.aizuda.snail.ai.common.grpc.constant.UriConstants;
 import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.aizuda.snail.ai.persistence.agent.po.AgentPO;
-import com.aizuda.snail.ai.persistence.admin.po.UserPO;
 import com.aizuda.snail.ai.feature.agent.stream.ChatStreamWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -80,7 +79,6 @@ public class LlmCallHandler implements AgentChatHandler {
 
     private ChatDispatchRequest buildDispatchRequest(AgentChatContext ctx) {
         AgentPO agent = ctx.getAgent();
-        UserPO user = ctx.getUser();
 
         ChatDispatchRequest.AgentConfig agentConfig = ChatDispatchRequest.AgentConfig.builder()
                 .agentId(agent.getId())
@@ -95,17 +93,10 @@ public class LlmCallHandler implements AgentChatHandler {
                 .ragCallMode(agent.getRagCallMode())
                 .build();
 
-        ChatDispatchRequest.UserInfo userInfo = ChatDispatchRequest.UserInfo.builder()
-                .userId(user.getId())
-                .userName(user.getUsername() != null ? user.getUsername() : "")
-                .openId(ctx.getOpenId())
-                .build();
-
         return ChatDispatchRequest.builder()
                 .requestId(UUID.randomUUID().toString())
                 .sid(ctx.getSid())
                 .agentConfig(agentConfig)
-                .userInfo(userInfo)
                 .conversationId(ctx.getConversationId())
                 .userMessage(ctx.getContent())
                 .modelConfig(ctx.getModelConfig())

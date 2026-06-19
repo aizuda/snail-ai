@@ -15,6 +15,7 @@ CREATE TABLE sai_user
     role           INT,
     totals         INT,
     username       VARCHAR(255),
+    nickname       VARCHAR(128)         DEFAULT NULL COMMENT '用户昵称',
     email          VARCHAR(64),
     password       VARCHAR(255) NOT NULL,
     resource_id    BIGINT               DEFAULT NULL COMMENT '头像资源ID，关联 sai_resource.id',
@@ -32,7 +33,6 @@ CREATE TABLE sai_openapi_user
     open_id          VARCHAR(64)  NOT NULL COMMENT '平台分配的唯一标识（UUID）',
     platform_user_id BIGINT       NOT NULL COMMENT '关联 sai_user.id，注册时自动创建',
     external_id      VARCHAR(256) DEFAULT NULL COMMENT '外部系统的用户标识（可选，幂等用）',
-    nickname         VARCHAR(128) DEFAULT NULL COMMENT '外部用户昵称',
     create_dt        TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
     update_dt        TIMESTAMP    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uk_app_open (app_id, open_id),
@@ -536,5 +536,5 @@ INSERT INTO sai_app (id, app_id, app_name, description, token, route_strategy, s
 VALUES (1, 'snail-ai-agent-demo', 'snail-ai-agent-demo', '', 'SAI_3ce13fa4e56a43c2b42e380c649629a5', 'LEAST_LOAD', 1, now(), now());
 
 -- 初始化测试的openid
-INSERT INTO sai_openapi_user (id, app_id, open_id, platform_user_id, external_id, nickname, create_dt, update_dt)
-VALUES (1, 'snail-ai-agent-demo', '46ed53c6a20044c7bbd870848e80f92f', 1, '1', 'test', NOW(), NOW());
+INSERT INTO sai_openapi_user (id, app_id, open_id, platform_user_id, external_id, create_dt, update_dt)
+VALUES (1, 'snail-ai-agent-demo', '46ed53c6a20044c7bbd870848e80f92f', 1, '1', NOW(), NOW());

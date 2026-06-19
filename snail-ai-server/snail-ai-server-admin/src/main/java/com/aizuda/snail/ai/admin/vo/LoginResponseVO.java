@@ -13,5 +13,6 @@ import lombok.Data;
 @Data
 public class LoginResponseVO {
     public String username;
+    public String nickname;
     public String token;
 }

@@ -30,9 +30,6 @@ public class ChatDispatchRequest {
     /** 智能体配置 */
     private AgentConfig agentConfig;
     
-    /** 用户信息 */
-    private UserInfo userInfo;
-    
     /** 会话ID */
     private String conversationId;
     
@@ -81,19 +78,6 @@ public class ChatDispatchRequest {
         private Long embeddingModelId;
         private String ragIds;
         private Integer ragCallMode;
-    }
-    
-    /**
-     * 用户信息
-     */
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class UserInfo {
-        private Long userId;
-        private String userName;
-        private String openId;
     }
     
     /**

@@ -94,9 +94,6 @@ public class ClientChatExecutor {
         if (req.getAgentConfig() != null) {
             ctx.setAgentId(req.getAgentConfig().getAgentId());
         }
-        if (req.getUserInfo() != null) {
-            ctx.setUserId(req.getUserInfo().getUserId());
-        }
         ctx.setConversationId(req.getConversationId());
         if (req.getModelConfig() != null) {
             ctx.setModelKey(req.getModelConfig().getModelKey());

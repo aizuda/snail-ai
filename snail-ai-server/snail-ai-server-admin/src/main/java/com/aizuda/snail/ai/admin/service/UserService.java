@@ -285,6 +285,7 @@ public class UserService {
         
         LoginResponseVO loginResponseVO = new LoginResponseVO();
         loginResponseVO.setUsername(userPO.getUsername());
+        loginResponseVO.setNickname(userPO.getNickname());
         loginResponseVO.setToken(getToken(audienceDTO, userPO.getPassword()));
 
 
@@ -310,6 +311,7 @@ public class UserService {
         UserInfoVO userInfoVO = new UserInfoVO();
         userInfoVO.setId(userPO.getId());
         userInfoVO.setUsername(userPO.getUsername());
+        userInfoVO.setNickname(userPO.getNickname());
         userInfoVO.setEmail(userPO.getEmail());
         userInfoVO.setRole(userPO.getRole());
         userInfoVO.setRoleName(resolveRoleName(userPO.getRole()));
@@ -337,6 +339,7 @@ public class UserService {
             UserInfoVO userInfoVO = new UserInfoVO();
             userInfoVO.setId(userPO.getId());
             userInfoVO.setUsername(userPO.getUsername());
+            userInfoVO.setNickname(userPO.getNickname());
             userInfoVO.setEmail(userPO.getEmail());
             userInfoVO.setRole(userPO.getRole());
             userInfoVO.setRoleName(resolveRoleName(userPO.getRole()));

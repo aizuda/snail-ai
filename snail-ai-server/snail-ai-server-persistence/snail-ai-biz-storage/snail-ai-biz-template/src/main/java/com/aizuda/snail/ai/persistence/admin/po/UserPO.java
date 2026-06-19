@@ -41,6 +41,11 @@ public class UserPO {
     private String username;
 
     /**
+     * 用户昵称
+     */
+    private String nickname;
+
+    /**
      * 电子邮箱
      * 用户的电子邮件地址
      * 用于密码重置、通知等

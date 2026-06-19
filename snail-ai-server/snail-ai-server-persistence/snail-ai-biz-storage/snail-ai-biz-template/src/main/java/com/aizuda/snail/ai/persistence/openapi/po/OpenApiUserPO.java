@@ -28,8 +28,6 @@ public class OpenApiUserPO {
 
     private String externalId;
 
-    private String nickname;
-
     private LocalDateTime createDt;
 
     private LocalDateTime updateDt;

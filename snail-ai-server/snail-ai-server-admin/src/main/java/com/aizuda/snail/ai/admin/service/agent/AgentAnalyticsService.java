@@ -152,10 +152,10 @@ public class AgentAnalyticsService {
 
         // 批量查询用户名
         if (!userMap.isEmpty()) {
-            List<UserPO> users = userMapper.selectBatchIds(userMap.keySet());
+            List<UserPO> users = userMapper.selectByIds(userMap.keySet());
             Map<Long, String> userNameMap = new HashMap<>();
             for (UserPO user : users) {
-                userNameMap.put(user.getId(), user.getUsername());
+                userNameMap.put(user.getId(), user.getNickname() != null ? user.getNickname() : user.getUsername());
             }
             for (AgentUsageDetailVO detail : userMap.values()) {
                 detail.setUserName(userNameMap.get(detail.getUserId()));

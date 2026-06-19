@@ -22,6 +22,9 @@ public class UserInfoVO {
     /** 登录名 */
     private String username;
 
+    /** 用户昵称 */
+    private String nickname;
+
     private String email;
 
     /** 头像URL（通过 resourceId 解析） */
