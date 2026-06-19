@@ -11,8 +11,6 @@ import com.aizuda.snail.ai.admin.service.model.AiModelConfigService;
 import com.aizuda.snail.ai.admin.vo.model.AiModelConfigVO;
 import com.aizuda.snail.ai.model.enums.ModelTypeEnum;
 import com.aizuda.snail.ai.persistence.agent.mapper.*;
-import com.aizuda.snail.ai.persistence.memory.mapper.ConversationSummaryMapper;
-import com.aizuda.snail.ai.persistence.memory.po.ConversationSummaryPO;
 import com.aizuda.snail.ai.admin.vo.PageResult;
 import com.aizuda.snail.ai.persistence.agent.po.*;
 import com.aizuda.snail.ai.admin.service.mcp.McpServerService;
@@ -49,7 +47,6 @@ public class AgentService {
     private final AgentMapper agentMapper;
     private final AgentConversationMapper agentConversationMapper;
     private final AgentConversationRecordMapper agentConversationRecordMapper;
-    private final ConversationSummaryMapper conversationSummaryMapper;
     private final AgentUsageStatMapper agentUsageStatMapper;
     private final AiModelConfigService aiModelConfigService;
     private final McpServerService mcpServerService;
@@ -257,13 +254,27 @@ public class AgentService {
         agentConversationRecordMapper.delete(
                 new LambdaQueryWrapper<AgentConversationRecordPO>()
                         .eq(AgentConversationRecordPO::getConversationId, conversationId)
-                        .eq(AgentConversationRecordPO::getAgentId, agentId));
-        conversationSummaryMapper.delete(
-                new LambdaQueryWrapper<ConversationSummaryPO>()
-                        .eq(ConversationSummaryPO::getConversationId, conversationId)
-                        .eq(ConversationSummaryPO::getAgentId, agentId));
+                        .eq(AgentConversationRecordPO::getAgentId, agentId)
+                        .eq(AgentConversationRecordPO::getUserId, userId));
         agentConversationMapper.deleteById(conversation.getId());
         log.info("删除对话成功: agentId={}, conversationId={}, userId={}", agentId, conversationId, userId);
+    }
+
+    /**
+     * 清空当前用户在指定 Agent 下的全部对话（不删除长期记忆 {@code sai_memory_conversation}）
+     */
+    @Transactional
+    public void clearConversations(Long agentId) {
+        Long userId = UserSessionUtils.currentUserSession().getId();
+        agentConversationRecordMapper.delete(
+                new LambdaQueryWrapper<AgentConversationRecordPO>()
+                        .eq(AgentConversationRecordPO::getAgentId, agentId)
+                        .eq(AgentConversationRecordPO::getUserId, userId));
+        agentConversationMapper.delete(
+                new LambdaQueryWrapper<AgentConversationPO>()
+                        .eq(AgentConversationPO::getAgentId, agentId)
+                        .eq(AgentConversationPO::getUserId, userId));
+        log.info("清空对话成功: agentId={}, userId={}", agentId, userId);
     }
 
     @Transactional

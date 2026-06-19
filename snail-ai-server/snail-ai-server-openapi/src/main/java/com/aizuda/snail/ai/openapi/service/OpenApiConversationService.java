@@ -1,6 +1,7 @@
 package com.aizuda.snail.ai.openapi.service;
 
 import com.aizuda.snail.ai.common.model.PageResult;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationClearRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationIdentityRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationQueryRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationVO;
@@ -16,6 +17,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -66,6 +68,7 @@ public class OpenApiConversationService {
         return toVO(po);
     }
 
+    @Transactional
     public void deleteConversation(OpenApiConversationIdentityRequest request) {
         Long userId = resolveUserId(request.getOpenId());
 
@@ -80,6 +83,21 @@ public class OpenApiConversationService {
                         .eq(AgentConversationRecordPO::getAgentId, request.getAgentId())
                         .eq(AgentConversationRecordPO::getConversationId, request.getConversationId())
                         .eq(AgentConversationRecordPO::getUserId, userId));
+    }
+
+    @Transactional
+    public void clearConversations(OpenApiConversationClearRequest request) {
+        Long userId = resolveUserId(request.getOpenId());
+
+        conversationRecordMapper.delete(
+                new LambdaQueryWrapper<AgentConversationRecordPO>()
+                        .eq(AgentConversationRecordPO::getAgentId, request.getAgentId())
+                        .eq(AgentConversationRecordPO::getUserId, userId));
+
+        conversationMapper.delete(
+                new LambdaQueryWrapper<AgentConversationPO>()
+                        .eq(AgentConversationPO::getAgentId, request.getAgentId())
+                        .eq(AgentConversationPO::getUserId, userId));
     }
 
     public List<OpenApiMessageVO> getMessages(OpenApiConversationIdentityRequest request) {

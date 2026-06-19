@@ -15,6 +15,7 @@ import com.aizuda.snail.ai.common.openapi.dto.OpenApiAgentIdentityRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiAgentQueryRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiAgentVO;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatRequest;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationClearRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationIdentityRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationQueryRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationVO;
@@ -31,10 +32,12 @@ import com.aizuda.snail.ai.openapi.client.core.api.OpenApiEmbedClient;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,12 +60,20 @@ public class SnailAiChatGatewayController {
     private static final String CONFIG_KEY_GATEWAY_PATH = "gatewayPath";
     private static final String CONFIG_KEY_PAGE_TITLE = "pageTitle";
     private static final String CONFIG_KEY_LOGO = "logo";
+    private static final String CONFIG_KEY_EMBED = "embed";
+    private static final String CONFIG_KEY_EMBED_ENABLED = "enabled";
+    private static final String CONFIG_KEY_SHOW_HEADER = "showHeader";
+    private static final String CONFIG_KEY_SHOW_SIDEBAR_USER = "showSidebarUser";
+    private static final String CONFIG_KEY_SHOW_AGENT_MARKET = "showAgentMarket";
+    private static final String CONFIG_KEY_COMPACT_INPUT = "compactInput";
+    private static final String CONFIG_KEY_LOCK_AGENT = "lockAgent";
     private static final String DEFAULT_LOGO = "";
 
     private final OpenApiAgentClient openApiAgentClient;
     private final OpenApiChatClient openApiChatClient;
     private final OpenApiConversationClient openApiConversationClient;
     private final OpenApiEmbedClient openApiEmbedClient;
+    private final OpenApiResourceProxy openApiResourceProxy;
     private final SnailAiChatProperties chatProperties;
     private final SnailAiAgentProperties agentProperties;
     private final List<SnailAiChatCredentialValidator> credentialValidators;
@@ -75,6 +86,7 @@ public class SnailAiChatGatewayController {
                 chatProperties.getUi().getPageTitle(),
                 SnailAiChatProperties.DEFAULT_PAGE_TITLE));
         config.put(CONFIG_KEY_LOGO, StrUtil.nullToDefault(chatProperties.getUi().getLogo(), DEFAULT_LOGO));
+        putEmbedConfig(config, chatProperties.getUi().getEmbed());
         return Result.ok(config);
     }
 
@@ -152,7 +164,7 @@ public class SnailAiChatGatewayController {
     }
 
     @SnailAiChatAuthorize
-    @DeleteMapping("/conversations")
+    @DeleteMapping(value = "/conversations", params = "conversationId")
     public Result<Void> deleteConversation(@RequestParam("agentId") Long agentId,
                                            @RequestParam("conversationId") String conversationId) {
         OpenApiConversationIdentityRequest request = new OpenApiConversationIdentityRequest();
@@ -160,6 +172,15 @@ public class SnailAiChatGatewayController {
         request.setConversationId(conversationId);
         request.setOpenId(currentOpenId());
         return openApiConversationClient.deleteConversation(request);
+    }
+
+    @SnailAiChatAuthorize
+    @DeleteMapping(value = "/conversations", params = "!conversationId")
+    public Result<Void> clearConversations(@RequestParam("agentId") Long agentId) {
+        OpenApiConversationClearRequest request = new OpenApiConversationClearRequest();
+        request.setAgentId(agentId);
+        request.setOpenId(currentOpenId());
+        return openApiConversationClient.clearConversations(request);
     }
 
     @SnailAiChatAuthorize
@@ -171,6 +192,12 @@ public class SnailAiChatGatewayController {
         request.setConversationId(conversationId);
         request.setOpenId(currentOpenId());
         return openApiConversationClient.getMessages(request);
+    }
+
+    @SnailAiChatAuthorize
+    @GetMapping("/resource/{id}/preview")
+    public ResponseEntity<byte[]> previewResource(@PathVariable("id") Long id) {
+        return openApiResourceProxy.preview(id);
     }
 
     @SnailAiChatAuthorize
@@ -193,6 +220,29 @@ public class SnailAiChatGatewayController {
 
     private String trimToNull(String value) {
         return StrUtil.isBlank(value) ? null : value.trim();
+    }
+
+    private void putEmbedConfig(Map<String, Object> config, SnailAiChatProperties.Embed embedProperties) {
+        if (embedProperties == null) {
+            return;
+        }
+
+        Map<String, Object> embed = new LinkedHashMap<>();
+        putIfNotNull(embed, CONFIG_KEY_EMBED_ENABLED, embedProperties.getEnabled());
+        putIfNotNull(embed, CONFIG_KEY_SHOW_HEADER, embedProperties.getShowHeader());
+        putIfNotNull(embed, CONFIG_KEY_SHOW_SIDEBAR_USER, embedProperties.getShowSidebarUser());
+        putIfNotNull(embed, CONFIG_KEY_SHOW_AGENT_MARKET, embedProperties.getShowAgentMarket());
+        putIfNotNull(embed, CONFIG_KEY_COMPACT_INPUT, embedProperties.getCompactInput());
+        putIfNotNull(embed, CONFIG_KEY_LOCK_AGENT, embedProperties.getLockAgent());
+        if (!embed.isEmpty()) {
+            config.put(CONFIG_KEY_EMBED, embed);
+        }
+    }
+
+    private void putIfNotNull(Map<String, Object> config, String key, Boolean value) {
+        if (value != null) {
+            config.put(key, value);
+        }
     }
 
     private void validateSessionRequest(OpenApiEmbedTokenRequest request) {

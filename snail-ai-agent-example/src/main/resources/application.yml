@@ -76,3 +76,10 @@ snail-ai:
       ui:
         page-title: SnailAIChat
         logo: https://snailjob.opensnail.com/logo.svg
+        embed:
+          enabled: false
+          show-header: false
+          show-sidebar-user: false
+          show-agent-market: true
+          compact-input: false
+          lock-agent: false

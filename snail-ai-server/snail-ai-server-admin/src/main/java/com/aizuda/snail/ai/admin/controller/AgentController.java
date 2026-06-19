@@ -178,6 +178,13 @@ public class AgentController {
         return agentService.listConversations(id, queryVO);
     }
 
+    @DeleteMapping("/{id}/conversations")
+    @LoginRequired(role = RoleEnum.USER)
+    public Result<Void> clearConversations(@PathVariable("id") Long agentId) {
+        agentService.clearConversations(agentId);
+        return Result.ok(null);
+    }
+
     @GetMapping("/{id}/usage-detail")
     @LoginRequired
     public PageResult<List<AgentUsageDetailVO>> usageDetail(@PathVariable("id") Long id,

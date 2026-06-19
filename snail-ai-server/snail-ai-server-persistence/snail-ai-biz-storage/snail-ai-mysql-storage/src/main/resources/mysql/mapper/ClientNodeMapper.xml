@@ -24,7 +24,7 @@
 
     <update id="updateBatchExpireAt" parameterType="java.util.List">
         <foreach collection="list" item="item" separator=";">
-            UPDATE snail_ai_client_node
+            UPDATE sai_client_node
             SET max_concurrent      = #{item.maxConcurrent},
             active_chats        = #{item.activeChats},
             supported_providers = #{item.supportedProviders},

@@ -3,6 +3,7 @@ package com.aizuda.snail.ai.openapi.controller;
 import com.aizuda.snail.ai.common.constants.OpenApiPathConstants;
 import com.aizuda.snail.ai.common.model.PageResult;
 import com.aizuda.snail.ai.common.model.Result;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationClearRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationIdentityRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationQueryRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationVO;
@@ -40,10 +41,17 @@ public class OpenApiConversationController {
         return Result.ok(openApiConversationService.createConversation(request));
     }
 
-    @DeleteMapping(OpenApiPathConstants.OPEN_API_AGENT_CONVERSATIONS)
+    @DeleteMapping(value = OpenApiPathConstants.OPEN_API_AGENT_CONVERSATIONS, params = "conversationId")
     public Result<Void> deleteConversation(
             @Validated OpenApiConversationIdentityRequest request) {
         openApiConversationService.deleteConversation(request);
+        return Result.ok(null);
+    }
+
+    @DeleteMapping(value = OpenApiPathConstants.OPEN_API_AGENT_CONVERSATIONS, params = "!conversationId")
+    public Result<Void> clearConversations(
+            @Validated OpenApiConversationClearRequest request) {
+        openApiConversationService.clearConversations(request);
         return Result.ok(null);
     }
 

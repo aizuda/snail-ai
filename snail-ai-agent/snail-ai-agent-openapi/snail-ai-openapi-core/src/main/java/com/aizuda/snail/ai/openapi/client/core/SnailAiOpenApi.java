@@ -12,6 +12,7 @@ import com.aizuda.snail.ai.common.openapi.dto.OpenApiUserVO;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiAgentVO;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiAgentIdentityRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiAgentQueryRequest;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationClearRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationIdentityRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationQueryRequest;
 import com.aizuda.snail.ai.openapi.client.core.api.OpenApiAgentClient;
@@ -199,6 +200,15 @@ public class SnailAiOpenApi {
             request.setConversationId(conversationId);
             request.setOpenId(openId);
             return conversationClient.deleteConversation(request);
+        }
+
+        public Result<Void> clear() {
+            checkClient();
+            requireOpenId();
+            OpenApiConversationClearRequest request = new OpenApiConversationClearRequest();
+            request.setAgentId(agentId);
+            request.setOpenId(openId);
+            return conversationClient.clearConversations(request);
         }
 
         public Result<List<OpenApiMessageVO>> messages() {

@@ -19,6 +19,17 @@ public class SnailAiChatProperties {
     public static class Ui {
         private String pageTitle = DEFAULT_PAGE_TITLE;
         private String logo = "https://snailjob.opensnail.com/logo.svg";
+        private Embed embed = new Embed();
+    }
+
+    @Data
+    public static class Embed {
+        private Boolean enabled;
+        private Boolean showHeader;
+        private Boolean showSidebarUser;
+        private Boolean showAgentMarket;
+        private Boolean compactInput;
+        private Boolean lockAgent;
     }
 
     @Data
