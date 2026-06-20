@@ -6,6 +6,7 @@ import com.aizuda.snail.ai.features.resource.strategy.ResourceStorageService;
 import com.aizuda.snail.ai.features.resource.util.MimeTypeUtils;
 import com.aizuda.snail.ai.persistence.resource.mapper.ResourceMapper;
 import com.aizuda.snail.ai.persistence.resource.po.ResourcePO;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -68,6 +69,11 @@ public class ResourceService {
 
     public ResourcePO getById(Long resourceId) {
         return resourceMapper.selectById(resourceId);
+    }
+
+    public ResourcePO getByStorageKey(String storageKey) {
+        return resourceMapper.selectOne(new LambdaQueryWrapper<ResourcePO>()
+                .eq(ResourcePO::getStorageKey, storageKey));
     }
 
     /**

@@ -29,15 +29,14 @@ import com.aizuda.snail.ai.openapi.client.core.api.OpenApiAgentClient;
 import com.aizuda.snail.ai.openapi.client.core.api.OpenApiChatClient;
 import com.aizuda.snail.ai.openapi.client.core.api.OpenApiConversationClient;
 import com.aizuda.snail.ai.openapi.client.core.api.OpenApiEmbedClient;
+import com.aizuda.snail.ai.openapi.client.core.config.SnailAiOpenApiProperties;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -60,6 +59,7 @@ public class SnailAiChatGatewayController {
     private static final String CONFIG_KEY_GATEWAY_PATH = "gatewayPath";
     private static final String CONFIG_KEY_PAGE_TITLE = "pageTitle";
     private static final String CONFIG_KEY_LOGO = "logo";
+    private static final String CONFIG_KEY_RESOURCE_BASE_URL = "resourceBaseUrl";
     private static final String CONFIG_KEY_EMBED = "embed";
     private static final String CONFIG_KEY_EMBED_ENABLED = "enabled";
     private static final String CONFIG_KEY_SHOW_HEADER = "showHeader";
@@ -68,14 +68,18 @@ public class SnailAiChatGatewayController {
     private static final String CONFIG_KEY_COMPACT_INPUT = "compactInput";
     private static final String CONFIG_KEY_LOCK_AGENT = "lockAgent";
     private static final String DEFAULT_LOGO = "";
+    private static final String HTTP_PROTOCOL = "http";
+    private static final String HTTPS_PROTOCOL = "https";
+    private static final int HTTP_DEFAULT_PORT = 80;
+    private static final int HTTPS_DEFAULT_PORT = 443;
 
     private final OpenApiAgentClient openApiAgentClient;
     private final OpenApiChatClient openApiChatClient;
     private final OpenApiConversationClient openApiConversationClient;
     private final OpenApiEmbedClient openApiEmbedClient;
-    private final OpenApiResourceProxy openApiResourceProxy;
     private final SnailAiChatProperties chatProperties;
     private final SnailAiAgentProperties agentProperties;
+    private final SnailAiOpenApiProperties openApiProperties;
     private final List<SnailAiChatCredentialValidator> credentialValidators;
 
     @GetMapping("/config")
@@ -86,6 +90,7 @@ public class SnailAiChatGatewayController {
                 chatProperties.getUi().getPageTitle(),
                 SnailAiChatProperties.DEFAULT_PAGE_TITLE));
         config.put(CONFIG_KEY_LOGO, StrUtil.nullToDefault(chatProperties.getUi().getLogo(), DEFAULT_LOGO));
+        config.put(CONFIG_KEY_RESOURCE_BASE_URL, resolveResourceBaseUrl());
         putEmbedConfig(config, chatProperties.getUi().getEmbed());
         return Result.ok(config);
     }
@@ -195,12 +200,6 @@ public class SnailAiChatGatewayController {
     }
 
     @SnailAiChatAuthorize
-    @GetMapping("/resource/{id}/preview")
-    public ResponseEntity<byte[]> previewResource(@PathVariable("id") Long id) {
-        return openApiResourceProxy.preview(id);
-    }
-
-    @SnailAiChatAuthorize
     @PostMapping(value = "/completions", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<String>> completions(@RequestBody OpenApiChatRequest request) {
         request.setOpenId(currentOpenId());
@@ -243,6 +242,49 @@ public class SnailAiChatGatewayController {
         if (value != null) {
             config.put(key, value);
         }
+    }
+
+    private String resolveResourceBaseUrl() {
+        String configured = chatProperties.getUi().getResourceBaseUrl();
+        if (StrUtil.isNotBlank(configured)) {
+            return configured.replaceAll("/$", "");
+        }
+        return buildOpenApiBaseUrl();
+    }
+
+    private String buildOpenApiBaseUrl() {
+        String host = openApiProperties.getServerHost();
+        if (StrUtil.isBlank(host)) {
+            host = agentProperties.getServer().getHost();
+        }
+
+        String protocol = openApiProperties.isHttps() ? HTTPS_PROTOCOL : HTTP_PROTOCOL;
+        StringBuilder url = new StringBuilder(protocol)
+                .append("://")
+                .append(host.replaceAll("/$", ""));
+        appendPort(url);
+        appendPrefix(url);
+        return url.toString();
+    }
+
+    private void appendPort(StringBuilder url) {
+        int port = openApiProperties.getWebPort();
+        boolean defaultPort = (openApiProperties.isHttps() && port == HTTPS_DEFAULT_PORT)
+                || (!openApiProperties.isHttps() && port == HTTP_DEFAULT_PORT);
+        if (!defaultPort) {
+            url.append(":").append(port);
+        }
+    }
+
+    private void appendPrefix(StringBuilder url) {
+        String prefix = openApiProperties.getPrefix();
+        if (StrUtil.isBlank(prefix)) {
+            return;
+        }
+        if (!prefix.startsWith("/")) {
+            url.append("/");
+        }
+        url.append(prefix);
     }
 
     private void validateSessionRequest(OpenApiEmbedTokenRequest request) {

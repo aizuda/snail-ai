@@ -21,7 +21,7 @@ public class SnailJobWebMvcConfigurerAdapter implements WebMvcConfigurer {
         // 注册拦截器
         registry.addInterceptor(authenticationInterceptor)
                 .addPathPatterns("/**")
-                .excludePathPatterns("/openapi/**");
+                .excludePathPatterns("/openapi/**", "/files/**");
     }
 
     @Override

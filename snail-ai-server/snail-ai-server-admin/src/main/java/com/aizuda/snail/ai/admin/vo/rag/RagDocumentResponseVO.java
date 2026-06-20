@@ -33,6 +33,10 @@ public class RagDocumentResponseVO {
 
     private Long resourceId;
 
+    private String previewUrl;
+
+    private String downloadUrl;
+
     /**
      * 决策结果: NEW / SKIP / OVERWRITE
      * REJECT 通过异常返回，不会进入此字段

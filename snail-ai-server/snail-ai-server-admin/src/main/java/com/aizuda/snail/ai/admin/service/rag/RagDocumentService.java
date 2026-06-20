@@ -59,6 +59,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RagDocumentService {
 
+    private static final String DOWNLOAD_QUERY = "download=true";
+
     private static final String UPLOAD_LOCK_KEY_PREFIX = "rag:doc:upload:lock:";
     private static final long UPLOAD_LOCK_TIMEOUT_SECONDS = 30L;
 
@@ -504,6 +506,7 @@ public class RagDocumentService {
 
     private RagDocumentResponseVO toResponseVO(RagDocumentPO po) {
         ResourcePO resource = resourceService.getById(po.getResourceId());
+        String previewUrl = resource == null ? null : resource.getAccessUrl();
 
         return RagDocumentResponseVO.builder()
                 .id(po.getId())
@@ -514,11 +517,21 @@ public class RagDocumentService {
                 .status(po.getStatus())
                 .errorMsg(po.getErrorMsg())
                 .chunkCount(po.getChunkCount())
-                .fileSize(resource.getFileSize())
+                .fileSize(resource == null ? null : resource.getFileSize())
                 .resourceId(po.getResourceId())
+                .previewUrl(previewUrl)
+                .downloadUrl(buildDownloadUrl(previewUrl))
                 .createDt(po.getCreateDt())
                 .updateDt(po.getUpdateDt())
                 .build();
+    }
+
+    private String buildDownloadUrl(String previewUrl) {
+        if (StrUtil.isBlank(previewUrl)) {
+            return null;
+        }
+        String separator = previewUrl.contains("?") ? "&" : "?";
+        return previewUrl + separator + DOWNLOAD_QUERY;
     }
 
     private RagChunkResponseVO toChunkResponseVO(RagChunkPO po) {

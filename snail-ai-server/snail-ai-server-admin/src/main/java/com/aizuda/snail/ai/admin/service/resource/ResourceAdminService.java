@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.List;
 
 @Service
@@ -85,15 +84,6 @@ public class ResourceAdminService {
         result.setSize((int) page.getSize());
         result.setTotal(page.getTotal());
         return result;
-    }
-
-    public ResourcePO getAuthorizedResource(Long id) {
-        return requireAuthorizedResource(id);
-    }
-
-    public InputStream loadAuthorized(Long id) {
-        requireAuthorizedResource(id);
-        return resourceService.load(id);
     }
 
     private ResourcePO requireAuthorizedResource(Long id) {

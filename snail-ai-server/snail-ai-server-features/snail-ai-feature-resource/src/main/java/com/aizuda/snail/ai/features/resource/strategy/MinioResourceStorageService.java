@@ -7,18 +7,18 @@ import com.aizuda.snail.ai.features.resource.util.MimeTypeUtils;
 import com.aizuda.snail.ai.features.resource.util.StorageKeyGenerator;
 import io.minio.*;
 import io.minio.errors.ErrorResponseException;
-import io.minio.Http.Method;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class MinioResourceStorageService implements ResourceStorageService {
+
+    private static final String FILES_ACCESS_PREFIX = "/files/";
 
     private final ResourceConfig resourceConfig;
     private volatile MinioClient minioClient;
@@ -72,17 +72,7 @@ public class MinioResourceStorageService implements ResourceStorageService {
 
     @Override
     public String getAccessUrl(Long resourceId, String storageKey) {
-        try {
-            return getClient().getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
-                    .method(Method.GET)
-                    .bucket(bucket())
-                    .object(storageKey)
-                    .expiry(7, TimeUnit.DAYS)
-                    .build());
-        } catch (Exception e) {
-            log.warn("Failed to generate presigned URL: {}", storageKey, e);
-            return null;
-        }
+        return FILES_ACCESS_PREFIX + storageKey;
     }
 
     @Override

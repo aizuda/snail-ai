@@ -17,8 +17,6 @@ public interface OpenApiPathConstants {
 
     String OPEN_API_EMBED_TOKEN = OPEN_API_V1_PREFIX + "/embed-token";
 
-    String OPEN_API_RESOURCE_PREVIEW = OPEN_API_V1_PREFIX + "/resources/{id}/preview";
-
     String OPEN_API_AGENT_CONVERSATIONS = OPEN_API_V1_PREFIX + "/agent/conversations";
     String OPEN_API_AGENT_CONVERSATION_MESSAGES = OPEN_API_V1_PREFIX + "/agent/conversations/messages";
 

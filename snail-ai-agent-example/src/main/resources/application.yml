@@ -81,5 +81,5 @@ snail-ai:
           show-header: false
           show-sidebar-user: false
           show-agent-market: true
-          compact-input: false
+          compact-input: true
           lock-agent: false

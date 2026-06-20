@@ -6,7 +6,6 @@ import com.aizuda.snail.ai.features.resource.enums.ResourceStorageTypeEnum;
 import com.aizuda.snail.ai.features.resource.util.StorageKeyGenerator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -21,10 +20,9 @@ import java.nio.file.StandardCopyOption;
 @RequiredArgsConstructor
 public class LocalResourceStorageService implements ResourceStorageService {
 
-    private final ResourceConfig resourceConfig;
+    private static final String FILES_ACCESS_PREFIX = "/files/";
 
-    @Value("${server.servlet.context-path:}")
-    private String contextPath;
+    private final ResourceConfig resourceConfig;
 
     @Override
     public String getType() {
@@ -69,7 +67,7 @@ public class LocalResourceStorageService implements ResourceStorageService {
 
     @Override
     public String getAccessUrl(Long resourceId, String storageKey) {
-        return contextPath + "/resource/" + resourceId + "/preview";
+        return FILES_ACCESS_PREFIX + storageKey;
     }
 
     @Override
