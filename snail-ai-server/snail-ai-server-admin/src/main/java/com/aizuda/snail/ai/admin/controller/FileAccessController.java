@@ -43,6 +43,10 @@ public class FileAccessController {
     private static final String HEADER_X_CONTENT_TYPE_OPTIONS = "X-Content-Type-Options";
     private static final String HEADER_VALUE_NOSNIFF = "nosniff";
     private static final String DEFAULT_FILE_NAME = "resource";
+    private static final String MIME_IMAGE_WEBP = "image/webp";
+    private static final String MIME_TEXT_CSV = "text/csv";
+    private static final String MIME_TEXT_MARKDOWN = "text/markdown";
+    private static final String MIME_TEXT_X_MARKDOWN = "text/x-markdown";
     private static final long PUBLIC_CACHE_MAX_AGE_SECONDS = 86400L;
     private static final Pattern STORAGE_KEY_PATTERN = Pattern.compile(
             "^[a-z0-9][a-z0-9_-]*/\\d{4}/\\d{2}/\\d{2}/"
@@ -52,10 +56,12 @@ public class FileAccessController {
             MediaType.IMAGE_PNG_VALUE,
             MediaType.IMAGE_JPEG_VALUE,
             MediaType.IMAGE_GIF_VALUE,
-            "image/webp",
+            MIME_IMAGE_WEBP,
             MediaType.APPLICATION_PDF_VALUE,
             MediaType.TEXT_PLAIN_VALUE,
-            "text/csv"
+            MIME_TEXT_CSV,
+            MIME_TEXT_MARKDOWN,
+            MIME_TEXT_X_MARKDOWN
     );
 
     private final ResourceService resourceService;
