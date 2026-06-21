@@ -28,7 +28,10 @@ import java.util.function.Consumer;
 @RequiredArgsConstructor
 public class ThinkingCollectorAdvisor implements StreamAdvisor {
 
-    private static final String[] THINKING_KEYS = {"reasoningContent", "thinking", "reasoning"};
+    private static final String METADATA_REASONING_CONTENT = "reasoningContent";
+    private static final String METADATA_THINKING = "thinking";
+    private static final String METADATA_REASONING = "reasoning";
+    private static final String[] THINKING_KEYS = {METADATA_REASONING_CONTENT, METADATA_THINKING, METADATA_REASONING};
     private static final String METADATA_CHUNK_CHOICE = "chunkChoice";
     private static final String METADATA_MESSAGE = "message";
     private static final String METADATA_ADDITIONAL_PROPERTIES = "_additionalProperties";
@@ -62,49 +65,52 @@ public class ThinkingCollectorAdvisor implements StreamAdvisor {
         Consumer<String> thinkingConsumer = (Consumer<String>) request.context().get(ClientAdvisorKeys.THINKING_CONSUMER);
 
         return chain.nextStream(request)
-                .doOnNext(response -> extractThinking(response, state, thinkingConsumer))
+                .doOnNext(response -> collectThinking(response, state, thinkingConsumer))
                 .doOnComplete(() -> bridgeThinkingToContext(state));
     }
 
-    private void extractThinking(ChatClientResponse response, ClientStreamExecutionContext state,
+    private void collectThinking(ChatClientResponse response, ClientStreamExecutionContext state,
                                  Consumer<String> thinkingConsumer) {
         ChatResponse cr = response.chatResponse();
         if (cr == null || cr.getResult() == null) {
             return;
         }
-        Generation generation = cr.getResult();
+        extractThinkingText(cr.getResult()).ifPresent(text -> forward(text, state, thinkingConsumer));
+    }
 
-        // 1. 优先从 AssistantMessage metadata 读取（兼容 M4 及其他直接写入 metadata 的提供者）
+    private Optional<String> extractThinkingText(Generation generation) {
+        return extractFromOutputMetadata(generation)
+                .or(() -> extractFromAdditionalProperties(generation));
+    }
+
+    private Optional<String> extractFromOutputMetadata(Generation generation) {
+        if (generation == null || generation.getOutput() == null) {
+            return Optional.empty();
+        }
         Map<String, Object> metadata = generation.getOutput().getMetadata();
         for (String key : THINKING_KEYS) {
-            Object value = metadata.get(key);
-            if (value instanceof String s && !s.isEmpty()) {
-                forward(s, state, thinkingConsumer);
-                return;
+            String s = extractString(metadata.get(key));
+            if (s != null && !s.isBlank()) {
+                return Optional.of(s);
             }
         }
-
-        // 2. 兼容从底层响应对象的 _additionalProperties() 中提取
-        String reasoning = extractFromAdditionalProperties(generation);
-        if (reasoning != null && !reasoning.isEmpty()) {
-            forward(reasoning, state, thinkingConsumer);
-        }
+        return Optional.empty();
     }
 
     /**
      * 不直接依赖具体模型 SDK 类型，避免 agent core 绑定某个模型厂商。
      */
-    private String extractFromAdditionalProperties(Generation generation) {
+    private Optional<String> extractFromAdditionalProperties(Generation generation) {
         try {
             Map<String, Object> metadata = generation.getOutput().getMetadata();
 
-            String chunkChoiceReasoning = extractReasoningFromCandidate(metadata.get(METADATA_CHUNK_CHOICE));
-            if (chunkChoiceReasoning != null) {
+            Optional<String> chunkChoiceReasoning = extractReasoningFromCandidate(metadata.get(METADATA_CHUNK_CHOICE));
+            if (chunkChoiceReasoning.isPresent()) {
                 return chunkChoiceReasoning;
             }
 
-            String messageReasoning = extractReasoningFromCandidate(metadata.get(METADATA_MESSAGE));
-            if (messageReasoning != null) {
+            Optional<String> messageReasoning = extractReasoningFromCandidate(metadata.get(METADATA_MESSAGE));
+            if (messageReasoning.isPresent()) {
                 return messageReasoning;
             }
 
@@ -115,12 +121,12 @@ public class ThinkingCollectorAdvisor implements StreamAdvisor {
         } catch (Exception e) {
             log.debug("Failed to extract thinking content from additionalProperties", e);
         }
-        return null;
+        return Optional.empty();
     }
 
-    private String extractReasoningFromCandidate(Object candidate) {
+    private Optional<String> extractReasoningFromCandidate(Object candidate) {
         if (candidate == null) {
-            return null;
+            return Optional.empty();
         }
         if (candidate instanceof Map<?, ?> additionalProperties) {
             return extractReasoningFromAdditionalProperties(additionalProperties);
@@ -128,8 +134,8 @@ public class ThinkingCollectorAdvisor implements StreamAdvisor {
 
         Object delta = invokeNoArg(candidate, METHOD_DELTA);
         if (delta != null) {
-            String deltaReasoning = extractReasoningFromCandidate(delta);
-            if (deltaReasoning != null) {
+            Optional<String> deltaReasoning = extractReasoningFromCandidate(delta);
+            if (deltaReasoning.isPresent()) {
                 return deltaReasoning;
             }
         }
@@ -138,21 +144,21 @@ public class ThinkingCollectorAdvisor implements StreamAdvisor {
         if (additionalProperties instanceof Map<?, ?> properties) {
             return extractReasoningFromAdditionalProperties(properties);
         }
-        return null;
+        return Optional.empty();
     }
 
-    private String extractReasoningFromAdditionalProperties(Map<?, ?> additionalProps) {
+    private Optional<String> extractReasoningFromAdditionalProperties(Map<?, ?> additionalProps) {
         if (additionalProps == null || additionalProps.isEmpty()) {
-            return null;
+            return Optional.empty();
         }
         for (String key : ADDITIONAL_PROP_KEYS) {
             Object value = additionalProps.get(key);
             String s = extractString(value);
-            if (s != null && !s.isEmpty()) {
-                return s;
+            if (s != null && !s.isBlank()) {
+                return Optional.of(s);
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     private String extractString(Object value) {
@@ -180,6 +186,9 @@ public class ThinkingCollectorAdvisor implements StreamAdvisor {
     }
 
     private void forward(String text, ClientStreamExecutionContext state, Consumer<String> thinkingConsumer) {
+        if (text == null || text.isBlank()) {
+            return;
+        }
         state.thinkingText.append(text);
         if (thinkingConsumer != null) {
             thinkingConsumer.accept(text);
