@@ -76,10 +76,12 @@ public class ModelConfigHandler {
                 .encryptedApiKey(po.getApiKey())
                 .description(po.getDescription())
                 .apiEndpoint(po.getApiEndpoint())
-                .configJson(JsonUtil.parseObject(Optional.ofNullable(po.getConfigJson()).orElse("{}"), ConfigExtAttrsDTO.class))
+                .configJson(JsonUtil.parseObject(
+                        Optional.ofNullable(po.getConfigJson()).orElse("{}"), ConfigExtAttrsDTO.class))
                 .scope(po.getScope())
                 .isDefault(po.getIsDefault())
                 .enabled(po.getIsEnabled())
+                .updatedDt(po.getUpdatedDt())
                 .build();
     }
 

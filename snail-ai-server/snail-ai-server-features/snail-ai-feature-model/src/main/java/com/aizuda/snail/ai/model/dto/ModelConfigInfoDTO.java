@@ -1,10 +1,13 @@
 package com.aizuda.snail.ai.model.dto;
 
-import com.aizuda.snail.ai.common.model.ConfigExtAttrsDTO;
+import java.time.LocalDateTime;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import com.aizuda.snail.ai.common.model.ConfigExtAttrsDTO;
 
 /**
  * <p>
@@ -94,4 +97,9 @@ public class ModelConfigInfoDTO {
      * 加密后的API Key（内部传输用，不对外暴露）
      */
     private String encryptedApiKey;
+
+    /**
+     * 更新时间（用于运行时缓存版本判断）
+     */
+    private LocalDateTime updatedDt;
 }

@@ -161,7 +161,10 @@ public class ModelRuntimeHandler {
         return chatClientBuilder.getOrBuildChatClient(decryptApiKey(config), config);
     }
 
-    private EmbeddingModel buildEmbeddingModel(ModelConfigInfoDTO config) {
+    public EmbeddingModel buildEmbeddingModel(ModelConfigInfoDTO config) {
+        if (config == null) {
+            throw invalid("模型配置不存在");
+        }
         return embeddingClientBuilder.getOrBuildEmbeddingModel(decryptApiKey(config), config);
     }
 
