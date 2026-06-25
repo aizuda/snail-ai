@@ -70,18 +70,22 @@ public class VectorStoreFactory {
         StoreInstancePO inst = getStoreInstanceOrThrow(vectorStoreInstanceId);
         StoreInstanceTypeEnum typeEnum = getStoreInstanceTypeOrThrow(inst);
         ModelConfigInfoDTO modelConfig = getEmbeddingModelConfigOrThrow(embeddingModelId);
-        String cacheKey = buildCacheKey(vectorStoreInstanceId, embeddingModelId);
+        // 缓存版本：存储实例和 Embedding 模型任一配置变更（地址、API Key、模型名、维度等）
+        // 都会反映在各自的 updateDt 上，从而触发缓存重建
+        LocalDateTime storeUpdateDt = inst.getUpdateDt();
         LocalDateTime modelUpdatedDt = modelConfig.getUpdatedDt();
+        String cacheKey = buildCacheKey(vectorStoreInstanceId, embeddingModelId);
         CachedVectorStore cachedVectorStore = STORE_INSTANCE_CACHE.compute(cacheKey, (k, cached) -> {
-            if (cached != null && cached.matches(modelUpdatedDt)) {
+            if (cached != null && cached.matches(storeUpdateDt, modelUpdatedDt)) {
                 return cached;
             }
             if (cached != null) {
-                log.info("Embedding 模型配置已更新，重新构建 VectorStore 缓存: vectorStoreInstanceId={}, "
-                                + "embeddingModelId={}, oldVersion={}, newVersion={}",
-                        vectorStoreInstanceId, embeddingModelId, cached.modelUpdatedDt(), modelUpdatedDt);
+                log.info("配置已变更，重新构建 VectorStore 缓存: vectorStoreInstanceId={}, "
+                                + "embeddingModelId={}",
+                        vectorStoreInstanceId, embeddingModelId);
             }
             return new CachedVectorStore(
+                    storeUpdateDt,
                     modelUpdatedDt,
                     buildVectorStore(inst, typeEnum, modelConfig, dimensionOfVectorModel));
         });
@@ -136,10 +140,13 @@ public class VectorStoreFactory {
         return vectorStoreInstanceId + CACHE_KEY_SEPARATOR + embeddingModelId;
     }
 
-    private record CachedVectorStore(LocalDateTime modelUpdatedDt, SnailAiVectorStore vectorStore) {
+    private record CachedVectorStore(LocalDateTime storeUpdateDt,
+                                      LocalDateTime modelUpdatedDt,
+                                      SnailAiVectorStore vectorStore) {
 
-        private boolean matches(LocalDateTime currentModelUpdatedDt) {
-            return Objects.equals(modelUpdatedDt, currentModelUpdatedDt);
+        private boolean matches(LocalDateTime currentStoreUpdateDt, LocalDateTime currentModelUpdatedDt) {
+            return Objects.equals(storeUpdateDt, currentStoreUpdateDt)
+                    && Objects.equals(modelUpdatedDt, currentModelUpdatedDt);
         }
     }
 
