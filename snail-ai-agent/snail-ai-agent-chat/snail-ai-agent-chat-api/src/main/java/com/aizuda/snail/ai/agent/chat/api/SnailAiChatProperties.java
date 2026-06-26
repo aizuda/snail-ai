@@ -9,7 +9,6 @@ public class SnailAiChatProperties {
 
     public static final String DEFAULT_PAGE_TITLE = "Snail AI Chat";
 
-    private boolean enabled = true;
 
     private Ui ui = new Ui();
 
