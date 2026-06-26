@@ -42,9 +42,8 @@ public class SnailAiBizStorageAutoConfiguration {
     @ConditionalOnMissingBean
     public MybatisPlusInterceptor mybatisPlusInterceptor(Environment environment) {
         MybatisPlusInterceptor interceptor = new MybatisPlusInterceptor();
-        String db = BizDbTypeEnum.from(environment).getDb();
-        DbType dbType = "postgresql".equals(db) ? DbType.POSTGRE_SQL : DbType.MYSQL;
-        interceptor.addInnerInterceptor(new PaginationInnerInterceptor(dbType));
+        BizDbTypeEnum bizDbType = BizDbTypeEnum.from(environment);
+        interceptor.addInnerInterceptor(new PaginationInnerInterceptor(bizDbType.getDbType()));
         // 建议增加防全表更新拦截器
         interceptor.addInnerInterceptor(new BlockAttackInnerInterceptor());
         return interceptor;

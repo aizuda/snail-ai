@@ -44,6 +44,7 @@
         <elasticsearch-java.version>9.4.1</elasticsearch-java.version>
         <milvus-sdk-java.version>3.0.1</milvus-sdk-java.version>
         <commons-compress.version>1.28.0</commons-compress.version>
+        <dm-jdbc.version>8.1.3.62</dm-jdbc.version>
         <grpc-java.version>1.76.0</grpc-java.version>
         <protobuf-java.version>3.25.8</protobuf-java.version>
 
@@ -281,6 +282,18 @@
                 <artifactId>snail-ai-postgres-storage</artifactId>
                 <version>${revision}</version>
             </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-dm-storage</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.dameng</groupId>
+                <artifactId>DmJdbcDriver18</artifactId>
+                <version>${dm-jdbc.version}</version>
+                <scope>compile</scope>
+            </dependency>
+
             <dependency>
                 <groupId>com.aizuda</groupId>
                 <artifactId>snail-ai-vector-template</artifactId>

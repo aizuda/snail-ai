@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aizuda.snail.ai.persistence.rag.mapper.RagChunkMapper">
+
+    <select id="selectMaxChunkIndex" resultType="java.lang.Integer">
+        SELECT MAX(chunk_index)
+          FROM sai_rag_chunk
+         WHERE document_id = #{documentId}
+    </select>
+
+    <!-- 达梦暂未接入专用全文检索能力，当前仅保留兼容兜底实现。 -->
+    <select id="fullTextSearch" resultType="com.aizuda.snail.ai.common.dto.rag.SearchResult">
+        SELECT CAST(id AS VARCHAR) AS id,
+               id AS chunkId,
+               content,
+               1 AS score
+          FROM sai_rag_chunk
+         WHERE rag_id = #{ragId}
+           AND content IS NOT NULL
+           AND content LIKE CONCAT('%', #{tsQuery}, '%')
+         ORDER BY chunk_index ASC
+         FETCH FIRST #{limit} ROWS ONLY
+    </select>
+
+</mapper>

@@ -20,5 +20,6 @@
         <module>snail-ai-biz-template</module>
         <module>snail-ai-mysql-storage</module>
         <module>snail-ai-postgres-storage</module>
+        <module>snail-ai-dm-storage</module>
     </modules>
 </project>

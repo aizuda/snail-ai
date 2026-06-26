@@ -18,7 +18,8 @@ import org.springframework.core.env.Environment;
 public enum BizDbTypeEnum {
 
     MYSQL(DbType.MYSQL),
-    POSTGRESQL(DbType.POSTGRE_SQL);
+    POSTGRESQL(DbType.POSTGRE_SQL),
+    DM(DbType.DM);
 
     private static final String[] DATABASE_TYPE_PROPERTIES = {
             "spring.datasource.url",
