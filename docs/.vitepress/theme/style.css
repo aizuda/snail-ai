@@ -1,0 +1,28 @@
+:root {
+  --vp-home-hero-name-color: transparent;
+  --vp-home-hero-name-background: -webkit-linear-gradient(120deg, #bd34fe, #41d1ff);
+}
+
+.VPDoc.has-aside .content-container {
+  max-width: 95% !important;
+}
+
+@media (min-width: 1440px) {
+  :root {
+    --vp-layout-max-width: 1680px;
+    --vp-sidebar-width: 320px;
+  }
+}
+
+@media (min-width: 960px) and (max-width: 1439px) {
+  :root {
+    --vp-layout-max-width: 960px;
+    --vp-sidebar-width: 350px;
+  }
+}
+
+@media (max-width: 959px) {
+  :root {
+    --vp-layout-max-width: 100%;
+  }
+}

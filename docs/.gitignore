@@ -1,0 +1,24 @@
+# npm
+package-lock.json
+node_modules
+yarn-error.log
+cache
+dist
+
+# vscode
+.vscode
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+
+# yarn
+yarn.lock
+
+# 百度链接推送
+urls.txt
+
+# mac
+.DS_Store
