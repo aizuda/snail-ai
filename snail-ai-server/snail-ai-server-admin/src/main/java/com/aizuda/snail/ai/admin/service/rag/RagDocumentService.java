@@ -1,5 +1,6 @@
 package com.aizuda.snail.ai.admin.service.rag;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.common.execption.SnailAiCommonException;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
@@ -227,9 +228,11 @@ public class RagDocumentService {
         List<RagChunkPO> records = page.getRecords();
         Set<Long> docIds = records.stream().map(RagChunkPO::getDocumentId).collect(Collectors.toSet());
         Map<Long, String> docNameMap = new HashMap<>();
-        for (Long id : docIds) {
-            RagDocumentPO d = ragDocumentMapper.selectById(id);
-            docNameMap.put(id, d != null ? d.getName() : null);
+        if (CollUtil.isNotEmpty(docIds)) {
+            // 批量查询文档名，避免在循环中逐条 selectById 造成 N+1
+            for (RagDocumentPO d : ragDocumentMapper.selectByIds(docIds)) {
+                docNameMap.put(d.getId(), d.getName());
+            }
         }
         List<RagChunkResponseVO> list = records.stream()
                 .map(po -> toChunkResponseVO(po, docNameMap.get(po.getDocumentId())))

@@ -1,5 +1,6 @@
 package com.aizuda.snail.ai.features.rag.search.pipeline.handler;
 
+import cn.hutool.core.collection.CollUtil;
 import com.aizuda.snail.ai.common.dto.rag.SearchResult;
 import com.aizuda.snail.ai.common.util.RagResultReorderUtil;
 import com.aizuda.snail.ai.features.rag.search.pipeline.RagSearchContext;
@@ -110,13 +111,10 @@ public class FinalizeHandler implements RagSearchHandler {
                 .map(RagChunkPO::getDocumentId)
                 .collect(Collectors.toSet());
         Map<Long, String> docNameMap = new HashMap<>();
-        if (!docIds.isEmpty()) {
-            for (Long docId : docIds) {
-                RagDocumentPO doc = ragDocumentMapper.selectById(docId);
-                if (doc == null) {
-                    continue;
-                }
-                docNameMap.put(docId, doc.getName());
+        if (CollUtil.isNotEmpty(docIds)) {
+            // 批量查询文档名，避免在循环中逐条 selectById 造成 N+1
+            for (RagDocumentPO doc : ragDocumentMapper.selectByIds(docIds)) {
+                docNameMap.put(doc.getId(), doc.getName());
             }
         }
 
