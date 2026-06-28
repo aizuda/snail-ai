@@ -2,6 +2,12 @@ package com.aizuda.snail.ai.model.common;
 
 import java.util.List;
 
+/**
+ * ModelAdapterDefaults
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 public final class ModelAdapterDefaults {
 
     public static final String CHAT_MODEL_TYPE = "CHAT";

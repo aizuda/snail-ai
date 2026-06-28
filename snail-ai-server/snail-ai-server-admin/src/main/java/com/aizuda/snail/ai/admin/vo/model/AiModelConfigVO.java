@@ -11,6 +11,9 @@ import java.time.LocalDateTime;
 /**
  * AI模型配置响应 VO
  * 用于返回给前端，隐藏敏感信息（API Key脱敏）
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

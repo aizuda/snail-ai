@@ -5,6 +5,12 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * AgentRequestVO
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 public class AgentRequestVO {
 

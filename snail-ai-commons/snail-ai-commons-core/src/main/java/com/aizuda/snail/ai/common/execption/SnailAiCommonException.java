@@ -2,6 +2,9 @@ package com.aizuda.snail.ai.common.execption;
 
 /**
  * 异常信息
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 public class SnailAiCommonException extends BaseSnailAiException {
 

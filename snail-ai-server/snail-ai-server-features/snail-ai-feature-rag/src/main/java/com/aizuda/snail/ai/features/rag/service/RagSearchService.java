@@ -9,6 +9,12 @@ import com.aizuda.snail.ai.persistence.rag.dataobject.RagConfigDO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+/**
+ * RagSearchService
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Service
 @RequiredArgsConstructor
 public class RagSearchService {

@@ -23,6 +23,9 @@ import java.util.function.Consumer;
 /**
  * 客户端 LLM 执行引擎：通过 {@link org.springframework.ai.chat.client.advisor.api.Advisor} 责任链管理
  * Prompt 注入、拦截器、思维链与 chunk 转发，自身仅负责组装 {@link ChatClient} 与流式调用。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 public class ClientChatExecutor {

@@ -6,6 +6,12 @@ import com.aizuda.snail.ai.search.storage.search.SearchEngineFactory;
 import com.aizuda.snail.ai.search.storage.search.enums.SearchEngineEnum;
 import org.springframework.stereotype.Component;
 
+/**
+ * EsSearchLifecycle
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Component
 public class EsSearchLifecycle implements Lifecycle {
 

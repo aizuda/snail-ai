@@ -4,6 +4,9 @@ import java.util.List;
 
 /**
  * 向量存储：只接收显式 {@code indexName}，不负责推导命名（由 {@link IndexNameBuilder} 等完成）。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public interface SnailAiVectorStore {
 

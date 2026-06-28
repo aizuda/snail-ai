@@ -3,6 +3,12 @@ package com.aizuda.snail.ai.agent.common.config;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+/**
+ * SnailAiAgentProperties
+ *
+ * @author opensnail
+ * @since 2026-05-05
+ */
 @Data
 @ConfigurationProperties(prefix = "snail-ai")
 public class SnailAiAgentProperties {

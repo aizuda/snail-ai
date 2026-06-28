@@ -24,6 +24,12 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.List;
 
+/**
+ * ResourceAdminService
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Service
 @RequiredArgsConstructor
 public class ResourceAdminService {

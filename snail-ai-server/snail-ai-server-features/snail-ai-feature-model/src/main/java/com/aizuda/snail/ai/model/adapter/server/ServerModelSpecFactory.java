@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * 服务端模型配置到模型构建规格的适配器。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Component
 public class ServerModelSpecFactory {

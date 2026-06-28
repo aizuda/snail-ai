@@ -5,6 +5,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * AgentUsageDetailVO
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

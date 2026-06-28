@@ -13,6 +13,12 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import java.lang.annotation.Annotation;
 
+/**
+ * GlobalRestfulResponseBodyAdvice
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @ControllerAdvice(basePackages = {"com.aizuda.snail.ai.admin"})
 public class GlobalRestfulResponseBodyAdvice implements ResponseBodyAdvice<Object> {

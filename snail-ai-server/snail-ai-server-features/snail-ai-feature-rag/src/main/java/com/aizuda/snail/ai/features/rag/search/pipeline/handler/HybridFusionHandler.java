@@ -11,6 +11,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+/**
+ * HybridFusionHandler
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Component
 @Order(50)
 @RequiredArgsConstructor

@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 
 /**
  * Skill 文件内容，用于 GET/PUT /skill/{id}/files/content
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

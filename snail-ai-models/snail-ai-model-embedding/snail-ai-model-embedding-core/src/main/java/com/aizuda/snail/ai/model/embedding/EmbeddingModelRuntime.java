@@ -8,6 +8,12 @@ import org.springframework.core.Ordered;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * EmbeddingModelRuntime
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 public class EmbeddingModelRuntime {
 
     private final List<EmbeddingModelAdapter> adapters;

@@ -7,6 +7,9 @@ import reactor.core.publisher.Flux;
 
 /**
  * Encodes RAG QA events for the fixed HTTP streaming response format.
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Component
 public class RagQaStreamHttpAdapter {

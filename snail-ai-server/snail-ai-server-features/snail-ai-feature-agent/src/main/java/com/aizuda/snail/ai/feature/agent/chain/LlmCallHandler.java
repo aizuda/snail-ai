@@ -18,6 +18,9 @@ import java.util.UUID;
 
 /**
  * 责任链终点：从 {@link AgentChatContext} 组装 {@link com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest}，通过 gRPC 流式调用远程 Client。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Component

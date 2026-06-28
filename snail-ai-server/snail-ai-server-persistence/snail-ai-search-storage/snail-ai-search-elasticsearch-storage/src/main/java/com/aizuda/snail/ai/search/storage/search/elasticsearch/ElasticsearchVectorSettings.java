@@ -4,6 +4,9 @@ import lombok.Data;
 
 /**
  * Elasticsearch 向量索引连接与映射参数，来自存储实例 {@code config} JSON。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 public class ElasticsearchVectorSettings {

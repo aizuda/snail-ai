@@ -19,6 +19,9 @@ import java.util.List;
  * 存储实例管理接口：向量库 / 搜索引擎等存储实例的 CRUD、维度约束查询与连通性测试。
  * <p>
  * 全部端点均需 ADMIN 角色。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @RestController
 @RequestMapping("/store-instance")

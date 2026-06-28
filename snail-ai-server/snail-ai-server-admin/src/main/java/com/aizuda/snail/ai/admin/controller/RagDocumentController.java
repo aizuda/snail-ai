@@ -23,6 +23,9 @@ import java.util.List;
  * RAG 文档管理接口：文档上传（直传 / 预览-提交两段式）、URL 导入、重处理与分页。
  * <p>
  * 全部端点均需 ADMIN 角色。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @RestController
 @RequestMapping("/document")

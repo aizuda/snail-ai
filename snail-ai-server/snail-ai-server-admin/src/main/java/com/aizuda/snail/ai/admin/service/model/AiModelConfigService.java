@@ -46,6 +46,9 @@ import java.util.stream.Collectors;
  * - API Key加密存储
  * - 按类型查询和切换默认模型
  * - Redis缓存管理
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Service

@@ -9,6 +9,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * 将服务端模型配置组装为客户端 dispatch 模型配置。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Component
 @RequiredArgsConstructor

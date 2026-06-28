@@ -20,6 +20,12 @@ import java.security.MessageDigest;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * OpenApiAuthInterceptor
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Component
 public class OpenApiAuthInterceptor implements HandlerInterceptor {

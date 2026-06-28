@@ -19,6 +19,9 @@ import java.util.stream.Collectors;
 
 /**
  * AI模型提供商管理服务
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Service

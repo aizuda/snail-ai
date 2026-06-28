@@ -9,6 +9,12 @@ import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 
+/**
+ * PdfParser
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Component
 public class PdfParser implements DocumentParser {

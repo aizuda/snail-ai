@@ -7,6 +7,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * SearchMemoryRequestVO
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 @Builder
 @NoArgsConstructor

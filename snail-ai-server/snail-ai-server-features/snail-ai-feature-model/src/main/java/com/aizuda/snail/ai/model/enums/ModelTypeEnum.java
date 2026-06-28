@@ -3,6 +3,9 @@ package com.aizuda.snail.ai.model.enums;
 /**
  * 模型类型枚举
  * 支持多种AI模型的分类
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public enum ModelTypeEnum {
     /**

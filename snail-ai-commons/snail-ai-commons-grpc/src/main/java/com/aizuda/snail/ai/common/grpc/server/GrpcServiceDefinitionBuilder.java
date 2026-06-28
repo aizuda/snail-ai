@@ -12,6 +12,9 @@ import lombok.extern.slf4j.Slf4j;
  * gRPC 服务定义构建工具（与 snail-job GrpcServer 模式一致）
  * <p>
  * 提供 Unary 和 Server Streaming 两种服务定义的编程式构建。
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 @Slf4j
 public final class GrpcServiceDefinitionBuilder {

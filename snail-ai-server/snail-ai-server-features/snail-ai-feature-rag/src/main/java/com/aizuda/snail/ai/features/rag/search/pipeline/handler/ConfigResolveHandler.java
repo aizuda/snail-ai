@@ -12,6 +12,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+/**
+ * ConfigResolveHandler
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Component
 @Order(10)

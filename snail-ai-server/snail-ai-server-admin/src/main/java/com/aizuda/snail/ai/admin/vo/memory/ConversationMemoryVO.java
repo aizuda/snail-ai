@@ -11,6 +11,9 @@ import java.util.List;
 
 /**
  * 对话记忆VO
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @AllArgsConstructor

@@ -23,6 +23,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.springframework.ai.vectorstore.filter.Filter.ExpressionType.*;
 
+/**
+ * ElasticsearchSnailAiVectorStore
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 public class ElasticsearchSnailAiVectorStore extends AbstractSnailAiVectorStore {
 

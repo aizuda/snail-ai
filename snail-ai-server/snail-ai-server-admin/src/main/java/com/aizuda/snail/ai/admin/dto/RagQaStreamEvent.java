@@ -5,6 +5,9 @@ import lombok.Data;
 
 /**
  * Structured event for RAG QA stream.
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

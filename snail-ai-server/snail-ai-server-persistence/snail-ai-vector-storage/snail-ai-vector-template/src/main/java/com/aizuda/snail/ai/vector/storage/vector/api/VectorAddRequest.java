@@ -9,6 +9,9 @@ import java.util.List;
 
 /**
  * 向量写入请求（显式指定索引 / 集合名称，避免仅从 metadata 推导）
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

@@ -2,6 +2,9 @@ package com.aizuda.snail.ai.agent.core.advisor;
 
 /**
  * {@link org.springframework.ai.chat.client.ChatClientRequest#context()} 中使用的参数键。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public final class ClientAdvisorKeys {
 

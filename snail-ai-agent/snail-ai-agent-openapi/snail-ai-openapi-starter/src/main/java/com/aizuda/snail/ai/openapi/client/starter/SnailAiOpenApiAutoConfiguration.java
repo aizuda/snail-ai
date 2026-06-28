@@ -17,6 +17,12 @@ import org.springframework.context.annotation.Bean;
 
 import java.net.http.HttpClient;
 
+/**
+ * SnailAiOpenApiAutoConfiguration
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @AutoConfiguration
 @EnableConfigurationProperties({SnailAiOpenApiProperties.class, SnailAiAgentProperties.class})
 @ConditionalOnProperty(prefix = "snail-ai.openapi", name = "enabled", havingValue = "true", matchIfMissing = false)

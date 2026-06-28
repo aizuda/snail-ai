@@ -17,6 +17,12 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * FinalizeHandler
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Component
 @Order(70)

@@ -5,6 +5,12 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * McpServerRequestVO
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 public class McpServerRequestVO {
 

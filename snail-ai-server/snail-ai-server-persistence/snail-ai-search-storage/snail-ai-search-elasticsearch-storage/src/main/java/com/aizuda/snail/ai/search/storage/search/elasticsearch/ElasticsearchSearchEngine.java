@@ -32,6 +32,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * ElasticsearchSearchEngine
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 public class ElasticsearchSearchEngine implements SearchEngine {
 

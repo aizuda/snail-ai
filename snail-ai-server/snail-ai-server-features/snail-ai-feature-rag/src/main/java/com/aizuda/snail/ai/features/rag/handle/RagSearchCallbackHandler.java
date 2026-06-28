@@ -19,6 +19,9 @@ import org.springframework.stereotype.Component;
  * <p>
  * 客户端 KnowledgeSearchTool 通过 gRPC 调用此处理器执行检索，
  * 观测责任由客户端承担。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Component

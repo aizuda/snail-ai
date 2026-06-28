@@ -7,6 +7,9 @@ import lombok.EqualsAndHashCode;
 /**
  * author: opensnail
  * date: 2025-07-21
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

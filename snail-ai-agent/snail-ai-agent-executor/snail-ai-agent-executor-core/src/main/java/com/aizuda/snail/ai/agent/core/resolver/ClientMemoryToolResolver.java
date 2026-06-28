@@ -10,6 +10,9 @@ import java.util.List;
  * 客户端记忆检索工具解析器
  * <p>
  * 记忆工具已简化 - 不再使用独立的工具注册，记忆检索通过后台处理
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 public class ClientMemoryToolResolver {

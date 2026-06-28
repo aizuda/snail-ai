@@ -10,6 +10,9 @@ import java.util.List;
 
 /**
  * 下一轮对话请求将带入的历史与记忆预览（粗算 token，不写访问日志）
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

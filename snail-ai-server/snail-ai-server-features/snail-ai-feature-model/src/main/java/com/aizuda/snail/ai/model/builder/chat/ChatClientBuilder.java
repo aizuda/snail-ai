@@ -22,6 +22,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * 缓存 key = configId，避免每次切片/对话都重建 OpenAiChatModel 及其底层 HTTP 连接池。
  * 5 分钟 TTL 自动淘汰过期条目。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Component
 @Slf4j

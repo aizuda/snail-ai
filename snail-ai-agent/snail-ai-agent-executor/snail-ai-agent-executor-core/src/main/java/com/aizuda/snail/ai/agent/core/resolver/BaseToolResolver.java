@@ -18,6 +18,9 @@ import java.util.List;
  * 客户端 RAG 知识库搜索工具解析器
  * <p>
  * 当 Agent 启用知识库时，注册本地 {@link RagSearchTool} 替代 MCP 调用。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 public class BaseToolResolver {

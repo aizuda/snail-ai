@@ -10,6 +10,12 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * OpenApiUserPO
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @TableName("sai_openapi_user")
 @Data
 @AllArgsConstructor

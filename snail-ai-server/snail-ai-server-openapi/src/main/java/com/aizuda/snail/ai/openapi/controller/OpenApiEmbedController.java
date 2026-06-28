@@ -14,6 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * OpenAPI 嵌入式对话接口。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @RestController
 @RequiredArgsConstructor

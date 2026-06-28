@@ -2,6 +2,12 @@ package com.aizuda.snail.ai.agent.chat.api;
 
 import java.util.Optional;
 
+/**
+ * SnailAiChatSessionContext
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 public final class SnailAiChatSessionContext {
 
     private static final ThreadLocal<SnailAiChatSession> SESSION = new ThreadLocal<>();

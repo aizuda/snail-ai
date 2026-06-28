@@ -14,6 +14,9 @@ import java.util.concurrent.TimeUnit;
  * 客户端 gRPC 服务器（接收 Server 的 dispatch 请求）
  * <p>
  * 注册两种服务：Unary（Ping）+ Server Streaming（DispatchChat）
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 @Slf4j
 public class ClientGrpcServer {

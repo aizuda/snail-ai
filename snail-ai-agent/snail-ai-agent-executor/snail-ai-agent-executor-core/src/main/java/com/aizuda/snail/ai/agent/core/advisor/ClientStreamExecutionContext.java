@@ -10,6 +10,9 @@ import java.util.List;
 
 /**
  * 单次流式调用的累积状态（由 Advisor 写入，完成时转为 {@link ClientChatExecutor.ChatCompletionResult}）。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 public class ClientStreamExecutionContext {

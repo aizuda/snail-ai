@@ -18,6 +18,12 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Bm25SearchHandler
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Component
 @Order(40)
 @RequiredArgsConstructor

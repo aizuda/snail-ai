@@ -12,6 +12,9 @@ import jakarta.validation.constraints.NotNull;
 /**
  * AI模型配置请求 VO
  * 用于接收前端新增/编辑模型配置的请求
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

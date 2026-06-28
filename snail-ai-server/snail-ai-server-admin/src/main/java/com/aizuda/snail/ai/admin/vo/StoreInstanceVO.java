@@ -7,6 +7,12 @@ import lombok.Data;
 import java.time.LocalDateTime;
 import java.util.Map;
 
+/**
+ * StoreInstanceVO
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 public class StoreInstanceVO {
 

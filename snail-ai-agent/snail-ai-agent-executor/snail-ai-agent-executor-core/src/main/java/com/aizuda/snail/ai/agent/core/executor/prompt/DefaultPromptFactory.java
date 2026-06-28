@@ -12,6 +12,9 @@ import java.util.List;
 
 /**
  * 默认 Prompt 工厂。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public class DefaultPromptFactory implements PromptFactory {
 

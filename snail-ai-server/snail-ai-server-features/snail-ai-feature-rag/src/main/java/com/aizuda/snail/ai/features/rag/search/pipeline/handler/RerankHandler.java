@@ -12,6 +12,12 @@ import org.springframework.stereotype.Component;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * RerankHandler
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Component
 @Order(60)
 @RequiredArgsConstructor

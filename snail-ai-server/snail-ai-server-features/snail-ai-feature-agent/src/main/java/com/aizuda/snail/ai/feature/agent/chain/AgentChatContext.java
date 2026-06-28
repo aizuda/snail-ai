@@ -14,6 +14,9 @@ import java.util.List;
 
 /**
  * 智能体对话责任链上下文，在各 Handler 间流转并被逐步填充
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 public class AgentChatContext {

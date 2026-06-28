@@ -27,6 +27,9 @@ import java.util.List;
  * 知识库（RAG）管理与检索接口：知识库 CRUD / 配置、向量检索与流式问答。
  * <p>
  * 全部端点均需 ADMIN 角色。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @RestController
 @RequestMapping("/rag")

@@ -9,6 +9,12 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.TimeZone;
 
+/**
+ * SnailAiApplication
+ *
+ * @author 唐亚峰 | battcn
+ * @since 2026-06-28
+ */
 @EnableAsync
 @EnableScheduling
 @SpringBootConfiguration

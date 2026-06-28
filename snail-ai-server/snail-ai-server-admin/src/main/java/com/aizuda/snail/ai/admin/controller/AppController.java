@@ -14,6 +14,9 @@ import java.util.List;
  * 应用（App）管理接口：应用 CRUD、启用状态切换与接入节点管理。
  * <p>
  * 全部端点均需 ADMIN 角色。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @RestController
 @RequestMapping("/app")

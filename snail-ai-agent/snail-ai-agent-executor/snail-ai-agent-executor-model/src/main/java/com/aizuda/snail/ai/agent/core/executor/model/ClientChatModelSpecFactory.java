@@ -6,6 +6,9 @@ import com.aizuda.snail.ai.model.common.ModelAdapterDefaults;
 
 /**
  * 客户端 dispatch 模型配置到 ChatModelSpec 的适配器。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public class ClientChatModelSpecFactory {
 

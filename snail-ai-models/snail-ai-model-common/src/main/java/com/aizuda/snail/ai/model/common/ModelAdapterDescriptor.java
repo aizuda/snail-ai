@@ -1,5 +1,11 @@
 package com.aizuda.snail.ai.model.common;
 
+/**
+ * ModelAdapterDescriptor
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 public record ModelAdapterDescriptor(
         String adapterKey,
         String name,

@@ -19,6 +19,9 @@ import java.util.Optional;
 
 /**
  * 从模型配置（及必要时通过一次 embedding 调用）解析向量维度，并回写 {@code config_json.embeddingDimension}。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Service

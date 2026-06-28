@@ -7,6 +7,12 @@ import com.aizuda.snail.ai.common.openapi.dto.OpenApiUserQueryRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiUserVO;
 import com.aizuda.snail.ai.openapi.client.core.annotation.OpenApiMapping;
 
+/**
+ * OpenApiUserClient
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 public interface OpenApiUserClient {
 
     @OpenApiMapping(path = OpenApiPathConstants.OPEN_API_USER_REGISTER, method = OpenApiMapping.HttpMethod.POST)

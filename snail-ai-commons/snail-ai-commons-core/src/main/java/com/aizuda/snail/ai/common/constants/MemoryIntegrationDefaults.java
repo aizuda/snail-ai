@@ -4,6 +4,9 @@ import java.math.BigDecimal;
 
 /**
  * 记忆模块与向量检索共用的默认配置（避免魔法数散落各层）。
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 public final class MemoryIntegrationDefaults {
 

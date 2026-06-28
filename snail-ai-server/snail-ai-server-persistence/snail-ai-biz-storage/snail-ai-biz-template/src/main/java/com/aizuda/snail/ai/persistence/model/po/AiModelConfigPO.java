@@ -16,6 +16,9 @@ import java.time.LocalDateTime;
  *
  * 支持多提供商、多模型类型的灵活配置
  * 支持全局配置(owner_id=null)和个人配置(owner_id=userId)
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

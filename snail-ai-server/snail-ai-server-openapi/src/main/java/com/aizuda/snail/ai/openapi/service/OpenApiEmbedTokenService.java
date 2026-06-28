@@ -23,6 +23,9 @@ import java.util.Date;
 
 /**
  * OpenAPI 嵌入式对话 token 服务。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Service
 @RequiredArgsConstructor

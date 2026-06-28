@@ -6,6 +6,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
+/**
+ * ImportRequest
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

@@ -6,6 +6,9 @@ import java.util.List;
 
 /**
  * 客户端路由策略接口
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public interface ClientRouteStrategy {
 

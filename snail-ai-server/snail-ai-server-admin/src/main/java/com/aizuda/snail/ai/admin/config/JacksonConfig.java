@@ -26,6 +26,12 @@ import static com.aizuda.snail.ai.common.constants.SystemConstants.YYYY_MM_DD_HH
  * @Date: 2018/09/27 12:52
  */
 
+/**
+ * JacksonConfig
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Configuration
 @Slf4j
 public class JacksonConfig {

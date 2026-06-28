@@ -1,5 +1,11 @@
 package com.aizuda.snail.ai.model.common;
 
+/**
+ * ModelAdapterException
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 public class ModelAdapterException extends RuntimeException {
 
     private final ModelErrorCode errorCode;

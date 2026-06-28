@@ -9,6 +9,12 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
+/**
+ * PlainTextParser
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Component
 public class PlainTextParser implements DocumentParser {
 

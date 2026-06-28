@@ -10,6 +10,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+/**
+ * OpenApiUserController
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @RestController
 @RequiredArgsConstructor
 public class OpenApiUserController {

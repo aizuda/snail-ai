@@ -5,6 +5,12 @@ import com.aizuda.snail.ai.features.rag.enums.ChunkModeEnum;
 
 import java.util.List;
 
+/**
+ * ChunkStrategy
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 public interface ChunkStrategy {
 
     /** 是否支持该切片模式 */

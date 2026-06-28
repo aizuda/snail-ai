@@ -8,6 +8,9 @@ import java.util.List;
 
 /**
  * 责任链执行器，持有有序的 Handler 列表，通过 proceed 逐个驱动
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Component
 public class AgentChatChainService {

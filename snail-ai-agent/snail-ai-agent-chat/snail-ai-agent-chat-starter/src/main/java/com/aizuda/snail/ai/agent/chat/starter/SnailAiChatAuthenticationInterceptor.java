@@ -14,6 +14,12 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.util.List;
 
+/**
+ * SnailAiChatAuthenticationInterceptor
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @RequiredArgsConstructor
 public class SnailAiChatAuthenticationInterceptor implements HandlerInterceptor {
 

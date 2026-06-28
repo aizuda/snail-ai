@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 
 /**
  * 向量维度约束信息（模型上限 + 向量库上限 + 有效上限）。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

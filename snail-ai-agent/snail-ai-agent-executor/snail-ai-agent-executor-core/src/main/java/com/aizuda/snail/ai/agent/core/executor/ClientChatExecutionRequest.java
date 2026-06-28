@@ -10,6 +10,9 @@ import java.util.function.Consumer;
 
 /**
  * 客户端 Chat 执行请求上下文。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

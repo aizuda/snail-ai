@@ -17,6 +17,9 @@ import java.util.List;
  * <p>
  * 仅在智能调用模式下注册 rag_search tool；
  * 强制调用模式由服务端预检索，不需要 tool。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 public class ClientRagToolResolver {

@@ -7,6 +7,9 @@ import java.util.List;
 
 /**
  * 按分隔符一级切分，再递归按长度切分。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Component
 public class DelimiterChunkStrategy extends AbstractChunkStrategy {

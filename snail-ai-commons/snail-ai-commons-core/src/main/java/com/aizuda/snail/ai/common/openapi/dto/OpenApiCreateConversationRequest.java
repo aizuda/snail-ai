@@ -6,6 +6,9 @@ import lombok.Data;
 
 /**
  * OpenAPI 创建会话请求
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 @Data
 public class OpenApiCreateConversationRequest {

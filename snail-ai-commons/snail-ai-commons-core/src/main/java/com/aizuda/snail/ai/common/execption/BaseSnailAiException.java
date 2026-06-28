@@ -4,6 +4,9 @@ import org.slf4j.helpers.MessageFormatter;
 
 /**
  * 异常信息 (复制自 snail-job)
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 public class BaseSnailAiException extends RuntimeException {
 

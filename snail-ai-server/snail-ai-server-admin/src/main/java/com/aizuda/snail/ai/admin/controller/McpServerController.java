@@ -16,6 +16,9 @@ import java.util.List;
  * MCP 服务管理接口：MCP 服务的分页、CRUD、连通性测试与列表查询。
  * <p>
  * 全部端点均需 ADMIN 角色。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @RestController
 @RequestMapping("/mcp-server")

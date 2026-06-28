@@ -4,6 +4,9 @@ import lombok.Getter;
 
 /**
  * (复制自 snail-job)
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 @Getter
 public class SnailAiAuthenticationException extends BaseSnailAiException {

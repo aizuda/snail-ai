@@ -6,6 +6,12 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 
+/**
+ * MemoryConfigRequestVO
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 public class MemoryConfigRequestVO {
 

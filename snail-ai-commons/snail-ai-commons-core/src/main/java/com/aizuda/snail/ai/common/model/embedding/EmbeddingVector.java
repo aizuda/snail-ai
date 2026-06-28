@@ -5,6 +5,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * EmbeddingVector
+ *
+ * @author opensnail
+ * @since 2026-05-05
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

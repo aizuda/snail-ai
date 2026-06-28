@@ -13,6 +13,9 @@ import java.util.Map;
 
 /**
  * 统一处理向量维度约束（模型上限 + 向量库上限）。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Service
 @RequiredArgsConstructor

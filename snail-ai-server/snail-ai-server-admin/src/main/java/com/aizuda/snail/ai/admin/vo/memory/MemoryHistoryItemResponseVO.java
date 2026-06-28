@@ -7,6 +7,12 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * MemoryHistoryItemResponseVO
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 @Builder
 @NoArgsConstructor

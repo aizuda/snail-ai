@@ -8,6 +8,9 @@ import java.util.List;
 
 /**
  * 模板方法：子类实现一级切分 {@link #splitIntoParagraphs}，二级递归切分由 {@link TokenAwareChunker#chunkParagraphs} 统一处理。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @RequiredArgsConstructor
 public abstract class AbstractChunkStrategy implements ChunkStrategy {

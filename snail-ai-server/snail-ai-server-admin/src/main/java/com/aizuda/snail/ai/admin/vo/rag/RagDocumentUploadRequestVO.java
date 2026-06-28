@@ -4,6 +4,12 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+/**
+ * RagDocumentUploadRequestVO
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 public class RagDocumentUploadRequestVO {
 

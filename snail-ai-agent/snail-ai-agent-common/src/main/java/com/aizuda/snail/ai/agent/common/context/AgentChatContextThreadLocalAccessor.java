@@ -9,6 +9,9 @@ import io.micrometer.context.ThreadLocalAccessor;
  * Reactor 会在订阅时自动捕获当前线程的 ChatContext，
  * 并在每个操作符切换线程时恢复，从而保证 Advisor 等回调
  * 在任意线程上都能通过 AgentChatContextHolder.getContext() 拿到值。
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 public class AgentChatContextThreadLocalAccessor
         implements ThreadLocalAccessor<AgentChatContextHolder.ChatContext> {

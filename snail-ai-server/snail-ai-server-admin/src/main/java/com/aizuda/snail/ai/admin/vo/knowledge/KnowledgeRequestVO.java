@@ -5,6 +5,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+/**
+ * KnowledgeRequestVO
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 public class KnowledgeRequestVO {
 

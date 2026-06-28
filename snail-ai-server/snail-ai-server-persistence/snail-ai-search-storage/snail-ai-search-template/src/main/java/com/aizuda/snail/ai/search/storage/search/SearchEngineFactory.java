@@ -13,6 +13,12 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
+/**
+ * SearchEngineFactory
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Component
 @RequiredArgsConstructor
 public class SearchEngineFactory {

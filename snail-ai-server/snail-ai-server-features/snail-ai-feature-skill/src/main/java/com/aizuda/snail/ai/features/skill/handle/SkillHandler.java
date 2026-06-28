@@ -25,6 +25,9 @@ import java.util.stream.Collectors;
 /**
  * Skill 服务接口（基础设施层）
  * 供 features 层的工具类和 admin 层的 handler 调用，由 admin 层实现
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Component
 @Slf4j

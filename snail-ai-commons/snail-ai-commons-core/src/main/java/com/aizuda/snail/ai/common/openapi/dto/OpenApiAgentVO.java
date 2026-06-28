@@ -10,6 +10,9 @@ import java.util.List;
 
 /**
  * OpenAPI Agent 概要信息
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 @Data
 @Builder

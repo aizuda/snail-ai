@@ -14,6 +14,9 @@ import java.util.*;
  * 客户端本地 RAG 知识库搜索工具
  * <p>
  * 通过 gRPC 回调服务端执行检索，支持多知识库（由 LLM 通过 ragId 参数选择）。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 public class RagSearchTool {

@@ -18,6 +18,9 @@ import java.time.LocalDateTime;
 
 /**
  * Chat 流结束后的持久化：助手消息、短期记忆窗口、用量统计。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Service

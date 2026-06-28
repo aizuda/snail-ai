@@ -50,6 +50,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * SnailAiChatGatewayController
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Validated
 @RestController
 @RequiredArgsConstructor

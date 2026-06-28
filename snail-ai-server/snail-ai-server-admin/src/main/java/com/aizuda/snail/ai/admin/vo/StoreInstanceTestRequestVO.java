@@ -6,6 +6,12 @@ import lombok.EqualsAndHashCode;
 
 import java.util.Map;
 
+/**
+ * StoreInstanceTestRequestVO
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 public class StoreInstanceTestRequestVO {
 

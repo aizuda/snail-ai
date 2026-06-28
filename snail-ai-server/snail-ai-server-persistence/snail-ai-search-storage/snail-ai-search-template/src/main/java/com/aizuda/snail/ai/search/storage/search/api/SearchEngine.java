@@ -4,6 +4,12 @@ import com.aizuda.snail.ai.common.dto.rag.SearchResult;
 
 import java.util.List;
 
+/**
+ * SearchEngine
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 public interface SearchEngine {
 
     void insert(SearchAddRequest request);

@@ -4,6 +4,9 @@ import org.springframework.core.Ordered;
 
 /**
  * ChatClient 横向自定义扩展。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public interface ChatClientCustomizer {
 

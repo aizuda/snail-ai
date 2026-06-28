@@ -19,6 +19,9 @@ import java.util.function.Supplier;
 
 /**
  * 客户端工具运行时，统一解析一次对话所需的工具集合。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @RequiredArgsConstructor

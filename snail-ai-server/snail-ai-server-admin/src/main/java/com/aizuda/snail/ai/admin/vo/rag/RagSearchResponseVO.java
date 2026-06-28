@@ -10,6 +10,12 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * RagSearchResponseVO
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

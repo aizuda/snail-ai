@@ -3,6 +3,12 @@ package com.aizuda.snail.ai.agent.chat.api;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+/**
+ * SnailAiChatProperties
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 @ConfigurationProperties(prefix = "snail-ai.chat")
 public class SnailAiChatProperties {

@@ -43,6 +43,12 @@ import java.util.zip.ZipOutputStream;
 
 import static com.aizuda.snail.ai.common.constants.SystemConstants.SKILL_MD;
 
+/**
+ * SkillService
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

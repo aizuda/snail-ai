@@ -8,6 +8,9 @@ import java.time.LocalDateTime;
 /**
  * author: opensnail
  * date: 2025-07-18
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 public class UserInfoVO {

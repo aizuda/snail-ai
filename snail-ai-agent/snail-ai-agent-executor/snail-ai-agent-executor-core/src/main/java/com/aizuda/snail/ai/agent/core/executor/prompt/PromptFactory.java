@@ -5,6 +5,9 @@ import org.springframework.ai.chat.prompt.Prompt;
 
 /**
  * Prompt 构建工厂。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public interface PromptFactory {
 

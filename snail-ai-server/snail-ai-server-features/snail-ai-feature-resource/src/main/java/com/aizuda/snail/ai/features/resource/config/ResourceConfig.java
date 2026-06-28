@@ -4,6 +4,12 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * ResourceConfig
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "snail-ai.resource")

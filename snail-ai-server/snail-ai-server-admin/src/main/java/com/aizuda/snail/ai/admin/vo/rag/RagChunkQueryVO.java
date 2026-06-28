@@ -5,6 +5,12 @@ import com.fasterxml.jackson.annotation.JsonAlias;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+/**
+ * RagChunkQueryVO
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class RagChunkQueryVO extends BaseQueryVO {

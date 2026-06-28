@@ -12,6 +12,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * ShellTool
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 public class ShellTool {
 

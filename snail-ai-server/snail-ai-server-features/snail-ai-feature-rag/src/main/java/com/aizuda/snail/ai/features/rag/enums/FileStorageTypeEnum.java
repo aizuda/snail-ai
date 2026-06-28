@@ -5,6 +5,9 @@ import lombok.Getter;
 
 /**
  * 文件存储类型
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Getter
 @AllArgsConstructor

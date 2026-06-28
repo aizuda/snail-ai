@@ -7,6 +7,12 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * RagSearchResponse
+ *
+ * @author opensnail
+ * @since 2026-05-05
+ */
 @Data
 @Builder
 @NoArgsConstructor

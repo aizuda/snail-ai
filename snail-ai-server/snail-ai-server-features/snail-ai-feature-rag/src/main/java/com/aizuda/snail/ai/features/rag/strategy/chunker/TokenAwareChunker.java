@@ -17,6 +17,9 @@ import java.util.regex.Pattern;
 
 /**
  * 各 {@link ChunkStrategy} 共用的二级递归切分与工具方法，不再作为对外切片入口。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Component

@@ -1,5 +1,11 @@
 package com.aizuda.snail.ai.search.storage.search.constant;
 
+/**
+ * SearchMetadataKeys
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 public final class SearchMetadataKeys {
 
     private SearchMetadataKeys() {

@@ -11,6 +11,12 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * AgentResponseVO
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

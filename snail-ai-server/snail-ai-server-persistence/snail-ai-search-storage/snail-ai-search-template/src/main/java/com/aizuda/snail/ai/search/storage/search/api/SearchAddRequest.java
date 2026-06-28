@@ -9,6 +9,9 @@ import java.util.List;
 
 /**
  * 搜索文档写入请求（显式指定 indexName，避免从 metadata 隐式推导）。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @AllArgsConstructor

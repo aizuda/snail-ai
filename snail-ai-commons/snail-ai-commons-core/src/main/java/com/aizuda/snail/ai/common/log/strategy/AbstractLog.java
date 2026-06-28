@@ -5,6 +5,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * 简化版 AbstractLog，使用 SLF4J (复制自 snail-job 并简化)
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 public abstract class AbstractLog {
     private static final Logger LOG = LoggerFactory.getLogger(AbstractLog.class);

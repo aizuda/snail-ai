@@ -6,6 +6,12 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * RagSearchPipeline
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor

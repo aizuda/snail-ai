@@ -32,6 +32,9 @@ import java.util.stream.Collectors;
  * <p>
  * 权限约定：{@code @LoginRequired} 默认要求 ADMIN 角色；标注 {@code role = USER}
  * 的端点对任意登录用户开放（如对话、市场、订阅、会话记录）。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @RestController
 @RequestMapping("/agent")

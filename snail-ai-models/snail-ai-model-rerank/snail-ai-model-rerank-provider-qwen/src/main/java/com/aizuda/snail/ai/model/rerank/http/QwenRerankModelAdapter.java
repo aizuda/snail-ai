@@ -15,6 +15,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * QwenRerankModelAdapter
+ *
+ * @author opensnail
+ * @since 2026-06-17
+ */
 @Slf4j
 public class QwenRerankModelAdapter implements RerankModelAdapter, Ordered {
 

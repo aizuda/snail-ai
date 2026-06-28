@@ -13,6 +13,12 @@ import org.springframework.core.Ordered;
 import java.time.Duration;
 import java.util.Locale;
 
+/**
+ * OpenAiCompatibleEmbeddingModelAdapter
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 public class OpenAiCompatibleEmbeddingModelAdapter implements EmbeddingModelAdapter, Ordered {
 
     private static final long DEFAULT_TIMEOUT_MS = 60_000L;

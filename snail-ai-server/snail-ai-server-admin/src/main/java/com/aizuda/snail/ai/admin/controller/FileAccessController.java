@@ -33,6 +33,9 @@ import java.util.regex.Pattern;
 
 /**
  * 公开资源访问入口。访问凭证是包含 UUID 的 storageKey，不使用自增资源 ID。
+ *
+ * @author opensnail
+ * @since 2026-06-20
  */
 @RestController
 @RequestMapping("/files")

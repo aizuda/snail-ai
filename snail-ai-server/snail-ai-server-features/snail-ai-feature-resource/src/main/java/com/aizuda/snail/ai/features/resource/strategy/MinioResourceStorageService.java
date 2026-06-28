@@ -13,6 +13,12 @@ import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 
+/**
+ * MinioResourceStorageService
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor

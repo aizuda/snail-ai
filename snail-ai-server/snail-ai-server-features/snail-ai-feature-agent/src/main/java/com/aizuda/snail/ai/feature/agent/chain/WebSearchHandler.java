@@ -17,6 +17,12 @@ import java.util.List;
 @Slf4j
 //@Component
 //@Order(65)
+/**
+ * WebSearchHandler
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 public class WebSearchHandler implements AgentChatHandler {
 
     @Value("${snail-ai.web-search.tavily.api-key:}")

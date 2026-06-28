@@ -14,6 +14,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * 客户端心跳：{@link UriConstants#BEAT}
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Component

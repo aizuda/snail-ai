@@ -12,6 +12,12 @@ import org.springframework.context.annotation.Bean;
 
 import java.util.List;
 
+/**
+ * SnailAiEmbeddingModelAutoConfiguration
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @AutoConfiguration
 public class SnailAiEmbeddingModelAutoConfiguration {
 

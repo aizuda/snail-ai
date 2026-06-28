@@ -10,6 +10,9 @@ import java.time.LocalDateTime;
 /**
  * AI模型提供商 VO
  * 用于返回提供商信息给前端
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

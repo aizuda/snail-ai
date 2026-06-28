@@ -10,6 +10,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+/**
+ * CollectingChatStreamWriter
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 public class CollectingChatStreamWriter implements ChatStreamWriter {
 

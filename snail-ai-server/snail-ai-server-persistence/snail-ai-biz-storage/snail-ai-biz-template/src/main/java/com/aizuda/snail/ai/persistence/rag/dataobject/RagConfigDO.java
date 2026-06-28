@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 /**
  * author: zhangshuguang
  * date: 2026-04-01
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

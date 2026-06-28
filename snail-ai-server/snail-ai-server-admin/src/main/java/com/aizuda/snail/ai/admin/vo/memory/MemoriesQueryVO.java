@@ -4,6 +4,12 @@ import com.aizuda.snail.ai.common.vo.BaseQueryVO;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+/**
+ * MemoriesQueryVO
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class MemoriesQueryVO extends BaseQueryVO {

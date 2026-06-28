@@ -18,6 +18,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
 
+/**
+ * SnailAiChatAutoConfiguration
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @AutoConfiguration
 @AutoConfigureAfter(SnailAiOpenApiAutoConfiguration.class)
 @EnableConfigurationProperties(SnailAiChatProperties.class)

@@ -8,6 +8,9 @@ import java.io.InputStream;
  * 文档内容解析器 SPI
  * 负责根据文档的存储方式加载文件内容流。
  * 默认实现走 RAG 本地存储（历史数据降级），可被 admin 层覆盖以使用资源库。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public interface DocumentContentResolver {
 

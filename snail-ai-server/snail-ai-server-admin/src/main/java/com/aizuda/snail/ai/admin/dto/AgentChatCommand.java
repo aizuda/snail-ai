@@ -9,6 +9,9 @@ import java.util.List;
 
 /**
  * 智能体对话命令对象
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

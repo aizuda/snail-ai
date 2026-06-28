@@ -27,6 +27,9 @@ import java.util.regex.Pattern;
 
 /**
  * 智能切片：LLM 输出语义片段作为一级切分，再经 {@link TokenAwareChunker#chunkParagraphs} 二级递归。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Component

@@ -2,6 +2,9 @@ package com.aizuda.snail.ai.common.constants;
 
 /**
  * OpenAPI 路径常量
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 public interface OpenApiPathConstants {
 

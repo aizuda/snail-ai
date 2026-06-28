@@ -26,6 +26,9 @@ import java.util.stream.Collectors;
  *
  * author: opensnail
  * date: 2026-03-26
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Component

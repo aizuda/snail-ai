@@ -25,6 +25,9 @@ import java.util.List;
 /**
  * AI模型管理控制器
  * 提供模型配置CRUD、模型切换、使用统计等API
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @RestController
 @RequestMapping("/ai-model")

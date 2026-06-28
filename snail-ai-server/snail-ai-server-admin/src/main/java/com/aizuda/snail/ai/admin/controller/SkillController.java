@@ -27,6 +27,9 @@ import java.util.List;
  * 技能（Skill）管理接口：技能包上传 / 下载、CRUD 与在线文件编辑。
  * <p>
  * 全部端点均需 ADMIN 角色（{@code @LoginRequired} 默认角色）。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @RestController
 @RequestMapping("/skill")

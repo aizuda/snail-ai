@@ -2,6 +2,9 @@ package com.aizuda.snail.ai.agent.core.resolver;
 
 /**
  * Skill 渐进式披露 — 系统提示词模板常量 + 轻量级技能列表构建
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public final class SkillPromptConstants {
 

@@ -4,6 +4,12 @@ import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * StoreCategoryEnum
+ *
+ * @author opensnail
+ * @since 2026-05-05
+ */
 @Getter
 @AllArgsConstructor
 public enum StoreCategoryEnum {

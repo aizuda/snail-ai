@@ -4,6 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
+/**
+ * Result
+ *
+ * @author opensnail
+ * @since 2026-05-05
+ */
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Result<T> {

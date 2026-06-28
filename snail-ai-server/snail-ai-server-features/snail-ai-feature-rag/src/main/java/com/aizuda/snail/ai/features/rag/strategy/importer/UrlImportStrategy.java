@@ -18,6 +18,12 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Locale;
 
+/**
+ * UrlImportStrategy
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Component
 public class UrlImportStrategy implements DocumentImportStrategy {

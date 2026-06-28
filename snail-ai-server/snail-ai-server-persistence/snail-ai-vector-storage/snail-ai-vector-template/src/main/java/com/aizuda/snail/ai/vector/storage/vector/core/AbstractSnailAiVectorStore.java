@@ -12,6 +12,9 @@ import java.util.*;
 /**
  * 向量存储抽象：写入与检索均委托给 Spring AI {@code VectorStore}（由子类按 indexName 缓存），
  * 不在此层做 embedding；由 Spring AI 在 add / similaritySearch 内部完成向量化。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public abstract class AbstractSnailAiVectorStore implements SnailAiVectorStore {
 

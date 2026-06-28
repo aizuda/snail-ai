@@ -2,6 +2,9 @@ package com.aizuda.snail.ai.feature.agent.stream;
 
 /**
  * Chat stream output port used by the agent chain.
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public interface ChatStreamWriter {
 

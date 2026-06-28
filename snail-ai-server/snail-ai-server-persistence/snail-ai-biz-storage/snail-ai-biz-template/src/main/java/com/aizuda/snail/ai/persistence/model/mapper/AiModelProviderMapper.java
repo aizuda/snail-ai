@@ -6,6 +6,9 @@ import org.apache.ibatis.annotations.Mapper;
 
 /**
  * AI模型提供商 Mapper接口
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Mapper
 public interface AiModelProviderMapper extends BaseMapper<AiModelProviderPO> {

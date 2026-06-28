@@ -19,6 +19,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * 回调：创建对话 + 保存用户消息
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Component

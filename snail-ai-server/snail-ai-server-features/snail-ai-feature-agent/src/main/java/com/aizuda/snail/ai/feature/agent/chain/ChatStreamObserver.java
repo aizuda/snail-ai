@@ -10,6 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * gRPC 流式响应观察者：桥接 Agent gRPC 流到前端 HTTP Emitter，并在 completion 时持久化结果。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 public class ChatStreamObserver implements StreamObserver<GrpcSnailAiResult> {

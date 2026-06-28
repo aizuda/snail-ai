@@ -19,6 +19,12 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+/**
+ * AgentAnalyticsService
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

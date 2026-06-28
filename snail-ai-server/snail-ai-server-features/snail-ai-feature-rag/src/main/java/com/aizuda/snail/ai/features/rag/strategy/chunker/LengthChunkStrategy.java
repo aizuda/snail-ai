@@ -5,6 +5,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * 按长度：不做一级切分，整篇作为一个段落进入二级递归。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Component
 public class LengthChunkStrategy extends AbstractChunkStrategy {

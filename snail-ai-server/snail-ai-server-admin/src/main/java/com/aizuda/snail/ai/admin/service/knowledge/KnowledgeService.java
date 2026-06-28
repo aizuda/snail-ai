@@ -41,6 +41,12 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+/**
+ * KnowledgeService
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

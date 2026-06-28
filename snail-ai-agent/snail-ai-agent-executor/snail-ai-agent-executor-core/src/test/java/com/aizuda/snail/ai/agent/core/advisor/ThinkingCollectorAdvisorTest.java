@@ -17,6 +17,12 @@ import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * ThinkingCollectorAdvisorTest
+ *
+ * @author opensnail
+ * @since 2026-06-21
+ */
 class ThinkingCollectorAdvisorTest {
 
     @Test

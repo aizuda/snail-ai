@@ -14,6 +14,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * OpenAPI 用户身份解析（appId + openId -> 平台用户）
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Component
 @RequiredArgsConstructor

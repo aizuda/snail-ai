@@ -6,6 +6,9 @@ import lombok.Data;
 
 /**
  * OpenAPI 会话清空请求（Query 参数）
+ *
+ * @author opensnail
+ * @since 2026-06-19
  */
 @Data
 public class OpenApiConversationClearRequest {

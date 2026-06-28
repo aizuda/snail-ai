@@ -6,6 +6,9 @@ import lombok.Getter;
 
 /**
  * 记忆状态枚举
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 @Getter
 @AllArgsConstructor

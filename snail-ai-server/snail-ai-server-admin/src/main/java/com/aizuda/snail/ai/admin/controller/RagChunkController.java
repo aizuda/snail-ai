@@ -17,6 +17,9 @@ import java.util.List;
  * RAG 文档切块（chunk）管理接口：切块的分页、详情、增删改。
  * <p>
  * 全部端点均需 ADMIN 角色。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @RestController
 @RequestMapping("/chunk")

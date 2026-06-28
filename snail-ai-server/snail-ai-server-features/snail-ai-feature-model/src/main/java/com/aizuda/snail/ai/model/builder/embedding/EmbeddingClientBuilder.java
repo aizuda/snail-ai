@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * EmbeddingModel 动态构建器。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Component
 @RequiredArgsConstructor

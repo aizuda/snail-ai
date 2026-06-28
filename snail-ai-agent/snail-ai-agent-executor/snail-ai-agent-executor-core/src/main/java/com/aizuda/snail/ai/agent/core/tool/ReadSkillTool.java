@@ -23,6 +23,9 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>支撑文件（scripts、references 等）异步写入本地临时目录，不阻塞返回</li>
  *   <li>后续同一 skill 的重复调用直接返回缓存，不再请求 Server</li>
  * </ol>
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 public class ReadSkillTool {

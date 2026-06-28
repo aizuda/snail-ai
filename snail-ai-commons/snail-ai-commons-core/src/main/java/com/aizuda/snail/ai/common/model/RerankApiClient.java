@@ -5,6 +5,9 @@ import java.util.List;
 /**
  * Rerank API 客户端接口
  * 封装对不同 rerank 服务提供商的 HTTP 调用
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 public interface RerankApiClient {
 

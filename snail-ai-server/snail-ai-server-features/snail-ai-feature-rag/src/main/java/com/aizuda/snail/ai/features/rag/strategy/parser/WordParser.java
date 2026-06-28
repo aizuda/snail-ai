@@ -8,6 +8,12 @@ import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 
+/**
+ * WordParser
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Component
 public class WordParser implements DocumentParser {

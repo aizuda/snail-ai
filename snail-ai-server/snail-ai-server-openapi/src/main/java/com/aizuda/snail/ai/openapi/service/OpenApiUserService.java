@@ -25,6 +25,12 @@ import java.time.LocalDateTime;
 import java.util.HexFormat;
 import java.util.UUID;
 
+/**
+ * OpenApiUserService
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

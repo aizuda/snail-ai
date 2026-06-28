@@ -8,6 +8,12 @@ import org.springframework.core.Ordered;
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * RerankModelRuntime
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 public class RerankModelRuntime {
 
     private final List<RerankModelAdapter> adapters;

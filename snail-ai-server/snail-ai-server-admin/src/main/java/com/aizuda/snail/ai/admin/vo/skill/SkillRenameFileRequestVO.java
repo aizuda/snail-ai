@@ -4,6 +4,9 @@ import lombok.Data;
 
 /**
  * PUT /skill/{id}/files/rename 请求体
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 public class SkillRenameFileRequestVO {

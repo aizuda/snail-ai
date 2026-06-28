@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * 服务端模型构建门面。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Component
 @RequiredArgsConstructor

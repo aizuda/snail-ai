@@ -9,6 +9,12 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * RagSearchContext
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 @Builder
 public class RagSearchContext {

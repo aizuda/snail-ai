@@ -3,6 +3,12 @@ package com.aizuda.snail.ai.features.resource.util;
 import java.net.URLConnection;
 import java.util.Map;
 
+/**
+ * MimeTypeUtils
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 public final class MimeTypeUtils {
 
     private static final Map<String, String> EXT_MAP = Map.ofEntries(

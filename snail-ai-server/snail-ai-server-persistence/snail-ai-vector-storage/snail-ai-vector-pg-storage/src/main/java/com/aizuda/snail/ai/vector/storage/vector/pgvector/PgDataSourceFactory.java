@@ -12,6 +12,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * 按 {@link PgVectorSettings}（来自 DB 存储实例）创建 PostgreSQL 连接池。
  * <p>
  * 使用缓存机制复用 JdbcTemplate（内含 HikariCP 连接池），避免重复创建导致连接数暴增。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 public final class PgDataSourceFactory {

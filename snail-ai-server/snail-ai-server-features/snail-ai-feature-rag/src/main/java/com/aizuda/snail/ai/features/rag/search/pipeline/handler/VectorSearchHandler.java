@@ -17,6 +17,12 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * VectorSearchHandler
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Component
 @Order(30)
 @RequiredArgsConstructor

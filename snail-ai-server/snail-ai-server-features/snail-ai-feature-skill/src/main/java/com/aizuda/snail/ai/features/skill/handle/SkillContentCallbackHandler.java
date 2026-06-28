@@ -21,6 +21,9 @@ import java.util.Map;
 
 /**
  * 回调：获取 Skill 完整内容 + 支撑文件
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Component

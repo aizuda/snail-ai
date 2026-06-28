@@ -2,6 +2,9 @@ package com.aizuda.snail.ai.common.enums.memory;
 
 /**
  * 记忆压缩策略
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 public enum CompressionStrategy {
 

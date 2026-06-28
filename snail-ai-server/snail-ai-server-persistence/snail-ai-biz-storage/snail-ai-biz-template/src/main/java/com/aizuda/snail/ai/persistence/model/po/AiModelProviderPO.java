@@ -13,6 +13,9 @@ import java.time.LocalDateTime;
 /**
  * AI模型提供商信息持久化对象
  * 表: sai_model_provider
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

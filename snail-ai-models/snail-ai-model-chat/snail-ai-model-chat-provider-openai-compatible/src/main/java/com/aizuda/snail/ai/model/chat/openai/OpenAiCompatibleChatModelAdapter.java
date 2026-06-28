@@ -13,6 +13,12 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * OpenAiCompatibleChatModelAdapter
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 public class OpenAiCompatibleChatModelAdapter implements ChatModelAdapter, Ordered {
 
     @Override

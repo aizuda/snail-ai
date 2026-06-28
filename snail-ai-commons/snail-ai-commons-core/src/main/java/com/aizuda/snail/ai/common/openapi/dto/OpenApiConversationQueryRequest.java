@@ -7,6 +7,9 @@ import lombok.Data;
 
 /**
  * OpenAPI 会话查询请求（Query 参数）
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 @Data
 public class OpenApiConversationQueryRequest {

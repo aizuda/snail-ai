@@ -17,6 +17,9 @@ import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * gRPC 客户端调用工具
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 @Slf4j
 public final class GrpcChannelUtil {

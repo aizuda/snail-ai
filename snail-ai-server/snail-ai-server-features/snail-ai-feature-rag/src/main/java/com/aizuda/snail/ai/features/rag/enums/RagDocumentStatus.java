@@ -4,6 +4,12 @@ import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * RagDocumentStatus
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Getter
 @AllArgsConstructor
 public enum RagDocumentStatus {

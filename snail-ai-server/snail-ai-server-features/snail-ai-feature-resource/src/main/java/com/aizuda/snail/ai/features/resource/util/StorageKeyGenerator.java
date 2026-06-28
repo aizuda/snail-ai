@@ -8,6 +8,12 @@ import java.util.Locale;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
+/**
+ * StorageKeyGenerator
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 public final class StorageKeyGenerator {
 
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("yyyy/MM/dd");

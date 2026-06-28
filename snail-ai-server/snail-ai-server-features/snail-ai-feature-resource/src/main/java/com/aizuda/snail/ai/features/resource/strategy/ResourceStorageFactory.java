@@ -6,6 +6,12 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * ResourceStorageFactory
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Component
 @RequiredArgsConstructor
 public class ResourceStorageFactory {

@@ -8,6 +8,9 @@ import java.util.Map;
 
 /**
  * Weighted Sum Fusion: final_score = alpha * vector_score + beta * bm25_score
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public class WeightedSumFusion implements HybridFusion {
 

@@ -17,6 +17,9 @@ import java.util.List;
 
 /**
  * 按知识库 config.chunkParams.mode 选择切片策略。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Service

@@ -4,6 +4,9 @@ import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
 
 /**
  * 客户端模型配置校验器。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public class ClientModelConfigValidator {
 

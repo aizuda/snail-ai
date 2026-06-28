@@ -11,6 +11,9 @@ import java.util.regex.PatternSyntaxException;
 
 /**
  * 按 Java 正则一级切分，再递归按长度切分。正则为空时回退为 \\n\\n 分隔。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Component

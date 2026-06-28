@@ -3,6 +3,12 @@ package com.aizuda.snail.ai.features.resource.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * ResourceStorageTypeEnum
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Getter
 @AllArgsConstructor
 public enum ResourceStorageTypeEnum {

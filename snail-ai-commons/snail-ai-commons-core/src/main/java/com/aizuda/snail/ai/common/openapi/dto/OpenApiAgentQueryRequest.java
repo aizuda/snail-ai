@@ -5,6 +5,9 @@ import lombok.Data;
 
 /**
  * OpenAPI Agent 分页查询请求。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 public class OpenApiAgentQueryRequest {

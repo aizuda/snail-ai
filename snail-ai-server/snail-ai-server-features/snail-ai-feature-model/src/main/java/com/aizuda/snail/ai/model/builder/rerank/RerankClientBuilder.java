@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * Rerank 客户端动态构建器。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Component
 @RequiredArgsConstructor

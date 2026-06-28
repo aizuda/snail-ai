@@ -35,6 +35,9 @@ import java.util.stream.Collectors;
 /**
  * MCP 工具服务：动态连接 MCP 服务器，发现工具，转为 Spring AI ToolCallback
  * 支持三种传输方式：SSE、Streamable HTTP、Stdio
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Service

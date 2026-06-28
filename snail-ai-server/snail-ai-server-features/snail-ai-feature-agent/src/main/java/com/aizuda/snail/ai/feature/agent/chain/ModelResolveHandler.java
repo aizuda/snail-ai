@@ -12,6 +12,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * 模型解析：确定对话使用的模型，并准备远程分发所需的 {@link ChatDispatchRequest.ModelConfig}
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Component

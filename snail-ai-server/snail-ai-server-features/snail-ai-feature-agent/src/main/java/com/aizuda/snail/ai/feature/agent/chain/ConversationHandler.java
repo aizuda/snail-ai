@@ -13,6 +13,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * 会话管理：创建或复用对话记录，持久化用户消息
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Component
 @Order(20)

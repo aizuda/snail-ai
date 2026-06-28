@@ -4,6 +4,9 @@ import lombok.Data;
 
 /**
  * PostgreSQL 向量库连接与表/索引参数，由存储实例 {@code config} JSON 解析得到（不依赖 application.yml）。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 public class PgVectorSettings {

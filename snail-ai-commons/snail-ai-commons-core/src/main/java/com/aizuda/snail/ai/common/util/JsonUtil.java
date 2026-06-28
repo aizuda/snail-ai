@@ -35,6 +35,9 @@ import static com.aizuda.snail.ai.common.constants.SystemConstants.YYYY_MM_DD_HH
 
 /**
  * (复制自 snail-job)
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 @Slf4j
 public class JsonUtil {

@@ -9,6 +9,12 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * RagSearchResponseDTO
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

@@ -12,6 +12,9 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * 客户端 Ping：{@link UriConstants#PING}
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @RequiredArgsConstructor
 public class PingRequestHandler implements GrpcRequestHandler {

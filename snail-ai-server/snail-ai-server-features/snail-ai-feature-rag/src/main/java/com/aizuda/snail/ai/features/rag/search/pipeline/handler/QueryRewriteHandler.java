@@ -6,6 +6,12 @@ import com.aizuda.snail.ai.persistence.rag.dataobject.RagConfigDO;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+/**
+ * QueryRewriteHandler
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Component
 @Order(20)
 public class QueryRewriteHandler implements RagSearchHandler {

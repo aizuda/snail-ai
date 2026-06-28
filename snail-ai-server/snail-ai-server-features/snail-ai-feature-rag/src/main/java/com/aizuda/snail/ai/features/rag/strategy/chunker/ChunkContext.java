@@ -3,6 +3,12 @@ package com.aizuda.snail.ai.features.rag.strategy.chunker;
 import lombok.Builder;
 import lombok.Data;
 
+/**
+ * ChunkContext
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 @Builder
 public class ChunkContext {

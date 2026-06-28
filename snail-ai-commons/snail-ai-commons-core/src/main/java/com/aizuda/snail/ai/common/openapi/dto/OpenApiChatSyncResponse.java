@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 
 /**
  * OpenAPI 同步对话响应
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 @Data
 @Builder

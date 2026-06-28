@@ -14,6 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 
+/**
+ * ResourceService
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

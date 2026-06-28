@@ -10,6 +10,9 @@ import java.math.BigDecimal;
 /**
  * 模型使用统计 VO
  * 用于返回模型使用统计信息给前端
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

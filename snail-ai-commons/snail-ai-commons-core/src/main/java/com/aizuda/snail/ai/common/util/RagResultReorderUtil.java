@@ -10,6 +10,9 @@ import java.util.List;
  * <p>
  * Lost in the Middle 策略：将高相关性结果分布在首尾，低相关性放在中间，
  * 缓解 LLM 对长上下文中间部分注意力不足的问题。
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 public final class RagResultReorderUtil {
 

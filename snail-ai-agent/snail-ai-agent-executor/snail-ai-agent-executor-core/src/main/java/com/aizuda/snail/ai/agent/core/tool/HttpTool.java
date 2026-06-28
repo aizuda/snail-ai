@@ -16,6 +16,9 @@ import java.util.Locale;
  * 内置 HTTP 工具 — 支持 LLM 直接发起 HTTP 请求调用远程接口
  * <p>
  * 注入方式与 ShellTool 一致：ToolCallbacks.from(new HttpTool(...))
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 public class HttpTool {

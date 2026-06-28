@@ -13,6 +13,9 @@ import java.util.List;
  *
  * author: opensnail
  * date: 2026-03-26
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public interface ShortTermMemoryStore {
 

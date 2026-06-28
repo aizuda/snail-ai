@@ -13,6 +13,12 @@ import org.springframework.stereotype.Component;
 import java.io.InputStream;
 import java.util.StringJoiner;
 
+/**
+ * ExcelParser
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Component
 public class ExcelParser implements DocumentParser {

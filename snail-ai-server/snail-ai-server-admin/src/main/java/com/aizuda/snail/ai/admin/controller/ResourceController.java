@@ -17,6 +17,9 @@ import java.util.List;
  * 资源管理接口：文件资源上传、删除与分页查询（后台管理用）。
  * <p>
  * 全部端点均需 ADMIN 角色；公开访问入口见 {@link FileAccessController}。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @RestController
 @RequestMapping("/resource")

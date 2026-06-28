@@ -37,6 +37,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * DocumentPipeline
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor

@@ -4,6 +4,9 @@ import lombok.Getter;
 
 /**
  * 对话消息角色枚举
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Getter
 public enum ConversationRoleEnum {

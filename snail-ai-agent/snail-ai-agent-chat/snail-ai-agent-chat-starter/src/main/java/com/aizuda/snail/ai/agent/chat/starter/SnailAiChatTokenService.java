@@ -16,6 +16,12 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Objects;
 
+/**
+ * SnailAiChatTokenService
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 public class SnailAiChatTokenService {
 
     public static final String AUTH_HEADER = "Snail-Ai-Auth";

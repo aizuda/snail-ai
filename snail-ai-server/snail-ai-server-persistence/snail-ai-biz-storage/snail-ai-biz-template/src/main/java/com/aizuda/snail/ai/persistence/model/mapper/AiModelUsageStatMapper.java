@@ -11,6 +11,9 @@ import java.util.List;
 
 /**
  * 模型使用统计 Mapper接口
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Mapper
 public interface AiModelUsageStatMapper extends BaseMapper<AiModelUsageStatPO> {

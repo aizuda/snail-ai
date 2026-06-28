@@ -25,6 +25,9 @@ import java.util.stream.Collectors;
  * RAG 检索：若智能体绑定了知识库，根据调用方式处理
  * - 强制调用：服务端虚拟线程并行检索所有知识库，结果注入 systemPrompt
  * - 智能调用：注入知识库信息到 prompt，由 LLM 通过 tool 决定是否调用
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Component

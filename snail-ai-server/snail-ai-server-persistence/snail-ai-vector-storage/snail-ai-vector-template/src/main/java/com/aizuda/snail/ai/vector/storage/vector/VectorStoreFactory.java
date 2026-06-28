@@ -27,6 +27,9 @@ import com.aizuda.snail.ai.vector.storage.vector.api.SnailAiVectorStore;
 
 /**
  * 向量库工厂：连接与索引参数均来自「存储实例」表 config JSON。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Component
 @RequiredArgsConstructor

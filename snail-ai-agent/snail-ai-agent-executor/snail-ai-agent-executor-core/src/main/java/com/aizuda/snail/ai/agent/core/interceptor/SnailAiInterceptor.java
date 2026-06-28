@@ -6,6 +6,9 @@ import org.springframework.core.Ordered;
 
 /**
  * 客户端 LLM 调用拦截器 SPI。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public interface SnailAiInterceptor extends Ordered {
 

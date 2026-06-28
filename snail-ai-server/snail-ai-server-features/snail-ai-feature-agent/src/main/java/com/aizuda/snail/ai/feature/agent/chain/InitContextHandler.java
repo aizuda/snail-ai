@@ -11,6 +11,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * 初始化：加载用户与智能体
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Component

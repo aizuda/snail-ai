@@ -3,6 +3,12 @@ package com.aizuda.snail.ai.feature.agent.persist;
 import lombok.Builder;
 import lombok.Data;
 
+/**
+ * ChatResultPersistCommand
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 @Builder
 public class ChatResultPersistCommand {

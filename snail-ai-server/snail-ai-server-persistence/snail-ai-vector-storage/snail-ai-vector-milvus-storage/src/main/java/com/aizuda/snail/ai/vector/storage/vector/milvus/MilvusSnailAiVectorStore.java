@@ -18,6 +18,12 @@ import org.springframework.ai.vectorstore.milvus.MilvusVectorStore;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * MilvusSnailAiVectorStore
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 public class MilvusSnailAiVectorStore extends AbstractSnailAiVectorStore {
 
