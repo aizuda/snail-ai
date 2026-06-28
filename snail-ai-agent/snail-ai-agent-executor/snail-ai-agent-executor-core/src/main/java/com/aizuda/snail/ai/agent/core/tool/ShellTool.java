@@ -1,5 +1,6 @@
 package com.aizuda.snail.ai.agent.core.tool;
 
+import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
@@ -36,7 +37,7 @@ public class ShellTool {
     public String execute(@ToolParam(description = "The shell command to execute") String command) {
         log.info("shell:{}", command);
 
-        if (command == null || command.trim().isEmpty()) {
+        if (StrUtil.isBlank(command)) {
             return "Error: command cannot be empty";
         }
 

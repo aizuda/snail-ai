@@ -15,7 +15,6 @@ import com.aizuda.snail.ai.features.rag.service.RagSearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
@@ -116,7 +115,7 @@ public class RagQAService {
     }
 
     private String buildSystemPrompt(String promptTemplate, String documentsText) {
-        if (!StringUtils.hasText(promptTemplate)) {
+        if (StrUtil.isBlank(promptTemplate)) {
             return DEFAULT_SYSTEM_PROMPT_PREFIX + documentsText;
         }
         return promptTemplate.replace(DOCUMENTS_PLACEHOLDER, documentsText);

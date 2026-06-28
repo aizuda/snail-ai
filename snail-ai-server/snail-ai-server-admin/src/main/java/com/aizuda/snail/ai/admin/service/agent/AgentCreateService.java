@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 
@@ -101,7 +100,7 @@ public class AgentCreateService {
                                         .map(org.springframework.ai.chat.messages.AssistantMessage::getText)
                                         .orElse(null);
 
-                                if (StringUtils.hasText(text)) {
+                                if (StrUtil.isNotBlank(text)) {
                                     buffer.append(text);
                                     tryDetectAndPushFields(buffer.toString(), pushedFields, sink);
                                 }

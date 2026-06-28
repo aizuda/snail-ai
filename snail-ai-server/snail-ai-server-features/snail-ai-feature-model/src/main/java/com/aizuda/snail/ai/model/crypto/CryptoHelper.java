@@ -1,12 +1,12 @@
 package com.aizuda.snail.ai.model.crypto;
 
 import cn.hutool.core.util.HexUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.Mode;
 import cn.hutool.crypto.Padding;
 import cn.hutool.crypto.symmetric.SM4;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 /**
  * CryptoHelper
@@ -27,14 +27,14 @@ public class CryptoHelper {
     }
 
     public String encrypt(String plaintext) {
-        if (!StringUtils.hasText(plaintext)) {
+        if (StrUtil.isBlank(plaintext)) {
             return "";
         }
         return sm4.encryptBase64(plaintext);
     }
 
     public String decrypt(String ciphertext) {
-        if (!StringUtils.hasText(ciphertext)) {
+        if (StrUtil.isBlank(ciphertext)) {
             return "";
         }
         return sm4.decryptStr(ciphertext);

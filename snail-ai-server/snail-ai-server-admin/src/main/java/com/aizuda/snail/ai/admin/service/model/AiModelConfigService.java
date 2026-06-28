@@ -1,7 +1,9 @@
 package com.aizuda.snail.ai.admin.service.model;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.lang.Assert;
 import cn.hutool.core.util.ObjUtil;
+import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.model.common.ModelAdapterDefaults;
 import com.aizuda.snail.ai.model.common.ModelAdapterDescriptor;
@@ -28,8 +30,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -190,7 +190,7 @@ public class AiModelConfigService {
                 queryVO.getPage(), queryVO.getSize(), queryVO.getProviderKey(), queryVO.getModelType(), queryVO.getScope());
 
         LambdaQueryWrapper<AiModelConfigPO> wrapper = new LambdaQueryWrapper<>();
-        if (StringUtils.hasText(queryVO.getProviderKey())) {
+        if (StrUtil.isNotBlank(queryVO.getProviderKey())) {
             AiModelProviderPO provider = providerMapper.selectOne(
                     new LambdaQueryWrapper<AiModelProviderPO>()
                             .eq(AiModelProviderPO::getProviderKey, queryVO.getProviderKey()));
@@ -199,8 +199,8 @@ public class AiModelConfigService {
             }
         }
 
-        wrapper.eq(StringUtils.hasText(queryVO.getModelType()), AiModelConfigPO::getModelType, queryVO.getModelType())
-                .eq(StringUtils.hasText(queryVO.getScope()), AiModelConfigPO::getScope, queryVO.getScope())
+        wrapper.eq(StrUtil.isNotBlank(queryVO.getModelType()), AiModelConfigPO::getModelType, queryVO.getModelType())
+                .eq(StrUtil.isNotBlank(queryVO.getScope()), AiModelConfigPO::getScope, queryVO.getScope())
                 .between(ObjUtil.isNotNull(queryVO.getStartDt()) && ObjUtil.isNotNull(queryVO.getEndDt()),
                         AiModelConfigPO::getCreatedDt, queryVO.getStartDt(), queryVO.getEndDt())
                 .orderByDesc(AiModelConfigPO::getIsDefault)
@@ -209,7 +209,7 @@ public class AiModelConfigService {
         Page<AiModelConfigPO> page = configMapper.selectPage(pageDTO, wrapper);
 
         List<Long> providerIds = page.getRecords().stream().map(AiModelConfigPO::getProviderId).toList();
-        if (CollectionUtils.isEmpty(providerIds)) {
+        if (CollUtil.isEmpty(providerIds)) {
             return new PageResult<>();
         }
         List<AiModelProviderPO> aiModelProviderPOS = providerMapper.selectByIds(providerIds);
@@ -377,7 +377,7 @@ public class AiModelConfigService {
             return List.of();
         }
         String defaultAdapterKey = resolveAdapterKey(null, modelType);
-        List<ModelAdapterDescriptor> descriptors = CollectionUtils.isEmpty(modelAdapterDescriptors)
+        List<ModelAdapterDescriptor> descriptors = CollUtil.isEmpty(modelAdapterDescriptors)
                 ? ModelAdapterDefaults.defaultDescriptors()
                 : modelAdapterDescriptors;
         return descriptors.stream()
@@ -400,7 +400,7 @@ public class AiModelConfigService {
      * 加密API Key
      */
     private String encryptApiKey(String apiKey) {
-        if (!StringUtils.hasText(apiKey)) {
+        if (StrUtil.isBlank(apiKey)) {
             return "";
         }
         return cryptoHelper.encrypt(apiKey);
@@ -432,7 +432,7 @@ public class AiModelConfigService {
     }
 
     private String resolveUpdateAdapterKey(AiModelConfigRequestVO requestVO, AiModelConfigPO existing, String modelType) {
-        if (StringUtils.hasText(requestVO.getAdapterKey())) {
+        if (StrUtil.isNotBlank(requestVO.getAdapterKey())) {
             return resolveAdapterKey(requestVO.getAdapterKey(), modelType);
         }
         if (isModelTypeChanged(existing.getModelType(), modelType)) {
@@ -446,14 +446,14 @@ public class AiModelConfigService {
     }
 
     private boolean isModelTypeChanged(String oldModelType, String newModelType) {
-        if (!StringUtils.hasText(oldModelType)) {
-            return StringUtils.hasText(newModelType);
+        if (StrUtil.isBlank(oldModelType)) {
+            return StrUtil.isNotBlank(newModelType);
         }
         return !oldModelType.equalsIgnoreCase(newModelType);
     }
 
     private String resolveUpdateApiKey(String apiKey, String existingApiKey) {
-        if (!StringUtils.hasText(apiKey)) {
+        if (StrUtil.isBlank(apiKey)) {
             return existingApiKey;
         }
         return encryptApiKey(apiKey);
@@ -498,7 +498,7 @@ public class AiModelConfigService {
     }
 
     private String decryptApiKey(String encryptedApiKey) {
-        if (!StringUtils.hasText(encryptedApiKey)) {
+        if (StrUtil.isBlank(encryptedApiKey)) {
             return "";
         }
         return cryptoHelper.decrypt(encryptedApiKey);

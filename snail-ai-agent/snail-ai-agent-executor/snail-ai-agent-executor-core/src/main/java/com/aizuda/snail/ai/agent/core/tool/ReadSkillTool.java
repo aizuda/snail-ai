@@ -1,5 +1,6 @@
 package com.aizuda.snail.ai.agent.core.tool;
 
+import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.agent.common.rpc.RpcClient;
 import com.aizuda.snail.ai.common.dto.agent.SkillContentResponse;
 import com.aizuda.snail.ai.common.dto.agent.SkillContentRequest;
@@ -55,7 +56,7 @@ public class ReadSkillTool {
                   + "Call this tool first to get detailed execution steps and parameter descriptions before using a skill. "
                   + "The parameter must exactly match a name from the available skills list.")
     public String readSkill(@ToolParam(description = "Skill name, must exactly match a name from the available skills list") String skillName) {
-        if (skillName == null || skillName.trim().isEmpty()) {
+        if (StrUtil.isBlank(skillName)) {
             return "Error: please provide a skill name";
         }
 

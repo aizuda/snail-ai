@@ -1,5 +1,6 @@
 package com.aizuda.snail.ai.openapi.service;
 
+import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.admin.dto.AgentChatCommand;
 import com.aizuda.snail.ai.admin.service.agent.AgentChatService;
 import com.aizuda.snail.ai.common.dto.agent.ChatStreamResponse;
@@ -15,7 +16,6 @@ import com.aizuda.snail.ai.persistence.admin.po.UserPO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 
@@ -43,7 +43,7 @@ public class OpenApiChatService {
     public Flux<OpenApiChatStreamEvent> chatStream(OpenApiChatRequest request) {
         UserPO requestUser = resolveRequestUser(request.getOpenId());
 
-        String sid = StringUtils.hasText(request.getSid())
+        String sid = StrUtil.isNotBlank(request.getSid())
                 ? request.getSid()
                 : UUID.randomUUID().toString();
 
@@ -82,7 +82,7 @@ public class OpenApiChatService {
         CollectingChatStreamWriter collector = new CollectingChatStreamWriter();
         UserPO requestUser = resolveRequestUser(request.getOpenId());
 
-        String sid = StringUtils.hasText(request.getSid())
+        String sid = StrUtil.isNotBlank(request.getSid())
                 ? request.getSid()
                 : UUID.randomUUID().toString();
 

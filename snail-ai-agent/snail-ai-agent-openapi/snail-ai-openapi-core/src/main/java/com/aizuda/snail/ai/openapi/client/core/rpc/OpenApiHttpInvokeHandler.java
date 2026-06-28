@@ -1,5 +1,6 @@
 package com.aizuda.snail.ai.openapi.client.core.rpc;
 
+import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatStreamEvent;
@@ -97,7 +98,7 @@ public class OpenApiHttpInvokeHandler implements InvocationHandler {
      */
     private String buildBaseUrl() {
         String host = openApiProperties.getServerHost();
-        if (host == null || host.trim().isEmpty()) {
+        if (StrUtil.isBlank(host)) {
             host = agentProperties.getServer().getHost();
         }
 
@@ -117,7 +118,7 @@ public class OpenApiHttpInvokeHandler implements InvocationHandler {
         }
 
         // 添加前缀（确保以 / 开头）
-        if (prefix != null && !prefix.trim().isEmpty()) {
+        if (StrUtil.isNotBlank(prefix)) {
             if (!prefix.startsWith("/")) {
                 url.append("/");
             }

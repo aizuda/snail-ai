@@ -1,5 +1,7 @@
 package com.aizuda.snail.ai.agent.core.tool;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.agent.common.rpc.RpcClient;
 import com.aizuda.snail.ai.common.dto.rag.RagSearchRequest;
 import com.aizuda.snail.ai.common.dto.rag.RagSearchResponse;
@@ -37,7 +39,7 @@ public class RagSearchTool {
             @ToolParam(description = "The ID of the knowledge base to search") Long ragId,
             @ToolParam(description = "The user's question or related query") String queryQuestion) {
 
-        if (queryQuestion == null || queryQuestion.trim().isEmpty()) {
+        if (StrUtil.isBlank(queryQuestion)) {
             return "No relevant reference materials found";
         }
 
@@ -52,7 +54,7 @@ public class RagSearchTool {
             RagSearchResponse resp = rpcClient.searchRag(req);
             List<SearchResult> results = resp != null ? resp.getResults() : null;
 
-            if (results == null || results.isEmpty()) {
+            if (CollUtil.isEmpty(results)) {
                 return "未找到相关参考资料。";
             }
 

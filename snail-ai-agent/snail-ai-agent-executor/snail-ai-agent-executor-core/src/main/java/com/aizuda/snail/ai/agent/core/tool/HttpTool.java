@@ -1,5 +1,6 @@
 package com.aizuda.snail.ai.agent.core.tool;
 
+import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
@@ -51,7 +52,7 @@ public class HttpTool {
             @ToolParam(description = "Additional headers, format: Header1:Value1\\nHeader2:Value2", required = false) String headers) {
         log.info("http_request url:{}", url);
 
-        if (url == null || url.trim().isEmpty()) {
+        if (StrUtil.isBlank(url)) {
             return "Error: URL cannot be empty";
         }
 
@@ -60,7 +61,7 @@ public class HttpTool {
             return "Error: URL 必须以 http:// 或 https:// 开头";
         }
 
-        String httpMethod = (method != null && !method.trim().isEmpty())
+        String httpMethod = StrUtil.isNotBlank(method)
                 ? method.trim().toUpperCase() : METHOD_GET;
         if (!METHOD_GET.equals(httpMethod) && !METHOD_POST.equals(httpMethod)) {
             return "Error: 仅支持 GET 和 POST 方法";
@@ -74,10 +75,10 @@ public class HttpTool {
                     .uri(uri)
                     .timeout(Duration.ofMillis(timeoutMs));
 
-            String effectiveContentType = (contentType != null && !contentType.trim().isEmpty())
+            String effectiveContentType = StrUtil.isNotBlank(contentType)
                     ? contentType.trim() : DEFAULT_CONTENT_TYPE;
 
-            if (headers != null && !headers.trim().isEmpty()) {
+            if (StrUtil.isNotBlank(headers)) {
                 for (String headerLine : headers.split("\\n")) {
                     String trimmed = headerLine.trim();
                     int colonIdx = trimmed.indexOf(':');
@@ -109,7 +110,7 @@ public class HttpTool {
             result.append("HTTP ").append(response.statusCode()).append("\n");
 
             String responseBody = response.body();
-            if (responseBody == null || responseBody.isEmpty()) {
+            if (StrUtil.isEmpty(responseBody)) {
                 result.append("<无响应体>");
             } else if (responseBody.length() > MAX_RESPONSE_LENGTH) {
                 result.append(responseBody, 0, MAX_RESPONSE_LENGTH);
