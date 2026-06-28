@@ -98,7 +98,12 @@ public class TokenAwareChunker {
         return Pattern.compile(sb.toString()).split(content);
     }
 
-    /** CJK 感知的 token 估算 */
+    /**
+     * CJK 感知的 token 估算（启发式，无需调用分词器）。
+     * <p>
+     * 经验系数：单个 CJK 字符约折算 1.5 token，连续的 ASCII 字母/数字按「词」计 1 token，
+     * 用于在切分阶段快速估算长度，不追求与具体模型分词器精确一致。
+     */
     public int estimateTokens(String text) {
         int cjkCount = 0;
         int asciiWordCount = 0;

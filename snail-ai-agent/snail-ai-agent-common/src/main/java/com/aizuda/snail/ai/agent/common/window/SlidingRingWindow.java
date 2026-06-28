@@ -65,6 +65,11 @@ public class SlidingRingWindow<T> {
     public void add(T data) {
         final long now = System.currentTimeMillis();
 
+        // CAS 自旋的三分支状态机：
+        //  1) 当前槽为空           -> 创建窗口并写入；
+        //  2) 当前窗口已超时        -> 滚动到下一槽（自增 sequencer）创建新窗口；
+        //  3) 当前窗口仍在有效期内   -> 直接入队，达到数量阈值或已标记 emit 则立即 flush。
+        // CAS 失败（其它线程已抢先创建/滚动）时循环重试，故无需加锁。
         for (; ; ) {
             final long currentSequence = sequencer.get();
             final Window<T> currentWindow = getWindow(currentSequence);
@@ -163,6 +168,9 @@ public class SlidingRingWindow<T> {
         }
 
         public List<T> drain() {
+            // WIP(work-in-progress) 计数保证同一时刻只有一个线程真正排空队列：
+            // 抢到排空权的线程（wip 从 0 增到 1）循环 poll，直到把期间其它线程
+            // 累加的 wip 全部抵消为 0；其余线程仅自增 wip 后立即返回空，避免锁与重复排空。
             if (wip.getAndAdd(1) == 0) {
                 final List<T> list = new ArrayList<>();
                 var missed = -1;
