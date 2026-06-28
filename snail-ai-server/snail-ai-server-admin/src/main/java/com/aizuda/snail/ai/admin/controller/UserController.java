@@ -33,7 +33,7 @@ public class UserController {
     private final UserService userService;
 
     /**
-     * 用户登录（账号密码）
+     * 用户登录（账号密码）。无需鉴权的公开端点，成功返回访问 token。
      */
     @PostMapping("/login")
     public LoginResponseVO login(@RequestBody @Valid LoginRequestVO requestVO) {
@@ -41,7 +41,7 @@ public class UserController {
     }
 
     /**
-     * 用户注册
+     * 用户注册。无需鉴权的公开端点，注册为普通用户角色。
      */
     @PostMapping("/register")
     public Result<String> register(@RequestBody @Valid LoginRequestVO requestVO) {
@@ -50,7 +50,7 @@ public class UserController {
     }
 
     /**
-     * 获取用户信息
+     * 获取当前登录用户信息（登录用户）。
      */
     @GetMapping
     @LoginRequired(role = RoleEnum.USER)
@@ -59,7 +59,7 @@ public class UserController {
     }
 
     /**
-     * 创建用户（管理员）
+     * 创建用户（管理员）。
      */
     @PostMapping
     @LoginRequired(role = RoleEnum.ADMIN)

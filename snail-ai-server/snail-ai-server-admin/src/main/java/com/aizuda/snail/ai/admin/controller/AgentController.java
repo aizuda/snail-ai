@@ -27,6 +27,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * 智能体管理接口：CRUD、AI 辅助创建、对话、MCP 绑定、用量分析与智能体市场订阅。
+ * <p>
+ * 权限约定：{@code @LoginRequired} 默认要求 ADMIN 角色；标注 {@code role = USER}
+ * 的端点对任意登录用户开放（如对话、市场、订阅、会话记录）。
+ */
 @RestController
 @RequestMapping("/agent")
 @RequiredArgsConstructor
@@ -43,18 +49,21 @@ public class AgentController {
 
     // ==================== CRUD ====================
 
+    /** 分页查询智能体（管理员）。 */
     @GetMapping("/page")
     @LoginRequired
     public PageResult<List<AgentResponseVO>> page(AgentQueryVO query) {
         return agentService.page(query);
     }
 
+    /** 按 ID 查询智能体详情（登录用户）。 */
     @GetMapping("/{id}")
     @LoginRequired(role = RoleEnum.USER)
     public Result<AgentResponseVO> getById(@PathVariable("id") Long id) {
         return Result.ok(agentService.getById(id));
     }
 
+    /** 更新智能体配置（管理员）。 */
     @PutMapping("/{id}")
     @LoginRequired
     public Result<AgentResponseVO> update(@PathVariable("id") Long id,
@@ -62,6 +71,7 @@ public class AgentController {
         return Result.ok(agentService.update(id, request));
     }
 
+    /** 删除智能体（管理员）。 */
     @DeleteMapping("/{id}")
     @LoginRequired
     public Result<Void> delete(@PathVariable("id") Long id) {
@@ -71,6 +81,7 @@ public class AgentController {
 
     // ==================== Chat Models ====================
 
+    /** 获取可用的对话模型列表（管理员）。 */
     @GetMapping("/chat-models")
     @LoginRequired
     public Result<List<Map<String, Object>>> chatModels() {
@@ -79,18 +90,21 @@ public class AgentController {
 
     // ==================== AI Create ====================
 
+    /** 根据自然语言描述流式生成智能体配置（管理员，SSE 流）。 */
     @PostMapping(value = "/create/stream", produces = AgentCreateStreamHttpAdapter.MEDIA_TYPE)
     @LoginRequired
     public Flux<String> createStream(@RequestBody @Validated AgentCreateRequestVO request) {
         return agentCreateStreamHttpAdapter.encode(agentCreateService.createByDescriptionStream(request.getDescription()));
     }
 
+    /** 创建智能体（管理员）。 */
     @PostMapping
     @LoginRequired
     public Result<AgentResponseVO> create(@RequestBody @Validated AgentRequestVO request) {
         return Result.ok(agentService.create(request));
     }
 
+    /** 与指定智能体进行流式对话（登录用户，SSE 流）。 */
     @PostMapping(value = "/{id}/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @LoginRequired(role = RoleEnum.USER)
     public Flux<String> chat(@PathVariable("id") Long id,
@@ -139,12 +153,14 @@ public class AgentController {
 
     // ==================== MCP Servers ====================
 
+    /** 查询智能体已绑定的 MCP 服务列表（管理员）。 */
     @GetMapping("/{id}/mcp-servers")
     @LoginRequired
     public Result<List<McpServerResponseVO>> getMcpServers(@PathVariable("id") Long id) {
         return Result.ok(mcpServerService.getByAgentId(id));
     }
 
+    /** 更新智能体绑定的 MCP 服务（管理员）。 */
     @PutMapping("/{id}/mcp-servers")
     @LoginRequired
     public Result<Void> updateMcpServers(@PathVariable("id") Long id,
@@ -154,14 +170,15 @@ public class AgentController {
     }
 
     // ==================== Analytics ====================
-    // Analytics endpoints have been simplified
+
+    /** 查询智能体用量分析汇总（管理员）。 */
     @GetMapping("/{id}/analytics")
     @LoginRequired
     public Result<AgentAnalyticsVO> analytics(@PathVariable("id") Long id, AgentAnalyticsQueryVO queryVO) {
         return Result.ok(agentAnalyticsService.getAnalytics(id, queryVO));
     }
 
-
+    /** 删除指定会话（登录用户，仅限本人会话）。 */
     @DeleteMapping("/{id}/conversation/{conversationId}")
     @LoginRequired(role = RoleEnum.USER)
     public Result<Void> deleteConversation(
@@ -171,6 +188,7 @@ public class AgentController {
         return Result.ok(null);
     }
 
+    /** 分页查询当前用户在该智能体下的会话列表（登录用户）。 */
     @GetMapping("/{id}/conversations")
     @LoginRequired(role = RoleEnum.USER)
     public PageResult<List<ConversationSummaryVO>> conversations(@PathVariable("id") Long id,
@@ -178,6 +196,7 @@ public class AgentController {
         return agentService.listConversations(id, queryVO);
     }
 
+    /** 清空当前用户在该智能体下的全部会话（登录用户）。 */
     @DeleteMapping("/{id}/conversations")
     @LoginRequired(role = RoleEnum.USER)
     public Result<Void> clearConversations(@PathVariable("id") Long agentId) {
@@ -185,6 +204,7 @@ public class AgentController {
         return Result.ok(null);
     }
 
+    /** 分页查询智能体用量明细（管理员）。 */
     @GetMapping("/{id}/usage-detail")
     @LoginRequired
     public PageResult<List<AgentUsageDetailVO>> usageDetail(@PathVariable("id") Long id,
@@ -192,7 +212,7 @@ public class AgentController {
         return agentAnalyticsService.getUsageDetail(id, queryVO);
     }
 
-
+    /** 批量删除指定会话（管理员）。 */
     @PostMapping("/{id}/conversations/batch-delete")
     @LoginRequired
     public Result<Void> batchDeleteConversations(
@@ -204,6 +224,7 @@ public class AgentController {
 
     // ==================== Chat Conversation Messages ====================
 
+    /** 查询某会话的全部消息记录（登录用户，仅限本人会话）。 */
     @GetMapping("/{id}/conversation/{conversationId}/messages")
     @LoginRequired(role = RoleEnum.USER)
     public Result<List<ConversationRecordVO>> conversationMessages(
@@ -227,18 +248,21 @@ public class AgentController {
 
     // ==================== Agent Market & Subscribe ====================
 
+    /** 查询智能体市场（已发布的公开智能体，登录用户）。 */
     @GetMapping("/market")
     @LoginRequired(role = RoleEnum.USER)
     public Result<List<AgentResponseVO>> market() {
         return Result.ok(userAgentService.getMarket());
     }
 
+    /** 查询当前用户已订阅的智能体（登录用户）。 */
     @GetMapping("/my")
     @LoginRequired(role = RoleEnum.USER)
     public Result<List<AgentResponseVO>> myAgents() {
         return Result.ok(userAgentService.getMyAgents());
     }
 
+    /** 订阅指定智能体（登录用户）。 */
     @PostMapping("/{id}/subscribe")
     @LoginRequired(role = RoleEnum.USER)
     public Result<Void> subscribe(@PathVariable("id") Long id) {
@@ -246,6 +270,7 @@ public class AgentController {
         return Result.ok(null);
     }
 
+    /** 取消订阅指定智能体（登录用户）。 */
     @DeleteMapping("/{id}/subscribe")
     @LoginRequired(role = RoleEnum.USER)
     public Result<Void> unsubscribe(@PathVariable("id") Long id) {
