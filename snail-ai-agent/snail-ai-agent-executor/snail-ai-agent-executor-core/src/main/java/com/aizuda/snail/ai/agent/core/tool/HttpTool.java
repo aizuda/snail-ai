@@ -21,6 +21,10 @@ import java.util.Locale;
 public class HttpTool {
 
     private static final int MAX_RESPONSE_LENGTH = 50000;
+    private static final String METHOD_GET = "GET";
+    private static final String METHOD_POST = "POST";
+    private static final String DEFAULT_CONTENT_TYPE = "application/json";
+    private static final String HEADER_HOST = "host";
 
     private final long timeoutMs;
 
@@ -54,8 +58,8 @@ public class HttpTool {
         }
 
         String httpMethod = (method != null && !method.trim().isEmpty())
-                ? method.trim().toUpperCase() : "GET";
-        if (!"GET".equals(httpMethod) && !"POST".equals(httpMethod)) {
+                ? method.trim().toUpperCase() : METHOD_GET;
+        if (!METHOD_GET.equals(httpMethod) && !METHOD_POST.equals(httpMethod)) {
             return "Error: 仅支持 GET 和 POST 方法";
         }
 
@@ -68,7 +72,7 @@ public class HttpTool {
                     .timeout(Duration.ofMillis(timeoutMs));
 
             String effectiveContentType = (contentType != null && !contentType.trim().isEmpty())
-                    ? contentType.trim() : "application/json";
+                    ? contentType.trim() : DEFAULT_CONTENT_TYPE;
 
             if (headers != null && !headers.trim().isEmpty()) {
                 for (String headerLine : headers.split("\\n")) {
@@ -77,7 +81,7 @@ public class HttpTool {
                     if (colonIdx > 0 && colonIdx < trimmed.length() - 1) {
                         String key = trimmed.substring(0, colonIdx).trim();
                         String value = trimmed.substring(colonIdx + 1).trim();
-                        if ("host".equalsIgnoreCase(key)) {
+                        if (HEADER_HOST.equalsIgnoreCase(key)) {
                             return "Error: 不允许覆盖 Host 请求头";
                         }
                         requestBuilder.header(key, value);
@@ -85,7 +89,7 @@ public class HttpTool {
                 }
             }
 
-            if ("POST".equals(httpMethod)) {
+            if (METHOD_POST.equals(httpMethod)) {
                 String requestBody = (body != null) ? body : "";
                 requestBuilder.header("Content-Type", effectiveContentType);
                 requestBuilder.POST(HttpRequest.BodyPublishers.ofString(requestBody));
