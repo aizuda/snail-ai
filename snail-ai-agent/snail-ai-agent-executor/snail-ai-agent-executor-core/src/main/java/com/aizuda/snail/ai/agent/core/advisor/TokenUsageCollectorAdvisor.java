@@ -56,17 +56,17 @@ public class TokenUsageCollectorAdvisor implements StreamAdvisor {
             return;
         }
         int total = usage.getTotalTokens() != null ? usage.getTotalTokens() : 0;
-        if (total > 0) {
-            int prompt = usage.getPromptTokens() != null ? usage.getPromptTokens() : 0;
-            int completion = usage.getCompletionTokens() != null ? usage.getCompletionTokens() : 0;
-            int cache = extractCacheTokens(usage);
-            state.setPromptTokens(prompt);
-            state.setCompletionTokens(completion);
-            state.setCacheTokens(cache);
-            log.info("TokenUsageCollector: promptTokens={}, completionTokens={}, cacheTokens={}", prompt, completion, cache);
-        } else {
+        if (total <= 0) {
             log.debug("TokenUsageCollector: totalTokens={}", total);
+            return;
         }
+        int prompt = usage.getPromptTokens() != null ? usage.getPromptTokens() : 0;
+        int completion = usage.getCompletionTokens() != null ? usage.getCompletionTokens() : 0;
+        int cache = extractCacheTokens(usage);
+        state.setPromptTokens(prompt);
+        state.setCompletionTokens(completion);
+        state.setCacheTokens(cache);
+        log.info("TokenUsageCollector: promptTokens={}, completionTokens={}, cacheTokens={}", prompt, completion, cache);
     }
 
     /**
@@ -102,17 +102,17 @@ public class TokenUsageCollectorAdvisor implements StreamAdvisor {
             }
             Object ctOptional = ctMethod.invoke(ptd);
             log.info("extractCacheTokens: cachedTokens result={}", ctOptional);
-            if (ctOptional instanceof Optional<?> ctOpt && ctOpt.isPresent()) {
-                Object val = ctOpt.get();
-                log.info("extractCacheTokens: cachedTokens value={}", val);
-                if (val instanceof Long l) {
-                    return l.intValue();
-                }
-                if (val instanceof Integer i) {
-                    return i;
-                }
-            } else {
+            if (!(ctOptional instanceof Optional<?> ctOpt) || ctOpt.isEmpty()) {
                 log.info("extractCacheTokens: cachedTokens is empty");
+                return 0;
+            }
+            Object val = ctOpt.get();
+            log.info("extractCacheTokens: cachedTokens value={}", val);
+            if (val instanceof Long l) {
+                return l.intValue();
+            }
+            if (val instanceof Integer i) {
+                return i;
             }
         } catch (Exception e) {
             log.warn("extractCacheTokens: exception={}", e.getMessage(), e);
