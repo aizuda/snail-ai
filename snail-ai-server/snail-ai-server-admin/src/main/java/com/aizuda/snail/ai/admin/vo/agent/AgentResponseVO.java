@@ -3,13 +3,12 @@ package com.aizuda.snail.ai.admin.vo.agent;
 import com.aizuda.snail.ai.admin.vo.mcp.McpServerResponseVO;
 import com.aizuda.snail.ai.admin.vo.skill.SkillResponseVO;
 import com.fasterxml.jackson.annotation.JsonAlias;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Data
 @AllArgsConstructor
@@ -29,9 +28,7 @@ public class AgentResponseVO {
 
     private String greeting;
 
-    /**
-     * 预设问题列表
-     */
+    /** 预设问题列表 */
     private List<String> presetQuestions;
 
     private Long chatModelId;
@@ -71,6 +68,7 @@ public class AgentResponseVO {
 
     /**
      * Agent状态
+     *
      * @see com.aizuda.snail.ai.common.enums.agent.AgentStatusEnum
      */
     private Integer status;

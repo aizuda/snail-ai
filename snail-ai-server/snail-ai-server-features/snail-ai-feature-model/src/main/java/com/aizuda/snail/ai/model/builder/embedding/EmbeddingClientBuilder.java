@@ -8,9 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.stereotype.Component;
 
-/**
- * EmbeddingModel 动态构建器。
- */
+/** EmbeddingModel 动态构建器。 */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -18,10 +16,13 @@ public class EmbeddingClientBuilder {
 
     private final ServerModelFacade serverModelFacade;
 
-    public EmbeddingModel getOrBuildEmbeddingModel(String decryptedApiKey, ModelConfigInfoDTO config) {
+    public EmbeddingModel getOrBuildEmbeddingModel(
+            String decryptedApiKey, ModelConfigInfoDTO config) {
         try {
-            log.debug("Building EmbeddingModel for config: {}, provider: {}",
-                    config.getId(), config.getProviderKey());
+            log.debug(
+                    "Building EmbeddingModel for config: {}, provider: {}",
+                    config.getId(),
+                    config.getProviderKey());
             EmbeddingModel embeddingModel = buildEmbeddingModel(config, decryptedApiKey);
             log.debug("EmbeddingModel built for config: {}", config.getId());
             return embeddingModel;
@@ -38,9 +39,12 @@ public class EmbeddingClientBuilder {
 
     public EmbeddingModel buildEmbeddingModel(ModelConfigInfoDTO config, String decryptedApiKey) {
         try {
-            EmbeddingModel embeddingModel = serverModelFacade.buildEmbeddingModel(config, decryptedApiKey);
-            log.info("Successfully built EmbeddingModel for config: {} (model: {})",
-                    config.getId(), config.getModelKey());
+            EmbeddingModel embeddingModel =
+                    serverModelFacade.buildEmbeddingModel(config, decryptedApiKey);
+            log.info(
+                    "Successfully built EmbeddingModel for config: {} (model: {})",
+                    config.getId(),
+                    config.getModelKey());
             return embeddingModel;
         } catch (ModelCallException e) {
             throw e;

@@ -1,13 +1,12 @@
 package com.aizuda.snail.ai.common.openapi.dto;
 
 import com.aizuda.snail.ai.common.util.JsonUtil;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * OpenAPI chat stream event.
@@ -31,10 +30,7 @@ public class OpenApiChatStreamEvent {
     private String data;
 
     public static OpenApiChatStreamEvent of(String type, String data) {
-        return OpenApiChatStreamEvent.builder()
-                .type(type)
-                .data(data)
-                .build();
+        return OpenApiChatStreamEvent.builder().type(type).data(data).build();
     }
 
     public static OpenApiChatStreamEvent text(String data) {
@@ -53,7 +49,9 @@ public class OpenApiChatStreamEvent {
     }
 
     public static OpenApiChatStreamEvent error(String message) {
-        return of(TYPE_ERROR, JsonUtil.toJsonString(Map.of(
-                "message", message != null ? message : "Unknown error")));
+        return of(
+                TYPE_ERROR,
+                JsonUtil.toJsonString(
+                        Map.of("message", message != null ? message : "Unknown error")));
     }
 }

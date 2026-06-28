@@ -1,23 +1,18 @@
 package com.aizuda.snail.ai.feature.agent.chain;
 
-
+import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
 import com.aizuda.snail.ai.common.mcp.McpServerRef;
 import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.aizuda.snail.ai.model.service.McpToolService;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-/**
- * MCP 加载：若智能体启用了 MCP，加载绑定的 MCP 服务器列表，并准备远程分发用的 {@link ChatDispatchRequest.McpServerDescriptor}
- */
+/** MCP 加载：若智能体启用了 MCP，加载绑定的 MCP 服务器列表，并准备远程分发用的 {@link ChatDispatchRequest.McpServerDescriptor} */
 @Slf4j
 @Component
 @Order(40)
@@ -40,9 +35,10 @@ public class McpHandler implements AgentChatHandler {
             var servers = mcpToolService.getMcpServersForAgent(ctx.getAgentId());
             List<Long> disabledIds = ctx.getDisabledMcpServerIds();
             if (disabledIds != null && !disabledIds.isEmpty()) {
-                servers = servers.stream()
-                        .filter(s -> !disabledIds.contains(s.getId()))
-                        .collect(java.util.stream.Collectors.toList());
+                servers =
+                        servers.stream()
+                                .filter(s -> !disabledIds.contains(s.getId()))
+                                .collect(java.util.stream.Collectors.toList());
             }
             ctx.setMcpServers(servers);
             for (McpServerRef s : servers) {
@@ -90,6 +86,4 @@ public class McpHandler implements AgentChatHandler {
             return Map.of();
         }
     }
-
-
 }

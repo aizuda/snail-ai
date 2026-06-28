@@ -2,16 +2,18 @@ package com.aizuda.snail.ai.admin.service.rag;
 
 import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.admin.dto.RagQaStreamEvent;
+import com.aizuda.snail.ai.admin.vo.rag.RagQARequestVO;
+import com.aizuda.snail.ai.common.dto.rag.SearchResult;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.common.util.JsonUtil;
-import com.aizuda.snail.ai.model.service.ModelRuntimeHandler;
-import com.aizuda.snail.ai.persistence.rag.mapper.RagMapper;
-import com.aizuda.snail.ai.persistence.rag.dataobject.RagConfigDO;
-import com.aizuda.snail.ai.persistence.rag.po.RagPO;
-import com.aizuda.snail.ai.common.dto.rag.SearchResult;
-import com.aizuda.snail.ai.admin.vo.rag.RagQARequestVO;
 import com.aizuda.snail.ai.features.rag.dto.RagSearchRequestDTO;
 import com.aizuda.snail.ai.features.rag.service.RagSearchService;
+import com.aizuda.snail.ai.model.service.ModelRuntimeHandler;
+import com.aizuda.snail.ai.persistence.rag.dataobject.RagConfigDO;
+import com.aizuda.snail.ai.persistence.rag.mapper.RagMapper;
+import com.aizuda.snail.ai.persistence.rag.po.RagPO;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,9 +21,6 @@ import org.springframework.util.StringUtils;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -36,9 +35,7 @@ public class RagQAService {
     private final ModelRuntimeHandler modelRuntimeHandler;
     private final RagMapper knowledgeMapper;
 
-    /**
-     * 流式问答：从 DB 读取知识库配置 → 检索 → 组装 prompt → 调用 LLM 流式输出
-     */
+    /** 流式问答：从 DB 读取知识库配置 → 检索 → 组装 prompt → 调用 LLM 流式输出 */
     public Flux<RagQaStreamEvent> qaStream(RagQARequestVO request) {
         return Flux.create(sink -> doQaStream(request, sink), FluxSink.OverflowStrategy.BUFFER);
     }
@@ -51,49 +48,58 @@ public class RagQAService {
             }
 
             // 读取知识库 DB 配置
-            RagConfigDO configDO = StrUtil.isNotBlank(knowledge.getConfig())
-                    ? JsonUtil.parseObject(knowledge.getConfig(), RagConfigDO.class)
-                    : new RagConfigDO();
+            RagConfigDO configDO =
+                    StrUtil.isNotBlank(knowledge.getConfig())
+                            ? JsonUtil.parseObject(knowledge.getConfig(), RagConfigDO.class)
+                            : new RagConfigDO();
             if (configDO == null) {
                 configDO = new RagConfigDO();
             }
-            RagConfigDO.SearchParams searchParams = configDO.getSearchParams() != null
-                    ? configDO.getSearchParams() : new RagConfigDO.SearchParams();
-            RagConfigDO.ModelParams mp = configDO.getModelParams() != null
-                    ? configDO.getModelParams() : new RagConfigDO.ModelParams();
+            RagConfigDO.SearchParams searchParams =
+                    configDO.getSearchParams() != null
+                            ? configDO.getSearchParams()
+                            : new RagConfigDO.SearchParams();
+            RagConfigDO.ModelParams mp =
+                    configDO.getModelParams() != null
+                            ? configDO.getModelParams()
+                            : new RagConfigDO.ModelParams();
 
             if (mp.getModelId() == null) {
                 throw new IllegalStateException("知识库未配置问答模型，请先在配置页面设置");
             }
 
             // 1. 检索
-            RagConfigDO searchConfigDO = RagConfigDO.builder()
-                    .searchParams(searchParams)
-                    .modelParams(mp)
-                    .build();
+            RagConfigDO searchConfigDO =
+                    RagConfigDO.builder().searchParams(searchParams).modelParams(mp).build();
             RagSearchRequestDTO searchRequest = new RagSearchRequestDTO();
             searchRequest.setRagId(request.getRagId());
             searchRequest.setQuery(request.getQuery());
-            List<SearchResult> searchResults = new ArrayList<>(
-                    ragSearchService.search(searchRequest, searchConfigDO).getResults());
+            List<SearchResult> searchResults =
+                    new ArrayList<>(
+                            ragSearchService.search(searchRequest, searchConfigDO).getResults());
 
             // 2. 组装 prompt
             String documentsText = buildDocumentsText(searchResults);
             String systemPrompt = buildSystemPrompt(mp.getPrompt(), documentsText);
 
             // 3. 流式调用 LLM
-            Disposable subscription = modelRuntimeHandler.chatStream(new ModelRuntimeHandler.ChatStreamRequest(
-                    mp.getModelId(),
-                    request.getQuery(),
-                    systemPrompt,
-                    chunk -> emit(sink, RagQaStreamEvent.text(chunk)),
-                    () -> complete(sink),
-                    error -> emitError(sink, error)
-            ));
+            Disposable subscription =
+                    modelRuntimeHandler.chatStream(
+                            new ModelRuntimeHandler.ChatStreamRequest(
+                                    mp.getModelId(),
+                                    request.getQuery(),
+                                    systemPrompt,
+                                    chunk -> emit(sink, RagQaStreamEvent.text(chunk)),
+                                    () -> complete(sink),
+                                    error -> emitError(sink, error)));
             sink.onCancel(subscription);
 
         } catch (Exception e) {
-            log.error("RAG QA stream error: query='{}', ragId={}", request.getQuery(), request.getRagId(), e);
+            log.error(
+                    "RAG QA stream error: query='{}', ragId={}",
+                    request.getQuery(),
+                    request.getRagId(),
+                    e);
             emitError(sink, e);
         }
     }
@@ -131,9 +137,10 @@ public class RagQAService {
 
     private void emitError(FluxSink<RagQaStreamEvent> sink, Throwable error) {
         if (!sink.isCancelled()) {
-            String message = error != null && error.getMessage() != null
-                    ? error.getMessage()
-                    : "RAG QA stream error";
+            String message =
+                    error != null && error.getMessage() != null
+                            ? error.getMessage()
+                            : "RAG QA stream error";
             sink.next(RagQaStreamEvent.error(message));
             sink.complete();
         }

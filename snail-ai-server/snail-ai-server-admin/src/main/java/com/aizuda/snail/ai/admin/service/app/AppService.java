@@ -2,30 +2,29 @@ package com.aizuda.snail.ai.admin.service.app;
 
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
-import com.aizuda.snail.ai.common.execption.SnailAiCommonException;
-import com.aizuda.snail.ai.route.RouteStrategyType;
 import com.aizuda.snail.ai.admin.vo.PageResult;
 import com.aizuda.snail.ai.admin.vo.app.*;
+import com.aizuda.snail.ai.common.execption.SnailAiCommonException;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.aizuda.snail.ai.persistence.app.mapper.AppMapper;
 import com.aizuda.snail.ai.persistence.app.mapper.ClientNodeMapper;
 import com.aizuda.snail.ai.persistence.app.po.AppPO;
 import com.aizuda.snail.ai.persistence.app.po.ClientNodePO;
+import com.aizuda.snail.ai.route.RouteStrategyType;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
+import java.time.LocalDateTime;
+import java.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.*;
-
 /**
  * 应用管理服务
- * <p>
- * 负责客户端应用的创建、更新、删除和查询，以及客户端节点的管理。
+ *
+ * <p>负责客户端应用的创建、更新、删除和查询，以及客户端节点的管理。
  *
  * @author opensnail
  * @date 2025-04-08
@@ -37,10 +36,10 @@ public class AppService {
 
     /** 应用状态：启用 */
     private static final int APP_STATUS_ENABLED = 1;
-    
+
     /** 应用状态：禁用 */
     private static final int APP_STATUS_DISABLED = 0;
-    
+
     /** Token 前缀 */
     private static final String TOKEN_PREFIX = "SAI_";
 
@@ -48,18 +47,21 @@ public class AppService {
     private final ClientNodeMapper clientNodeMapper;
 
     public AppResponseVO create(AppRequestVO request) {
-        Long count = appMapper.selectCount(new LambdaQueryWrapper<AppPO>().eq(AppPO::getAppId, request.getAppId()));
+        Long count =
+                appMapper.selectCount(
+                        new LambdaQueryWrapper<AppPO>().eq(AppPO::getAppId, request.getAppId()));
         if (count > 0) {
             throw new SnailAiCommonException("appId:{} 已存在", request.getAppId());
         }
-        AppPO po = AppPO.builder()
-                .appId(request.getAppId())
-                .appName(request.getAppName())
-                .description(request.getDescription())
-                .routeStrategy(resolveRouteStrategy(request.getRouteStrategy()))
-                .token(generateToken())
-                .status(APP_STATUS_ENABLED)
-                .build();
+        AppPO po =
+                AppPO.builder()
+                        .appId(request.getAppId())
+                        .appName(request.getAppName())
+                        .description(request.getDescription())
+                        .routeStrategy(resolveRouteStrategy(request.getRouteStrategy()))
+                        .token(generateToken())
+                        .status(APP_STATUS_ENABLED)
+                        .build();
         appMapper.insert(po);
         return toResponseVO(po);
     }
@@ -76,7 +78,7 @@ public class AppService {
         if (po == null) {
             return;
         }
-        
+
         deleteRelatedNodes(po.getAppId());
         appMapper.deleteById(id);
     }
@@ -88,52 +90,51 @@ public class AppService {
     }
 
     public PageResult<List<AppResponseVO>> page(AppQueryVO query) {
-        IPage<AppPO> page = appMapper.selectPage(
-                PageDTO.of(query.getPage(), query.getSize()), buildQueryWrapper(query));
+        IPage<AppPO> page =
+                appMapper.selectPage(
+                        PageDTO.of(query.getPage(), query.getSize()), buildQueryWrapper(query));
 
         return buildPageResult(page);
     }
 
     public List<AppResponseVO> listEnabled() {
-        List<AppPO> list = appMapper.selectList(
-                new LambdaQueryWrapper<AppPO>()
-                        .eq(AppPO::getStatus, APP_STATUS_ENABLED)
-                        .orderByDesc(AppPO::getCreateDt));
+        List<AppPO> list =
+                appMapper.selectList(
+                        new LambdaQueryWrapper<AppPO>()
+                                .eq(AppPO::getStatus, APP_STATUS_ENABLED)
+                                .orderByDesc(AppPO::getCreateDt));
         return list.stream().map(this::toResponseVO).toList();
     }
 
     public List<ClientNodeVO> getNodes(String appId) {
-        List<ClientNodePO> nodes = clientNodeMapper.selectList(
-                new LambdaQueryWrapper<ClientNodePO>()
-                        .eq(ClientNodePO::getAppId, appId)
-                        .orderByDesc(ClientNodePO::getExpireDt));
+        List<ClientNodePO> nodes =
+                clientNodeMapper.selectList(
+                        new LambdaQueryWrapper<ClientNodePO>()
+                                .eq(ClientNodePO::getAppId, appId)
+                                .orderByDesc(ClientNodePO::getExpireDt));
 
         LocalDateTime now = LocalDateTime.now();
         Map<String, String> appNameMap = buildAppNameMap();
-        return nodes.stream()
-                .map(node -> convertToClientNodeVO(node, now, appNameMap))
-                .toList();
+        return nodes.stream().map(node -> convertToClientNodeVO(node, now, appNameMap)).toList();
     }
 
-    /**
-     * 获取所有应用下的客户端节点（全局视图）
-     */
+    /** 获取所有应用下的客户端节点（全局视图） */
     public List<ClientNodeVO> getAllNodes() {
-        List<ClientNodePO> nodes = clientNodeMapper.selectList(
-                new LambdaQueryWrapper<ClientNodePO>()
-                        .orderByDesc(ClientNodePO::getExpireDt));
+        List<ClientNodePO> nodes =
+                clientNodeMapper.selectList(
+                        new LambdaQueryWrapper<ClientNodePO>()
+                                .orderByDesc(ClientNodePO::getExpireDt));
 
         LocalDateTime now = LocalDateTime.now();
         Map<String, String> appNameMap = buildAppNameMap();
-        return nodes.stream()
-                .map(node -> convertToClientNodeVO(node, now, appNameMap))
-                .toList();
+        return nodes.stream().map(node -> convertToClientNodeVO(node, now, appNameMap)).toList();
     }
 
     public void kickNode(String appId, String hostId) {
-        clientNodeMapper.delete(new LambdaQueryWrapper<ClientNodePO>()
-                .eq(ClientNodePO::getAppId, appId)
-                .eq(ClientNodePO::getHostId, hostId));
+        clientNodeMapper.delete(
+                new LambdaQueryWrapper<ClientNodePO>()
+                        .eq(ClientNodePO::getAppId, appId)
+                        .eq(ClientNodePO::getHostId, hostId));
     }
 
     // ==================== 私有辅助方法 ====================
@@ -159,8 +160,8 @@ public class AppService {
     }
 
     private void deleteRelatedNodes(String appId) {
-        clientNodeMapper.delete(new LambdaQueryWrapper<ClientNodePO>()
-                .eq(ClientNodePO::getAppId, appId));
+        clientNodeMapper.delete(
+                new LambdaQueryWrapper<ClientNodePO>().eq(ClientNodePO::getAppId, appId));
     }
 
     private boolean isEnabled(AppPO po) {
@@ -181,16 +182,18 @@ public class AppService {
         }
 
         wrapper.eq(ObjUtil.isNotNull(query.getStatus()), AppPO::getStatus, query.getStatus())
-                .between(ObjUtil.isNotNull(query.getStartDt()) &&  ObjUtil.isNotNull(query.getEndDt()),
-                        AppPO::getCreateDt, query.getStartDt(), query.getEndDt())
+                .between(
+                        ObjUtil.isNotNull(query.getStartDt())
+                                && ObjUtil.isNotNull(query.getEndDt()),
+                        AppPO::getCreateDt,
+                        query.getStartDt(),
+                        query.getEndDt())
                 .orderByDesc(AppPO::getCreateDt);
         return wrapper;
     }
 
     private PageResult<List<AppResponseVO>> buildPageResult(IPage<AppPO> page) {
-        List<AppResponseVO> list = page.getRecords().stream()
-                .map(this::toResponseVO)
-                .toList();
+        List<AppResponseVO> list = page.getRecords().stream().map(this::toResponseVO).toList();
 
         PageResult<List<AppResponseVO>> result = new PageResult<>();
         result.setData(list);
@@ -223,7 +226,8 @@ public class AppService {
                         .gt(ClientNodePO::getExpireDt, LocalDateTime.now()));
     }
 
-    private ClientNodeVO convertToClientNodeVO(ClientNodePO node, LocalDateTime now, Map<String, String> appNameMap) {
+    private ClientNodeVO convertToClientNodeVO(
+            ClientNodePO node, LocalDateTime now, Map<String, String> appNameMap) {
         return ClientNodeVO.builder()
                 .id(node.getId())
                 .appId(node.getAppId())
@@ -239,13 +243,11 @@ public class AppService {
                 .build();
     }
 
-    /**
-     * 构建 appId → appName 映射
-     */
+    /** 构建 appId → appName 映射 */
     private Map<String, String> buildAppNameMap() {
-        List<AppPO> apps = appMapper.selectList(
-                new LambdaQueryWrapper<AppPO>()
-                        .select(AppPO::getAppId, AppPO::getAppName));
+        List<AppPO> apps =
+                appMapper.selectList(
+                        new LambdaQueryWrapper<AppPO>().select(AppPO::getAppId, AppPO::getAppName));
         Map<String, String> map = new HashMap<>();
         for (AppPO app : apps) {
             map.put(app.getAppId(), app.getAppName());

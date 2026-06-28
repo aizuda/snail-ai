@@ -7,14 +7,12 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum MemoryEventEnum {
-
     ADD(1, "新增"),
     UPDATE(2, "更新"),
     DELETE(3, "删除"),
     NOOP(4, "无操作");
 
-    @EnumValue
-    private final Integer event;
+    @EnumValue private final Integer event;
     private final String description;
 
     public static MemoryEventEnum fromEvent(Integer event) {

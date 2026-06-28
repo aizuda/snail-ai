@@ -17,5 +17,4 @@ public class VectorStoreConfigDTO {
     private String config;
     private EmbeddingModel embeddingModel;
     private Integer dimensions;
-
 }

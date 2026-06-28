@@ -1,10 +1,9 @@
 package com.aizuda.snail.ai.features.rag.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.util.Objects;
 
 /**
  * 知识库文档上传去重策略
@@ -27,8 +26,7 @@ public enum DedupStrategy {
     /** 同名或同内容任一命中即视为重复 */
     BY_NAME_OR_CONTENT(3);
 
-    @EnumValue
-    private final Integer code;
+    @EnumValue private final Integer code;
 
     public boolean matchesByName() {
         return this == BY_NAME || this == BY_NAME_OR_CONTENT;

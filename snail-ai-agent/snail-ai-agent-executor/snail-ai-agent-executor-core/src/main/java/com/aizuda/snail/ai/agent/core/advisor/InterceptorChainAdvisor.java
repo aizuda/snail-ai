@@ -2,17 +2,16 @@ package com.aizuda.snail.ai.agent.core.advisor;
 
 import com.aizuda.snail.ai.agent.core.interceptor.SnailAiInterceptor;
 import com.aizuda.snail.ai.agent.core.interceptor.SnailAiInterceptorChain;
+import java.util.List;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.api.AdvisorChain;
 import org.springframework.ai.chat.client.advisor.api.BaseAdvisor;
 
-import java.util.List;
-
 /**
  * 执行 {@link SnailAiInterceptor} 链的 Advisor 包装。
- * <p>
- * 委托给 {@link SnailAiInterceptorChain} 执行 before（正序）/ after（逆序）。
+ *
+ * <p>委托给 {@link SnailAiInterceptorChain} 执行 before（正序）/ after（逆序）。
  *
  * @author opensnail
  */

@@ -9,14 +9,13 @@ import io.milvus.param.IndexType;
 import io.milvus.param.MetricType;
 import io.milvus.param.R;
 import io.milvus.param.collection.DropCollectionParam;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.embedding.TokenCountBatchingStrategy;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.milvus.MilvusVectorStore;
-
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 public class MilvusSnailAiVectorStore extends AbstractSnailAiVectorStore {
@@ -25,9 +24,10 @@ public class MilvusSnailAiVectorStore extends AbstractSnailAiVectorStore {
     private final MilvusVectorSettings config;
     private final ConcurrentHashMap<String, MilvusVectorStore> cache = new ConcurrentHashMap<>();
 
-    public MilvusSnailAiVectorStore(EmbeddingModel embeddingModel,
-                                    Integer embeddingDimensions,
-                                    MilvusVectorSettings config) {
+    public MilvusSnailAiVectorStore(
+            EmbeddingModel embeddingModel,
+            Integer embeddingDimensions,
+            MilvusVectorSettings config) {
         super(embeddingModel, embeddingDimensions);
         this.config = config;
         // 使用工厂获取或创建客户端（复用连接）
@@ -40,25 +40,28 @@ public class MilvusSnailAiVectorStore extends AbstractSnailAiVectorStore {
     }
 
     private MilvusVectorStore getStore(String collectionName) {
-        return cache.computeIfAbsent(collectionName, name -> {
-            var builder = MilvusVectorStore.builder(milvusClient, springAiEmbeddingModel)
-                    .databaseName(config.getDatabase())
-                    .collectionName(name)
-                    .embeddingDimension(embeddingDimensions)
-                    .metricType(parseMetricType(config.getMetricType()))
-                    .indexType(parseIndexType(config.getIndexType()))
-                    .indexParameters("{\"nlist\":" + config.getNlist() + "}")
-                    .autoId(false)
-                    .initializeSchema(true)
-                    .batchingStrategy(new TokenCountBatchingStrategy());
-            var store = builder.build();
-            try {
-                store.afterPropertiesSet();
-            } catch (Exception e) {
-                throw new VectorStoreException("MilvusVectorStore 初始化失败: " + name, e);
-            }
-            return store;
-        });
+        return cache.computeIfAbsent(
+                collectionName,
+                name -> {
+                    var builder =
+                            MilvusVectorStore.builder(milvusClient, springAiEmbeddingModel)
+                                    .databaseName(config.getDatabase())
+                                    .collectionName(name)
+                                    .embeddingDimension(embeddingDimensions)
+                                    .metricType(parseMetricType(config.getMetricType()))
+                                    .indexType(parseIndexType(config.getIndexType()))
+                                    .indexParameters("{\"nlist\":" + config.getNlist() + "}")
+                                    .autoId(false)
+                                    .initializeSchema(true)
+                                    .batchingStrategy(new TokenCountBatchingStrategy());
+                    var store = builder.build();
+                    try {
+                        store.afterPropertiesSet();
+                    } catch (Exception e) {
+                        throw new VectorStoreException("MilvusVectorStore 初始化失败: " + name, e);
+                    }
+                    return store;
+                });
     }
 
     private static MetricType parseMetricType(String s) {
@@ -104,10 +107,12 @@ public class MilvusSnailAiVectorStore extends AbstractSnailAiVectorStore {
             throw new VectorStoreException("indexName 不能为空");
         }
         cache.remove(indexName);
-        R<?> r = milvusClient.dropCollection(
-                DropCollectionParam.newBuilder().withCollectionName(indexName).build());
+        R<?> r =
+                milvusClient.dropCollection(
+                        DropCollectionParam.newBuilder().withCollectionName(indexName).build());
         if (r.getException() != null) {
-            throw new VectorStoreException("Milvus dropCollection failed: " + r.getException().getMessage(),
+            throw new VectorStoreException(
+                    "Milvus dropCollection failed: " + r.getException().getMessage(),
                     r.getException());
         }
         log.info("Dropped Milvus collection: {}", indexName);
@@ -118,7 +123,6 @@ public class MilvusSnailAiVectorStore extends AbstractSnailAiVectorStore {
         R<CheckHealthResponse> checkHealthResponseR = milvusClient.checkHealth();
         return Integer.valueOf(R.Status.Success.getCode()).equals(checkHealthResponseR.getStatus());
     }
-
 
     @Override
     protected VectorStore getVectorStore(String indexName) {

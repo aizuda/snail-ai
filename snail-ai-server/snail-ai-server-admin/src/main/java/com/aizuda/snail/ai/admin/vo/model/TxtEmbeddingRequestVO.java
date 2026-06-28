@@ -12,6 +12,5 @@ import lombok.Data;
 @Data
 public class TxtEmbeddingRequestVO {
     private String fileName;
-    @NotBlank
-    private String filePath;
+    @NotBlank private String filePath;
 }

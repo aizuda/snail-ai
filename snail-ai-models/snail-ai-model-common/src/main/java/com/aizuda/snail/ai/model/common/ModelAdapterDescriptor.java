@@ -1,11 +1,7 @@
 package com.aizuda.snail.ai.model.common;
 
 public record ModelAdapterDescriptor(
-        String adapterKey,
-        String name,
-        ModelCapability capability,
-        boolean enabled,
-        int order) {
+        String adapterKey, String name, ModelCapability capability, boolean enabled, int order) {
 
     public ModelAdapterDescriptor {
         if (adapterKey == null || adapterKey.isBlank()) {
@@ -16,7 +12,8 @@ public record ModelAdapterDescriptor(
         }
     }
 
-    public static ModelAdapterDescriptor of(String adapterKey, String name, ModelCapability capability) {
+    public static ModelAdapterDescriptor of(
+            String adapterKey, String name, ModelCapability capability) {
         return new ModelAdapterDescriptor(adapterKey, name, capability, true, 0);
     }
 }

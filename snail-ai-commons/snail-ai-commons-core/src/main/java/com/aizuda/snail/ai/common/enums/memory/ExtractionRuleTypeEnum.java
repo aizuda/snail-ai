@@ -4,9 +4,7 @@ import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/**
- * 记忆提取规则指令类型
- */
+/** 记忆提取规则指令类型 */
 @Getter
 @AllArgsConstructor
 public enum ExtractionRuleTypeEnum {
@@ -17,8 +15,7 @@ public enum ExtractionRuleTypeEnum {
     /** 自定义规则指令（用户自行填写关注/忽略规则） */
     CUSTOM("CUSTOM", "自定义规则指令");
 
-    @EnumValue
-    private final String code;
+    @EnumValue private final String code;
     private final String description;
 
     public static ExtractionRuleTypeEnum fromCode(String code) {

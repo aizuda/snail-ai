@@ -20,7 +20,6 @@ public class OpenApiWebMvcConfiguration implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(openApiAuthInterceptor)
-                .addPathPatterns("/openapi/**");
+        registry.addInterceptor(openApiAuthInterceptor).addPathPatterns("/openapi/**");
     }
 }

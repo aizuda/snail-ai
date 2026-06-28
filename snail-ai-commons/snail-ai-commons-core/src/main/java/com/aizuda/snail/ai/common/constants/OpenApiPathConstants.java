@@ -1,8 +1,6 @@
 package com.aizuda.snail.ai.common.constants;
 
-/**
- * OpenAPI 路径常量
- */
+/** OpenAPI 路径常量 */
 public interface OpenApiPathConstants {
 
     String OPEN_API_V1_PREFIX = "/openapi/v1";
@@ -18,7 +16,8 @@ public interface OpenApiPathConstants {
     String OPEN_API_EMBED_TOKEN = OPEN_API_V1_PREFIX + "/embed-token";
 
     String OPEN_API_AGENT_CONVERSATIONS = OPEN_API_V1_PREFIX + "/agent/conversations";
-    String OPEN_API_AGENT_CONVERSATION_MESSAGES = OPEN_API_V1_PREFIX + "/agent/conversations/messages";
+    String OPEN_API_AGENT_CONVERSATION_MESSAGES =
+            OPEN_API_V1_PREFIX + "/agent/conversations/messages";
 
     String OPEN_API_USER_REGISTER = OPEN_API_V1_PREFIX + "/user/register";
     String OPEN_API_USER = OPEN_API_V1_PREFIX + "/user";

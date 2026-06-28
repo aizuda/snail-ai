@@ -6,7 +6,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ResourceStorageTypeEnum {
-
     LOCAL("LOCAL"),
     MINIO("MINIO"),
     EXTERNAL("EXTERNAL");

@@ -16,6 +16,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ServerTimestampResponse {
-    
+
     private Long serverTimestamp;
 }

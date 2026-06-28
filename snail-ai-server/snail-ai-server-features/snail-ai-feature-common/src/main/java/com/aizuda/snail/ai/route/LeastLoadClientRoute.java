@@ -1,10 +1,9 @@
 package com.aizuda.snail.ai.route;
 
 import com.aizuda.snail.ai.ClientInstanceManager.ClientInstanceInfo;
-import org.springframework.stereotype.Component;
-
 import java.util.Comparator;
 import java.util.List;
+import org.springframework.stereotype.Component;
 
 /**
  * 最少负载路由（默认策略）
@@ -32,6 +31,7 @@ public class LeastLoadClientRoute implements ClientRouteStrategy {
 
     /**
      * 计算负载比率
+     *
      * @param client 客户端实例
      * @return 负载比率，0-1之间表示正常负载，Double.MAX_VALUE 表示无效实例
      */

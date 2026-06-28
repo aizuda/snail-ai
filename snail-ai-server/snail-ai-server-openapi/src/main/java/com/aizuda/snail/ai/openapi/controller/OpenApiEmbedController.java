@@ -12,9 +12,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-/**
- * OpenAPI 嵌入式对话接口。
- */
+/** OpenAPI 嵌入式对话接口。 */
 @RestController
 @RequiredArgsConstructor
 public class OpenApiEmbedController {
@@ -22,7 +20,8 @@ public class OpenApiEmbedController {
     private final OpenApiEmbedTokenService openApiEmbedTokenService;
 
     @GetMapping(OpenApiPathConstants.OPEN_API_EMBED_TOKEN)
-    public Result<OpenApiEmbedTokenResponse> embedToken(@Validated OpenApiEmbedTokenRequest request) {
+    public Result<OpenApiEmbedTokenResponse> embedToken(
+            @Validated OpenApiEmbedTokenRequest request) {
         return Result.ok(openApiEmbedTokenService.createEmbedToken(request));
     }
 

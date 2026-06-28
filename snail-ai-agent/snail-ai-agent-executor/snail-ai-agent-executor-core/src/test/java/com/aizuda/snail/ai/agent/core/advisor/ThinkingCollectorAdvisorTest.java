@@ -1,5 +1,10 @@
 package com.aizuda.snail.ai.agent.core.advisor;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
@@ -11,12 +16,6 @@ import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
 import reactor.core.publisher.Flux;
 
-import java.util.List;
-import java.util.Map;
-import java.util.function.Consumer;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 class ThinkingCollectorAdvisorTest {
 
     @Test
@@ -25,9 +24,12 @@ class ThinkingCollectorAdvisorTest {
         StringBuilder received = new StringBuilder();
         Consumer<String> thinkingConsumer = received::append;
 
-        ChatClientRequest request = new ChatClientRequest(new Prompt("test"), Map.of(
-                ClientAdvisorKeys.STREAM_STATE, state,
-                ClientAdvisorKeys.THINKING_CONSUMER, thinkingConsumer));
+        ChatClientRequest request =
+                new ChatClientRequest(
+                        new Prompt("test"),
+                        Map.of(
+                                ClientAdvisorKeys.STREAM_STATE, state,
+                                ClientAdvisorKeys.THINKING_CONSUMER, thinkingConsumer));
         ChatClientResponse response = buildResponse("reasoning content");
 
         new ThinkingCollectorAdvisor()
@@ -39,15 +41,17 @@ class ThinkingCollectorAdvisorTest {
     }
 
     private ChatClientResponse buildResponse(String thinking) {
-        AssistantMessage assistantMessage = AssistantMessage.builder()
-                .content("")
-                .properties(Map.of("reasoningContent", thinking))
-                .build();
+        AssistantMessage assistantMessage =
+                AssistantMessage.builder()
+                        .content("")
+                        .properties(Map.of("reasoningContent", thinking))
+                        .build();
         ChatResponse chatResponse = new ChatResponse(List.of(new Generation(assistantMessage)));
         return new ChatClientResponse(chatResponse, Map.of());
     }
 
-    private record SingleResponseStreamAdvisorChain(ChatClientResponse response) implements StreamAdvisorChain {
+    private record SingleResponseStreamAdvisorChain(ChatClientResponse response)
+            implements StreamAdvisorChain {
 
         @Override
         public Flux<ChatClientResponse> nextStream(ChatClientRequest request) {

@@ -20,16 +20,12 @@ public class ImportResult {
 
     private long fileSize;
 
-    /**
-     * SHA-256 hex digest of the imported content (for deduplication).
-     */
+    /** SHA-256 hex digest of the imported content (for deduplication). */
     private String contentHash;
 
     /**
-     * Raw file bytes — used for resource module upload.
-     * Only populated for file-based imports (UPLOAD, URL).
-     * null for TEXT source type.
+     * Raw file bytes — used for resource module upload. Only populated for file-based imports
+     * (UPLOAD, URL). null for TEXT source type.
      */
-    @JsonIgnore
-    private transient byte[] rawBytes;
+    @JsonIgnore private transient byte[] rawBytes;
 }

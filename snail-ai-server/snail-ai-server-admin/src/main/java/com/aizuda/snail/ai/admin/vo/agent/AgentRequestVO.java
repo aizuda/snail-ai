@@ -1,9 +1,8 @@
 package com.aizuda.snail.ai.admin.vo.agent;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
-import lombok.Data;
-
 import java.util.List;
+import lombok.Data;
 
 @Data
 public class AgentRequestVO {
@@ -18,9 +17,7 @@ public class AgentRequestVO {
 
     private String greeting;
 
-    /**
-     * 预设问题列表（第一个问题会同步到 greeting）
-     */
+    /** 预设问题列表（第一个问题会同步到 greeting） */
     private List<String> presetQuestions;
 
     private Long chatModelId;

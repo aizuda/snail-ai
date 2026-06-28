@@ -1,12 +1,9 @@
 package com.aizuda.snail.ai.common.model;
 
+import java.util.List;
 import lombok.Data;
 
-import java.util.List;
-
-/**
- * (复制自 snail-job-ai-executor)
- */
+/** (复制自 snail-job-ai-executor) */
 @Data
 public class EmbeddingResponseDTO {
 

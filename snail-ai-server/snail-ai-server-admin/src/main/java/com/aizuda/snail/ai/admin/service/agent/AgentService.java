@@ -1,33 +1,30 @@
 package com.aizuda.snail.ai.admin.service.agent;
 
+import static com.aizuda.snail.ai.common.constants.SystemConstants.YYYY_MM_DD_HH_MM_SS;
+
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
+import com.aizuda.snail.ai.admin.service.mcp.McpServerService;
+import com.aizuda.snail.ai.admin.service.model.AiModelConfigService;
+import com.aizuda.snail.ai.admin.service.skill.SkillService;
+import com.aizuda.snail.ai.admin.vo.PageResult;
+import com.aizuda.snail.ai.admin.vo.agent.*;
+import com.aizuda.snail.ai.admin.vo.mcp.McpServerResponseVO;
+import com.aizuda.snail.ai.admin.vo.memory.ConversationSummaryVO;
+import com.aizuda.snail.ai.admin.vo.model.AiModelConfigVO;
+import com.aizuda.snail.ai.admin.vo.skill.SkillResponseVO;
 import com.aizuda.snail.ai.common.enums.agent.AgentStatusEnum;
 import com.aizuda.snail.ai.common.enums.agent.RagCallModeEnum;
 import com.aizuda.snail.ai.common.execption.SnailAiCommonException;
 import com.aizuda.snail.ai.common.util.JsonUtil;
-import com.aizuda.snail.ai.persistence.security.UserSessionUtils;
-import com.aizuda.snail.ai.admin.service.model.AiModelConfigService;
-import com.aizuda.snail.ai.admin.vo.model.AiModelConfigVO;
 import com.aizuda.snail.ai.model.enums.ModelTypeEnum;
 import com.aizuda.snail.ai.persistence.agent.mapper.*;
-import com.aizuda.snail.ai.admin.vo.PageResult;
 import com.aizuda.snail.ai.persistence.agent.po.*;
-import com.aizuda.snail.ai.admin.service.mcp.McpServerService;
-import com.aizuda.snail.ai.admin.vo.mcp.McpServerResponseVO;
-import com.aizuda.snail.ai.admin.service.skill.SkillService;
-import com.aizuda.snail.ai.admin.vo.skill.SkillResponseVO;
-import com.aizuda.snail.ai.admin.vo.agent.*;
-import com.aizuda.snail.ai.admin.vo.memory.ConversationSummaryVO;
+import com.aizuda.snail.ai.persistence.security.UserSessionUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -36,8 +33,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static com.aizuda.snail.ai.common.constants.SystemConstants.YYYY_MM_DD_HH_MM_SS;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -71,77 +70,85 @@ public class AgentService {
         PageDTO<AgentPO> pageDTO = new PageDTO<>(query.getPage(), query.getSize());
         IPage<AgentPO> page = agentMapper.selectPage(pageDTO, wrapper);
 
-        List<AgentResponseVO> records = page.getRecords().stream()
-                .map(this::toResponseVO)
-                .collect(Collectors.toList());
+        List<AgentResponseVO> records =
+                page.getRecords().stream().map(this::toResponseVO).collect(Collectors.toList());
 
         return new PageResult<>(pageDTO, records);
     }
 
     public AgentResponseVO create(AgentRequestVO request) {
         Long userId = UserSessionUtils.currentUserSession().getId();
-        
+
         // 获取默认 CHAT 模型
         AiModelConfigVO defaultModel = null;
         if (request.getChatModelId() != null) {
             defaultModel = aiModelConfigService.getModelConfig(request.getChatModelId());
         } else {
-            defaultModel = aiModelConfigService.getDefaultModelByType(ModelTypeEnum.CHAT.getValue());
+            defaultModel =
+                    aiModelConfigService.getDefaultModelByType(ModelTypeEnum.CHAT.getValue());
         }
-        
+
         if (defaultModel == null) {
             throw new SnailAiCommonException("未找到可用的 CHAT 模型");
         }
-        
+
         // 构建 AgentPO
         List<String> normalizedQuestions = normalizePresetQuestions(request.getPresetQuestions());
-        
-        AgentPO agent = AgentPO.builder()
-                .name(request.getName())
-                .description(request.getDescription())
-                .instruction(request.getInstruction())
-                .greeting(request.getGreeting() != null ? request.getGreeting().trim() : null)
-                .presetQuestions(normalizedQuestions.isEmpty() ? null : JsonUtil.toJsonString(normalizedQuestions))
-                .avatar(request.getAvatar())
-                .chatModelId(defaultModel.getId())
-                .creatorId(userId)
-                .ragIds(request.getRagIds())
-                .ragCallMode(request.getRagCallMode() != null ? request.getRagCallMode() : RagCallModeEnum.SMART.getMode())
-                .status(AgentStatusEnum.ACTIVE.getStatus())
-                .viewCount(0)
-                .mcpEnabled(Boolean.TRUE.equals(request.getMcpEnabled()))
-                .skillEnabled(Boolean.TRUE.equals(request.getSkillEnabled()))
-                .webSearchEnabled(Boolean.TRUE.equals(request.getWebSearchEnabled()))
-                .ragEnabled(Boolean.TRUE.equals(request.getRagEnabled()))
-                .memoryEnabled(Boolean.TRUE.equals(request.getMemoryEnabled()))
-                .shortTermMemorySize(request.getShortTermMemorySize())
-                .isFeatured(false)
-                .appId(request.getAppId())
-                .build();
-        
+
+        AgentPO agent =
+                AgentPO.builder()
+                        .name(request.getName())
+                        .description(request.getDescription())
+                        .instruction(request.getInstruction())
+                        .greeting(
+                                request.getGreeting() != null ? request.getGreeting().trim() : null)
+                        .presetQuestions(
+                                normalizedQuestions.isEmpty()
+                                        ? null
+                                        : JsonUtil.toJsonString(normalizedQuestions))
+                        .avatar(request.getAvatar())
+                        .chatModelId(defaultModel.getId())
+                        .creatorId(userId)
+                        .ragIds(request.getRagIds())
+                        .ragCallMode(
+                                request.getRagCallMode() != null
+                                        ? request.getRagCallMode()
+                                        : RagCallModeEnum.SMART.getMode())
+                        .status(AgentStatusEnum.ACTIVE.getStatus())
+                        .viewCount(0)
+                        .mcpEnabled(Boolean.TRUE.equals(request.getMcpEnabled()))
+                        .skillEnabled(Boolean.TRUE.equals(request.getSkillEnabled()))
+                        .webSearchEnabled(Boolean.TRUE.equals(request.getWebSearchEnabled()))
+                        .ragEnabled(Boolean.TRUE.equals(request.getRagEnabled()))
+                        .memoryEnabled(Boolean.TRUE.equals(request.getMemoryEnabled()))
+                        .shortTermMemorySize(request.getShortTermMemorySize())
+                        .isFeatured(false)
+                        .appId(request.getAppId())
+                        .build();
+
         agentMapper.insert(agent);
         Long agentId = agent.getId();
-        
+
         if (agentId == null) {
             throw new SnailAiCommonException("创建智能体失败：无法获取生成的ID");
         }
-        
+
         // 关联 MCP 服务
         if (request.getMcpServerIds() != null && !request.getMcpServerIds().isEmpty()) {
             mcpServerService.updateAgentMcpServers(agentId, request.getMcpServerIds());
         }
-        
+
         // 关联 Skill
         if (request.getSkillIds() != null && !request.getSkillIds().isEmpty()) {
             skillService.updateAgentSkills(agentId, request.getSkillIds());
         }
-        
+
         // 重新查询以确保返回最新的数据
         AgentPO savedAgent = agentMapper.selectById(agentId);
         if (savedAgent == null) {
             throw new SnailAiCommonException("创建智能体失败：保存后无法查询到数据");
         }
-        
+
         return toResponseVO(savedAgent);
     }
 
@@ -177,14 +184,15 @@ public class AgentService {
         if (request.getInstruction() != null) {
             po.setInstruction(request.getInstruction());
         }
-        
+
         // greeting 和 presetQuestions 独立处理，不再同步
         if (request.getGreeting() != null) {
             po.setGreeting(request.getGreeting().trim());
         }
-        
+
         if (request.getPresetQuestions() != null) {
-            List<String> normalizedPresetQuestions = normalizePresetQuestions(request.getPresetQuestions());
+            List<String> normalizedPresetQuestions =
+                    normalizePresetQuestions(request.getPresetQuestions());
             if (normalizedPresetQuestions.isEmpty()) {
                 po.setPresetQuestions(null);
             } else {
@@ -252,25 +260,26 @@ public class AgentService {
 
         // 删除关联数据
         agentConversationRecordMapper.delete(
-                new LambdaQueryWrapper<AgentConversationRecordPO>().eq(AgentConversationRecordPO::getAgentId, id));
+                new LambdaQueryWrapper<AgentConversationRecordPO>()
+                        .eq(AgentConversationRecordPO::getAgentId, id));
         agentConversationMapper.delete(
-                new LambdaQueryWrapper<AgentConversationPO>().eq(AgentConversationPO::getAgentId, id));
+                new LambdaQueryWrapper<AgentConversationPO>()
+                        .eq(AgentConversationPO::getAgentId, id));
         agentUsageStatMapper.delete(
                 new LambdaQueryWrapper<AgentUsageStatPO>().eq(AgentUsageStatPO::getAgentId, id));
         agentMapper.deleteById(id);
     }
 
-    /**
-     * 删除单个对话及其关联数据（不删除长期记忆 {@code sai_memory_conversation}）
-     */
+    /** 删除单个对话及其关联数据（不删除长期记忆 {@code sai_memory_conversation}） */
     @Transactional
     public void deleteConversation(Long agentId, String conversationId) {
         Long userId = UserSessionUtils.currentUserSession().getId();
-        AgentConversationPO conversation = agentConversationMapper.selectOne(
-                new LambdaQueryWrapper<AgentConversationPO>()
-                        .eq(AgentConversationPO::getConversationId, conversationId)
-                        .eq(AgentConversationPO::getAgentId, agentId)
-                        .eq(AgentConversationPO::getUserId, userId));
+        AgentConversationPO conversation =
+                agentConversationMapper.selectOne(
+                        new LambdaQueryWrapper<AgentConversationPO>()
+                                .eq(AgentConversationPO::getConversationId, conversationId)
+                                .eq(AgentConversationPO::getAgentId, agentId)
+                                .eq(AgentConversationPO::getUserId, userId));
         if (conversation == null) {
             throw new SnailAiCommonException("对话不存在或无权限删除");
         }
@@ -281,12 +290,14 @@ public class AgentService {
                         .eq(AgentConversationRecordPO::getAgentId, agentId)
                         .eq(AgentConversationRecordPO::getUserId, userId));
         agentConversationMapper.deleteById(conversation.getId());
-        log.info("删除对话成功: agentId={}, conversationId={}, userId={}", agentId, conversationId, userId);
+        log.info(
+                "删除对话成功: agentId={}, conversationId={}, userId={}",
+                agentId,
+                conversationId,
+                userId);
     }
 
-    /**
-     * 清空当前用户在指定 Agent 下的全部对话（不删除长期记忆 {@code sai_memory_conversation}）
-     */
+    /** 清空当前用户在指定 Agent 下的全部对话（不删除长期记忆 {@code sai_memory_conversation}） */
     @Transactional
     public void clearConversations(Long agentId) {
         Long userId = UserSessionUtils.currentUserSession().getId();
@@ -311,16 +322,16 @@ public class AgentService {
         }
     }
 
-    /**
-     * 分页查询当前用户在指定 Agent 下的会话列表（{@code sai_agent_conversation} + 记录表聚合统计）
-     */
-    public PageResult<List<ConversationSummaryVO>> listConversations(Long agentId, AgentConversationQueryVO query) {
+    /** 分页查询当前用户在指定 Agent 下的会话列表（{@code sai_agent_conversation} + 记录表聚合统计） */
+    public PageResult<List<ConversationSummaryVO>> listConversations(
+            Long agentId, AgentConversationQueryVO query) {
         Long userId = UserSessionUtils.currentUserSession().getId();
         String userName = UserSessionUtils.currentUserSession().getUsername();
 
-        LambdaQueryWrapper<AgentConversationPO> wrapper = new LambdaQueryWrapper<AgentConversationPO>()
-                .eq(AgentConversationPO::getAgentId, agentId)
-                .eq(AgentConversationPO::getUserId, userId);
+        LambdaQueryWrapper<AgentConversationPO> wrapper =
+                new LambdaQueryWrapper<AgentConversationPO>()
+                        .eq(AgentConversationPO::getAgentId, agentId)
+                        .eq(AgentConversationPO::getUserId, userId);
 
         if (ObjUtil.isNotNull(query.getStartDt()) && ObjUtil.isNotNull(query.getEndDt())) {
             wrapper.between(AgentConversationPO::getCreateDt, query.getStartDt(), query.getEndDt());
@@ -341,54 +352,69 @@ public class AgentService {
         Page<AgentConversationPO> pageParam = new Page<>(query.getPage(), query.getSize());
         Page<AgentConversationPO> page = agentConversationMapper.selectPage(pageParam, wrapper);
 
-        List<String> convIds = page.getRecords().stream()
-                .map(AgentConversationPO::getConversationId)
-                .collect(Collectors.toList());
+        List<String> convIds =
+                page.getRecords().stream()
+                        .map(AgentConversationPO::getConversationId)
+                        .collect(Collectors.toList());
 
         Map<String, ConversationStats> statsByConvId = new HashMap<>();
         if (!convIds.isEmpty()) {
-            List<AgentConversationRecordPO> records = agentConversationRecordMapper.selectList(
-                    new LambdaQueryWrapper<AgentConversationRecordPO>()
-                            .select(AgentConversationRecordPO::getConversationId, AgentConversationRecordPO::getCreateDt)
-                            .eq(AgentConversationRecordPO::getAgentId, agentId)
-                            .eq(AgentConversationRecordPO::getUserId, userId)
-                            .in(AgentConversationRecordPO::getConversationId, convIds));
+            List<AgentConversationRecordPO> records =
+                    agentConversationRecordMapper.selectList(
+                            new LambdaQueryWrapper<AgentConversationRecordPO>()
+                                    .select(
+                                            AgentConversationRecordPO::getConversationId,
+                                            AgentConversationRecordPO::getCreateDt)
+                                    .eq(AgentConversationRecordPO::getAgentId, agentId)
+                                    .eq(AgentConversationRecordPO::getUserId, userId)
+                                    .in(AgentConversationRecordPO::getConversationId, convIds));
             for (AgentConversationRecordPO record : records) {
                 String conversationId = record.getConversationId();
                 if (conversationId == null) {
                     continue;
                 }
-                statsByConvId.merge(conversationId,
+                statsByConvId.merge(
+                        conversationId,
                         new ConversationStats(1, record.getCreateDt()),
                         AgentService::mergeConversationStats);
             }
         }
 
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern(YYYY_MM_DD_HH_MM_SS);
-        List<ConversationSummaryVO> rows = page.getRecords().stream().map(conv -> {
-            ConversationStats st = statsByConvId.get(conv.getConversationId());
-            int messageCount = st != null ? st.messageCount() : 0;
-            LocalDateTime lastMsg = st != null && st.lastMessageDt() != null
-                    ? st.lastMessageDt()
-                    : conv.getUpdateDt();
-            return ConversationSummaryVO.builder()
-                    .conversationId(conv.getConversationId())
-                    .title(conv.getTitle())
-                    .userName(userName)
-                    .messageCount(messageCount)
-                    .toolCallCount(0)
-                    .createDt(conv.getCreateDt() != null ? conv.getCreateDt().format(dtf) : null)
-                    .lastMessageDt(lastMsg != null ? lastMsg.format(dtf) : null)
-                    .build();
-        }).collect(Collectors.toList());
+        List<ConversationSummaryVO> rows =
+                page.getRecords().stream()
+                        .map(
+                                conv -> {
+                                    ConversationStats st =
+                                            statsByConvId.get(conv.getConversationId());
+                                    int messageCount = st != null ? st.messageCount() : 0;
+                                    LocalDateTime lastMsg =
+                                            st != null && st.lastMessageDt() != null
+                                                    ? st.lastMessageDt()
+                                                    : conv.getUpdateDt();
+                                    return ConversationSummaryVO.builder()
+                                            .conversationId(conv.getConversationId())
+                                            .title(conv.getTitle())
+                                            .userName(userName)
+                                            .messageCount(messageCount)
+                                            .toolCallCount(0)
+                                            .createDt(
+                                                    conv.getCreateDt() != null
+                                                            ? conv.getCreateDt().format(dtf)
+                                                            : null)
+                                            .lastMessageDt(
+                                                    lastMsg != null ? lastMsg.format(dtf) : null)
+                                            .build();
+                                })
+                        .collect(Collectors.toList());
 
         return new PageResult<>(page, rows);
     }
 
-    private record ConversationStats(int messageCount, LocalDateTime lastMessageDt) {
-    }
+    private record ConversationStats(int messageCount, LocalDateTime lastMessageDt) {}
 
-    private static ConversationStats mergeConversationStats(ConversationStats left, ConversationStats right) {
+    private static ConversationStats mergeConversationStats(
+            ConversationStats left, ConversationStats right) {
         return new ConversationStats(
                 left.messageCount() + right.messageCount(),
                 laterOf(left.lastMessageDt(), right.lastMessageDt()));
@@ -404,18 +430,20 @@ public class AgentService {
         return a.isAfter(b) ? a : b;
     }
 
-    /**
-     * 获取可用的 CHAT 类型模型列表
-     */
+    /** 获取可用的 CHAT 类型模型列表 */
     public List<Map<String, Object>> getChatModels() {
-        List<AiModelConfigVO> models = aiModelConfigService.getModelsByType(ModelTypeEnum.CHAT.getValue());
-        return models.stream().map(m -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("value", m.getModelKey());
-            map.put("label", m.getModelName());
-            map.put("id", m.getId());
-            return map;
-        }).collect(Collectors.toList());
+        List<AiModelConfigVO> models =
+                aiModelConfigService.getModelsByType(ModelTypeEnum.CHAT.getValue());
+        return models.stream()
+                .map(
+                        m -> {
+                            Map<String, Object> map = new HashMap<>();
+                            map.put("value", m.getModelKey());
+                            map.put("label", m.getModelName());
+                            map.put("id", m.getId());
+                            return map;
+                        })
+                .collect(Collectors.toList());
     }
 
     public AgentResponseVO toResponseVO(AgentPO po) {
@@ -498,5 +526,4 @@ public class AgentService {
                 .limit(8)
                 .collect(Collectors.toList());
     }
-
 }

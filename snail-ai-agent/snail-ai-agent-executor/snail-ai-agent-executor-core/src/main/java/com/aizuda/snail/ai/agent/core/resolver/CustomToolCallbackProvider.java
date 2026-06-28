@@ -1,23 +1,23 @@
 package com.aizuda.snail.ai.agent.core.resolver;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.tool.ToolCallbackProvider;
-import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.context.ApplicationContext;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * 自动发现 Spring 容器中所有包含 @Tool 方法的 Bean，转为 ToolCallback 并缓存。
- * <p>
- * 用户只需声明 @Component + @Tool 方法，启动时即可被自动发现并注入到 Agent ChatClient。
- * <p>
- * 示例:
+ *
+ * <p>用户只需声明 @Component + @Tool 方法，启动时即可被自动发现并注入到 Agent ChatClient。
+ *
+ * <p>示例:
+ *
  * <pre>
  * &#064;Component
  * public class OrderTool {
@@ -60,7 +60,10 @@ public class CustomToolCallbackProvider implements ToolCallbackProvider, Initial
                 if (hasToolMethods(bean)) {
                     ToolCallback[] callbacks = ToolCallbacks.from(bean);
                     allCallbacks.addAll(Arrays.asList(callbacks));
-                    log.info("Discovered @Tool bean: [{}] with {} tool(s)", beanName, callbacks.length);
+                    log.info(
+                            "Discovered @Tool bean: [{}] with {} tool(s)",
+                            beanName,
+                            callbacks.length);
                 }
             } catch (Exception e) {
                 // Bean 可能是 lazy 或 prototype，忽略

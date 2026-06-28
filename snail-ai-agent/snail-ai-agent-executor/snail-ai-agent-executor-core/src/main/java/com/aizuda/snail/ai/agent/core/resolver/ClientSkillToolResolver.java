@@ -1,28 +1,26 @@
 package com.aizuda.snail.ai.agent.core.resolver;
 
 import com.aizuda.snail.ai.agent.common.rpc.RpcClient;
-import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
-import com.aizuda.snail.ai.agent.core.tool.HttpTool;
 import com.aizuda.snail.ai.agent.core.tool.ReadSkillTool;
-import com.aizuda.snail.ai.agent.core.tool.ShellTool;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.support.ToolCallbacks;
-import org.springframework.ai.tool.ToolCallback;
-
+import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.support.ToolCallbacks;
+import org.springframework.ai.tool.ToolCallback;
 
 /**
  * 客户端 Skill 工具解析器
- * <p>
- * 注册 3 个工具（与 Server 端一致）：
+ *
+ * <p>注册 3 个工具（与 Server 端一致）：
+ *
  * <ul>
- *   <li>{@code read_skill} — 通过 gRPC 回调 Server 获取 skill 完整内容 + 文件</li>
- *   <li>{@code shell} — 在 skill 临时目录中执行 shell 命令</li>
- *   <li>{@code http_request} — 发起 HTTP 请求</li>
+ *   <li>{@code read_skill} — 通过 gRPC 回调 Server 获取 skill 完整内容 + 文件
+ *   <li>{@code shell} — 在 skill 临时目录中执行 shell 命令
+ *   <li>{@code http_request} — 发起 HTTP 请求
  * </ul>
  *
  * @author opensnail
@@ -42,9 +40,7 @@ public class ClientSkillToolResolver {
         this.skillTempDir = skillTempDir;
     }
 
-    /**
-     * 从 Skill 描述符列表构建工具回调
-     */
+    /** 从 Skill 描述符列表构建工具回调 */
     public List<ToolCallback> resolve(ChatDispatchRequest request) {
         List<ChatDispatchRequest.SkillDescriptor> skills = request.getSkills();
         if (skills == null || skills.isEmpty()) {
@@ -53,13 +49,15 @@ public class ClientSkillToolResolver {
 
         List<ToolCallback> callbacks = new ArrayList<>();
         try {
-            String skillPrompt = SkillPromptConstants.SYSTEM_PROMPT_TEMPLATE
-                    .replace("{skills_list}", buildSkillsList(skills));
+            String skillPrompt =
+                    SkillPromptConstants.SYSTEM_PROMPT_TEMPLATE.replace(
+                            "{skills_list}", buildSkillsList(skills));
             request.setSystemPrompt(request.getSystemPrompt() + skillPrompt);
 
-            callbacks.addAll(Arrays.asList(ToolCallbacks.from(
-                    new ReadSkillTool(skills, rpcClient, skillTempDir)
-            )));
+            callbacks.addAll(
+                    Arrays.asList(
+                            ToolCallbacks.from(
+                                    new ReadSkillTool(skills, rpcClient, skillTempDir))));
             log.info("Skill tools resolved: {} skills, ReadSkillTool  registered", skills.size());
         } catch (Exception e) {
             log.warn("Failed to resolve skill tools", e);
@@ -68,9 +66,7 @@ public class ClientSkillToolResolver {
         return callbacks;
     }
 
-    /**
-     * 构建轻量级技能列表（仅 name + description + filePath），不含完整 skillContent
-     */
+    /** 构建轻量级技能列表（仅 name + description + filePath），不含完整 skillContent */
     public String buildSkillsList(List<ChatDispatchRequest.SkillDescriptor> skills) {
         StringBuilder sb = new StringBuilder();
         for (ChatDispatchRequest.SkillDescriptor skill : skills) {
@@ -85,6 +81,7 @@ public class ClientSkillToolResolver {
     }
 
     public Path getSkillTempDir(ChatDispatchRequest.SkillDescriptor po) {
-        return Path.of(skillTempDir + File.separator + po.getId() + File.separator + po.getVersion());
+        return Path.of(
+                skillTempDir + File.separator + po.getId() + File.separator + po.getVersion());
     }
 }

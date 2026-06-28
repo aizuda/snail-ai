@@ -12,9 +12,7 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-/**
- * OpenAPI 用户身份解析（appId + openId -> 平台用户）
- */
+/** OpenAPI 用户身份解析（appId + openId -> 平台用户） */
 @Component
 @RequiredArgsConstructor
 public class OpenApiUserResolver {
@@ -31,10 +29,11 @@ public class OpenApiUserResolver {
             throw new SnailAiAuthenticationException("缺少 openId 参数");
         }
 
-        OpenApiUserPO openApiUser = openApiUserMapper.selectOne(
-                new LambdaQueryWrapper<OpenApiUserPO>()
-                        .eq(OpenApiUserPO::getAppId, appId)
-                        .eq(OpenApiUserPO::getOpenId, openId));
+        OpenApiUserPO openApiUser =
+                openApiUserMapper.selectOne(
+                        new LambdaQueryWrapper<OpenApiUserPO>()
+                                .eq(OpenApiUserPO::getAppId, appId)
+                                .eq(OpenApiUserPO::getOpenId, openId));
         if (openApiUser == null) {
             throw new SnailAiAuthenticationException("OpenId 无效: {}", openId);
         }

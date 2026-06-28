@@ -7,19 +7,16 @@ import com.aizuda.snail.ai.agent.core.resolver.ClientSkillToolResolver;
 import com.aizuda.snail.ai.agent.core.resolver.CustomToolCallbackProvider;
 import com.aizuda.snail.ai.common.constants.SystemConstants;
 import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Supplier;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.ToolCallback;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.function.Supplier;
-
-/**
- * 客户端工具运行时，统一解析一次对话所需的工具集合。
- */
+/** 客户端工具运行时，统一解析一次对话所需的工具集合。 */
 @Slf4j
 @RequiredArgsConstructor
 public class ToolRuntime {
@@ -58,8 +55,9 @@ public class ToolRuntime {
         mcpServers.removeIf(server -> SystemConstants.RAG_MCP_SERVER_NAME.equals(server.getName()));
     }
 
-    private List<ToolCallback> resolveMcpTools(List<ChatDispatchRequest.McpServerDescriptor> mcpServers,
-                                               ClientMcpToolResolver mcpResolver) {
+    private List<ToolCallback> resolveMcpTools(
+            List<ChatDispatchRequest.McpServerDescriptor> mcpServers,
+            ClientMcpToolResolver mcpResolver) {
         if (mcpServers == null || mcpServers.isEmpty()) {
             return new ArrayList<>();
         }
@@ -71,7 +69,8 @@ public class ToolRuntime {
         }
     }
 
-    private void addResolvedTools(List<ToolCallback> tools, String name, Supplier<List<ToolCallback>> supplier) {
+    private void addResolvedTools(
+            List<ToolCallback> tools, String name, Supplier<List<ToolCallback>> supplier) {
         try {
             tools.addAll(supplier.get());
         } catch (Exception e) {

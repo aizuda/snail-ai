@@ -10,9 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-/**
- * 模型解析：确定对话使用的模型，并准备远程分发所需的 {@link ChatDispatchRequest.ModelConfig}
- */
+/** 模型解析：确定对话使用的模型，并准备远程分发所需的 {@link ChatDispatchRequest.ModelConfig} */
 @Slf4j
 @Component
 @Order(30)
@@ -31,7 +29,8 @@ public class ModelResolveHandler implements AgentChatHandler {
         long startTime = System.currentTimeMillis();
         Long modelId = ctx.getAgent().getChatModelId();
         if (modelId == null) {
-            ModelConfigInfoDTO model = modelConfigHandler.getDefaultModelByType(ModelTypeEnum.CHAT.getValue());
+            ModelConfigInfoDTO model =
+                    modelConfigHandler.getDefaultModelByType(ModelTypeEnum.CHAT.getValue());
             if (model == null) {
                 ctx.getStreamWriter().send("Error: 未配置对话模型");
                 ctx.getStreamWriter().complete();
@@ -44,7 +43,8 @@ public class ModelResolveHandler implements AgentChatHandler {
         ctx.setModelId(modelId);
 
         try {
-            ChatDispatchRequest.ModelConfig dispatchModel = dispatchModelConfigAssembler.assembleChatModelConfig(modelId);
+            ChatDispatchRequest.ModelConfig dispatchModel =
+                    dispatchModelConfigAssembler.assembleChatModelConfig(modelId);
             ctx.setModelConfig(dispatchModel);
             log.debug("Model config prepared for dispatch: modelId={}", modelId);
         } catch (Exception e) {
@@ -54,6 +54,4 @@ public class ModelResolveHandler implements AgentChatHandler {
             ctx.setTerminated(true);
         }
     }
-
-
 }

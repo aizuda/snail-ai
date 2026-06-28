@@ -5,9 +5,7 @@ import com.aizuda.snail.ai.common.util.JsonUtil;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
-/**
- * Encodes RAG QA events for the fixed HTTP streaming response format.
- */
+/** Encodes RAG QA events for the fixed HTTP streaming response format. */
 @Component
 public class RagQaStreamHttpAdapter {
 

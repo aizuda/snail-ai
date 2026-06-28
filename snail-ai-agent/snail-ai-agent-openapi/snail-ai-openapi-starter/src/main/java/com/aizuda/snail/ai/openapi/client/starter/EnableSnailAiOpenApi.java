@@ -1,11 +1,10 @@
 package com.aizuda.snail.ai.openapi.client.starter;
 
-import org.springframework.context.annotation.Import;
-
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+import org.springframework.context.annotation.Import;
 
 /**
  * 启用 Snail AI OpenAPI 客户端
@@ -16,5 +15,4 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @Import(SnailAiOpenApiAutoConfiguration.class)
-public @interface EnableSnailAiOpenApi {
-}
+public @interface EnableSnailAiOpenApi {}

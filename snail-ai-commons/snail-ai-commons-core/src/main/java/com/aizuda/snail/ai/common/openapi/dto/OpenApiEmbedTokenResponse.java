@@ -1,15 +1,12 @@
 package com.aizuda.snail.ai.common.openapi.dto;
 
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
-/**
- * OpenAPI 嵌入式对话 token 响应。
- */
+/** OpenAPI 嵌入式对话 token 响应。 */
 @Data
 @Builder
 @AllArgsConstructor

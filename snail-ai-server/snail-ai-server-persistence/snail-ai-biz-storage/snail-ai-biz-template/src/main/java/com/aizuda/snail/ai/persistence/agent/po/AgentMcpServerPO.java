@@ -3,19 +3,16 @@ package com.aizuda.snail.ai.persistence.agent.po;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 /**
- * Agent与MCP服务器关联持久化对象
- * 表: sai_agent_mcp_server
+ * Agent与MCP服务器关联持久化对象 表: sai_agent_mcp_server
  *
- * 表示Agent与MCP Server的多对多关系
- * 一个Agent可以绑定多个MCP Server，增强Agent的能力
+ * <p>表示Agent与MCP Server的多对多关系 一个Agent可以绑定多个MCP Server，增强Agent的能力
  *
  * @author opensnail
  * @date 2026-04-14
@@ -27,28 +24,16 @@ import java.time.LocalDateTime;
 @Builder
 public class AgentMcpServerPO {
 
-    /**
-     * 关联ID (主键)
-     * 自增主键，全局唯一
-     */
+    /** 关联ID (主键) 自增主键，全局唯一 */
     @TableId(type = IdType.AUTO)
     private Long id;
 
-    /**
-     * Agent ID (外键)
-     * 关联到 sai_agent.id
-     */
+    /** Agent ID (外键) 关联到 sai_agent.id */
     private Long agentId;
 
-    /**
-     * MCP服务器ID (外键)
-     * 关联到 sai_mcp_server.id
-     */
+    /** MCP服务器ID (外键) 关联到 sai_mcp_server.id */
     private Long mcpServerId;
 
-    /**
-     * 创建时间
-     * 关联关系创建的时刻
-     */
+    /** 创建时间 关联关系创建的时刻 */
     private LocalDateTime createDt;
 }

@@ -1,10 +1,9 @@
 package com.aizuda.snail.ai.features.rag.enums;
 
 import com.baomidou.mybatisplus.annotation.EnumValue;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.util.Objects;
 
 /**
  * 命中去重时的处理动作
@@ -24,8 +23,7 @@ public enum DedupAction {
     /** 删除旧文档（含 chunks/向量），按新文件重新处理 */
     OVERWRITE(2);
 
-    @EnumValue
-    private final Integer code;
+    @EnumValue private final Integer code;
 
     public static DedupAction fromCode(Integer code) {
         if (code == null) {

@@ -2,9 +2,7 @@ package com.aizuda.snail.ai.common.execption;
 
 import org.slf4j.helpers.MessageFormatter;
 
-/**
- * 异常信息 (复制自 snail-job)
- */
+/** 异常信息 (复制自 snail-job) */
 public class BaseSnailAiException extends RuntimeException {
 
     public BaseSnailAiException(String message) {
@@ -46,6 +44,8 @@ public class BaseSnailAiException extends RuntimeException {
     }
 
     public static Throwable getThrowable(Object... arguments) {
-        return arguments.length == getArguments(arguments).length ? null : (Throwable) arguments[arguments.length - 1];
+        return arguments.length == getArguments(arguments).length
+                ? null
+                : (Throwable) arguments[arguments.length - 1];
     }
 }

@@ -5,9 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * OpenAPI 用户信息响应
- */
+/** OpenAPI 用户信息响应 */
 @Data
 @Builder
 @AllArgsConstructor

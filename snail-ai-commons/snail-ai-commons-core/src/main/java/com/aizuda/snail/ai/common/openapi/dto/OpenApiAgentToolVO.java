@@ -5,9 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * OpenAPI Agent 工具概要信息。
- */
+/** OpenAPI Agent 工具概要信息。 */
 @Data
 @Builder
 @AllArgsConstructor

@@ -12,5 +12,4 @@ public class MemoriesQueryVO extends BaseQueryVO {
     private Long userId;
     private String conversationId;
     private Integer status;
-
 }

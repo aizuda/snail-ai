@@ -5,25 +5,24 @@ import com.aizuda.snail.ai.admin.enums.RoleEnum;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiUserRegisterRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiUserVO;
+import com.aizuda.snail.ai.features.resource.enums.ResourceBizTypeEnum;
+import com.aizuda.snail.ai.features.resource.enums.ResourceStorageTypeEnum;
 import com.aizuda.snail.ai.openapi.security.OpenApiSessionUtils;
 import com.aizuda.snail.ai.persistence.admin.mapper.UserMapper;
 import com.aizuda.snail.ai.persistence.admin.po.UserPO;
 import com.aizuda.snail.ai.persistence.openapi.mapper.OpenApiUserMapper;
 import com.aizuda.snail.ai.persistence.openapi.po.OpenApiUserPO;
-import com.aizuda.snail.ai.features.resource.enums.ResourceBizTypeEnum;
-import com.aizuda.snail.ai.features.resource.enums.ResourceStorageTypeEnum;
 import com.aizuda.snail.ai.persistence.resource.mapper.ResourceMapper;
 import com.aizuda.snail.ai.persistence.resource.po.ResourcePO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.util.HexFormat;
 import java.util.UUID;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -41,13 +40,17 @@ public class OpenApiUserService {
         String appId = OpenApiSessionUtils.current().getAppId();
 
         if (StrUtil.isNotBlank(request.getExternalId())) {
-            OpenApiUserPO existing = openApiUserMapper.selectOne(
-                    new LambdaQueryWrapper<OpenApiUserPO>()
-                            .eq(OpenApiUserPO::getAppId, appId)
-                            .eq(OpenApiUserPO::getExternalId, request.getExternalId()));
+            OpenApiUserPO existing =
+                    openApiUserMapper.selectOne(
+                            new LambdaQueryWrapper<OpenApiUserPO>()
+                                    .eq(OpenApiUserPO::getAppId, appId)
+                                    .eq(OpenApiUserPO::getExternalId, request.getExternalId()));
             if (existing != null) {
                 UserPO existingUser = userMapper.selectById(existing.getPlatformUserId());
-                return buildVO(existing, false, resolveAvatarUrl(existing.getPlatformUserId()),
+                return buildVO(
+                        existing,
+                        false,
+                        resolveAvatarUrl(existing.getPlatformUserId()),
                         existingUser != null ? existingUser.getNickname() : null);
             }
         }
@@ -64,17 +67,19 @@ public class OpenApiUserService {
         userMapper.insert(platformUser);
 
         if (StrUtil.isNotBlank(request.getAvatarUrl())) {
-            createExternalAvatarResource(platformUser, request.getAvatarUrl(), request.getNickname());
+            createExternalAvatarResource(
+                    platformUser, request.getAvatarUrl(), request.getNickname());
         }
 
-        OpenApiUserPO openApiUser = OpenApiUserPO.builder()
-                .appId(appId)
-                .openId(openId)
-                .platformUserId(platformUser.getId())
-                .externalId(request.getExternalId())
-                .createDt(LocalDateTime.now())
-                .updateDt(LocalDateTime.now())
-                .build();
+        OpenApiUserPO openApiUser =
+                OpenApiUserPO.builder()
+                        .appId(appId)
+                        .openId(openId)
+                        .platformUserId(platformUser.getId())
+                        .externalId(request.getExternalId())
+                        .createDt(LocalDateTime.now())
+                        .updateDt(LocalDateTime.now())
+                        .build();
         openApiUserMapper.insert(openApiUser);
 
         return buildVO(openApiUser, true, request.getAvatarUrl(), request.getNickname());
@@ -82,32 +87,38 @@ public class OpenApiUserService {
 
     public OpenApiUserVO getByOpenId(String openId) {
         String appId = OpenApiSessionUtils.current().getAppId();
-        OpenApiUserPO user = openApiUserMapper.selectOne(
-                new LambdaQueryWrapper<OpenApiUserPO>()
-                        .eq(OpenApiUserPO::getAppId, appId)
-                        .eq(OpenApiUserPO::getOpenId, openId));
+        OpenApiUserPO user =
+                openApiUserMapper.selectOne(
+                        new LambdaQueryWrapper<OpenApiUserPO>()
+                                .eq(OpenApiUserPO::getAppId, appId)
+                                .eq(OpenApiUserPO::getOpenId, openId));
         if (user == null) {
             throw new SnailAiException("用户不存在: " + openId);
         }
         UserPO platformUser = userMapper.selectById(user.getPlatformUserId());
-        return buildVO(user, false, resolveAvatarUrl(user.getPlatformUserId()),
+        return buildVO(
+                user,
+                false,
+                resolveAvatarUrl(user.getPlatformUserId()),
                 platformUser != null ? platformUser.getNickname() : null);
     }
 
-    private void createExternalAvatarResource(UserPO platformUser, String avatarUrl, String nickname) {
+    private void createExternalAvatarResource(
+            UserPO platformUser, String avatarUrl, String nickname) {
         LocalDateTime now = LocalDateTime.now();
-        ResourcePO resource = ResourcePO.builder()
-                .storageKey(avatarUrl)
-                .originalName(StrUtil.blankToDefault(nickname, "user") + "_avatar")
-                .fileSize(0L)
-                .storageType(ResourceStorageTypeEnum.EXTERNAL.getValue())
-                .accessUrl(avatarUrl)
-                .bizType(ResourceBizTypeEnum.AVATAR.getValue())
-                .bizId(platformUser.getId())
-                .creatorId(platformUser.getId())
-                .createDt(now)
-                .updateDt(now)
-                .build();
+        ResourcePO resource =
+                ResourcePO.builder()
+                        .storageKey(avatarUrl)
+                        .originalName(StrUtil.blankToDefault(nickname, "user") + "_avatar")
+                        .fileSize(0L)
+                        .storageType(ResourceStorageTypeEnum.EXTERNAL.getValue())
+                        .accessUrl(avatarUrl)
+                        .bizType(ResourceBizTypeEnum.AVATAR.getValue())
+                        .bizId(platformUser.getId())
+                        .creatorId(platformUser.getId())
+                        .createDt(now)
+                        .updateDt(now)
+                        .build();
         resourceMapper.insert(resource);
         platformUser.setResourceId(resource.getId());
         userMapper.updateById(platformUser);
@@ -122,7 +133,8 @@ public class OpenApiUserService {
         return resource != null ? resource.getAccessUrl() : null;
     }
 
-    private OpenApiUserVO buildVO(OpenApiUserPO po, boolean created, String avatarUrl, String nickname) {
+    private OpenApiUserVO buildVO(
+            OpenApiUserPO po, boolean created, String avatarUrl, String nickname) {
         return OpenApiUserVO.builder()
                 .openId(po.getOpenId())
                 .externalId(po.getExternalId())

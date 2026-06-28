@@ -14,16 +14,13 @@ import com.aizuda.snail.ai.persistence.resource.po.ResourcePO;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
-/**
- * OpenAPI 嵌入式对话 token 服务。
- */
+/** OpenAPI 嵌入式对话 token 服务。 */
 @Service
 @RequiredArgsConstructor
 public class OpenApiEmbedTokenService {
@@ -36,9 +33,13 @@ public class OpenApiEmbedTokenService {
 
     public OpenApiEmbedTokenResponse createEmbedToken(OpenApiEmbedTokenRequest request) {
         OpenApiSessionUtils.OpenApiSession session = OpenApiSessionUtils.current();
-        OpenApiResolvedUser resolvedUser = openApiUserResolver.resolveUser(session.getAppId(), request.getOpenId());
+        OpenApiResolvedUser resolvedUser =
+                openApiUserResolver.resolveUser(session.getAppId(), request.getOpenId());
         UserPO requestUser = resolvedUser.getPlatformUser();
-        int ttlSeconds = request.getTtlSeconds() == null ? DEFAULT_TOKEN_TTL_SECONDS : request.getTtlSeconds();
+        int ttlSeconds =
+                request.getTtlSeconds() == null
+                        ? DEFAULT_TOKEN_TTL_SECONDS
+                        : request.getTtlSeconds();
         LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(ttlSeconds);
         String token = createUserAuthToken(requestUser, session, request, expiresAt);
 
@@ -62,10 +63,11 @@ public class OpenApiEmbedTokenService {
         return resource != null ? resource.getAccessUrl() : null;
     }
 
-    private String createUserAuthToken(UserPO user,
-                                       OpenApiSessionUtils.OpenApiSession session,
-                                       OpenApiEmbedTokenRequest request,
-                                       LocalDateTime expiresAt) {
+    private String createUserAuthToken(
+            UserPO user,
+            OpenApiSessionUtils.OpenApiSession session,
+            OpenApiEmbedTokenRequest request,
+            LocalDateTime expiresAt) {
         if (user == null || StrUtil.isBlank(user.getUsername())) {
             throw new SnailAiException("用户认证信息不完整");
         }
@@ -77,11 +79,12 @@ public class OpenApiEmbedTokenService {
         audience.setUsername(user.getUsername());
 
         Date expires = Date.from(expiresAt.atZone(ZoneId.systemDefault()).toInstant());
-        JWTCreator.Builder builder = JWT.create()
-                .withExpiresAt(expires)
-                .withAudience(JsonUtil.toJsonString(audience))
-                .withClaim("appId", session.getAppId())
-                .withClaim("openId", request.getOpenId());
+        JWTCreator.Builder builder =
+                JWT.create()
+                        .withExpiresAt(expires)
+                        .withAudience(JsonUtil.toJsonString(audience))
+                        .withClaim("appId", session.getAppId())
+                        .withClaim("openId", request.getOpenId());
         if (StrUtil.isNotBlank(request.getTrustedCredential())) {
             builder.withClaim("trustedCredential", request.getTrustedCredential());
         }

@@ -1,10 +1,9 @@
 package com.aizuda.snail.ai.common.dto.agent;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 /**
  * Skill 内容回调响应

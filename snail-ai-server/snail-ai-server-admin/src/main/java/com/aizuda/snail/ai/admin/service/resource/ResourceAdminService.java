@@ -2,27 +2,26 @@ package com.aizuda.snail.ai.admin.service.resource;
 
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
+import com.aizuda.snail.ai.admin.enums.RoleEnum;
 import com.aizuda.snail.ai.admin.vo.PageResult;
 import com.aizuda.snail.ai.admin.vo.resource.ResourceQueryVO;
 import com.aizuda.snail.ai.admin.vo.resource.ResourceResponseVO;
 import com.aizuda.snail.ai.admin.vo.resource.ResourceUploadRequestVO;
-import com.aizuda.snail.ai.admin.enums.RoleEnum;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.features.resource.ResourceService;
 import com.aizuda.snail.ai.features.resource.enums.ResourceBizTypeEnum;
+import com.aizuda.snail.ai.persistence.admin.po.UserPO;
 import com.aizuda.snail.ai.persistence.resource.mapper.ResourceMapper;
 import com.aizuda.snail.ai.persistence.resource.po.ResourcePO;
 import com.aizuda.snail.ai.persistence.security.UserSessionUtils;
-import com.aizuda.snail.ai.persistence.admin.po.UserPO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
+import java.io.IOException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.IOException;
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -33,19 +32,20 @@ public class ResourceAdminService {
 
     public ResourceResponseVO upload(MultipartFile file, ResourceUploadRequestVO request) {
         Long userId = UserSessionUtils.currentUserSession().getId();
-        String bizType = StrUtil.isNotBlank(request.getBizType())
-                ? request.getBizType()
-                : ResourceBizTypeEnum.GENERAL.getValue();
+        String bizType =
+                StrUtil.isNotBlank(request.getBizType())
+                        ? request.getBizType()
+                        : ResourceBizTypeEnum.GENERAL.getValue();
 
         try {
-            ResourcePO po = resourceService.upload(
-                    file.getInputStream(),
-                    file.getOriginalFilename(),
-                    file.getSize(),
-                    bizType,
-                    request.getBizId(),
-                    userId
-            );
+            ResourcePO po =
+                    resourceService.upload(
+                            file.getInputStream(),
+                            file.getOriginalFilename(),
+                            file.getSize(),
+                            bizType,
+                            request.getBizId(),
+                            userId);
             return toResponseVO(po);
         } catch (IOException e) {
             throw new SnailAiException("Failed to read uploaded file", e);
@@ -61,22 +61,30 @@ public class ResourceAdminService {
         LambdaQueryWrapper<ResourcePO> wrapper = new LambdaQueryWrapper<>();
         UserPO currentUser = UserSessionUtils.currentUserSession();
 
-        wrapper.eq(StrUtil.isNotBlank(query.getBizType()), ResourcePO::getBizType, query.getBizType())
-                .like(StrUtil.isNotBlank(query.getOriginalName()), ResourcePO::getOriginalName, query.getOriginalName())
+        wrapper.eq(
+                        StrUtil.isNotBlank(query.getBizType()),
+                        ResourcePO::getBizType,
+                        query.getBizType())
+                .like(
+                        StrUtil.isNotBlank(query.getOriginalName()),
+                        ResourcePO::getOriginalName,
+                        query.getOriginalName())
                 .eq(ObjUtil.isNotNull(query.getBizId()), ResourcePO::getBizId, query.getBizId())
-                .between(ObjUtil.isNotNull(query.getStartDt()) &&  ObjUtil.isNotNull(query.getEndDt()),
-                        ResourcePO::getCreateDt, query.getStartDt(), query.getEndDt());
+                .between(
+                        ObjUtil.isNotNull(query.getStartDt())
+                                && ObjUtil.isNotNull(query.getEndDt()),
+                        ResourcePO::getCreateDt,
+                        query.getStartDt(),
+                        query.getEndDt());
         if (!RoleEnum.isAdmin(currentUser.getRole())) {
             wrapper.eq(ResourcePO::getCreatorId, currentUser.getId());
         }
         wrapper.orderByDesc(ResourcePO::getCreateDt);
 
-        IPage<ResourcePO> page = resourceMapper.selectPage(
-                PageDTO.of(query.getPage(), query.getSize()), wrapper);
+        IPage<ResourcePO> page =
+                resourceMapper.selectPage(PageDTO.of(query.getPage(), query.getSize()), wrapper);
 
-        List<ResourceResponseVO> list = page.getRecords().stream()
-                .map(this::toResponseVO)
-                .toList();
+        List<ResourceResponseVO> list = page.getRecords().stream().map(this::toResponseVO).toList();
 
         PageResult<List<ResourceResponseVO>> result = new PageResult<>();
         result.setData(list);

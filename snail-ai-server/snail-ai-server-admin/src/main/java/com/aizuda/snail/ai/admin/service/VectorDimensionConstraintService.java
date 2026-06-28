@@ -6,30 +6,28 @@ import com.aizuda.snail.ai.common.execption.SnailAiCommonException;
 import com.aizuda.snail.ai.persistence.admin.mapper.StoreInstanceMapper;
 import com.aizuda.snail.ai.persistence.admin.po.StoreInstancePO;
 import com.aizuda.snail.ai.vector.storage.embedding.EmbeddingModelDimensionService;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-
-/**
- * 统一处理向量维度约束（模型上限 + 向量库上限）。
- */
+/** 统一处理向量维度约束（模型上限 + 向量库上限）。 */
 @Service
 @RequiredArgsConstructor
 public class VectorDimensionConstraintService {
 
     private static final int MIN_VECTOR_DIMENSION = 64;
     private static final int DEFAULT_VECTOR_STORE_MAX_DIMENSION = 4096;
-    private static final Map<StoreInstanceTypeEnum, Integer> VECTOR_STORE_MAX_DIMENSIONS = Map.of(
-            StoreInstanceTypeEnum.PG_VECTOR, 2000,
-            StoreInstanceTypeEnum.MILVUS, 4096,
-            StoreInstanceTypeEnum.ELASTICSEARCH, 4096
-    );
+    private static final Map<StoreInstanceTypeEnum, Integer> VECTOR_STORE_MAX_DIMENSIONS =
+            Map.of(
+                    StoreInstanceTypeEnum.PG_VECTOR, 2000,
+                    StoreInstanceTypeEnum.MILVUS, 4096,
+                    StoreInstanceTypeEnum.ELASTICSEARCH, 4096);
 
     private final EmbeddingModelDimensionService embeddingModelDimensionService;
     private final StoreInstanceMapper storeInstanceMapper;
 
-    public VectorDimensionConstraintVO resolveConstraint(Long embeddingModelId, Long vectorStoreInstanceId) {
+    public VectorDimensionConstraintVO resolveConstraint(
+            Long embeddingModelId, Long vectorStoreInstanceId) {
         if (embeddingModelId == null) {
             throw new SnailAiCommonException("embeddingModelId 不能为空");
         }
@@ -50,9 +48,8 @@ public class VectorDimensionConstraintService {
         return embeddingModelDimensionService.getEmbeddingDimension(embeddingModelId);
     }
 
-    public void validateRequestedDimension(Integer dimension,
-                                           Long embeddingModelId,
-                                           Long vectorStoreInstanceId) {
+    public void validateRequestedDimension(
+            Integer dimension, Long embeddingModelId, Long vectorStoreInstanceId) {
         if (dimension == null) {
             throw new SnailAiCommonException("向量维度必填");
         }
@@ -66,9 +63,11 @@ public class VectorDimensionConstraintService {
         StoreInstancePO storeInstance = getStoreInstanceOrThrow(vectorStoreInstanceId);
         int storeMaxDimension = getStoreMaxDimension(storeInstance);
         if (dimension > storeMaxDimension) {
-            StoreInstanceTypeEnum storeType = StoreInstanceTypeEnum.fromType(storeInstance.getType());
+            StoreInstanceTypeEnum storeType =
+                    StoreInstanceTypeEnum.fromType(storeInstance.getType());
             String storeDesc = storeType != null ? storeType.getDescription() : "向量库";
-            throw new SnailAiCommonException("向量维度不能超过" + storeDesc + "支持的最大维度: " + storeMaxDimension);
+            throw new SnailAiCommonException(
+                    "向量维度不能超过" + storeDesc + "支持的最大维度: " + storeMaxDimension);
         }
     }
 
@@ -85,6 +84,7 @@ public class VectorDimensionConstraintService {
         if (storeType == null) {
             return DEFAULT_VECTOR_STORE_MAX_DIMENSION;
         }
-        return VECTOR_STORE_MAX_DIMENSIONS.getOrDefault(storeType, DEFAULT_VECTOR_STORE_MAX_DIMENSION);
+        return VECTOR_STORE_MAX_DIMENSIONS.getOrDefault(
+                storeType, DEFAULT_VECTOR_STORE_MAX_DIMENSION);
     }
 }

@@ -1,8 +1,7 @@
 package com.aizuda.snail.ai.admin.vo.agent;
 
-import lombok.Data;
-
 import java.util.List;
+import lombok.Data;
 
 @Data
 public class AgentMcpServersUpdateRequestVO {

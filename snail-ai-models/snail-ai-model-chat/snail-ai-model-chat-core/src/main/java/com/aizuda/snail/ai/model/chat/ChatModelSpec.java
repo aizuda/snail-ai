@@ -8,5 +8,4 @@ public record ChatModelSpec(
         String baseUrl,
         String apiKey,
         String modelKey,
-        ConfigExtAttrsDTO configJson) {
-}
+        ConfigExtAttrsDTO configJson) {}

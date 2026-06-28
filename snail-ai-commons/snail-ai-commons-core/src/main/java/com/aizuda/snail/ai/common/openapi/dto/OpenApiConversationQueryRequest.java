@@ -5,9 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-/**
- * OpenAPI 会话查询请求（Query 参数）
- */
+/** OpenAPI 会话查询请求（Query 参数） */
 @Data
 public class OpenApiConversationQueryRequest {
 

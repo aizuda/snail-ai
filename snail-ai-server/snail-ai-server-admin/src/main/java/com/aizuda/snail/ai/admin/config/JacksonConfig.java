@@ -1,5 +1,12 @@
 package com.aizuda.snail.ai.admin.config;
 
+import static com.aizuda.snail.ai.common.constants.SystemConstants.YYYY_MM_DD;
+import static com.aizuda.snail.ai.common.constants.SystemConstants.YYYY_MM_DD_HH_MM_SS;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.TimeZone;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.jackson.autoconfigure.JsonMapperBuilderCustomizer;
 import org.springframework.context.annotation.Bean;
@@ -10,22 +17,7 @@ import tools.jackson.databind.ext.javatime.ser.LocalDateSerializer;
 import tools.jackson.databind.ext.javatime.ser.LocalDateTimeSerializer;
 import tools.jackson.databind.module.SimpleModule;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.TimeZone;
-
-import static com.aizuda.snail.ai.common.constants.SystemConstants.YYYY_MM_DD;
-import static com.aizuda.snail.ai.common.constants.SystemConstants.YYYY_MM_DD_HH_MM_SS;
-
-/**
- * Jackson 全局配置
- * 统一配置日期时间格式化
- *
- * @Author: opensnail
- * @Date: 2018/09/27 12:52
- */
-
+/** Jackson 全局配置 统一配置日期时间格式化 @Author: opensnail @Date: 2018/09/27 12:52 */
 @Configuration
 @Slf4j
 public class JacksonConfig {
@@ -37,9 +29,12 @@ public class JacksonConfig {
         // 全局配置序列化返回 JSON 处理
         SimpleModule simpleModule = new SimpleModule();
         simpleModule.addSerializer(LocalDate.class, new LocalDateSerializer(localDateFormatter));
-        simpleModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(localDateTimeFormatter));
-        simpleModule.addDeserializer(LocalDate.class, new LocalDateDeserializer(localDateFormatter));
-        simpleModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(localDateTimeFormatter));
+        simpleModule.addSerializer(
+                LocalDateTime.class, new LocalDateTimeSerializer(localDateTimeFormatter));
+        simpleModule.addDeserializer(
+                LocalDate.class, new LocalDateDeserializer(localDateFormatter));
+        simpleModule.addDeserializer(
+                LocalDateTime.class, new LocalDateTimeDeserializer(localDateTimeFormatter));
         return simpleModule;
     }
 
@@ -50,7 +45,4 @@ public class JacksonConfig {
             log.info("初始化 jackson 配置");
         };
     }
-
-
-
 }

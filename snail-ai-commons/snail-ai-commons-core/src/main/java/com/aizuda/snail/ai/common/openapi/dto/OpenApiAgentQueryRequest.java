@@ -3,9 +3,7 @@ package com.aizuda.snail.ai.common.openapi.dto;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
 
-/**
- * OpenAPI Agent 分页查询请求。
- */
+/** OpenAPI Agent 分页查询请求。 */
 @Data
 public class OpenApiAgentQueryRequest {
 

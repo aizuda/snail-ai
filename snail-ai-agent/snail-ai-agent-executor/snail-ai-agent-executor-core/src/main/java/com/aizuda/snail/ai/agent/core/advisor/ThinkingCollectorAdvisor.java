@@ -1,6 +1,9 @@
 package com.aizuda.snail.ai.agent.core.advisor;
 
 import com.aizuda.snail.ai.agent.common.context.AgentChatContextHolder;
+import java.util.Map;
+import java.util.Optional;
+import java.util.function.Consumer;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClientRequest;
@@ -11,18 +14,14 @@ import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import reactor.core.publisher.Flux;
 
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Consumer;
-
 /**
- * 累积流式思维链 metadata，完成时桥接到 {@link AgentChatContextHolder.ChatContext}
- * 供 GENERATION 观测的 {@code ThinkingContentExtractor} 读取。
- * <p>
- * 同时将完整 thinkingText 保留在 {@link ClientStreamExecutionContext}，
- * 随 {@code ChatCompletionResult.fullThinking} 返回给调用方用于对话记录持久化。
- * <p>
- * 兼容 reasoning_content 直接写入 metadata，或存在于底层响应对象 _additionalProperties() 中的场景。
+ * 累积流式思维链 metadata，完成时桥接到 {@link AgentChatContextHolder.ChatContext} 供 GENERATION 观测的 {@code
+ * ThinkingContentExtractor} 读取。
+ *
+ * <p>同时将完整 thinkingText 保留在 {@link ClientStreamExecutionContext}， 随 {@code
+ * ChatCompletionResult.fullThinking} 返回给调用方用于对话记录持久化。
+ *
+ * <p>兼容 reasoning_content 直接写入 metadata，或存在于底层响应对象 _additionalProperties() 中的场景。
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -31,7 +30,9 @@ public class ThinkingCollectorAdvisor implements StreamAdvisor {
     private static final String METADATA_REASONING_CONTENT = "reasoningContent";
     private static final String METADATA_THINKING = "thinking";
     private static final String METADATA_REASONING = "reasoning";
-    private static final String[] THINKING_KEYS = {METADATA_REASONING_CONTENT, METADATA_THINKING, METADATA_REASONING};
+    private static final String[] THINKING_KEYS = {
+        METADATA_REASONING_CONTENT, METADATA_THINKING, METADATA_REASONING
+    };
     private static final String METADATA_CHUNK_CHOICE = "chunkChoice";
     private static final String METADATA_MESSAGE = "message";
     private static final String METADATA_ADDITIONAL_PROPERTIES = "_additionalProperties";
@@ -39,10 +40,10 @@ public class ThinkingCollectorAdvisor implements StreamAdvisor {
     private static final String METHOD_ADDITIONAL_PROPERTIES = "_additionalProperties";
     private static final String METHOD_AS_STRING = "asString";
 
-    /**
-     * OpenAI 兼容 API（如 DeepSeek）在 _additionalProperties 中使用的 key
-     */
-    private static final String[] ADDITIONAL_PROP_KEYS = {"reasoning_content", "reasoning", "thinking"};
+    /** OpenAI 兼容 API（如 DeepSeek）在 _additionalProperties 中使用的 key */
+    private static final String[] ADDITIONAL_PROP_KEYS = {
+        "reasoning_content", "reasoning", "thinking"
+    };
 
     @Override
     public String getName() {
@@ -55,27 +56,32 @@ public class ThinkingCollectorAdvisor implements StreamAdvisor {
     }
 
     @Override
-    public Flux<ChatClientResponse> adviseStream(ChatClientRequest request, StreamAdvisorChain chain) {
+    public Flux<ChatClientResponse> adviseStream(
+            ChatClientRequest request, StreamAdvisorChain chain) {
         Object st = request.context().get(ClientAdvisorKeys.STREAM_STATE);
         if (!(st instanceof ClientStreamExecutionContext state)) {
             return chain.nextStream(request);
         }
 
         @SuppressWarnings("unchecked")
-        Consumer<String> thinkingConsumer = (Consumer<String>) request.context().get(ClientAdvisorKeys.THINKING_CONSUMER);
+        Consumer<String> thinkingConsumer =
+                (Consumer<String>) request.context().get(ClientAdvisorKeys.THINKING_CONSUMER);
 
         return chain.nextStream(request)
                 .doOnNext(response -> collectThinking(response, state, thinkingConsumer))
                 .doOnComplete(() -> bridgeThinkingToContext(state));
     }
 
-    private void collectThinking(ChatClientResponse response, ClientStreamExecutionContext state,
-                                 Consumer<String> thinkingConsumer) {
+    private void collectThinking(
+            ChatClientResponse response,
+            ClientStreamExecutionContext state,
+            Consumer<String> thinkingConsumer) {
         ChatResponse cr = response.chatResponse();
         if (cr == null || cr.getResult() == null) {
             return;
         }
-        extractThinkingText(cr.getResult()).ifPresent(text -> forward(text, state, thinkingConsumer));
+        extractThinkingText(cr.getResult())
+                .ifPresent(text -> forward(text, state, thinkingConsumer));
     }
 
     private Optional<String> extractThinkingText(Generation generation) {
@@ -97,19 +103,19 @@ public class ThinkingCollectorAdvisor implements StreamAdvisor {
         return Optional.empty();
     }
 
-    /**
-     * 不直接依赖具体模型 SDK 类型，避免 agent core 绑定某个模型厂商。
-     */
+    /** 不直接依赖具体模型 SDK 类型，避免 agent core 绑定某个模型厂商。 */
     private Optional<String> extractFromAdditionalProperties(Generation generation) {
         try {
             Map<String, Object> metadata = generation.getOutput().getMetadata();
 
-            Optional<String> chunkChoiceReasoning = extractReasoningFromCandidate(metadata.get(METADATA_CHUNK_CHOICE));
+            Optional<String> chunkChoiceReasoning =
+                    extractReasoningFromCandidate(metadata.get(METADATA_CHUNK_CHOICE));
             if (chunkChoiceReasoning.isPresent()) {
                 return chunkChoiceReasoning;
             }
 
-            Optional<String> messageReasoning = extractReasoningFromCandidate(metadata.get(METADATA_MESSAGE));
+            Optional<String> messageReasoning =
+                    extractReasoningFromCandidate(metadata.get(METADATA_MESSAGE));
             if (messageReasoning.isPresent()) {
                 return messageReasoning;
             }
@@ -185,7 +191,8 @@ public class ThinkingCollectorAdvisor implements StreamAdvisor {
         }
     }
 
-    private void forward(String text, ClientStreamExecutionContext state, Consumer<String> thinkingConsumer) {
+    private void forward(
+            String text, ClientStreamExecutionContext state, Consumer<String> thinkingConsumer) {
         if (text == null || text.isBlank()) {
             return;
         }
@@ -195,9 +202,7 @@ public class ThinkingCollectorAdvisor implements StreamAdvisor {
         }
     }
 
-    /**
-     * 流完成时将累积的思维链桥接到 ChatContext，供下游上下文读取。
-     */
+    /** 流完成时将累积的思维链桥接到 ChatContext，供下游上下文读取。 */
     private void bridgeThinkingToContext(ClientStreamExecutionContext state) {
         String thinking = state.thinkingText.toString();
         if (thinking.isEmpty()) {

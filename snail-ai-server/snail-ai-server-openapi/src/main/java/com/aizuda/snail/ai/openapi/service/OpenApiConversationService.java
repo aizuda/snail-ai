@@ -15,14 +15,13 @@ import com.aizuda.snail.ai.persistence.agent.po.AgentConversationPO;
 import com.aizuda.snail.ai.persistence.agent.po.AgentConversationRecordPO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * OpenAPI 会话管理服务
@@ -38,32 +37,35 @@ public class OpenApiConversationService {
     private final AgentConversationRecordMapper conversationRecordMapper;
     private final OpenApiUserResolver openApiUserResolver;
 
-    public PageResult<List<OpenApiConversationVO>> listConversations(OpenApiConversationQueryRequest request) {
+    public PageResult<List<OpenApiConversationVO>> listConversations(
+            OpenApiConversationQueryRequest request) {
         Long userId = resolveUserId(request.getOpenId());
 
         Page<AgentConversationPO> pageParam = new Page<>(request.getPage(), request.getSize());
-        Page<AgentConversationPO> result = conversationMapper.selectPage(pageParam,
-                new LambdaQueryWrapper<AgentConversationPO>()
-                        .eq(AgentConversationPO::getAgentId, request.getAgentId())
-                        .eq(AgentConversationPO::getUserId, userId)
-                        .orderByDesc(AgentConversationPO::getUpdateDt));
-        List<OpenApiConversationVO> conversations = result.getRecords().stream()
-                .map(this::toVO)
-                .collect(Collectors.toList());
+        Page<AgentConversationPO> result =
+                conversationMapper.selectPage(
+                        pageParam,
+                        new LambdaQueryWrapper<AgentConversationPO>()
+                                .eq(AgentConversationPO::getAgentId, request.getAgentId())
+                                .eq(AgentConversationPO::getUserId, userId)
+                                .orderByDesc(AgentConversationPO::getUpdateDt));
+        List<OpenApiConversationVO> conversations =
+                result.getRecords().stream().map(this::toVO).collect(Collectors.toList());
         return pageResult(result, conversations);
     }
 
     public OpenApiConversationVO createConversation(OpenApiCreateConversationRequest request) {
         Long userId = resolveUserId(request.getOpenId());
 
-        AgentConversationPO po = AgentConversationPO.builder()
-                .agentId(request.getAgentId())
-                .userId(userId)
-                .conversationId(UUID.randomUUID().toString())
-                .title(request.getTitle())
-                .createDt(LocalDateTime.now())
-                .updateDt(LocalDateTime.now())
-                .build();
+        AgentConversationPO po =
+                AgentConversationPO.builder()
+                        .agentId(request.getAgentId())
+                        .userId(userId)
+                        .conversationId(UUID.randomUUID().toString())
+                        .title(request.getTitle())
+                        .createDt(LocalDateTime.now())
+                        .updateDt(LocalDateTime.now())
+                        .build();
         conversationMapper.insert(po);
         return toVO(po);
     }
@@ -81,7 +83,9 @@ public class OpenApiConversationService {
         conversationRecordMapper.delete(
                 new LambdaQueryWrapper<AgentConversationRecordPO>()
                         .eq(AgentConversationRecordPO::getAgentId, request.getAgentId())
-                        .eq(AgentConversationRecordPO::getConversationId, request.getConversationId())
+                        .eq(
+                                AgentConversationRecordPO::getConversationId,
+                                request.getConversationId())
                         .eq(AgentConversationRecordPO::getUserId, userId));
     }
 
@@ -103,20 +107,27 @@ public class OpenApiConversationService {
     public List<OpenApiMessageVO> getMessages(OpenApiConversationIdentityRequest request) {
         Long userId = resolveUserId(request.getOpenId());
 
-        List<AgentConversationRecordPO> records = conversationRecordMapper.selectList(
-                new LambdaQueryWrapper<AgentConversationRecordPO>()
-                        .eq(AgentConversationRecordPO::getAgentId, request.getAgentId())
-                        .eq(AgentConversationRecordPO::getConversationId, request.getConversationId())
-                        .eq(AgentConversationRecordPO::getUserId, userId)
-                        .orderByAsc(AgentConversationRecordPO::getCreateDt));
+        List<AgentConversationRecordPO> records =
+                conversationRecordMapper.selectList(
+                        new LambdaQueryWrapper<AgentConversationRecordPO>()
+                                .eq(AgentConversationRecordPO::getAgentId, request.getAgentId())
+                                .eq(
+                                        AgentConversationRecordPO::getConversationId,
+                                        request.getConversationId())
+                                .eq(AgentConversationRecordPO::getUserId, userId)
+                                .orderByAsc(AgentConversationRecordPO::getCreateDt));
 
-        return records.stream().map(r -> OpenApiMessageVO.builder()
-                .role(r.getRole())
-                .content(r.getContent())
-                .thinking(r.getThinking())
-                .status(r.getStatus())
-                .createDt(toDateTimeString(r.getCreateDt()))
-                .build()).collect(Collectors.toList());
+        return records.stream()
+                .map(
+                        r ->
+                                OpenApiMessageVO.builder()
+                                        .role(r.getRole())
+                                        .content(r.getContent())
+                                        .thinking(r.getThinking())
+                                        .status(r.getStatus())
+                                        .createDt(toDateTimeString(r.getCreateDt()))
+                                        .build())
+                .collect(Collectors.toList());
     }
 
     private OpenApiConversationVO toVO(AgentConversationPO po) {
@@ -129,8 +140,8 @@ public class OpenApiConversationService {
                 .build();
     }
 
-    private PageResult<List<OpenApiConversationVO>> pageResult(Page<AgentConversationPO> page,
-                                                               List<OpenApiConversationVO> conversations) {
+    private PageResult<List<OpenApiConversationVO>> pageResult(
+            Page<AgentConversationPO> page, List<OpenApiConversationVO> conversations) {
         PageResult<List<OpenApiConversationVO>> result = new PageResult<>();
         result.setPage(page.getCurrent());
         result.setSize(page.getSize());

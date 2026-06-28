@@ -6,7 +6,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ResourceBizTypeEnum {
-
     GENERAL("GENERAL"),
     AVATAR("AVATAR"),
     ATTACHMENT("ATTACHMENT"),

@@ -3,9 +3,8 @@ package com.aizuda.snail.ai.admin.vo.rag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
-import lombok.Data;
-
 import java.util.List;
+import lombok.Data;
 
 /**
  * commit 请求：凭 previewToken + 用户对每条记录的最终决策提交入库

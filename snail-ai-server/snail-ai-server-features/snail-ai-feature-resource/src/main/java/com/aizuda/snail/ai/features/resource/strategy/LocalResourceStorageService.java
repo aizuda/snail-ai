@@ -4,16 +4,15 @@ import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.features.resource.config.ResourceConfig;
 import com.aizuda.snail.ai.features.resource.enums.ResourceStorageTypeEnum;
 import com.aizuda.snail.ai.features.resource.util.StorageKeyGenerator;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component

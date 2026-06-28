@@ -11,6 +11,5 @@ import lombok.Data;
  */
 @Data
 public class SentEmailRequestVO {
-    @NotBlank
-    private String email;
+    @NotBlank private String email;
 }

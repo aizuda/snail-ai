@@ -7,13 +7,11 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum SummaryTypeEnum {
-
     INCREMENTAL(1, "增量摘要"),
     // TODO(memory-summary): FULL 为预留能力，当前压缩链路仅使用 INCREMENTAL
     FULL(2, "完整摘要");
 
-    @EnumValue
-    private final Integer type;
+    @EnumValue private final Integer type;
     private final String description;
 
     public static SummaryTypeEnum fromType(Integer type) {

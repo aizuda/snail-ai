@@ -12,7 +12,6 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum StatusEnum {
-
     RUNNING(1),
     SUCCESS(2),
     FAIL(3);

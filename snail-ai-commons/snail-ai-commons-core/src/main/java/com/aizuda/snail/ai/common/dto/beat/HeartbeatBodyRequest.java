@@ -7,9 +7,8 @@ import lombok.NoArgsConstructor;
 
 /**
  * 心跳上报数据
- * <p>
- * author: zhangshuguang
- * date: 2026-05-06
+ *
+ * <p>author: zhangshuguang date: 2026-05-06
  */
 @Data
 @Builder

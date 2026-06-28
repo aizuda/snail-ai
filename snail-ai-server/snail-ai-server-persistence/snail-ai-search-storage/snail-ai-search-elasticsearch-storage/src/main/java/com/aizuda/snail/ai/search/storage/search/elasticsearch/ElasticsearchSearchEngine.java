@@ -14,15 +14,11 @@ import co.elastic.clients.transport.rest5_client.Rest5ClientTransport;
 import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
 import com.aizuda.snail.ai.common.dto.rag.SearchResult;
 import com.aizuda.snail.ai.search.storage.search.api.SearchAddRequest;
-import com.aizuda.snail.ai.search.storage.search.api.SearchDocument;
 import com.aizuda.snail.ai.search.storage.search.api.SearchDeleteRequest;
+import com.aizuda.snail.ai.search.storage.search.api.SearchDocument;
 import com.aizuda.snail.ai.search.storage.search.api.SearchEngine;
 import com.aizuda.snail.ai.search.storage.search.api.SearchRequest;
 import com.aizuda.snail.ai.search.storage.search.exception.SearchEngineException;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.hc.core5.http.Header;
-import org.apache.hc.core5.http.message.BasicHeader;
-
 import java.io.IOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -31,6 +27,9 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.message.BasicHeader;
 
 @Slf4j
 public class ElasticsearchSearchEngine implements SearchEngine {
@@ -53,9 +52,14 @@ public class ElasticsearchSearchEngine implements SearchEngine {
         if (indexName == null) {
             throw new SearchEngineException("SearchAddRequest.indexName 不能为空");
         }
-        List<SearchDocument> documents = request.getDocuments().stream()
-                .filter(document -> document != null && document.getId() != null && document.getContent() != null)
-                .toList();
+        List<SearchDocument> documents =
+                request.getDocuments().stream()
+                        .filter(
+                                document ->
+                                        document != null
+                                                && document.getId() != null
+                                                && document.getContent() != null)
+                        .toList();
         if (documents.isEmpty()) {
             return;
         }
@@ -81,24 +85,36 @@ public class ElasticsearchSearchEngine implements SearchEngine {
                 return List.of();
             }
 
-            Query matchQuery = Query.of(q -> q.match(m -> m.field(ES_FIELD_CONTENT).query(queryText)));
+            Query matchQuery =
+                    Query.of(q -> q.match(m -> m.field(ES_FIELD_CONTENT).query(queryText)));
             String filterExpression = request.getFilterExpression();
             SearchResponse<Map> response;
             if (filterExpression != null && !filterExpression.isBlank()) {
-                response = client.search(s -> s
-                        .index(indexName)
-                        .query(q -> q.bool(b -> b
-                                .must(matchQuery)
-                                .filter(Query.of(fl -> fl
-                                        .queryString(qs -> qs.query(filterExpression))
-                                ))
-                        ))
-                        .size(topK), Map.class);
+                response =
+                        client.search(
+                                s ->
+                                        s.index(indexName)
+                                                .query(
+                                                        q ->
+                                                                q.bool(
+                                                                        b ->
+                                                                                b.must(matchQuery)
+                                                                                        .filter(
+                                                                                                Query
+                                                                                                        .of(
+                                                                                                                fl ->
+                                                                                                                        fl
+                                                                                                                                .queryString(
+                                                                                                                                        qs ->
+                                                                                                                                                qs
+                                                                                                                                                        .query(
+                                                                                                                                                                filterExpression))))))
+                                                .size(topK),
+                                Map.class);
             } else {
-                response = client.search(s -> s
-                        .index(indexName)
-                        .query(matchQuery)
-                        .size(topK), Map.class);
+                response =
+                        client.search(
+                                s -> s.index(indexName).query(matchQuery).size(topK), Map.class);
             }
 
             List<SearchResult> results = new ArrayList<>();
@@ -107,12 +123,13 @@ public class ElasticsearchSearchEngine implements SearchEngine {
                 if (source == null) {
                     continue;
                 }
-                results.add(SearchResult.builder()
-                        .id(hit.id())
-                        .content((String) source.get(ES_FIELD_CONTENT))
-                        .score(hit.score() != null ? hit.score().floatValue() : 0f)
-                        .metadata(toMetadata(source))
-                        .build());
+                results.add(
+                        SearchResult.builder()
+                                .id(hit.id())
+                                .content((String) source.get(ES_FIELD_CONTENT))
+                                .score(hit.score() != null ? hit.score().floatValue() : 0f)
+                                .metadata(toMetadata(source))
+                                .build());
             }
             return results;
         } catch (IOException e) {
@@ -132,8 +149,7 @@ public class ElasticsearchSearchEngine implements SearchEngine {
         try {
             BulkRequest.Builder bulkBuilder = new BulkRequest.Builder();
             for (String id : request.getIds()) {
-                bulkBuilder.operations(op -> op
-                        .delete(d -> d.index(indexName).id(id)));
+                bulkBuilder.operations(op -> op.delete(d -> d.index(indexName).id(id)));
             }
             client.bulk(bulkBuilder.build());
         } catch (IOException e) {
@@ -146,22 +162,32 @@ public class ElasticsearchSearchEngine implements SearchEngine {
         try {
             BulkRequest.Builder bulkBuilder = new BulkRequest.Builder();
             for (SearchDocument document : documents) {
-                Map<String, Object> source = toSource(document.getMetadata(), document.getContent());
-                bulkBuilder.operations(op -> op
-                        .index(idx -> idx.index(indexName).id(document.getId()).document(source)));
+                Map<String, Object> source =
+                        toSource(document.getMetadata(), document.getContent());
+                bulkBuilder.operations(
+                        op ->
+                                op.index(
+                                        idx ->
+                                                idx.index(indexName)
+                                                        .id(document.getId())
+                                                        .document(source)));
             }
 
             BulkResponse response = client.bulk(bulkBuilder.build());
             if (response.errors()) {
                 for (BulkResponseItem item : response.items()) {
                     if (item.error() != null) {
-                        log.error("ES search engine bulk error: {} - {}", item.id(), item.error().reason());
+                        log.error(
+                                "ES search engine bulk error: {} - {}",
+                                item.id(),
+                                item.error().reason());
                     }
                 }
                 throw new SearchEngineException("Elasticsearch bulk insert had errors");
             }
         } catch (IOException e) {
-            throw new SearchEngineException("Failed to insert documents into Elasticsearch search index", e);
+            throw new SearchEngineException(
+                    "Failed to insert documents into Elasticsearch search index", e);
         }
     }
 
@@ -190,15 +216,40 @@ public class ElasticsearchSearchEngine implements SearchEngine {
         try {
             boolean exists = client.indices().exists(r -> r.index(indexName)).value();
             if (!exists) {
-                client.indices().create(r -> r
-                        .index(indexName)
-                        .settings(s -> s.analysis(a -> a
-                                .analyzer("cjk_analyzer", an -> an.custom(c -> c
-                                        .tokenizer("standard")
-                                        .filter(List.of("cjk_bigram", "lowercase"))))))
-                        .mappings(m -> m
-                                .properties(ES_FIELD_CONTENT, Property.of(p -> p
-                                        .text(TextProperty.of(tp -> tp.analyzer("cjk_analyzer")))))));
+                client.indices()
+                        .create(
+                                r ->
+                                        r.index(indexName)
+                                                .settings(
+                                                        s ->
+                                                                s.analysis(
+                                                                        a ->
+                                                                                a.analyzer(
+                                                                                        "cjk_analyzer",
+                                                                                        an ->
+                                                                                                an
+                                                                                                        .custom(
+                                                                                                                c ->
+                                                                                                                        c.tokenizer(
+                                                                                                                                        "standard")
+                                                                                                                                .filter(
+                                                                                                                                        List
+                                                                                                                                                .of(
+                                                                                                                                                        "cjk_bigram",
+                                                                                                                                                        "lowercase"))))))
+                                                .mappings(
+                                                        m ->
+                                                                m.properties(
+                                                                        ES_FIELD_CONTENT,
+                                                                        Property.of(
+                                                                                p ->
+                                                                                        p.text(
+                                                                                                TextProperty
+                                                                                                        .of(
+                                                                                                                tp ->
+                                                                                                                        tp
+                                                                                                                                .analyzer(
+                                                                                                                                        "cjk_analyzer")))))));
                 log.info("Created ES search index: {}", indexName);
             }
         } catch (IOException e) {
@@ -209,15 +260,17 @@ public class ElasticsearchSearchEngine implements SearchEngine {
     private static ElasticsearchClient createClient(ElasticsearchVectorSettings config) {
         String uri = config.getScheme() + "://" + config.getHost() + ":" + config.getPort();
         var builder = Rest5Client.builder(URI.create(uri));
-        if (config.getUsername() != null && !config.getUsername().isBlank()
+        if (config.getUsername() != null
+                && !config.getUsername().isBlank()
                 && config.getPassword() != null) {
             String raw = config.getUsername() + ":" + config.getPassword();
             String b64 = Base64.getEncoder().encodeToString(raw.getBytes(StandardCharsets.UTF_8));
-            Header[] headers = new Header[]{new BasicHeader("Authorization", "Basic " + b64)};
+            Header[] headers = new Header[] {new BasicHeader("Authorization", "Basic " + b64)};
             builder.setDefaultHeaders(headers);
         }
         Rest5Client rest5Client = builder.build();
-        Rest5ClientTransport transport = new Rest5ClientTransport(rest5Client, new JacksonJsonpMapper());
+        Rest5ClientTransport transport =
+                new Rest5ClientTransport(rest5Client, new JacksonJsonpMapper());
         return new ElasticsearchClient(transport);
     }
 
@@ -229,7 +282,9 @@ public class ElasticsearchSearchEngine implements SearchEngine {
 
         private ElasticsearchVectorSettings settings;
 
-        public Builder setConfig(com.aizuda.snail.ai.search.storage.search.elasticsearch.ElasticsearchVectorSettings settings) {
+        public Builder setConfig(
+                com.aizuda.snail.ai.search.storage.search.elasticsearch.ElasticsearchVectorSettings
+                        settings) {
             this.settings = settings;
             return this;
         }

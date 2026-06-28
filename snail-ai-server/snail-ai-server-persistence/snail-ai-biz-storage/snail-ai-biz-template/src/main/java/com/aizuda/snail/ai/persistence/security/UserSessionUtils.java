@@ -14,16 +14,12 @@ public final class UserSessionUtils {
 
     private static final ThreadLocal<UserPO> USER_SESSION = new ThreadLocal<>();
 
-    /**
-     * 设置当前用户会话
-     */
+    /** 设置当前用户会话 */
     public static void setUserSession(UserPO userPO) {
         USER_SESSION.set(userPO);
     }
 
-    /**
-     * 获取当前用户会话
-     */
+    /** 获取当前用户会话 */
     public static UserPO currentUserSession() {
         UserPO userPO = USER_SESSION.get();
         if (userPO == null) {
@@ -32,13 +28,10 @@ public final class UserSessionUtils {
         return userPO;
     }
 
-    /**
-     * 清除当前用户会话
-     */
+    /** 清除当前用户会话 */
     public static void clearUserSession() {
         USER_SESSION.remove();
     }
 
-    private UserSessionUtils() {
-    }
+    private UserSessionUtils() {}
 }

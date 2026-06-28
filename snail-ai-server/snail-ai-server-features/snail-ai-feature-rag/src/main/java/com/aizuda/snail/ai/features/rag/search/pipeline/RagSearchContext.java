@@ -4,10 +4,9 @@ import com.aizuda.snail.ai.common.dto.rag.SearchResult;
 import com.aizuda.snail.ai.features.rag.dto.RagStageMetricsDTO;
 import com.aizuda.snail.ai.persistence.rag.dataobject.RagConfigDO;
 import com.aizuda.snail.ai.persistence.rag.po.RagPO;
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
-
-import java.util.List;
 
 @Data
 @Builder

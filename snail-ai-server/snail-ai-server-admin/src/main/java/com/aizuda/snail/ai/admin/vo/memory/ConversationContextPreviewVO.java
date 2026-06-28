@@ -1,16 +1,13 @@
 package com.aizuda.snail.ai.admin.vo.memory;
 
 import com.aizuda.snail.ai.memory.dto.ConversationMemoryDTO;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-
-/**
- * 下一轮对话请求将带入的历史与记忆预览（粗算 token，不写访问日志）
- */
+/** 下一轮对话请求将带入的历史与记忆预览（粗算 token，不写访问日志） */
 @Data
 @Builder
 @AllArgsConstructor

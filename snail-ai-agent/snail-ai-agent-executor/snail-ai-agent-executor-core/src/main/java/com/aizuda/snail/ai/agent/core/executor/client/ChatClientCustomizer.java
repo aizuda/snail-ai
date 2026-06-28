@@ -2,9 +2,7 @@ package com.aizuda.snail.ai.agent.core.executor.client;
 
 import org.springframework.core.Ordered;
 
-/**
- * ChatClient 横向自定义扩展。
- */
+/** ChatClient 横向自定义扩展。 */
 public interface ChatClientCustomizer {
 
     default String name() {

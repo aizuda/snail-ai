@@ -1,15 +1,13 @@
 package com.aizuda.snail.ai.features.rag.util;
 
 import com.aizuda.snail.ai.common.execption.SnailAiException;
-
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public final class ContentHashUtil {
 
-    private ContentHashUtil() {
-    }
+    private ContentHashUtil() {}
 
     public static String sha256Hex(byte[] data) {
         try {

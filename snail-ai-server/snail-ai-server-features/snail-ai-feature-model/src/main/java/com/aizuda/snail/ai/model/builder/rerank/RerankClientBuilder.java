@@ -8,9 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-/**
- * Rerank 客户端动态构建器。
- */
+/** Rerank 客户端动态构建器。 */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -21,8 +19,10 @@ public class RerankClientBuilder {
     public RerankApiClient buildRerankClient(String decryptedApiKey, ModelConfigInfoDTO config) {
         try {
             RerankApiClient client = serverModelFacade.buildRerankClient(config, decryptedApiKey);
-            log.info("Successfully built RerankApiClient for config: {} (model: {})",
-                    config.getId(), config.getModelKey());
+            log.info(
+                    "Successfully built RerankApiClient for config: {} (model: {})",
+                    config.getId(),
+                    config.getModelKey());
             return client;
         } catch (ModelCallException e) {
             throw e;

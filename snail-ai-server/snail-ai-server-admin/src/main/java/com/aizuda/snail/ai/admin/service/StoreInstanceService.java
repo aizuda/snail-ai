@@ -2,47 +2,48 @@ package com.aizuda.snail.ai.admin.service;
 
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
+import com.aizuda.snail.ai.admin.vo.PageResult;
+import com.aizuda.snail.ai.admin.vo.StoreInstanceQueryVO;
 import com.aizuda.snail.ai.admin.vo.StoreInstanceTestRequestVO;
+import com.aizuda.snail.ai.admin.vo.StoreInstanceVO;
+import com.aizuda.snail.ai.admin.vo.VectorDimensionConstraintVO;
 import com.aizuda.snail.ai.common.enums.CommonStatusEnum;
-import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.aizuda.snail.ai.common.enums.rag.StoreInstanceCategoryEnum;
 import com.aizuda.snail.ai.common.enums.rag.StoreInstanceTypeEnum;
+import com.aizuda.snail.ai.common.util.JsonUtil;
+import com.aizuda.snail.ai.persistence.admin.mapper.StoreInstanceMapper;
+import com.aizuda.snail.ai.persistence.admin.po.StoreInstancePO;
+import com.aizuda.snail.ai.persistence.rag.mapper.RagMapper;
+import com.aizuda.snail.ai.persistence.rag.po.RagPO;
 import com.aizuda.snail.ai.vector.storage.enums.VectorStoreType;
 import com.aizuda.snail.ai.vector.storage.vector.VectorStoreConfigDTO;
 import com.aizuda.snail.ai.vector.storage.vector.VectorStoreFactory;
 import com.aizuda.snail.ai.vector.storage.vector.api.SnailAiVectorStore;
-import com.aizuda.snail.ai.persistence.rag.mapper.RagMapper;
-import com.aizuda.snail.ai.persistence.admin.mapper.StoreInstanceMapper;
-import com.aizuda.snail.ai.persistence.rag.po.RagPO;
-import com.aizuda.snail.ai.persistence.admin.po.StoreInstancePO;
-import com.aizuda.snail.ai.admin.vo.PageResult;
-import com.aizuda.snail.ai.admin.vo.StoreInstanceQueryVO;
-import com.aizuda.snail.ai.admin.vo.StoreInstanceVO;
-import com.aizuda.snail.ai.admin.vo.VectorDimensionConstraintVO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
-import tools.jackson.core.type.TypeReference;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
+import tools.jackson.core.type.TypeReference;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class StoreInstanceService {
 
-    private static final Set<Integer> VECTOR_TYPES = Set.of(
-            StoreInstanceTypeEnum.PG_VECTOR.getType(),
-            StoreInstanceTypeEnum.MILVUS.getType(),
-            StoreInstanceTypeEnum.ELASTICSEARCH.getType());
-    private static final Set<Integer> SEARCH_TYPES = Set.of(StoreInstanceTypeEnum.ELASTICSEARCH.getType());
+    private static final Set<Integer> VECTOR_TYPES =
+            Set.of(
+                    StoreInstanceTypeEnum.PG_VECTOR.getType(),
+                    StoreInstanceTypeEnum.MILVUS.getType(),
+                    StoreInstanceTypeEnum.ELASTICSEARCH.getType());
+    private static final Set<Integer> SEARCH_TYPES =
+            Set.of(StoreInstanceTypeEnum.ELASTICSEARCH.getType());
 
     private final StoreInstanceMapper mapper;
     private final RagMapper knowledgeMapper;
@@ -59,18 +60,24 @@ public class StoreInstanceService {
 
     public PageResult<List<StoreInstanceVO>> page(StoreInstanceQueryVO query) {
         LambdaQueryWrapper<StoreInstancePO> wrapper = new LambdaQueryWrapper<>();
-        wrapper.between(ObjUtil.isNotNull(query.getStartDt()) && ObjUtil.isNotNull(query.getEndDt()),
-                        StoreInstancePO::getCreateDt, query.getStartDt(), query.getEndDt())
-                .eq(Objects.nonNull(query.getCategory()), StoreInstancePO::getCategory, query.getCategory())
+        wrapper.between(
+                        ObjUtil.isNotNull(query.getStartDt())
+                                && ObjUtil.isNotNull(query.getEndDt()),
+                        StoreInstancePO::getCreateDt,
+                        query.getStartDt(),
+                        query.getEndDt())
+                .eq(
+                        Objects.nonNull(query.getCategory()),
+                        StoreInstancePO::getCategory,
+                        query.getCategory())
                 .orderByDesc(StoreInstancePO::getIsDefault)
                 .orderByDesc(StoreInstancePO::getCreateDt);
 
-        IPage<StoreInstancePO> page = mapper.selectPage(
-                PageDTO.of(query.getPage(), query.getSize()), wrapper);
+        IPage<StoreInstancePO> page =
+                mapper.selectPage(PageDTO.of(query.getPage(), query.getSize()), wrapper);
 
-        List<StoreInstanceVO> list = page.getRecords().stream()
-                .map(this::toVo)
-                .collect(Collectors.toList());
+        List<StoreInstanceVO> list =
+                page.getRecords().stream().map(this::toVo).collect(Collectors.toList());
 
         PageResult<List<StoreInstanceVO>> result = new PageResult<>();
         result.setData(list);
@@ -124,9 +131,10 @@ public class StoreInstanceService {
         if (Boolean.TRUE.equals(vo.getIsDefault())) {
             clearDefaultInCategory(cat, id);
         }
-        LambdaUpdateWrapper<StoreInstancePO> uw = new LambdaUpdateWrapper<StoreInstancePO>()
-                .eq(StoreInstancePO::getId, id)
-                .set(StoreInstancePO::getUpdateDt, LocalDateTime.now());
+        LambdaUpdateWrapper<StoreInstancePO> uw =
+                new LambdaUpdateWrapper<StoreInstancePO>()
+                        .eq(StoreInstancePO::getId, id)
+                        .set(StoreInstancePO::getUpdateDt, LocalDateTime.now());
         if (StrUtil.isNotBlank(vo.getName())) {
             uw.set(StoreInstancePO::getName, vo.getName().trim());
         }
@@ -155,7 +163,8 @@ public class StoreInstanceService {
         if (instance == null) {
             return;
         }
-        StoreInstanceCategoryEnum cat = StoreInstanceCategoryEnum.fromCategory(instance.getCategory());
+        StoreInstanceCategoryEnum cat =
+                StoreInstanceCategoryEnum.fromCategory(instance.getCategory());
         LambdaQueryWrapper<RagPO> qw = new LambdaQueryWrapper<>();
         if (cat == StoreInstanceCategoryEnum.VECTOR_STORE) {
             qw.eq(RagPO::getVectorStoreInstanceId, id);
@@ -170,18 +179,21 @@ public class StoreInstanceService {
     }
 
     public boolean testConnection(StoreInstanceTestRequestVO req) {
-        SnailAiVectorStore apply = VectorStoreFactory.REGISTER.get(VectorStoreType.valueOf(req.getType()))
-                .apply(VectorStoreConfigDTO
-                        .builder()
-                        .config(JsonUtil.toJsonString(req.getConfig()))
-                        .build());
+        SnailAiVectorStore apply =
+                VectorStoreFactory.REGISTER
+                        .get(VectorStoreType.valueOf(req.getType()))
+                        .apply(
+                                VectorStoreConfigDTO.builder()
+                                        .config(JsonUtil.toJsonString(req.getConfig()))
+                                        .build());
         return apply.test();
     }
 
     private void clearDefaultInCategory(Integer category, Long excludeId) {
-        LambdaUpdateWrapper<StoreInstancePO> uw = new LambdaUpdateWrapper<StoreInstancePO>()
-                .eq(StoreInstancePO::getCategory, category)
-                .set(StoreInstancePO::getIsDefault, false);
+        LambdaUpdateWrapper<StoreInstancePO> uw =
+                new LambdaUpdateWrapper<StoreInstancePO>()
+                        .eq(StoreInstancePO::getCategory, category)
+                        .set(StoreInstancePO::getIsDefault, false);
         if (excludeId != null) {
             uw.ne(StoreInstancePO::getId, excludeId);
         }
@@ -205,8 +217,7 @@ public class StoreInstanceService {
         Map<String, Object> cfg = Map.of();
         if (StrUtil.isNotBlank(po.getConfig())) {
             try {
-                cfg = JsonUtil.parseObject(po.getConfig(), new TypeReference<>() {
-                });
+                cfg = JsonUtil.parseObject(po.getConfig(), new TypeReference<>() {});
             } catch (Exception e) {
                 log.warn("解析实例 config JSON 失败 id={}: {}", po.getId(), e.getMessage());
                 cfg = new HashMap<>();

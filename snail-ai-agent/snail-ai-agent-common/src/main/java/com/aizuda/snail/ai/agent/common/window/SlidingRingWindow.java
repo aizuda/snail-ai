@@ -1,7 +1,5 @@
 package com.aizuda.snail.ai.agent.common.window;
 
-import lombok.extern.slf4j.Slf4j;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,11 +13,12 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReferenceArray;
 import java.util.function.Supplier;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 环形滑动窗口
- * <p>
- * 支持时间触发和数量触发两种 flush 模式，线程安全，CAS 无锁设计。
+ *
+ * <p>支持时间触发和数量触发两种 flush 模式，线程安全，CAS 无锁设计。
  *
  * @author opensnail
  */
@@ -35,24 +34,37 @@ public class SlidingRingWindow<T> {
 
     private static final int DEFAULT_RING_SIZE = 4;
 
-    public SlidingRingWindow(Duration duration, Integer totalThreshold, List<Listener<T>> listener) {
-        this(DEFAULT_RING_SIZE, duration, totalThreshold, listener, new ScheduledThreadPoolExecutor(3));
+    public SlidingRingWindow(
+            Duration duration, Integer totalThreshold, List<Listener<T>> listener) {
+        this(
+                DEFAULT_RING_SIZE,
+                duration,
+                totalThreshold,
+                listener,
+                new ScheduledThreadPoolExecutor(3));
     }
 
-    public SlidingRingWindow(int ringSize, Duration duration, Integer totalThreshold,
-                             List<Listener<T>> listener, ScheduledExecutorService scheduler) {
+    public SlidingRingWindow(
+            int ringSize,
+            Duration duration,
+            Integer totalThreshold,
+            List<Listener<T>> listener,
+            ScheduledExecutorService scheduler) {
         this.duration = duration;
         this.totalThreshold = totalThreshold;
         this.ringArray = new AtomicReferenceArray<>(ringSize);
         this.listener = listener;
         this.scheduler = scheduler;
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            log.info("JVM is about to exit, emitting data in the Window");
-            for (int i = 0; i < ringSize; i++) {
-                emit(getWindow(i));
-            }
-        }));
+        Runtime.getRuntime()
+                .addShutdownHook(
+                        new Thread(
+                                () -> {
+                                    log.info("JVM is about to exit, emitting data in the Window");
+                                    for (int i = 0; i < ringSize; i++) {
+                                        emit(getWindow(i));
+                                    }
+                                }));
     }
 
     public void shutdown() {
@@ -104,10 +116,13 @@ public class SlidingRingWindow<T> {
     }
 
     private void scheduleWindowEmit(Window<T> window, long now) {
-        scheduler.schedule(() -> {
-            window.setEmitted();
-            emit(window);
-        }, Math.max(window.windowTime - now, 100), TimeUnit.MILLISECONDS);
+        scheduler.schedule(
+                () -> {
+                    window.setEmitted();
+                    emit(window);
+                },
+                Math.max(window.windowTime - now, 100),
+                TimeUnit.MILLISECONDS);
     }
 
     private void emit(Window<T> window) {
@@ -156,9 +171,17 @@ public class SlidingRingWindow<T> {
             this.dataQueueSupplier = dataQueueSupplier;
         }
 
-        public void setEmitted() { emitStatus.set(true); }
-        public boolean getEmitStatus() { return emitStatus.get(); }
-        public boolean isOutWindow(long now) { return windowTime < now; }
+        public void setEmitted() {
+            emitStatus.set(true);
+        }
+
+        public boolean getEmitStatus() {
+            return emitStatus.get();
+        }
+
+        public boolean isOutWindow(long now) {
+            return windowTime < now;
+        }
 
         public ConcurrentLinkedQueue<T> getQueue() {
             if (dataQueue == null) {

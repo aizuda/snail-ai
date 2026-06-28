@@ -5,9 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * 单条记忆操作结果
- */
+/** 单条记忆操作结果 */
 @Data
 @Builder
 @NoArgsConstructor

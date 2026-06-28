@@ -1,9 +1,5 @@
 package com.aizuda.snail.ai.agent.core.tool;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.tool.annotation.Tool;
-import org.springframework.ai.tool.annotation.ToolParam;
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -11,6 +7,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.tool.annotation.ToolParam;
 
 @Slf4j
 public class ShellTool {
@@ -25,8 +24,11 @@ public class ShellTool {
         this.maxOutputLines = maxOutputLines;
     }
 
-    @Tool(name = "shell", description = "Execute a shell command. Can be used to run scripts in the skill directory, view files, install dependencies, etc. "
-            + "Supports chained commands (&& or ;).")
+    @Tool(
+            name = "shell",
+            description =
+                    "Execute a shell command. Can be used to run scripts in the skill directory, view files, install dependencies, etc. "
+                            + "Supports chained commands (&& or ;).")
     public String execute(@ToolParam(description = "The shell command to execute") String command) {
         log.info("shell:{}", command);
 
@@ -52,9 +54,10 @@ public class ShellTool {
             // 读取输出
             StringBuilder output = new StringBuilder();
             OutputStats stats = new OutputStats();
-            Thread readerThread = Thread.ofVirtual()
-                    .name("shell-output-reader")
-                    .start(() -> readOutput(process, output, stats));
+            Thread readerThread =
+                    Thread.ofVirtual()
+                            .name("shell-output-reader")
+                            .start(() -> readOutput(process, output, stats));
 
             // 等待进程结束，超时则杀死
             boolean finished = process.waitFor(commandTimeout, TimeUnit.MILLISECONDS);
@@ -77,8 +80,10 @@ public class ShellTool {
 
             if (stats.truncated) {
                 result.append("\n\n... 输出已截断，显示前 ")
-                        .append(maxOutputLines).append(" 行 (共 ")
-                        .append(stats.lineCount).append(" 行)");
+                        .append(maxOutputLines)
+                        .append(" 行 (共 ")
+                        .append(stats.lineCount)
+                        .append(" 行)");
             }
 
             if (exitCode != 0) {
@@ -94,8 +99,9 @@ public class ShellTool {
     }
 
     private void readOutput(Process process, StringBuilder output, OutputStats stats) {
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+        try (BufferedReader reader =
+                new BufferedReader(
+                        new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 stats.lineCount++;
@@ -116,9 +122,9 @@ public class ShellTool {
     private String[] getShellCommand(String command) {
         String os = System.getProperty("os.name", "").toLowerCase();
         if (os.contains("win")) {
-            return new String[]{"cmd", "/c", command};
+            return new String[] {"cmd", "/c", command};
         } else {
-            return new String[]{"/bin/sh", "-c", command};
+            return new String[] {"/bin/sh", "-c", command};
         }
     }
 

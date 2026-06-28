@@ -1,11 +1,10 @@
 package com.aizuda.snail.ai.openapi.dto;
 
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 /**
  * OpenAPI 消息记录

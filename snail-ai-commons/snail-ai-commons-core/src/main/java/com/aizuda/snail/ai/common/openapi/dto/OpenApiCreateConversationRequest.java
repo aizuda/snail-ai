@@ -4,9 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-/**
- * OpenAPI 创建会话请求
- */
+/** OpenAPI 创建会话请求 */
 @Data
 public class OpenApiCreateConversationRequest {
 

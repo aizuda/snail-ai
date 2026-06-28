@@ -5,8 +5,9 @@ import com.aizuda.snail.ai.agent.chat.api.SnailAiChatCredentialValidator;
 import com.aizuda.snail.ai.agent.chat.api.SnailAiChatProperties;
 import com.aizuda.snail.ai.agent.common.config.SnailAiAgentProperties;
 import com.aizuda.snail.ai.openapi.client.starter.SnailAiOpenApiAutoConfiguration;
-import org.springframework.boot.autoconfigure.AutoConfigureAfter;
+import java.util.List;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -16,12 +17,14 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-import java.util.List;
-
 @AutoConfiguration
 @AutoConfigureAfter(SnailAiOpenApiAutoConfiguration.class)
 @EnableConfigurationProperties(SnailAiChatProperties.class)
-@ConditionalOnProperty(prefix = "snail-ai.openapi", name = "enabled", havingValue = "true", matchIfMissing = false)
+@ConditionalOnProperty(
+        prefix = "snail-ai.openapi",
+        name = "enabled",
+        havingValue = "true",
+        matchIfMissing = false)
 @ComponentScan("com.aizuda.snail.ai.agent.chat")
 public class SnailAiChatAutoConfiguration {
 
@@ -48,7 +51,8 @@ public class SnailAiChatAutoConfiguration {
             @Override
             public void addInterceptors(InterceptorRegistry registry) {
                 registry.addInterceptor(authenticationInterceptor)
-                        .addPathPatterns(SnailAiChatConstants.GATEWAY_PATH,
+                        .addPathPatterns(
+                                SnailAiChatConstants.GATEWAY_PATH,
                                 SnailAiChatConstants.GATEWAY_PATH + "/**");
             }
 
@@ -57,7 +61,6 @@ public class SnailAiChatAutoConfiguration {
                 registry.addResourceHandler("/snail-chat/**")
                         .addResourceLocations(CHAT_RESOURCE_LOCATION);
             }
-
         };
     }
 }

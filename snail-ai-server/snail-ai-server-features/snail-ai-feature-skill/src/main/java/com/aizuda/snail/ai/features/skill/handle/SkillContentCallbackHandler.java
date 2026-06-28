@@ -11,17 +11,14 @@ import com.aizuda.snail.ai.persistence.skill.mapper.SkillMapper;
 import com.aizuda.snail.ai.persistence.skill.po.SkillFilePO;
 import com.aizuda.snail.ai.persistence.skill.po.SkillPO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-/**
- * 回调：获取 Skill 完整内容 + 支撑文件
- */
+/** 回调：获取 Skill 完整内容 + 支撑文件 */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -38,7 +35,8 @@ public class SkillContentCallbackHandler implements GrpcRequestHandler {
     @Override
     public GrpcSnailAiResult handle(GrpcHandlerRequest request) {
         try {
-            SkillContentRequest req = JsonUtil.parseObject(request.getBody(), SkillContentRequest.class);
+            SkillContentRequest req =
+                    JsonUtil.parseObject(request.getBody(), SkillContentRequest.class);
             if (req == null || req.getSkillId() == null) {
                 return buildError("skillId is required");
             }
@@ -54,21 +52,27 @@ public class SkillContentCallbackHandler implements GrpcRequestHandler {
             result.put("version", skill.getVersion());
 
             // 加载支撑文件
-            List<SkillFilePO> files = skillFileMapper.selectList(
-                    new LambdaQueryWrapper<SkillFilePO>()
-                            .eq(SkillFilePO::getSkillId, req.getSkillId()));
+            List<SkillFilePO> files =
+                    skillFileMapper.selectList(
+                            new LambdaQueryWrapper<SkillFilePO>()
+                                    .eq(SkillFilePO::getSkillId, req.getSkillId()));
 
-            List<Map<String, Object>> fileList = files.stream().map(f -> {
-                Map<String, Object> fileMap = new LinkedHashMap<>();
-                fileMap.put("filePath", f.getFilePath());
-                fileMap.put("content", f.getContent());
-                fileMap.put("encoding", f.getEncoding());
-                return fileMap;
-            }).toList();
+            List<Map<String, Object>> fileList =
+                    files.stream()
+                            .map(
+                                    f -> {
+                                        Map<String, Object> fileMap = new LinkedHashMap<>();
+                                        fileMap.put("filePath", f.getFilePath());
+                                        fileMap.put("content", f.getContent());
+                                        fileMap.put("encoding", f.getEncoding());
+                                        return fileMap;
+                                    })
+                            .toList();
             result.put("files", fileList);
 
             return GrpcSnailAiResult.newBuilder()
-                    .setStatus(1).setMessage("OK")
+                    .setStatus(1)
+                    .setMessage("OK")
                     .setData(JsonUtil.toJsonString(result))
                     .build();
         } catch (Exception e) {

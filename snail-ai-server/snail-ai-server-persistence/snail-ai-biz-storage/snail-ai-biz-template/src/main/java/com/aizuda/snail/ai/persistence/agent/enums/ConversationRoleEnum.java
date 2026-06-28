@@ -2,12 +2,9 @@ package com.aizuda.snail.ai.persistence.agent.enums;
 
 import lombok.Getter;
 
-/**
- * 对话消息角色枚举
- */
+/** 对话消息角色枚举 */
 @Getter
 public enum ConversationRoleEnum {
-
     USER("user"),
     ASSISTANT("assistant"),
     SYSTEM("system");

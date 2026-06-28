@@ -14,16 +14,11 @@ import lombok.NoArgsConstructor;
 public class SearchMemoryRequestVO {
 
     private String query;
-    @NotNull
-    private Long agentId;
-    @NotNull
-    private Long userId;
-    @NotBlank
-    private String conversationId;
+    @NotNull private Long agentId;
+    @NotNull private Long userId;
+    @NotBlank private String conversationId;
 
-    @Builder.Default
-    private Integer limit = 5;
+    @Builder.Default private Integer limit = 5;
 
-    @Builder.Default
-    private Boolean rerank = Boolean.FALSE;
+    @Builder.Default private Boolean rerank = Boolean.FALSE;
 }

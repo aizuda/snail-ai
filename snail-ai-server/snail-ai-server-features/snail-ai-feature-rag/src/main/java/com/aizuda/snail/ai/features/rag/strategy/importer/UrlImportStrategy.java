@@ -4,9 +4,6 @@ import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.features.rag.enums.DocumentSourceTypeEnum;
 import com.aizuda.snail.ai.features.rag.util.ContentHashUtil;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,6 +14,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.Locale;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
@@ -24,10 +23,11 @@ public class UrlImportStrategy implements DocumentImportStrategy {
 
     private static final int MAX_URL_IMPORT_BYTES = 50 * 1024 * 1024;
 
-    private static final HttpClient HTTP_CLIENT = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(30))
-            .followRedirects(HttpClient.Redirect.NEVER)
-            .build();
+    private static final HttpClient HTTP_CLIENT =
+            HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(30))
+                    .followRedirects(HttpClient.Redirect.NEVER)
+                    .build();
 
     @Override
     public boolean supports(String sourceType) {
@@ -44,17 +44,15 @@ public class UrlImportStrategy implements DocumentImportStrategy {
         try {
             URI uri = URI.create(url);
             validatePublicHttpTarget(uri);
-            HttpRequest httpRequest = HttpRequest.newBuilder()
-                    .uri(uri)
-                    .timeout(Duration.ofSeconds(60))
-                    .GET()
-                    .build();
+            HttpRequest httpRequest =
+                    HttpRequest.newBuilder().uri(uri).timeout(Duration.ofSeconds(60)).GET().build();
 
-            HttpResponse<InputStream> response = HTTP_CLIENT.send(httpRequest,
-                    HttpResponse.BodyHandlers.ofInputStream());
+            HttpResponse<InputStream> response =
+                    HTTP_CLIENT.send(httpRequest, HttpResponse.BodyHandlers.ofInputStream());
 
             if (response.statusCode() != 200) {
-                throw new SnailAiException("Failed to download from URL, status: " + response.statusCode());
+                throw new SnailAiException(
+                        "Failed to download from URL, status: " + response.statusCode());
             }
             validateContentLength(response);
 
@@ -102,12 +100,14 @@ public class UrlImportStrategy implements DocumentImportStrategy {
     }
 
     private void validateContentLength(HttpResponse<?> response) {
-        response.headers().firstValueAsLong("Content-Length")
-                .ifPresent(length -> {
-                    if (length > MAX_URL_IMPORT_BYTES) {
-                        throw new SnailAiException("URL document is too large: " + length);
-                    }
-                });
+        response.headers()
+                .firstValueAsLong("Content-Length")
+                .ifPresent(
+                        length -> {
+                            if (length > MAX_URL_IMPORT_BYTES) {
+                                throw new SnailAiException("URL document is too large: " + length);
+                            }
+                        });
     }
 
     private byte[] readLimited(InputStream inputStream) throws IOException {
@@ -118,7 +118,8 @@ public class UrlImportStrategy implements DocumentImportStrategy {
         while ((read = inputStream.read(buffer)) != -1) {
             total += read;
             if (total > MAX_URL_IMPORT_BYTES) {
-                throw new SnailAiException("URL document exceeds max size: " + MAX_URL_IMPORT_BYTES);
+                throw new SnailAiException(
+                        "URL document exceeds max size: " + MAX_URL_IMPORT_BYTES);
             }
             output.write(buffer, 0, read);
         }
@@ -140,7 +141,8 @@ public class UrlImportStrategy implements DocumentImportStrategy {
         }
         for (InetAddress address : InetAddress.getAllByName(host)) {
             if (isBlockedAddress(address)) {
-                throw new IllegalArgumentException("Private network URL import is not allowed: " + host);
+                throw new IllegalArgumentException(
+                        "Private network URL import is not allowed: " + host);
             }
         }
     }

@@ -2,9 +2,7 @@ package com.aizuda.snail.ai.common.openapi.dto;
 
 import lombok.Data;
 
-/**
- * OpenAPI 用户注册请求
- */
+/** OpenAPI 用户注册请求 */
 @Data
 public class OpenApiUserRegisterRequest {
 
@@ -12,8 +10,6 @@ public class OpenApiUserRegisterRequest {
 
     private String nickname;
 
-    /**
-     * 外部头像URL
-     */
+    /** 外部头像URL */
     private String avatarUrl;
 }

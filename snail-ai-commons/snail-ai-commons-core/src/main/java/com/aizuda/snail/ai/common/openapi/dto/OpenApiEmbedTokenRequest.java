@@ -5,9 +5,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
-/**
- * OpenAPI 嵌入式对话 token 请求。
- */
+/** OpenAPI 嵌入式对话 token 请求。 */
 @Data
 public class OpenApiEmbedTokenRequest {
 

@@ -6,11 +6,10 @@ import com.aizuda.snail.ai.model.common.ModelCapability;
 import com.aizuda.snail.ai.model.rerank.RerankModelAdapter;
 import com.aizuda.snail.ai.model.rerank.RerankModelRuntime;
 import com.aizuda.snail.ai.model.rerank.http.QwenRerankModelAdapter;
+import java.util.List;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-
-import java.util.List;
 
 @AutoConfiguration
 public class SnailAiRerankModelAutoConfiguration {
@@ -30,8 +29,6 @@ public class SnailAiRerankModelAutoConfiguration {
     @Bean
     public ModelAdapterDescriptor qwenRerankAdapterDescriptor() {
         return ModelAdapterDescriptor.of(
-                ModelAdapterDefaults.QWEN_RERANK,
-                "Qwen Rerank",
-                ModelCapability.RERANKER);
+                ModelAdapterDefaults.QWEN_RERANK, "Qwen Rerank", ModelCapability.RERANKER);
     }
 }

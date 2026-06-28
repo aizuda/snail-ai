@@ -1,8 +1,6 @@
 package com.aizuda.snail.ai.agent.core.advisor;
 
-/**
- * {@link org.springframework.ai.chat.client.ChatClientRequest#context()} 中使用的参数键。
- */
+/** {@link org.springframework.ai.chat.client.ChatClientRequest#context()} 中使用的参数键。 */
 public final class ClientAdvisorKeys {
 
     /** {@link com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest} */
@@ -16,6 +14,5 @@ public final class ClientAdvisorKeys {
     /** java.util.function.Consumer&lt;String&gt; 思考 chunk */
     public static final String THINKING_CONSUMER = "snail.thinkingConsumer";
 
-    private ClientAdvisorKeys() {
-    }
+    private ClientAdvisorKeys() {}
 }

@@ -10,9 +10,7 @@ import com.aizuda.snail.ai.model.enums.ModelTypeEnum;
 import com.aizuda.snail.ai.model.rerank.RerankModelSpec;
 import org.springframework.stereotype.Component;
 
-/**
- * 服务端模型配置到模型构建规格的适配器。
- */
+/** 服务端模型配置到模型构建规格的适配器。 */
 @Component
 public class ServerModelSpecFactory {
 

@@ -1,17 +1,14 @@
 package com.aizuda.snail.ai.admin.vo.memory;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.List;
-
-/**
- * 对话记忆VO
- */
+/** 对话记忆VO */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

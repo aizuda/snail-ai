@@ -2,7 +2,6 @@ package com.aizuda.snail.ai.features.rag.search.pipeline.handler;
 
 import com.aizuda.snail.ai.features.rag.search.pipeline.RagSearchContext;
 import com.aizuda.snail.ai.features.rag.search.pipeline.RagSearchHandler;
-import com.aizuda.snail.ai.persistence.rag.dataobject.RagConfigDO;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 

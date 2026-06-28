@@ -56,42 +56,37 @@ public class ChatStreamResponse {
     private String errorMessage;
 
     public static ChatStreamResponse text(String text) {
-        return ChatStreamResponse.builder()
-                .type(TYPE_TEXT)
-                .content(text)
-                .build();
+        return ChatStreamResponse.builder().type(TYPE_TEXT).content(text).build();
     }
 
     public static ChatStreamResponse text(String sid, String text) {
-        return ChatStreamResponse.builder()
-                .type(TYPE_TEXT)
-                .sid(sid)
-                .content(text)
-                .build();
+        return ChatStreamResponse.builder().type(TYPE_TEXT).sid(sid).content(text).build();
     }
 
     public static ChatStreamResponse thinking(String text) {
-        return ChatStreamResponse.builder()
-                .type(TYPE_THINKING)
-                .content(text)
-                .build();
+        return ChatStreamResponse.builder().type(TYPE_THINKING).content(text).build();
     }
 
     public static ChatStreamResponse thinking(String sid, String text) {
-        return ChatStreamResponse.builder()
-                .type(TYPE_THINKING)
-                .sid(sid)
-                .content(text)
-                .build();
+        return ChatStreamResponse.builder().type(TYPE_THINKING).sid(sid).content(text).build();
     }
 
-    public static ChatStreamResponse completion(String fullText, String fullThinking,
-                                                 int promptTokens, int completionTokens, long durationMs) {
+    public static ChatStreamResponse completion(
+            String fullText,
+            String fullThinking,
+            int promptTokens,
+            int completionTokens,
+            long durationMs) {
         return completion(fullText, fullThinking, promptTokens, completionTokens, 0, durationMs);
     }
 
-    public static ChatStreamResponse completion(String fullText, String fullThinking,
-                                                 int promptTokens, int completionTokens, int cacheTokens, long durationMs) {
+    public static ChatStreamResponse completion(
+            String fullText,
+            String fullThinking,
+            int promptTokens,
+            int completionTokens,
+            int cacheTokens,
+            long durationMs) {
         return ChatStreamResponse.builder()
                 .type(TYPE_COMPLETION)
                 .fullText(fullText)
@@ -103,13 +98,25 @@ public class ChatStreamResponse {
                 .build();
     }
 
-    public static ChatStreamResponse completion(String sid, String fullText, String fullThinking,
-                                                 int promptTokens, int completionTokens, long durationMs) {
-        return completion(sid, fullText, fullThinking, promptTokens, completionTokens, 0, durationMs);
+    public static ChatStreamResponse completion(
+            String sid,
+            String fullText,
+            String fullThinking,
+            int promptTokens,
+            int completionTokens,
+            long durationMs) {
+        return completion(
+                sid, fullText, fullThinking, promptTokens, completionTokens, 0, durationMs);
     }
 
-    public static ChatStreamResponse completion(String sid, String fullText, String fullThinking,
-                                                 int promptTokens, int completionTokens, int cacheTokens, long durationMs) {
+    public static ChatStreamResponse completion(
+            String sid,
+            String fullText,
+            String fullThinking,
+            int promptTokens,
+            int completionTokens,
+            int cacheTokens,
+            long durationMs) {
         return ChatStreamResponse.builder()
                 .type(TYPE_COMPLETION)
                 .sid(sid)

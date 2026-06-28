@@ -1,11 +1,10 @@
 package com.aizuda.snail.ai.admin.vo.rag;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 /**
  * 上传预览返回：token + 各文件预测结果

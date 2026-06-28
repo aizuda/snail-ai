@@ -1,14 +1,12 @@
 package com.aizuda.snail.ai.persistence.config;
 
-import java.text.MessageFormat;
-
 import com.aizuda.snail.ai.persistence.enums.BizDbTypeEnum;
-import com.baomidou.mybatisplus.annotation.DbType;
 import com.baomidou.mybatisplus.autoconfigure.MybatisPlusAutoConfiguration;
 import com.baomidou.mybatisplus.autoconfigure.MybatisPlusPropertiesCustomizer;
 import com.baomidou.mybatisplus.extension.plugins.MybatisPlusInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.BlockAttackInnerInterceptor;
 import com.baomidou.mybatisplus.extension.plugins.inner.PaginationInnerInterceptor;
+import java.text.MessageFormat;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureBefore;
@@ -31,10 +29,11 @@ public class SnailAiBizStorageAutoConfiguration {
     public MybatisPlusPropertiesCustomizer bizMapperLocationsCustomizer(Environment environment) {
         return properties -> {
             String dbType = BizDbTypeEnum.from(environment).getDb();
-            properties.setMapperLocations(new String[]{
-                    MessageFormat.format("classpath*:/{0}/mapper/*.xml", dbType),
-                    "classpath*:/template/mapper/*.xml"
-            });
+            properties.setMapperLocations(
+                    new String[] {
+                        MessageFormat.format("classpath*:/{0}/mapper/*.xml", dbType),
+                        "classpath*:/template/mapper/*.xml"
+                    });
         };
     }
 

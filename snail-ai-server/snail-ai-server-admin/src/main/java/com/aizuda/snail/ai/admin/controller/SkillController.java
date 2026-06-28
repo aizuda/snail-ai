@@ -1,17 +1,18 @@
 package com.aizuda.snail.ai.admin.controller;
 
+import com.aizuda.snail.ai.admin.security.annotation.LoginRequired;
+import com.aizuda.snail.ai.admin.service.skill.SkillService;
+import com.aizuda.snail.ai.admin.vo.PageResult;
 import com.aizuda.snail.ai.admin.vo.skill.SkillCreateFileRequestVO;
+import com.aizuda.snail.ai.admin.vo.skill.SkillCreateRequestVO;
 import com.aizuda.snail.ai.admin.vo.skill.SkillFileContentRequestVO;
+import com.aizuda.snail.ai.admin.vo.skill.SkillFileTreeNodeVO;
 import com.aizuda.snail.ai.admin.vo.skill.SkillQueryVO;
 import com.aizuda.snail.ai.admin.vo.skill.SkillRenameFileRequestVO;
-import com.aizuda.snail.ai.common.model.Result;
-import com.aizuda.snail.ai.admin.security.annotation.LoginRequired;
-import com.aizuda.snail.ai.admin.vo.PageResult;
-import com.aizuda.snail.ai.admin.vo.skill.SkillCreateRequestVO;
-import com.aizuda.snail.ai.admin.vo.skill.SkillFileTreeNodeVO;
 import com.aizuda.snail.ai.admin.vo.skill.SkillResponseVO;
 import com.aizuda.snail.ai.admin.vo.skill.SkillUpdateRequestVO;
-import com.aizuda.snail.ai.admin.service.skill.SkillService;
+import com.aizuda.snail.ai.common.model.Result;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -21,12 +22,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
 
-import java.util.List;
-
 /**
  * 技能（Skill）管理接口：技能包上传 / 下载、CRUD 与在线文件编辑。
- * <p>
- * 全部端点均需 ADMIN 角色（{@code @LoginRequired} 默认角色）。
+ *
+ * <p>全部端点均需 ADMIN 角色（{@code @LoginRequired} 默认角色）。
  */
 @RestController
 @RequestMapping("/skill")
@@ -111,8 +110,7 @@ public class SkillController {
     @GetMapping("/{skillId}/files/content")
     @LoginRequired
     public Result<SkillFileContentRequestVO> getFileContent(
-            @PathVariable("skillId") Long skillId,
-            @RequestParam("path") String path) {
+            @PathVariable("skillId") Long skillId, @RequestParam("path") String path) {
         return Result.ok(skillService.getFileContent(skillId, path));
     }
 
@@ -131,8 +129,7 @@ public class SkillController {
     @PostMapping("/{skillId}/files")
     @LoginRequired
     public Result<Void> createFile(
-            @PathVariable("skillId") Long skillId,
-            @RequestBody SkillCreateFileRequestVO body) {
+            @PathVariable("skillId") Long skillId, @RequestBody SkillCreateFileRequestVO body) {
         skillService.createFile(skillId, body);
         return Result.ok(null);
     }
@@ -141,8 +138,7 @@ public class SkillController {
     @DeleteMapping("/{skillId}/files")
     @LoginRequired
     public Result<Void> deleteFile(
-            @PathVariable("skillId") Long skillId,
-            @RequestParam("path") String path) {
+            @PathVariable("skillId") Long skillId, @RequestParam("path") String path) {
         skillService.deleteFile(skillId, path);
         return Result.ok(null);
     }
@@ -151,8 +147,7 @@ public class SkillController {
     @PutMapping("/{skillId}/files/rename")
     @LoginRequired
     public Result<Void> renameFile(
-            @PathVariable("skillId") Long skillId,
-            @RequestBody SkillRenameFileRequestVO body) {
+            @PathVariable("skillId") Long skillId, @RequestBody SkillRenameFileRequestVO body) {
         skillService.renameFile(skillId, body);
         return Result.ok(null);
     }

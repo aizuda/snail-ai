@@ -6,7 +6,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum VectorStoreType {
-
     PG_VECTOR("PG_VECTOR"),
     MILVUS("MILVUS"),
     ELASTICSEARCH("ELASTICSEARCH"),

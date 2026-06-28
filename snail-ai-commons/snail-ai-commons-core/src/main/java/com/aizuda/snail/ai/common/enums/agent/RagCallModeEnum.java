@@ -3,13 +3,10 @@ package com.aizuda.snail.ai.common.enums.agent;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/**
- * RAG 调用方式枚举
- */
+/** RAG 调用方式枚举 */
 @Getter
 @AllArgsConstructor
 public enum RagCallModeEnum {
-
     SMART(1, "智能调用"),
     FORCED(2, "强制调用");
 

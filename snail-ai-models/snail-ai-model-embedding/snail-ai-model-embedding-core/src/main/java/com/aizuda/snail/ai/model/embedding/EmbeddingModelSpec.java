@@ -8,5 +8,4 @@ public record EmbeddingModelSpec(
         String baseUrl,
         String apiKey,
         String modelKey,
-        ConfigExtAttrsDTO configJson) {
-}
+        ConfigExtAttrsDTO configJson) {}

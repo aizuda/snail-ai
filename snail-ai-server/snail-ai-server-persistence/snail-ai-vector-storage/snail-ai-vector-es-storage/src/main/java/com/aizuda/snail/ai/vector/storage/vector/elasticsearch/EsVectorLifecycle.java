@@ -19,12 +19,14 @@ public class EsVectorLifecycle implements Lifecycle {
 
     @Override
     public void start() {
-        VectorStoreFactory.REGISTER.put(VectorStoreType.ELASTICSEARCH, configDTO ->
-                new ElasticsearchSnailAiVectorStore(
-                        configDTO.getEmbeddingModel(),
-                        configDTO.getDimensions(),
-                        JsonUtil.parseObject(configDTO.getConfig(), ElasticsearchVectorSettings.class)
-                ));
+        VectorStoreFactory.REGISTER.put(
+                VectorStoreType.ELASTICSEARCH,
+                configDTO ->
+                        new ElasticsearchSnailAiVectorStore(
+                                configDTO.getEmbeddingModel(),
+                                configDTO.getDimensions(),
+                                JsonUtil.parseObject(
+                                        configDTO.getConfig(), ElasticsearchVectorSettings.class)));
     }
 
     @Override

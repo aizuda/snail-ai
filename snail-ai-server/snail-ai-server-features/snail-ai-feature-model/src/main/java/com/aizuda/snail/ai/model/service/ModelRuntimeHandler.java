@@ -12,6 +12,8 @@ import com.aizuda.snail.ai.model.builder.embedding.EmbeddingClientBuilder;
 import com.aizuda.snail.ai.model.builder.rerank.RerankClientBuilder;
 import com.aizuda.snail.ai.model.dto.ModelConfigInfoDTO;
 import com.aizuda.snail.ai.model.handle.ModelConfigHandler;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.Nullable;
@@ -27,9 +29,6 @@ import org.springframework.ai.embedding.EmbeddingRequest;
 import org.springframework.ai.embedding.EmbeddingResponse;
 import org.springframework.stereotype.Service;
 import reactor.core.Disposable;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Slf4j
 @Service
@@ -50,17 +49,24 @@ public class ModelRuntimeHandler {
         ModelConfigInfoDTO config = requireConfig(request.modelConfigId());
         try {
             ChatClient chatClient = buildChatClient(config);
-            String result = chatClient.prompt(buildPrompt(request.userContext(), request.systemContext()))
-                    .call()
-                    .content();
-            SnailAiLog.LOCAL.info("Model call completed: {}, duration: {}ms",
-                    config.getId(), System.currentTimeMillis() - startTime);
+            String result =
+                    chatClient
+                            .prompt(buildPrompt(request.userContext(), request.systemContext()))
+                            .call()
+                            .content();
+            SnailAiLog.LOCAL.info(
+                    "Model call completed: {}, duration: {}ms",
+                    config.getId(),
+                    System.currentTimeMillis() - startTime);
             return result;
         } catch (ModelCallException e) {
             throw e;
         } catch (Exception e) {
-            SnailAiLog.LOCAL.error("Model call failed for config: {}, error: {}",
-                    config.getId(), e.getMessage(), e);
+            SnailAiLog.LOCAL.error(
+                    "Model call failed for config: {}, error: {}",
+                    config.getId(),
+                    e.getMessage(),
+                    e);
             throw modelCallFailed("模型调用失败: " + e.getMessage(), e);
         }
     }
@@ -74,23 +80,29 @@ public class ModelRuntimeHandler {
         ModelConfigInfoDTO config = requireConfig(request.modelConfigId());
         try {
             ChatClient chatClient = buildChatClient(config);
-            SnailAiLog.LOCAL.info("Stream calling model: {}, config: {}",
-                    config.getModelName(), config.getId());
-            return chatClient.prompt(buildPrompt(request.userContext(), request.systemContext()))
+            SnailAiLog.LOCAL.info(
+                    "Stream calling model: {}, config: {}", config.getModelName(), config.getId());
+            return chatClient
+                    .prompt(buildPrompt(request.userContext(), request.systemContext()))
                     .stream()
                     .chatResponse()
                     .subscribe(
                             chatResponse -> acceptText(chatResponse, request),
                             error -> {
-                                SnailAiLog.LOCAL.error("Stream call failed for model: {}, error: {}",
-                                        config.getId(), error.getMessage(), error);
+                                SnailAiLog.LOCAL.error(
+                                        "Stream call failed for model: {}, error: {}",
+                                        config.getId(),
+                                        error.getMessage(),
+                                        error);
                                 if (request.onError() != null) {
                                     request.onError().accept(error);
                                 }
                             },
                             () -> {
-                                SnailAiLog.LOCAL.info("Stream call completed for model: {}, duration: {}ms",
-                                        config.getId(), System.currentTimeMillis() - startTime);
+                                SnailAiLog.LOCAL.info(
+                                        "Stream call completed for model: {}, duration: {}ms",
+                                        config.getId(),
+                                        System.currentTimeMillis() - startTime);
                                 if (request.onComplete() != null) {
                                     request.onComplete().run();
                                 }
@@ -98,8 +110,11 @@ public class ModelRuntimeHandler {
         } catch (ModelCallException e) {
             throw e;
         } catch (Exception e) {
-            SnailAiLog.LOCAL.error("Stream call failed for config: {}, error: {}",
-                    config.getId(), e.getMessage(), e);
+            SnailAiLog.LOCAL.error(
+                    "Stream call failed for config: {}, error: {}",
+                    config.getId(),
+                    e.getMessage(),
+                    e);
             throw modelCallFailed("模型调用失败: " + e.getMessage(), e);
         }
     }
@@ -108,7 +123,9 @@ public class ModelRuntimeHandler {
         if (request == null || StrUtil.isBlank(request.text())) {
             throw invalid("文本不能为空");
         }
-        return embedBatch(new EmbeddingBatchRequest(request.modelConfigId(), List.of(request.text()), request.dimensions()));
+        return embedBatch(
+                new EmbeddingBatchRequest(
+                        request.modelConfigId(), List.of(request.text()), request.dimensions()));
     }
 
     public SnailEmbeddingResponse embedBatch(EmbeddingBatchRequest request) {
@@ -119,18 +136,28 @@ public class ModelRuntimeHandler {
         ModelConfigInfoDTO config = requireConfig(request.modelConfigId());
         try {
             EmbeddingModel embeddingModel = buildEmbeddingModel(config);
-            EmbeddingResponse response = embeddingModel.call(new EmbeddingRequest(
-                    request.texts(), embeddingOptions(config, request.dimensions())));
-            SnailEmbeddingResponse embeddingResponse = convertEmbeddingResponse(
-                    response, request.texts(), System.currentTimeMillis() - startTime);
-            SnailAiLog.LOCAL.info("Embedding completed: {}, textCount: {}, duration: {}ms",
-                    config.getId(), request.texts().size(), embeddingResponse.getCostTimeMs());
+            EmbeddingResponse response =
+                    embeddingModel.call(
+                            new EmbeddingRequest(
+                                    request.texts(),
+                                    embeddingOptions(config, request.dimensions())));
+            SnailEmbeddingResponse embeddingResponse =
+                    convertEmbeddingResponse(
+                            response, request.texts(), System.currentTimeMillis() - startTime);
+            SnailAiLog.LOCAL.info(
+                    "Embedding completed: {}, textCount: {}, duration: {}ms",
+                    config.getId(),
+                    request.texts().size(),
+                    embeddingResponse.getCostTimeMs());
             return embeddingResponse;
         } catch (ModelCallException e) {
             throw e;
         } catch (Exception e) {
-            SnailAiLog.LOCAL.error("Embedding failed for config: {}, error: {}",
-                    config.getId(), e.getMessage(), e);
+            SnailAiLog.LOCAL.error(
+                    "Embedding failed for config: {}, error: {}",
+                    config.getId(),
+                    e.getMessage(),
+                    e);
             throw modelCallFailed("向量化调用失败: " + e.getMessage(), e);
         }
     }
@@ -145,14 +172,15 @@ public class ModelRuntimeHandler {
         }
         ModelConfigInfoDTO config = requireConfig(request.modelConfigId());
         try {
-            RerankApiClient client = rerankClientBuilder.buildRerankClient(decryptApiKey(config), config);
+            RerankApiClient client =
+                    rerankClientBuilder.buildRerankClient(decryptApiKey(config), config);
             int outputTopN = request.topN() != null ? request.topN() : request.documents().size();
             return client.rerank(request.query(), request.documents(), outputTopN);
         } catch (ModelCallException e) {
             throw e;
         } catch (Exception e) {
-            SnailAiLog.LOCAL.error("Rerank failed for config: {}, error: {}",
-                    config.getId(), e.getMessage(), e);
+            SnailAiLog.LOCAL.error(
+                    "Rerank failed for config: {}, error: {}", config.getId(), e.getMessage(), e);
             throw modelCallFailed("重排调用失败: " + e.getMessage(), e);
         }
     }
@@ -184,8 +212,7 @@ public class ModelRuntimeHandler {
             String decryptedKey = modelConfigHandler.decryptApiKey(config.getEncryptedApiKey());
             if (StrUtil.isBlank(decryptedKey)) {
                 throw new ModelCallException(
-                        ModelCallException.ErrorCode.API_KEY_DECRYPT_FAILED,
-                        "API Key解密失败或不存在");
+                        ModelCallException.ErrorCode.API_KEY_DECRYPT_FAILED, "API Key解密失败或不存在");
             }
             return decryptedKey;
         } catch (ModelCallException e) {
@@ -194,7 +221,8 @@ public class ModelRuntimeHandler {
             SnailAiLog.LOCAL.error("Failed to decrypt API Key for config: {}", config.getId(), e);
             throw new ModelCallException(
                     ModelCallException.ErrorCode.API_KEY_DECRYPT_FAILED,
-                    "API Key解密失败: " + e.getMessage(), e);
+                    "API Key解密失败: " + e.getMessage(),
+                    e);
         }
     }
 
@@ -233,19 +261,19 @@ public class ModelRuntimeHandler {
     }
 
     private void acceptText(ChatResponse chatResponse, ChatStreamRequest request) {
-        String text = chatResponse != null
-                && chatResponse.getResult() != null
-                && chatResponse.getResult().getOutput() != null
-                ? chatResponse.getResult().getOutput().getText()
-                : null;
+        String text =
+                chatResponse != null
+                                && chatResponse.getResult() != null
+                                && chatResponse.getResult().getOutput() != null
+                        ? chatResponse.getResult().getOutput().getText()
+                        : null;
         if (StrUtil.isNotBlank(text) && request.messageConsumer() != null) {
             request.messageConsumer().accept(text);
         }
     }
 
-    private SnailEmbeddingResponse convertEmbeddingResponse(EmbeddingResponse embeddingResponse,
-                                                            List<String> texts,
-                                                            long costTimeMs) {
+    private SnailEmbeddingResponse convertEmbeddingResponse(
+            EmbeddingResponse embeddingResponse, List<String> texts, long costTimeMs) {
         List<EmbeddingVector> vectors = new ArrayList<>();
         for (int i = 0; i < embeddingResponse.getResults().size(); i++) {
             EmbeddingVector vector = new EmbeddingVector();
@@ -268,26 +296,25 @@ public class ModelRuntimeHandler {
     }
 
     private static ModelCallException modelCallFailed(String message, Throwable cause) {
-        return new ModelCallException(ModelCallException.ErrorCode.MODEL_CALL_FAILED, message, cause);
+        return new ModelCallException(
+                ModelCallException.ErrorCode.MODEL_CALL_FAILED, message, cause);
     }
 
-    public record ChatRequest(Long modelConfigId, String userContext, String systemContext) {
-    }
+    public record ChatRequest(Long modelConfigId, String userContext, String systemContext) {}
 
-    public record ChatStreamRequest(Long modelConfigId,
-                                    String userContext,
-                                    String systemContext,
-                                    java.util.function.Consumer<String> messageConsumer,
-                                    Runnable onComplete,
-                                    java.util.function.Consumer<Throwable> onError) {
-    }
+    public record ChatStreamRequest(
+            Long modelConfigId,
+            String userContext,
+            String systemContext,
+            java.util.function.Consumer<String> messageConsumer,
+            Runnable onComplete,
+            java.util.function.Consumer<Throwable> onError) {}
 
-    public record EmbeddingRequestDTO(Long modelConfigId, String text, Integer dimensions) {
-    }
+    public record EmbeddingRequestDTO(Long modelConfigId, String text, Integer dimensions) {}
 
-    public record EmbeddingBatchRequest(Long modelConfigId, List<String> texts, Integer dimensions) {
-    }
+    public record EmbeddingBatchRequest(
+            Long modelConfigId, List<String> texts, Integer dimensions) {}
 
-    public record RerankRequest(Long modelConfigId, String query, List<String> documents, Integer topN) {
-    }
+    public record RerankRequest(
+            Long modelConfigId, String query, List<String> documents, Integer topN) {}
 }

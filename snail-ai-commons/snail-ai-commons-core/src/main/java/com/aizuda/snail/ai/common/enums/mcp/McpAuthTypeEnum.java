@@ -7,14 +7,12 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum McpAuthTypeEnum {
-
     NONE(0, "无需认证"),
     API_KEY(1, "API Key"),
     OAUTH(2, "OAuth"),
     BASIC(3, "Basic Auth");
 
-    @EnumValue
-    private final Integer type;
+    @EnumValue private final Integer type;
     private final String description;
 
     public static McpAuthTypeEnum fromType(Integer type) {

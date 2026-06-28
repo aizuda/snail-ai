@@ -18,9 +18,7 @@ public enum ChunkModeEnum {
 
     private final String mode;
 
-    /**
-     * 根据字符串值解析枚举，不区分大小写；无法匹配时返回 DEFAULT。
-     */
+    /** 根据字符串值解析枚举，不区分大小写；无法匹配时返回 DEFAULT。 */
     public static ChunkModeEnum fromValue(String value) {
         if (value == null || value.isBlank()) {
             return DEFAULT;

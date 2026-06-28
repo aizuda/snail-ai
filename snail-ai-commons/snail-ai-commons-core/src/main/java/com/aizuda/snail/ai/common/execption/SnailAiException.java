@@ -1,8 +1,6 @@
 package com.aizuda.snail.ai.common.execption;
 
-/**
- * (复制自 snail-job-ai-executor)
- */
+/** (复制自 snail-job-ai-executor) */
 public class SnailAiException extends BaseSnailAiException {
 
     public SnailAiException(String message) {

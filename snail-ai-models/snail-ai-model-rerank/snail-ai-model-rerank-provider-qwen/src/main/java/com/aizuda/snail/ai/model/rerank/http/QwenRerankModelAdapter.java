@@ -5,15 +5,14 @@ import com.aizuda.snail.ai.common.model.RerankApiClient;
 import com.aizuda.snail.ai.model.common.ModelAdapterDefaults;
 import com.aizuda.snail.ai.model.rerank.RerankModelAdapter;
 import com.aizuda.snail.ai.model.rerank.RerankModelSpec;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.Ordered;
-import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.web.client.RestClient;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.Ordered;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.RestClient;
 
 @Slf4j
 public class QwenRerankModelAdapter implements RerankModelAdapter, Ordered {
@@ -31,7 +30,8 @@ public class QwenRerankModelAdapter implements RerankModelAdapter, Ordered {
     public RerankApiClient create(RerankModelSpec spec) {
         ConfigExtAttrsDTO config = spec.configJson();
         String fullUrl = spec.baseUrl().replaceAll("/+$", "") + rerankPath(config);
-        return new HttpRerankApiClient(fullUrl, spec.apiKey(), spec.modelKey(), readTimeoutMs(config));
+        return new HttpRerankApiClient(
+                fullUrl, spec.apiKey(), spec.modelKey(), readTimeoutMs(config));
     }
 
     @Override
@@ -76,13 +76,15 @@ public class QwenRerankModelAdapter implements RerankModelAdapter, Ordered {
                 return List.of();
             }
             int n = Math.clamp(topN, 1, documents.size());
-            Map<String, Object> response = restClient.post()
-                    .uri(url)
-                    .header("Authorization", "Bearer " + apiKey)
-                    .header("Content-Type", "application/json")
-                    .body(new RerankParams(modelKey, query, documents, n))
-                    .retrieve()
-                    .body(Map.class);
+            Map<String, Object> response =
+                    restClient
+                            .post()
+                            .uri(url)
+                            .header("Authorization", "Bearer " + apiKey)
+                            .header("Content-Type", "application/json")
+                            .body(new RerankParams(modelKey, query, documents, n))
+                            .retrieve()
+                            .body(Map.class);
             if (response == null) {
                 log.warn("Rerank API returned null body");
                 return List.of();
@@ -97,7 +99,9 @@ public class QwenRerankModelAdapter implements RerankModelAdapter, Ordered {
         private List<RerankResultItem> parseResults(Map<String, Object> response) {
             List<?> results = results(response);
             if (results == null || results.isEmpty()) {
-                log.warn("Rerank API returned unexpected response (no results): {}", response.keySet());
+                log.warn(
+                        "Rerank API returned unexpected response (no results): {}",
+                        response.keySet());
                 return List.of();
             }
             List<RerankResultItem> items = new ArrayList<>(results.size());
@@ -111,7 +115,8 @@ public class QwenRerankModelAdapter implements RerankModelAdapter, Ordered {
 
         private List<?> results(Map<String, Object> response) {
             Object output = response.get("output");
-            if (output instanceof Map<?, ?> outputMap && outputMap.get("results") instanceof List<?> list) {
+            if (output instanceof Map<?, ?> outputMap
+                    && outputMap.get("results") instanceof List<?> list) {
                 return list;
             }
             Object results = response.get("results");
@@ -132,6 +137,5 @@ public class QwenRerankModelAdapter implements RerankModelAdapter, Ordered {
         }
     }
 
-    public record RerankParams(String model, String query, List<String> documents, int top_n) {
-    }
+    public record RerankParams(String model, String query, List<String> documents, int top_n) {}
 }

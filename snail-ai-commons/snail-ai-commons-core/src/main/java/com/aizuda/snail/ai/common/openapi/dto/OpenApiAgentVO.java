@@ -1,16 +1,13 @@
 package com.aizuda.snail.ai.common.openapi.dto;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
-/**
- * OpenAPI Agent 概要信息
- */
+/** OpenAPI Agent 概要信息 */
 @Data
 @Builder
 @AllArgsConstructor

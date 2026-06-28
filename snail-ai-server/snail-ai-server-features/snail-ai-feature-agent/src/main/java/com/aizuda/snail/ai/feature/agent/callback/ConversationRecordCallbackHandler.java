@@ -12,9 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-/**
- * 回调：保存对话消息（用户/助手）
- */
+/** 回调：保存对话消息（用户/助手） */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -30,15 +28,17 @@ public class ConversationRecordCallbackHandler implements GrpcRequestHandler {
     @Override
     public GrpcSnailAiResult handle(GrpcHandlerRequest request) {
         try {
-            ConversationRecordRequest req = JsonUtil.parseObject(request.getBody(), ConversationRecordRequest.class);
+            ConversationRecordRequest req =
+                    JsonUtil.parseObject(request.getBody(), ConversationRecordRequest.class);
 
-            recordMapper.insert(AgentConversationRecordPO.builder()
-                    .agentId(req.getAgentId())
-                    .conversationId(req.getConversationId())
-                    .userId(req.getUserId())
-                    .role(req.getRole())
-                    .content(req.getContent())
-                    .build());
+            recordMapper.insert(
+                    AgentConversationRecordPO.builder()
+                            .agentId(req.getAgentId())
+                            .conversationId(req.getConversationId())
+                            .userId(req.getUserId())
+                            .role(req.getRole())
+                            .content(req.getContent())
+                            .build());
 
             return GrpcSnailAiResult.newBuilder().setStatus(1).setMessage("OK").build();
         } catch (Exception e) {

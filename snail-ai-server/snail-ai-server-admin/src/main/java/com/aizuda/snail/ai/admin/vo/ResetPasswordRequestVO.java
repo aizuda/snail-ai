@@ -11,9 +11,7 @@ import lombok.Data;
  */
 @Data
 public class ResetPasswordRequestVO {
-    /**
-     * 新密码
-     */
+    /** 新密码 */
     @NotBlank(message = "密码不能为空")
     private String password;
 }

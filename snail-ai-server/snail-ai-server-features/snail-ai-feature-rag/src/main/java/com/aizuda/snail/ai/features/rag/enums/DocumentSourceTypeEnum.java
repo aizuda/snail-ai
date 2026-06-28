@@ -3,13 +3,10 @@ package com.aizuda.snail.ai.features.rag.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/**
- * 文档导入来源类型
- */
+/** 文档导入来源类型 */
 @Getter
 @AllArgsConstructor
 public enum DocumentSourceTypeEnum {
-
     UPLOAD("UPLOAD"),
     URL("URL");
 

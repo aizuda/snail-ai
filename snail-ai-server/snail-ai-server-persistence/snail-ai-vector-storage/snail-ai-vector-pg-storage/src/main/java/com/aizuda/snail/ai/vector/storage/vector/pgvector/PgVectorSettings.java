@@ -2,9 +2,7 @@ package com.aizuda.snail.ai.vector.storage.vector.pgvector;
 
 import lombok.Data;
 
-/**
- * PostgreSQL 向量库连接与表/索引参数，由存储实例 {@code config} JSON 解析得到（不依赖 application.yml）。
- */
+/** PostgreSQL 向量库连接与表/索引参数，由存储实例 {@code config} JSON 解析得到（不依赖 application.yml）。 */
 @Data
 public class PgVectorSettings {
 

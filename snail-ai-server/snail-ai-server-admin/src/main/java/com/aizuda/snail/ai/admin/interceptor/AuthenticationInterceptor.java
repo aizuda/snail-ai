@@ -1,12 +1,12 @@
 package com.aizuda.snail.ai.admin.interceptor;
 
 import cn.hutool.core.util.StrUtil;
-import com.aizuda.snail.ai.common.execption.SnailAiAuthenticationException;
-import com.aizuda.snail.ai.common.util.JsonUtil;
-import com.aizuda.snail.ai.admin.security.annotation.LoginRequired;
-import com.aizuda.snail.ai.persistence.admin.mapper.UserMapper;
 import com.aizuda.snail.ai.admin.dto.AudienceDTO;
 import com.aizuda.snail.ai.admin.enums.RoleEnum;
+import com.aizuda.snail.ai.admin.security.annotation.LoginRequired;
+import com.aizuda.snail.ai.common.execption.SnailAiAuthenticationException;
+import com.aizuda.snail.ai.common.util.JsonUtil;
+import com.aizuda.snail.ai.persistence.admin.mapper.UserMapper;
 import com.aizuda.snail.ai.persistence.admin.po.UserPO;
 import com.aizuda.snail.ai.persistence.security.UserSessionUtils;
 import com.auth0.jwt.JWT;
@@ -18,17 +18,15 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
-
-import java.lang.reflect.Method;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * 系统登录认证拦截器
@@ -44,7 +42,9 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     private final UserMapper userMapper;
 
     @Override
-    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+    public boolean preHandle(
+            HttpServletRequest request, HttpServletResponse response, Object handler)
+            throws Exception {
         // 如果不是映射到方法直接通过
         if (!(handler instanceof HandlerMethod handlerMethod)) {
             return true;
@@ -78,19 +78,17 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 
         // 将用户信息存储到ThreadLocal
         UserSessionUtils.setUserSession(userPO);
-        
+
         return true;
     }
 
-    /**
-     * 验证token并获取用户信息
-     */
+    /** 验证token并获取用户信息 */
     private UserPO verifyTokenAndGetUser(String token) {
         try {
             // 解码token获取用户信息
             DecodedJWT jwt = JWT.decode(token);
             List<String> audience = jwt.getAudience();
-            
+
             if (audience == null || audience.isEmpty()) {
                 throw new SnailAiAuthenticationException("Token格式错误");
             }
@@ -101,9 +99,10 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
             }
 
             // 查询用户
-            UserPO userPO = userMapper.selectOne(
-                new LambdaQueryWrapper<UserPO>().eq(UserPO::getUsername, audienceDTO.getUsername())
-            );
+            UserPO userPO =
+                    userMapper.selectOne(
+                            new LambdaQueryWrapper<UserPO>()
+                                    .eq(UserPO::getUsername, audienceDTO.getUsername()));
 
             if (Objects.isNull(userPO)) {
                 throw new SnailAiAuthenticationException("用户不存在");
@@ -128,11 +127,17 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     }
 
     @Override
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-    }
+    public void postHandle(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            Object handler,
+            ModelAndView modelAndView)
+            throws Exception {}
 
     @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+    public void afterCompletion(
+            HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
+            throws Exception {
         // 清理ThreadLocal，防止内存泄漏
         UserSessionUtils.clearUserSession();
     }

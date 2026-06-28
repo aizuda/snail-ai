@@ -20,13 +20,14 @@ public class RagSearchService {
     }
 
     public RagSearchResponseDTO search(RagSearchRequestDTO request, RagConfigDO configDO) {
-        RagSearchContext ctx = RagSearchContext.builder()
-                .originalQuery(request.getQuery())
-                .ragId(request.getRagId())
-                .debug(Boolean.TRUE.equals(request.getDebug()))
-                .externalConfigDO(configDO)
-                .metrics(new RagStageMetricsDTO())
-                .build();
+        RagSearchContext ctx =
+                RagSearchContext.builder()
+                        .originalQuery(request.getQuery())
+                        .ragId(request.getRagId())
+                        .debug(Boolean.TRUE.equals(request.getDebug()))
+                        .externalConfigDO(configDO)
+                        .metrics(new RagStageMetricsDTO())
+                        .build();
 
         pipeline.execute(ctx);
 

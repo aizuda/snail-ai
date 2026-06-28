@@ -12,10 +12,8 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Mapping {
-    
-    /**
-     * 回调路径 (如 /callback/skill/content)
-     */
+
+    /** 回调路径 (如 /callback/skill/content) */
     String path();
 
     /**

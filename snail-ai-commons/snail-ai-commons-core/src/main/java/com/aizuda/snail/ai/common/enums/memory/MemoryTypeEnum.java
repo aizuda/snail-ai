@@ -7,15 +7,13 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum MemoryTypeEnum {
-
     FACT(1, "事实"),
     DECISION(2, "决策"),
     PREFERENCE(3, "偏好"),
     TASK_PROGRESS(4, "任务进度"),
     REFERENCE(5, "参考资料");
 
-    @EnumValue
-    private final Integer type;
+    @EnumValue private final Integer type;
     private final String description;
 
     public static MemoryTypeEnum fromType(Integer type) {

@@ -7,14 +7,12 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum StoreInstanceTypeEnum {
-
     PG_VECTOR(1, "PG向量库"),
     MILVUS(2, "Milvus"),
     ELASTICSEARCH(3, "Elasticsearch"),
     PG_FULLTEXT(4, "PG全文检索");
 
-    @EnumValue
-    private final Integer type;
+    @EnumValue private final Integer type;
     private final String description;
 
     public static StoreInstanceTypeEnum fromType(Integer type) {

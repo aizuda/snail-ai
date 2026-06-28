@@ -11,13 +11,17 @@ public class EsSearchLifecycle implements Lifecycle {
 
     @Override
     public void start() {
-        SearchEngineFactory.REGISTER.put(SearchEngineEnum.ELASTICSEARCH, configDTO ->
-                ElasticsearchSearchEngine.builder()
-                        .setConfig(JsonUtil.parseObject(configDTO.getConfig(), ElasticsearchVectorSettings.class))
-                        .build());
+        SearchEngineFactory.REGISTER.put(
+                SearchEngineEnum.ELASTICSEARCH,
+                configDTO ->
+                        ElasticsearchSearchEngine.builder()
+                                .setConfig(
+                                        JsonUtil.parseObject(
+                                                configDTO.getConfig(),
+                                                ElasticsearchVectorSettings.class))
+                                .build());
     }
 
     @Override
-    public void close() {
-    }
+    public void close() {}
 }

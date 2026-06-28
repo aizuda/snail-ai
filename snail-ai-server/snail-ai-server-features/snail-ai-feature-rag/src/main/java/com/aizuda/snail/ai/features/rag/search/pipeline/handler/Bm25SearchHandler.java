@@ -1,6 +1,9 @@
 package com.aizuda.snail.ai.features.rag.search.pipeline.handler;
 
+import cn.hutool.core.util.NumberUtil;
 import com.aizuda.snail.ai.common.dto.rag.SearchResult;
+import com.aizuda.snail.ai.features.rag.search.pipeline.RagSearchContext;
+import com.aizuda.snail.ai.features.rag.search.pipeline.RagSearchHandler;
 import com.aizuda.snail.ai.persistence.rag.dataobject.RagConfigDO;
 import com.aizuda.snail.ai.search.storage.search.SearchEngineFactory;
 import com.aizuda.snail.ai.search.storage.search.api.SearchEngine;
@@ -8,15 +11,11 @@ import com.aizuda.snail.ai.search.storage.search.api.SearchRequest;
 import com.aizuda.snail.ai.search.storage.search.constant.SearchFilterKeys;
 import com.aizuda.snail.ai.search.storage.search.constant.SearchMetadataKeys;
 import com.aizuda.snail.ai.vector.storage.vector.api.IndexNameBuilder;
-import com.aizuda.snail.ai.features.rag.search.pipeline.RagSearchContext;
-import com.aizuda.snail.ai.features.rag.search.pipeline.RagSearchHandler;
-import cn.hutool.core.util.NumberUtil;
+import java.util.List;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
-import java.util.Map;
 
 @Component
 @Order(40)
@@ -32,17 +31,21 @@ public class Bm25SearchHandler implements RagSearchHandler {
 
         long start = System.currentTimeMillis();
         RagConfigDO.SearchParams searchParams = ctx.getSearchParams();
-        SearchEngine searchEngine = searchEngineFactory.forStoreInstance(ctx.getKnowledge().getSearchEngineInstanceId());
-        String indexName = IndexNameBuilder.KNOWLEDGE.build(Map.of(SearchFilterKeys.RAG_ID, ctx.getKnowledge().getId()));
-        List<SearchResult> raw = searchEngine.search(SearchRequest.builder()
-                .indexName(indexName)
-                .queryText(ctx.getQuery())
-                .topK(searchParams.getResultCount() * 2)
-                .build());
+        SearchEngine searchEngine =
+                searchEngineFactory.forStoreInstance(
+                        ctx.getKnowledge().getSearchEngineInstanceId());
+        String indexName =
+                IndexNameBuilder.KNOWLEDGE.build(
+                        Map.of(SearchFilterKeys.RAG_ID, ctx.getKnowledge().getId()));
+        List<SearchResult> raw =
+                searchEngine.search(
+                        SearchRequest.builder()
+                                .indexName(indexName)
+                                .queryText(ctx.getQuery())
+                                .topK(searchParams.getResultCount() * 2)
+                                .build());
 
-        List<SearchResult> bm25Results = raw.stream()
-                .map(r -> toDTO(r, r.getMetadata()))
-                .toList();
+        List<SearchResult> bm25Results = raw.stream().map(r -> toDTO(r, r.getMetadata())).toList();
 
         bm25Results = VectorSearchHandler.filterByThreshold(ctx.getSearchParams(), bm25Results);
         ctx.setBm25Results(bm25Results);
@@ -67,6 +70,10 @@ public class Bm25SearchHandler implements RagSearchHandler {
         if (meta != null && meta.containsKey(SearchMetadataKeys.CHUNK_ID)) {
             return NumberUtil.parseLong(String.valueOf(meta.get(SearchMetadataKeys.CHUNK_ID)));
         }
-        try { return Long.parseLong(id); } catch (NumberFormatException e) { return null; }
+        try {
+            return Long.parseLong(id);
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 }

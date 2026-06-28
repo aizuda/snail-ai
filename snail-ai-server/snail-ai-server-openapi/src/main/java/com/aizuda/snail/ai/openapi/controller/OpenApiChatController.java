@@ -25,20 +25,20 @@ public class OpenApiChatController {
 
     private final OpenApiChatService openApiChatService;
 
-    @PostMapping(value = OpenApiPathConstants.OPEN_API_AGENT_CHAT, produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @PostMapping(
+            value = OpenApiPathConstants.OPEN_API_AGENT_CHAT,
+            produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<String>> chat(@RequestBody @Validated OpenApiChatRequest request) {
-        return openApiChatService.chatStream(request)
-                .map(this::toServerSentEvent);
+        return openApiChatService.chatStream(request).map(this::toServerSentEvent);
     }
 
     @PostMapping(OpenApiPathConstants.OPEN_API_AGENT_CHAT_SYNC)
-    public Result<OpenApiChatSyncResponse> chatSync(@RequestBody @Validated OpenApiChatRequest request) {
+    public Result<OpenApiChatSyncResponse> chatSync(
+            @RequestBody @Validated OpenApiChatRequest request) {
         return Result.ok(openApiChatService.chatSync(request));
     }
 
     private ServerSentEvent<String> toServerSentEvent(OpenApiChatStreamEvent event) {
-        return ServerSentEvent.<String>builder(event.getData())
-                .event(event.getType())
-                .build();
+        return ServerSentEvent.<String>builder(event.getData()).event(event.getType()).build();
     }
 }

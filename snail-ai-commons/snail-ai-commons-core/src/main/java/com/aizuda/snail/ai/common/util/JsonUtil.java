@@ -1,10 +1,21 @@
 package com.aizuda.snail.ai.common.util;
 
-import cn.hutool.core.util.StrUtil;
+import static com.aizuda.snail.ai.common.constants.SystemConstants.YYYY_MM_DD;
+import static com.aizuda.snail.ai.common.constants.SystemConstants.YYYY_MM_DD_HH_MM_SS;
+
 import com.aizuda.snail.ai.common.execption.SnailAiCommonException;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import java.io.InputStream;
+import java.lang.reflect.Type;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.DeserializationFeature;
 import tools.jackson.databind.JavaType;
@@ -18,24 +29,7 @@ import tools.jackson.databind.ext.javatime.ser.LocalDateTimeSerializer;
 import tools.jackson.databind.module.SimpleModule;
 import tools.jackson.databind.node.ObjectNode;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.Type;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import static com.aizuda.snail.ai.common.constants.SystemConstants.YYYY_MM_DD;
-import static com.aizuda.snail.ai.common.constants.SystemConstants.YYYY_MM_DD_HH_MM_SS;
-
-/**
- * (复制自 snail-job)
- */
+/** (复制自 snail-job) */
 @Slf4j
 public class JsonUtil {
 
@@ -70,8 +64,8 @@ public class JsonUtil {
     }
 
     public static <T> Map<String, T> parseHashMap(String jsonString, Class<T> clazz) {
-        return (Map<String, T>) JsonMapper.toJavaObject(jsonString, new TypeReference<HashMap<String, T>>() {
-        });
+        return (Map<String, T>)
+                JsonMapper.toJavaObject(jsonString, new TypeReference<HashMap<String, T>>() {});
     }
 
     public static <T> T parseObject(String jsonString, TypeReference<T> reference) {
@@ -109,11 +103,8 @@ public class JsonUtil {
         }
     }
 
-
-    /**
-     * 判断 Json 是否为空
-     */
-    public static boolean isEmptyJson(String json){
+    /** 判断 Json 是否为空 */
+    public static boolean isEmptyJson(String json) {
         JsonNode jsonNode = JsonMapper.objectMapper.readTree(json);
         return jsonNode.isEmpty();
     }
@@ -123,14 +114,19 @@ public class JsonUtil {
         private static final ObjectMapper objectMapper = jacksonObjectMapper();
 
         public static ObjectMapper jacksonObjectMapper() {
-            DateTimeFormatter localDateTimeFormatter = DateTimeFormatter.ofPattern(YYYY_MM_DD_HH_MM_SS);
+            DateTimeFormatter localDateTimeFormatter =
+                    DateTimeFormatter.ofPattern(YYYY_MM_DD_HH_MM_SS);
             DateTimeFormatter localDateFormatter = DateTimeFormatter.ofPattern(YYYY_MM_DD);
             // 初始化时间序列化模块
             SimpleModule simpleModule = new SimpleModule();
-            simpleModule.addSerializer(LocalDate.class, new LocalDateSerializer(localDateFormatter));
-            simpleModule.addSerializer(LocalDateTime.class, new LocalDateTimeSerializer(localDateTimeFormatter));
-            simpleModule.addDeserializer(LocalDate.class, new LocalDateDeserializer(localDateFormatter));
-            simpleModule.addDeserializer(LocalDateTime.class, new LocalDateTimeDeserializer(localDateTimeFormatter));
+            simpleModule.addSerializer(
+                    LocalDate.class, new LocalDateSerializer(localDateFormatter));
+            simpleModule.addSerializer(
+                    LocalDateTime.class, new LocalDateTimeSerializer(localDateTimeFormatter));
+            simpleModule.addDeserializer(
+                    LocalDate.class, new LocalDateDeserializer(localDateFormatter));
+            simpleModule.addDeserializer(
+                    LocalDateTime.class, new LocalDateTimeDeserializer(localDateTimeFormatter));
             // 初始化全局Jackson 序列化工具
             return tools.jackson.databind.json.JsonMapper.builder()
                     // 忽略未知属性
@@ -138,11 +134,13 @@ public class JsonUtil {
                     // 忽略无法序列化的属性
                     .configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false)
                     // 序列化是忽略空值字段
-                    .changeDefaultPropertyInclusion(incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
+                    .changeDefaultPropertyInclusion(
+                            incl -> incl.withValueInclusion(JsonInclude.Include.NON_NULL))
                     // 注册时间序列化模块
                     .addModule(simpleModule)
                     .build();
         }
+
         public static ObjectMapper objectMapper() {
             return objectMapper;
         }
@@ -151,8 +149,11 @@ public class JsonUtil {
             return objectMapper.getTypeFactory().constructType(type);
         }
 
-        private static JavaType getCollectionType(Class<?> collectionClass, Class<?>... elementClasses) {
-            return objectMapper.getTypeFactory().constructParametricType(collectionClass, elementClasses);
+        private static JavaType getCollectionType(
+                Class<?> collectionClass, Class<?>... elementClasses) {
+            return objectMapper
+                    .getTypeFactory()
+                    .constructParametricType(collectionClass, elementClasses);
         }
 
         private static String toJsonString(Object object) {
@@ -167,7 +168,8 @@ public class JsonUtil {
             try {
                 return objectMapper.readValue(jsonString, clazz);
             } catch (Exception e) {
-                throw new SnailAiCommonException("Json to object conversion failed Parameters: {}", jsonString, e);
+                throw new SnailAiCommonException(
+                        "Json to object conversion failed Parameters: {}", jsonString, e);
             }
         }
 
@@ -183,7 +185,8 @@ public class JsonUtil {
             try {
                 return objectMapper.readValue(jsonString, typeReference);
             } catch (Exception e) {
-                throw new SnailAiCommonException("Json to object conversion failed Parameters: {}", jsonString, e);
+                throw new SnailAiCommonException(
+                        "Json to object conversion failed Parameters: {}", jsonString, e);
             }
         }
 
@@ -191,7 +194,8 @@ public class JsonUtil {
             try {
                 return objectMapper.readValue(jsonString, javaType);
             } catch (Exception e) {
-                throw new SnailAiCommonException("Json to object conversion failed Parameters: {}", jsonString, e);
+                throw new SnailAiCommonException(
+                        "Json to object conversion failed Parameters: {}", jsonString, e);
             }
         }
 
@@ -199,7 +203,8 @@ public class JsonUtil {
             try {
                 return objectMapper.readTree(jsonString);
             } catch (Exception e) {
-                throw new SnailAiCommonException("Json to object conversion failed Parameters: {}", jsonString, e);
+                throw new SnailAiCommonException(
+                        "Json to object conversion failed Parameters: {}", jsonString, e);
             }
         }
 

@@ -28,8 +28,10 @@ public class HybridFusionHandler implements RagSearchHandler {
         long start = System.currentTimeMillis();
 
         RagConfigDO.SearchParams sp = ctx.getSearchParams();
-        HybridFusion fusion = createFusion(sp.getFusionStrategy(), sp.getDenseWeight(), sp.getRrfK());
-        ctx.setResults(fusion.fuse(ctx.getVectorResults(), ctx.getBm25Results(), sp.getResultCount()));
+        HybridFusion fusion =
+                createFusion(sp.getFusionStrategy(), sp.getDenseWeight(), sp.getRrfK());
+        ctx.setResults(
+                fusion.fuse(ctx.getVectorResults(), ctx.getBm25Results(), sp.getResultCount()));
 
         if (ctx.getMetrics() != null) {
             ctx.getMetrics().setFusionMs(System.currentTimeMillis() - start);

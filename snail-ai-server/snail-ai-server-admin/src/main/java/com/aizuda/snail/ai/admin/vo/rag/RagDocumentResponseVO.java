@@ -1,11 +1,10 @@
 package com.aizuda.snail.ai.admin.vo.rag;
 
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
-import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -37,10 +36,7 @@ public class RagDocumentResponseVO {
 
     private String downloadUrl;
 
-    /**
-     * 决策结果: NEW / SKIP / OVERWRITE
-     * REJECT 通过异常返回，不会进入此字段
-     */
+    /** 决策结果: NEW / SKIP / OVERWRITE REJECT 通过异常返回，不会进入此字段 */
     private String decision;
 
     /** 命中的冲突维度: NONE / BY_NAME / BY_CONTENT / BOTH */

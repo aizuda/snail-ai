@@ -11,13 +11,12 @@ import com.aizuda.snail.ai.persistence.agent.mapper.AgentUsageStatMapper;
 import com.aizuda.snail.ai.persistence.agent.po.AgentUsageStatPO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
@@ -26,9 +25,8 @@ public class AgentAnalyticsService {
 
     private final AgentUsageStatMapper usageStatMapper;
     private final UserMapper userMapper;
-    /**
-     * 获取分析概览
-     */
+
+    /** 获取分析概览 */
     public AgentAnalyticsVO getAnalytics(Long agentId, AgentAnalyticsQueryVO queryVO) {
         String range = queryVO.getRange();
         String start = queryVO.getStart();
@@ -36,7 +34,8 @@ public class AgentAnalyticsService {
         LocalDate startDate;
         LocalDate endDate = LocalDate.now();
 
-        boolean hasCustomDateRange = start != null && !start.isBlank() && end != null && !end.isBlank();
+        boolean hasCustomDateRange =
+                start != null && !start.isBlank() && end != null && !end.isBlank();
         if (hasCustomDateRange) {
             startDate = LocalDate.parse(start);
             endDate = LocalDate.parse(end);
@@ -46,18 +45,20 @@ public class AgentAnalyticsService {
                 endDate = temp;
             }
         } else {
-            int days = switch (range) {
-                case "7d" -> 7;
-                case "30d" -> 30;
-                default -> 1;
-            };
+            int days =
+                    switch (range) {
+                        case "7d" -> 7;
+                        case "30d" -> 30;
+                        default -> 1;
+                    };
             startDate = endDate.minusDays(days - 1);
         }
 
-        LambdaQueryWrapper<AgentUsageStatPO> wrapper = new LambdaQueryWrapper<AgentUsageStatPO>()
-                .eq(AgentUsageStatPO::getAgentId, agentId)
-                .ge(AgentUsageStatPO::getStatDate, startDate)
-                .le(AgentUsageStatPO::getStatDate, endDate);
+        LambdaQueryWrapper<AgentUsageStatPO> wrapper =
+                new LambdaQueryWrapper<AgentUsageStatPO>()
+                        .eq(AgentUsageStatPO::getAgentId, agentId)
+                        .ge(AgentUsageStatPO::getStatDate, startDate)
+                        .le(AgentUsageStatPO::getStatDate, endDate);
 
         List<AgentUsageStatPO> stats = usageStatMapper.selectList(wrapper);
 
@@ -69,7 +70,8 @@ public class AgentAnalyticsService {
         for (AgentUsageStatPO stat : stats) {
             uniqueUsers.add(stat.getUserId());
             totalMessages += stat.getMessageCount() != null ? stat.getMessageCount() : 0;
-            totalConversations += stat.getConversationCount() != null ? stat.getConversationCount() : 0;
+            totalConversations +=
+                    stat.getConversationCount() != null ? stat.getConversationCount() : 0;
         }
 
         Map<LocalDate, Integer> usersByDate = new HashMap<>();
@@ -78,8 +80,14 @@ public class AgentAnalyticsService {
 
         for (AgentUsageStatPO stat : stats) {
             usersByDate.merge(stat.getStatDate(), 1, Integer::sum);
-            convByDate.merge(stat.getStatDate(), stat.getConversationCount() != null ? stat.getConversationCount() : 0, Integer::sum);
-            messageByDate.merge(stat.getStatDate(), stat.getMessageCount() != null ? stat.getMessageCount() : 0, Integer::sum);
+            convByDate.merge(
+                    stat.getStatDate(),
+                    stat.getConversationCount() != null ? stat.getConversationCount() : 0,
+                    Integer::sum);
+            messageByDate.merge(
+                    stat.getStatDate(),
+                    stat.getMessageCount() != null ? stat.getMessageCount() : 0,
+                    Integer::sum);
         }
 
         List<String> dateLabels = new ArrayList<>();
@@ -109,19 +117,20 @@ public class AgentAnalyticsService {
                 .messageTrend(messageTrend)
                 .totalToolCalls(totalToolCalls)
                 .avgResponseTime(avgResponseTime)
-                .dateRange(AgentAnalyticsVO.DateRange.builder()
-                        .start(startDate.format(fmt))
-                        .end(endDate.format(fmt))
-                        .build())
+                .dateRange(
+                        AgentAnalyticsVO.DateRange.builder()
+                                .start(startDate.format(fmt))
+                                .end(endDate.format(fmt))
+                                .build())
                 .build();
     }
 
-    /**
-     * 获取使用明细
-     */
-    public PageResult<List<AgentUsageDetailVO>> getUsageDetail(Long agentId, AgentUsageDetailQueryVO queryVO) {
-        LambdaQueryWrapper<AgentUsageStatPO> wrapper = new LambdaQueryWrapper<AgentUsageStatPO>()
-                .eq(AgentUsageStatPO::getAgentId, agentId);
+    /** 获取使用明细 */
+    public PageResult<List<AgentUsageDetailVO>> getUsageDetail(
+            Long agentId, AgentUsageDetailQueryVO queryVO) {
+        LambdaQueryWrapper<AgentUsageStatPO> wrapper =
+                new LambdaQueryWrapper<AgentUsageStatPO>()
+                        .eq(AgentUsageStatPO::getAgentId, agentId);
         String start = queryVO.getStart();
         String end = queryVO.getEnd();
         int page = queryVO.getPage();
@@ -139,13 +148,16 @@ public class AgentAnalyticsService {
 
         Map<Long, AgentUsageDetailVO> userMap = new LinkedHashMap<>();
         for (AgentUsageStatPO stat : allStats) {
-            userMap.merge(stat.getUserId(),
+            userMap.merge(
+                    stat.getUserId(),
                     AgentUsageDetailVO.builder()
                             .userId(stat.getUserId())
-                            .messageCount(stat.getMessageCount() != null ? stat.getMessageCount() : 0)
+                            .messageCount(
+                                    stat.getMessageCount() != null ? stat.getMessageCount() : 0)
                             .build(),
                     (existing, newVal) -> {
-                        existing.setMessageCount(existing.getMessageCount() + newVal.getMessageCount());
+                        existing.setMessageCount(
+                                existing.getMessageCount() + newVal.getMessageCount());
                         return existing;
                     });
         }
@@ -155,7 +167,9 @@ public class AgentAnalyticsService {
             List<UserPO> users = userMapper.selectByIds(userMap.keySet());
             Map<Long, String> userNameMap = new HashMap<>();
             for (UserPO user : users) {
-                userNameMap.put(user.getId(), user.getNickname() != null ? user.getNickname() : user.getUsername());
+                userNameMap.put(
+                        user.getId(),
+                        user.getNickname() != null ? user.getNickname() : user.getUsername());
             }
             for (AgentUsageDetailVO detail : userMap.values()) {
                 detail.setUserName(userNameMap.get(detail.getUserId()));
@@ -167,9 +181,8 @@ public class AgentAnalyticsService {
         // 手动分页
         int fromIndex = (page - 1) * size;
         int toIndex = Math.min(fromIndex + size, allDetails.size());
-        List<AgentUsageDetailVO> pageData = fromIndex < allDetails.size()
-                ? allDetails.subList(fromIndex, toIndex)
-                : List.of();
+        List<AgentUsageDetailVO> pageData =
+                fromIndex < allDetails.size() ? allDetails.subList(fromIndex, toIndex) : List.of();
 
         PageDTO<AgentUsageStatPO> pageDTO = new PageDTO<>(page, size);
         pageDTO.setTotal(allDetails.size());

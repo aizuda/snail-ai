@@ -18,9 +18,7 @@ public class SnailAiAgentProperties {
     /** 指定客户端端口 */
     private int port = 17889;
 
-    /**
-     * 指定客户端IP，默认取本地IP
-     */
+    /** 指定客户端IP，默认取本地IP */
     private String host;
 
     /** 最大并发对话数 */
@@ -32,21 +30,15 @@ public class SnailAiAgentProperties {
     /** shell 文件临时目录 */
     private String shellTempDir = "/tmp/snail-ai-agent/script/";
 
-    /**
-     * 服务端配置
-     */
+    /** 服务端配置 */
     private ServerConfig server = new ServerConfig();
 
     @Data
     public static class ServerConfig {
-        /**
-         * 服务端的地址，若服务端集群部署则此处配置域名
-         */
+        /** 服务端的地址，若服务端集群部署则此处配置域名 */
         private String host = "127.0.0.1";
 
-        /**
-         * 服务端 rpc 的端口号
-         */
+        /** 服务端 rpc 的端口号 */
         private int port = 18888;
 
         /** 超时时间（毫秒） */
@@ -58,5 +50,4 @@ public class SnailAiAgentProperties {
         /** 重试间隔（毫秒） */
         private int retryInterval = 1000;
     }
-
 }

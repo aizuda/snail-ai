@@ -17,5 +17,4 @@ public class WebController {
     public String forwardIndex() {
         return "index";
     }
-
 }

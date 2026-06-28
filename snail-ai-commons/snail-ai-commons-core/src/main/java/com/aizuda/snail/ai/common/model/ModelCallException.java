@@ -1,8 +1,6 @@
 package com.aizuda.snail.ai.common.model;
 
-/**
- * 动态模型调用异常
- */
+/** 动态模型调用异常 */
 public class ModelCallException extends RuntimeException {
 
     private final ErrorCode errorCode;
@@ -40,9 +38,7 @@ public class ModelCallException extends RuntimeException {
         return details;
     }
 
-    /**
-     * 错误代码枚举
-     */
+    /** 错误代码枚举 */
     public enum ErrorCode {
         CONFIG_NOT_FOUND("配置不存在"),
         CONFIG_DISABLED("配置已禁用"),

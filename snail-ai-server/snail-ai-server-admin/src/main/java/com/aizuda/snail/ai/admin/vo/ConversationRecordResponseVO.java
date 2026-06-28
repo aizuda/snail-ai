@@ -20,5 +20,4 @@ public class ConversationRecordResponseVO {
     private String answer;
 
     private Integer status;
-
 }

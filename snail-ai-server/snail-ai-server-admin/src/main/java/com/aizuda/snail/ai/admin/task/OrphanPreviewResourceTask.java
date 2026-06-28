@@ -5,20 +5,18 @@ import com.aizuda.snail.ai.features.resource.enums.ResourceBizTypeEnum;
 import com.aizuda.snail.ai.persistence.resource.mapper.ResourceMapper;
 import com.aizuda.snail.ai.persistence.resource.po.ResourcePO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import java.time.LocalDateTime;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
-import java.util.List;
-
 /**
  * 知识库上传预览孤儿资源清理任务
- * <p>
- * 当用户开了上传预览但未 commit 也未 cancel（关页面 / 网络中断），
- * Redis 里的 token 30 分钟后自然失效，但临时资源会变成孤儿。
- * 本任务每小时扫一次，把 bizType=DOCUMENT_PREVIEW 且超过 1 小时的资源彻底清理。
+ *
+ * <p>当用户开了上传预览但未 commit 也未 cancel（关页面 / 网络中断）， Redis 里的 token 30 分钟后自然失效，但临时资源会变成孤儿。 本任务每小时扫一次，把
+ * bizType=DOCUMENT_PREVIEW 且超过 1 小时的资源彻底清理。
  *
  * @author opensnail
  */
@@ -41,11 +39,14 @@ public class OrphanPreviewResourceTask {
     public void cleanupOrphanPreviewResources() {
         try {
             LocalDateTime threshold = LocalDateTime.now().minusMinutes(ORPHAN_THRESHOLD_MINUTES);
-            List<ResourcePO> orphans = resourceMapper.selectList(
-                    new LambdaQueryWrapper<ResourcePO>()
-                            .eq(ResourcePO::getBizType, ResourceBizTypeEnum.DOCUMENT_PREVIEW.getValue())
-                            .lt(ResourcePO::getCreateDt, threshold)
-                            .last("LIMIT " + BATCH_LIMIT));
+            List<ResourcePO> orphans =
+                    resourceMapper.selectList(
+                            new LambdaQueryWrapper<ResourcePO>()
+                                    .eq(
+                                            ResourcePO::getBizType,
+                                            ResourceBizTypeEnum.DOCUMENT_PREVIEW.getValue())
+                                    .lt(ResourcePO::getCreateDt, threshold)
+                                    .last("LIMIT " + BATCH_LIMIT));
             if (orphans.isEmpty()) {
                 return;
             }

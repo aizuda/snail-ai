@@ -1,6 +1,8 @@
 package com.aizuda.snail.ai.features.rag.strategy.parser;
 
 import com.aizuda.snail.ai.common.execption.SnailAiException;
+import java.io.InputStream;
+import java.util.StringJoiner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -9,9 +11,6 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.stereotype.Component;
-
-import java.io.InputStream;
-import java.util.StringJoiner;
 
 @Slf4j
 @Component
@@ -60,7 +59,8 @@ public class ExcelParser implements DocumentParser {
                             hasContent = true;
                         }
 
-                        String header = (headers != null && c < headers.length) ? headers[c] : "col" + c;
+                        String header =
+                                (headers != null && c < headers.length) ? headers[c] : "col" + c;
                         if (!value.isEmpty()) {
                             joiner.add(header + ": " + value);
                         }

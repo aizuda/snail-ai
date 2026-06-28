@@ -12,9 +12,7 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-/**
- * (复制自 snail-job)
- */
+/** (复制自 snail-job) */
 @Component("snailAiSpringContext")
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @Slf4j
@@ -36,7 +34,8 @@ public class SnailSpringContext implements BeanFactoryPostProcessor, Application
     public static ListableBeanFactory getBeanFactory() {
         final ListableBeanFactory factory = null == FACTORY ? CONTEXT : FACTORY;
         if (null == factory) {
-            throw new SnailAiException("No ConfigurableListableBeanFactory or ApplicationContext injected, maybe not in the Spring environment?");
+            throw new SnailAiException(
+                    "No ConfigurableListableBeanFactory or ApplicationContext injected, maybe not in the Spring environment?");
         }
         return factory;
     }
@@ -62,7 +61,10 @@ public class SnailSpringContext implements BeanFactoryPostProcessor, Application
         try {
             return getBeanFactory().getBean(requiredType);
         } catch (BeansException | NullPointerException exception) {
-            log.error(" BeanName:{} not exist，Exception => {}", requiredType.getName(), exception.getMessage());
+            log.error(
+                    " BeanName:{} not exist，Exception => {}",
+                    requiredType.getName(),
+                    exception.getMessage());
             return null;
         }
     }

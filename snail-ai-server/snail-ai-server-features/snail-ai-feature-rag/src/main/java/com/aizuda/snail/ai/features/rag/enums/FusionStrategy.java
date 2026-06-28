@@ -6,7 +6,6 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum FusionStrategy {
-
     RRF("RRF"),
     WEIGHTED_SUM("WEIGHTED_SUM");
 

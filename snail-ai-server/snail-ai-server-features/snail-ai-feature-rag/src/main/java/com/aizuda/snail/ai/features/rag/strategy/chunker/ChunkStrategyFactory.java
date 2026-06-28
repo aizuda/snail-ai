@@ -1,10 +1,9 @@
 package com.aizuda.snail.ai.features.rag.strategy.chunker;
 
 import com.aizuda.snail.ai.features.rag.enums.ChunkModeEnum;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Component
 @RequiredArgsConstructor

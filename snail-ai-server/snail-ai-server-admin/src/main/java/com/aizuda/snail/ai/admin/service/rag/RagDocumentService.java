@@ -1,6 +1,14 @@
 package com.aizuda.snail.ai.admin.service.rag;
 
 import cn.hutool.core.util.StrUtil;
+import com.aizuda.snail.ai.admin.vo.PageResult;
+import com.aizuda.snail.ai.admin.vo.rag.RagChunkCreateRequestVO;
+import com.aizuda.snail.ai.admin.vo.rag.RagChunkQueryVO;
+import com.aizuda.snail.ai.admin.vo.rag.RagChunkResponseVO;
+import com.aizuda.snail.ai.admin.vo.rag.RagChunkUpdateRequestVO;
+import com.aizuda.snail.ai.admin.vo.rag.RagDocumentQueryVO;
+import com.aizuda.snail.ai.admin.vo.rag.RagDocumentResponseVO;
+import com.aizuda.snail.ai.admin.vo.rag.RagDocumentUploadRequestVO;
 import com.aizuda.snail.ai.common.execption.SnailAiCommonException;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.features.rag.dedup.DedupResult;
@@ -9,50 +17,40 @@ import com.aizuda.snail.ai.features.rag.dedup.UploadDecision;
 import com.aizuda.snail.ai.features.rag.enums.DedupAction;
 import com.aizuda.snail.ai.features.rag.enums.DedupStrategy;
 import com.aizuda.snail.ai.features.rag.enums.DocumentSourceTypeEnum;
-import com.aizuda.snail.ai.features.resource.ResourceService;
-import com.aizuda.snail.ai.features.resource.enums.ResourceBizTypeEnum;
-import com.aizuda.snail.ai.persistence.rag.mapper.RagMapper;
-import com.aizuda.snail.ai.persistence.rag.mapper.RagChunkMapper;
-import com.aizuda.snail.ai.persistence.rag.mapper.RagDocumentMapper;
-import com.aizuda.snail.ai.persistence.resource.po.ResourcePO;
-import com.aizuda.snail.ai.persistence.security.UserSessionUtils;
-import com.aizuda.snail.ai.admin.vo.PageResult;
 import com.aizuda.snail.ai.features.rag.enums.RagDocumentStatus;
-import com.aizuda.snail.ai.persistence.rag.po.RagPO;
-import com.aizuda.snail.ai.persistence.rag.po.RagChunkPO;
-import com.aizuda.snail.ai.persistence.rag.po.RagDocumentPO;
-import com.aizuda.snail.ai.admin.vo.rag.RagChunkCreateRequestVO;
-import com.aizuda.snail.ai.admin.vo.rag.RagChunkQueryVO;
-import com.aizuda.snail.ai.admin.vo.rag.RagChunkResponseVO;
-import com.aizuda.snail.ai.admin.vo.rag.RagChunkUpdateRequestVO;
-import com.aizuda.snail.ai.admin.vo.rag.RagDocumentQueryVO;
-import com.aizuda.snail.ai.admin.vo.rag.RagDocumentResponseVO;
-import com.aizuda.snail.ai.admin.vo.rag.RagDocumentUploadRequestVO;
 import com.aizuda.snail.ai.features.rag.pipeline.DocumentPipeline;
 import com.aizuda.snail.ai.features.rag.strategy.importer.DocumentImportFactory;
 import com.aizuda.snail.ai.features.rag.strategy.importer.DocumentImportStrategy;
 import com.aizuda.snail.ai.features.rag.strategy.importer.ImportRequest;
 import com.aizuda.snail.ai.features.rag.strategy.importer.ImportResult;
+import com.aizuda.snail.ai.features.resource.ResourceService;
+import com.aizuda.snail.ai.features.resource.enums.ResourceBizTypeEnum;
+import com.aizuda.snail.ai.persistence.rag.mapper.RagChunkMapper;
+import com.aizuda.snail.ai.persistence.rag.mapper.RagDocumentMapper;
+import com.aizuda.snail.ai.persistence.rag.mapper.RagMapper;
+import com.aizuda.snail.ai.persistence.rag.po.RagChunkPO;
+import com.aizuda.snail.ai.persistence.rag.po.RagDocumentPO;
+import com.aizuda.snail.ai.persistence.rag.po.RagPO;
+import com.aizuda.snail.ai.persistence.resource.po.ResourcePO;
+import com.aizuda.snail.ai.persistence.security.UserSessionUtils;
 import com.aizuda.snail.ai.vector.storage.vector.VectorStoreFactory;
 import com.aizuda.snail.ai.vector.storage.vector.api.IndexNameBuilder;
 import com.aizuda.snail.ai.vector.storage.vector.api.SnailAiVectorStore;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.ByteArrayInputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @Service
@@ -73,52 +71,51 @@ public class RagDocumentService {
     private final ResourceService resourceService;
     private final DocumentDedupChecker dedupChecker;
 
-    /**
-     * Upload file via MultipartFile (sourceType = UPLOAD).
-     */
+    /** Upload file via MultipartFile (sourceType = UPLOAD). */
     public RagDocumentResponseVO upload(MultipartFile file, RagDocumentUploadRequestVO request) {
         RagPO knowledge = requireKnowledge(request.getRagId());
 
-        String sourceType = StrUtil.isNotBlank(request.getSourceType()) ? request.getSourceType() : DocumentSourceTypeEnum.UPLOAD.getValue();
+        String sourceType =
+                StrUtil.isNotBlank(request.getSourceType())
+                        ? request.getSourceType()
+                        : DocumentSourceTypeEnum.UPLOAD.getValue();
         DocumentImportStrategy strategy = importFactory.getStrategy(sourceType);
 
-        ImportResult result = strategy.importDocument(ImportRequest.builder()
-                .ragId(knowledge.getId())
-                .file(file)
-                .name(request.getName())
-                .sourceType(sourceType)
-                .build());
+        ImportResult result =
+                strategy.importDocument(
+                        ImportRequest.builder()
+                                .ragId(knowledge.getId())
+                                .file(file)
+                                .name(request.getName())
+                                .sourceType(sourceType)
+                                .build());
 
         return saveAndProcess(knowledge, result, request);
     }
 
-    /**
-     * Import from URL (sourceType = URL).
-     */
+    /** Import from URL (sourceType = URL). */
     public RagDocumentResponseVO importFromUrl(RagDocumentUploadRequestVO request) {
         RagPO knowledge = requireKnowledge(request.getRagId());
 
         DocumentImportStrategy strategy = importFactory.getStrategy("URL");
-        ImportResult result = strategy.importDocument(ImportRequest.builder()
-                .ragId(knowledge.getId())
-                .url(request.getUrl())
-                .name(request.getName())
-                .sourceType(DocumentSourceTypeEnum.URL.getValue())
-                .build());
+        ImportResult result =
+                strategy.importDocument(
+                        ImportRequest.builder()
+                                .ragId(knowledge.getId())
+                                .url(request.getUrl())
+                                .name(request.getName())
+                                .sourceType(DocumentSourceTypeEnum.URL.getValue())
+                                .build());
 
         return saveAndProcess(knowledge, result, request);
     }
-
 
     @Transactional
     public void delete(Long documentId) {
         cleanupDocumentInternal(documentId);
     }
 
-    /**
-     * 清理文档及其相关资源（向量 / 资源库 / chunks / 文档行）。
-     * 同时供普通删除与 OVERWRITE 上传链路复用。
-     */
+    /** 清理文档及其相关资源（向量 / 资源库 / chunks / 文档行）。 同时供普通删除与 OVERWRITE 上传链路复用。 */
     private void cleanupDocumentInternal(Long documentId) {
         RagDocumentPO doc = ragDocumentMapper.selectById(documentId);
         if (doc == null) {
@@ -129,22 +126,25 @@ public class RagDocumentService {
         if (knowledge != null) {
             try {
                 SnailAiVectorStore snailAiVectorStore = vectorStoreFactory.create(knowledge);
-                String indexName = IndexNameBuilder.KNOWLEDGE.build(Map.of("ragId", knowledge.getId()));
-                List<RagChunkPO> chunks = ragChunkMapper.selectList(
-                        new LambdaQueryWrapper<RagChunkPO>()
-                                .eq(RagChunkPO::getDocumentId, documentId)
-                                .isNotNull(RagChunkPO::getVectorId));
+                String indexName =
+                        IndexNameBuilder.KNOWLEDGE.build(Map.of("ragId", knowledge.getId()));
+                List<RagChunkPO> chunks =
+                        ragChunkMapper.selectList(
+                                new LambdaQueryWrapper<RagChunkPO>()
+                                        .eq(RagChunkPO::getDocumentId, documentId)
+                                        .isNotNull(RagChunkPO::getVectorId));
                 // 只删除没有被其他文档的 chunk 引用的向量
                 List<String> vectorIdsToDelete = new ArrayList<>();
                 for (RagChunkPO chunk : chunks) {
                     if (StrUtil.isBlank(chunk.getVectorId())) {
                         continue;
                     }
-                    Long refCount = ragChunkMapper.selectCount(
-                            new LambdaQueryWrapper<RagChunkPO>()
-                                    .eq(RagChunkPO::getRagId, doc.getRagId())
-                                    .eq(RagChunkPO::getVectorId, chunk.getVectorId())
-                                    .ne(RagChunkPO::getDocumentId, documentId));
+                    Long refCount =
+                            ragChunkMapper.selectCount(
+                                    new LambdaQueryWrapper<RagChunkPO>()
+                                            .eq(RagChunkPO::getRagId, doc.getRagId())
+                                            .eq(RagChunkPO::getVectorId, chunk.getVectorId())
+                                            .ne(RagChunkPO::getDocumentId, documentId));
                     if (refCount == 0) {
                         vectorIdsToDelete.add(chunk.getVectorId());
                     }
@@ -166,7 +166,8 @@ public class RagDocumentService {
             }
         }
 
-        ragChunkMapper.delete(new LambdaQueryWrapper<RagChunkPO>().eq(RagChunkPO::getDocumentId, documentId));
+        ragChunkMapper.delete(
+                new LambdaQueryWrapper<RagChunkPO>().eq(RagChunkPO::getDocumentId, documentId));
         ragDocumentMapper.deleteById(documentId);
     }
 
@@ -219,15 +220,17 @@ public class RagDocumentService {
         PageDTO<RagChunkPO> pageDTO = new PageDTO<>(query.getPage(), query.getSize());
         IPage<RagChunkPO> page = ragChunkMapper.selectPage(pageDTO, wrapper);
         List<RagChunkPO> records = page.getRecords();
-        Set<Long> docIds = records.stream().map(RagChunkPO::getDocumentId).collect(Collectors.toSet());
+        Set<Long> docIds =
+                records.stream().map(RagChunkPO::getDocumentId).collect(Collectors.toSet());
         Map<Long, String> docNameMap = new HashMap<>();
         for (Long id : docIds) {
             RagDocumentPO d = ragDocumentMapper.selectById(id);
             docNameMap.put(id, d != null ? d.getName() : null);
         }
-        List<RagChunkResponseVO> list = records.stream()
-                .map(po -> toChunkResponseVO(po, docNameMap.get(po.getDocumentId())))
-                .collect(Collectors.toList());
+        List<RagChunkResponseVO> list =
+                records.stream()
+                        .map(po -> toChunkResponseVO(po, docNameMap.get(po.getDocumentId())))
+                        .collect(Collectors.toList());
         return new PageResult<>(pageDTO, list);
     }
 
@@ -255,14 +258,16 @@ public class RagDocumentService {
         Integer maxIndex = ragChunkMapper.selectMaxChunkIndex(request.getDocumentId());
         int nextIndex = (maxIndex != null ? maxIndex : -1) + 1;
 
-        RagChunkPO chunk = RagChunkPO.builder()
-                .ragId(request.getRagId())
-                .documentId(request.getDocumentId())
-                .paragraphIndex(0)
-                .chunkIndex(nextIndex)
-                .content(request.getContent())
-                .tokenCount(request.getContent() != null ? request.getContent().length() : 0)
-                .build();
+        RagChunkPO chunk =
+                RagChunkPO.builder()
+                        .ragId(request.getRagId())
+                        .documentId(request.getDocumentId())
+                        .paragraphIndex(0)
+                        .chunkIndex(nextIndex)
+                        .content(request.getContent())
+                        .tokenCount(
+                                request.getContent() != null ? request.getContent().length() : 0)
+                        .build();
         ragChunkMapper.insert(chunk);
 
         try {
@@ -313,8 +318,10 @@ public class RagDocumentService {
     }
 
     private void updateDocumentChunkCount(Long documentId) {
-        Long count = ragChunkMapper.selectCount(
-                new LambdaQueryWrapper<RagChunkPO>().eq(RagChunkPO::getDocumentId, documentId));
+        Long count =
+                ragChunkMapper.selectCount(
+                        new LambdaQueryWrapper<RagChunkPO>()
+                                .eq(RagChunkPO::getDocumentId, documentId));
         RagDocumentPO doc = ragDocumentMapper.selectById(documentId);
         if (doc != null) {
             doc.setChunkCount(count.intValue());
@@ -341,20 +348,19 @@ public class RagDocumentService {
 
     // ──────────────────────────────────── private ────────────────────────────────────
 
-    /**
-     * 上传链路核心：完成「判定 → 写入」两阶段（无分布式锁）。
-     */
-    private RagDocumentResponseVO saveAndProcess(RagPO knowledge, ImportResult result,
-                                                 RagDocumentUploadRequestVO request) {
+    /** 上传链路核心：完成「判定 → 写入」两阶段（无分布式锁）。 */
+    private RagDocumentResponseVO saveAndProcess(
+            RagPO knowledge, ImportResult result, RagDocumentUploadRequestVO request) {
         return doSaveAndProcess(knowledge, result, request);
     }
 
-    private RagDocumentResponseVO doSaveAndProcess(RagPO knowledge, ImportResult result,
-                                                   RagDocumentUploadRequestVO request) {
+    private RagDocumentResponseVO doSaveAndProcess(
+            RagPO knowledge, ImportResult result, RagDocumentUploadRequestVO request) {
         DedupStrategy strategy = effectiveStrategy(request, knowledge);
         DedupAction action = effectiveAction(request, knowledge);
-        DedupResult dedup = dedupChecker.check(
-                knowledge.getId(), result.getFileName(), result.getContentHash(), strategy);
+        DedupResult dedup =
+                dedupChecker.check(
+                        knowledge.getId(), result.getFileName(), result.getContentHash(), strategy);
         UploadDecision decision = dedupChecker.decide(dedup, action);
 
         return switch (decision.getType()) {
@@ -365,12 +371,9 @@ public class RagDocumentService {
         };
     }
 
-    /**
-     * 覆盖式上传：清理旧文档（含 chunks/向量/资源），按新文件重新入库。
-     * conflictDocumentId 仍指向被替换的旧 ID，便于前端反馈。
-     */
-    private RagDocumentResponseVO overwriteAndInsert(RagPO knowledge, ImportResult result,
-                                                     UploadDecision decision) {
+    /** 覆盖式上传：清理旧文档（含 chunks/向量/资源），按新文件重新入库。 conflictDocumentId 仍指向被替换的旧 ID，便于前端反馈。 */
+    private RagDocumentResponseVO overwriteAndInsert(
+            RagPO knowledge, ImportResult result, UploadDecision decision) {
         Long oldId = decision.getConflict() != null ? decision.getConflict().getId() : null;
         if (oldId != null) {
             cleanupDocumentInternal(oldId);
@@ -380,45 +383,49 @@ public class RagDocumentService {
         return vo;
     }
 
-    private RagDocumentResponseVO insertNewDocument(RagPO knowledge, ImportResult result,
-                                                    UploadDecision decision) {
+    private RagDocumentResponseVO insertNewDocument(
+            RagPO knowledge, ImportResult result, UploadDecision decision) {
         Long resourceId = uploadResourceIfPresent(knowledge, result);
-        return persistDocumentRow(knowledge, result.getFileName(), result.getFileType(),
-                result.getSourceType(), result.getContentHash(), resourceId, decision);
+        return persistDocumentRow(
+                knowledge,
+                result.getFileName(),
+                result.getFileType(),
+                result.getSourceType(),
+                result.getContentHash(),
+                resourceId,
+                decision);
     }
 
-    /**
-     * 直接落一行 RagDocument 并返回响应 VO。
-     * 供常规 upload 与 preview-commit 两条链路复用，调用方自行准备好资源 ID。
-     */
-    public RagDocumentResponseVO persistDocumentRow(RagPO knowledge, String fileName,
-                                                    String fileType, String sourceType,
-                                                    String contentHash, Long resourceId,
-                                                    UploadDecision decision) {
-        RagDocumentPO doc = RagDocumentPO.builder()
-                .ragId(knowledge.getId())
-                .name(fileName)
-                .fileType(fileType)
-                .sourceType(sourceType)
-                .resourceId(resourceId)
-                .contentHash(contentHash)
-                .status(RagDocumentStatus.PENDING.getStatus())
-                .chunkCount(0)
-                .build();
+    /** 直接落一行 RagDocument 并返回响应 VO。 供常规 upload 与 preview-commit 两条链路复用，调用方自行准备好资源 ID。 */
+    public RagDocumentResponseVO persistDocumentRow(
+            RagPO knowledge,
+            String fileName,
+            String fileType,
+            String sourceType,
+            String contentHash,
+            Long resourceId,
+            UploadDecision decision) {
+        RagDocumentPO doc =
+                RagDocumentPO.builder()
+                        .ragId(knowledge.getId())
+                        .name(fileName)
+                        .fileType(fileType)
+                        .sourceType(sourceType)
+                        .resourceId(resourceId)
+                        .contentHash(contentHash)
+                        .status(RagDocumentStatus.PENDING.getStatus())
+                        .chunkCount(0)
+                        .build();
         ragDocumentMapper.insert(doc);
         return toResponseVOWithDecision(doc, decision);
     }
 
-    /**
-     * 清理文档（公开版本）。preview-commit 流程的 OVERWRITE 直接调用，不再走 @Transactional 包装。
-     */
+    /** 清理文档（公开版本）。preview-commit 流程的 OVERWRITE 直接调用，不再走 @Transactional 包装。 */
     public void cleanupDocument(Long documentId) {
         cleanupDocumentInternal(documentId);
     }
 
-    /**
-     * 暴露给 PreviewService 的去重判定器。
-     */
+    /** 暴露给 PreviewService 的去重判定器。 */
     public DocumentDedupChecker getDedupChecker() {
         return dedupChecker;
     }
@@ -452,14 +459,14 @@ public class RagDocumentService {
             creatorId = UserSessionUtils.currentUserSession().getId();
         } catch (Exception ignored) {
         }
-        ResourcePO resource = resourceService.upload(
-                new ByteArrayInputStream(result.getRawBytes()),
-                result.getFileName(),
-                result.getRawBytes().length,
-                ResourceBizTypeEnum.DOCUMENT.getValue(),
-                knowledge.getId(),
-                creatorId
-        );
+        ResourcePO resource =
+                resourceService.upload(
+                        new ByteArrayInputStream(result.getRawBytes()),
+                        result.getFileName(),
+                        result.getRawBytes().length,
+                        ResourceBizTypeEnum.DOCUMENT.getValue(),
+                        knowledge.getId(),
+                        creatorId);
         return resource.getId();
     }
 
@@ -488,11 +495,13 @@ public class RagDocumentService {
         };
     }
 
-    private RagDocumentResponseVO toResponseVOWithDecision(RagDocumentPO po, UploadDecision decision) {
+    private RagDocumentResponseVO toResponseVOWithDecision(
+            RagDocumentPO po, UploadDecision decision) {
         RagDocumentResponseVO vo = toResponseVO(po);
         vo.setDecision(decision.getType().name());
         vo.setMatchType(decision.getMatchType().name());
-        vo.setConflictDocumentId(decision.getConflict() != null ? decision.getConflict().getId() : null);
+        vo.setConflictDocumentId(
+                decision.getConflict() != null ? decision.getConflict().getId() : null);
         return vo;
     }
 
