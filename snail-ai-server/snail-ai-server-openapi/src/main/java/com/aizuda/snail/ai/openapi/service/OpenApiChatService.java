@@ -133,15 +133,17 @@ public class OpenApiChatService {
     }
 
     private void emit(FluxSink<OpenApiChatStreamEvent> sink, OpenApiChatStreamEvent event) {
-        if (!sink.isCancelled()) {
-            sink.next(event);
+        if (sink.isCancelled()) {
+            return;
         }
+        sink.next(event);
     }
 
     private void complete(FluxSink<OpenApiChatStreamEvent> sink) {
-        if (!sink.isCancelled()) {
-            sink.complete();
+        if (sink.isCancelled()) {
+            return;
         }
+        sink.complete();
     }
 
     private static class ChatStreamState {

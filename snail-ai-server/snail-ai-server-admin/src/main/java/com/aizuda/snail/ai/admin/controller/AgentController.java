@@ -134,23 +134,26 @@ public class AgentController {
 
         @Override
         public void send(String data) {
-            if (!sink.isCancelled()) {
-                sink.next(data);
+            if (sink.isCancelled()) {
+                return;
             }
+            sink.next(data);
         }
 
         @Override
         public void complete() {
-            if (!sink.isCancelled()) {
-                sink.complete();
+            if (sink.isCancelled()) {
+                return;
             }
+            sink.complete();
         }
 
         @Override
         public void completeWithError(Throwable ex) {
-            if (!sink.isCancelled()) {
-                sink.complete();
+            if (sink.isCancelled()) {
+                return;
             }
+            sink.complete();
         }
     }
 

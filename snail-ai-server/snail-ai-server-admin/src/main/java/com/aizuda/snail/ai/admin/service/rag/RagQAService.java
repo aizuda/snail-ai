@@ -122,25 +122,28 @@ public class RagQAService {
     }
 
     private void emit(FluxSink<RagQaStreamEvent> sink, RagQaStreamEvent event) {
-        if (!sink.isCancelled()) {
-            sink.next(event);
+        if (sink.isCancelled()) {
+            return;
         }
+        sink.next(event);
     }
 
     private void complete(FluxSink<RagQaStreamEvent> sink) {
-        if (!sink.isCancelled()) {
-            sink.next(RagQaStreamEvent.done());
-            sink.complete();
+        if (sink.isCancelled()) {
+            return;
         }
+        sink.next(RagQaStreamEvent.done());
+        sink.complete();
     }
 
     private void emitError(FluxSink<RagQaStreamEvent> sink, Throwable error) {
-        if (!sink.isCancelled()) {
-            String message = error != null && error.getMessage() != null
-                    ? error.getMessage()
-                    : "RAG QA stream error";
-            sink.next(RagQaStreamEvent.error(message));
-            sink.complete();
+        if (sink.isCancelled()) {
+            return;
         }
+        String message = error != null && error.getMessage() != null
+                ? error.getMessage()
+                : "RAG QA stream error";
+        sink.next(RagQaStreamEvent.error(message));
+        sink.complete();
     }
 }
