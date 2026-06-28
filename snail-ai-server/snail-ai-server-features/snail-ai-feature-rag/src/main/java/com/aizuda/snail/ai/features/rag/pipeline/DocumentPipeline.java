@@ -259,17 +259,19 @@ public class DocumentPipeline {
                     .build());
         }
 
-        if (!toEmbed.isEmpty()) {
-            String indexName = IndexNameBuilder.KNOWLEDGE.build(Map.of("ragId", knowledge.getId()));
-            snailAiVectorStore.add(VectorAddRequest.builder()
-                    .indexName(indexName)
-                    .documents(toEmbed)
-                    .build());
-            for (RagChunkPO chunk : batch) {
-                if (StrUtil.isNotBlank(chunk.getVectorId())) {
-                    ragChunkMapper.updateById(chunk);
-                }
+        if (toEmbed.isEmpty()) {
+            return;
+        }
+        String indexName = IndexNameBuilder.KNOWLEDGE.build(Map.of("ragId", knowledge.getId()));
+        snailAiVectorStore.add(VectorAddRequest.builder()
+                .indexName(indexName)
+                .documents(toEmbed)
+                .build());
+        for (RagChunkPO chunk : batch) {
+            if (StrUtil.isBlank(chunk.getVectorId())) {
+                continue;
             }
+            ragChunkMapper.updateById(chunk);
         }
     }
 

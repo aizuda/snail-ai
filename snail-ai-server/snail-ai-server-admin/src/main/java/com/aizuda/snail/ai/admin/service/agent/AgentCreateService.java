@@ -100,10 +100,11 @@ public class AgentCreateService {
                                         .map(org.springframework.ai.chat.messages.AssistantMessage::getText)
                                         .orElse(null);
 
-                                if (StrUtil.isNotBlank(text)) {
-                                    buffer.append(text);
-                                    tryDetectAndPushFields(buffer.toString(), pushedFields, sink);
+                                if (StrUtil.isBlank(text)) {
+                                    return;
                                 }
+                                buffer.append(text);
+                                tryDetectAndPushFields(buffer.toString(), pushedFields, sink);
                             },
                             error -> {
                                 log.error("流式创建失败", error);
@@ -220,12 +221,13 @@ public class AgentCreateService {
                 );
 
                 java.util.regex.Matcher matcher = pattern.matcher(content);
-                if (matcher.find()) {
-                    String value = matcher.group(1);
-                    emit(sink, AgentCreateStreamEvent.fieldDone(field, value));
-                    pushedFields.add(field);
-                    log.info("字段 {} 完成并推送", field);
+                if (!matcher.find()) {
+                    continue;
                 }
+                String value = matcher.group(1);
+                emit(sink, AgentCreateStreamEvent.fieldDone(field, value));
+                pushedFields.add(field);
+                log.info("字段 {} 完成并推送", field);
             }
 
             if (!pushedFields.contains("presetQuestions")) {
@@ -283,21 +285,24 @@ public class AgentCreateService {
     }
 
     private void emit(FluxSink<AgentCreateStreamEvent> sink, AgentCreateStreamEvent event) {
-        if (!sink.isCancelled()) {
-            sink.next(event);
+        if (sink.isCancelled()) {
+            return;
         }
+        sink.next(event);
     }
 
     private void complete(FluxSink<AgentCreateStreamEvent> sink) {
-        if (!sink.isCancelled()) {
-            sink.complete();
+        if (sink.isCancelled()) {
+            return;
         }
+        sink.complete();
     }
 
     private void emitError(FluxSink<AgentCreateStreamEvent> sink, String message) {
-        if (!sink.isCancelled()) {
-            sink.next(AgentCreateStreamEvent.error(message != null ? message : "Unknown error"));
-            sink.complete();
+        if (sink.isCancelled()) {
+            return;
         }
+        sink.next(AgentCreateStreamEvent.error(message != null ? message : "Unknown error"));
+        sink.complete();
     }
 }
