@@ -15,7 +15,7 @@ public enum CompressionStrategy {
         if (raw == null) {
             return SLIDING_WINDOW;
         }
-        return raw == CompressionStrategyEnum.IMPORTANCE_BASED.getStrategy()
+        return raw.equals(CompressionStrategyEnum.IMPORTANCE_BASED.getStrategy())
                 ? IMPORTANCE_BASED
                 : SLIDING_WINDOW;
     }

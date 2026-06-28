@@ -18,7 +18,7 @@ public class SimpleWorkFlow {
     }
 
     public boolean start(){
-        if (work.get() == Boolean.TRUE) {
+        if (Boolean.TRUE.equals(work.get())) {
             if (nextWork == null){
                 return true;
             }
