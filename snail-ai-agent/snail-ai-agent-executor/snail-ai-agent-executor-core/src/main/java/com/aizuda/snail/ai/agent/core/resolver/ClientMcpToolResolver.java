@@ -5,7 +5,6 @@ import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
 import com.aizuda.snail.ai.common.enums.mcp.McpTransportTypeEnum;
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
-import io.modelcontextprotocol.client.transport.HttpClientSseClientTransport;
 import io.modelcontextprotocol.client.transport.HttpClientStreamableHttpTransport;
 import io.modelcontextprotocol.client.transport.ServerParameters;
 import io.modelcontextprotocol.client.transport.StdioClientTransport;
@@ -27,6 +26,9 @@ import java.util.*;
  */
 @Slf4j
 public class ClientMcpToolResolver {
+
+    private static final String SSE_TRANSPORT_DEPRECATED_MESSAGE =
+            "MCP SSE transport is deprecated in MCP SDK 2.x, please use Streamable HTTP for MCP server: {}";
 
     private final List<McpSyncClient> connectedClients = new ArrayList<>();
 
@@ -70,12 +72,18 @@ public class ClientMcpToolResolver {
                                           List<ToolCallback> callbacks) {
         Integer transportType = desc.getTransportType() != null
                 ? desc.getTransportType()
-                : McpTransportTypeEnum.SSE.getValue();
-        McpSyncClient client = connectMcpServer(desc, transportType);
+                : McpTransportTypeEnum.STREAMABLE_HTTP.getValue();
+        McpTransportTypeEnum transportEnum = McpTransportTypeEnum.fromValue(transportType);
+        if (transportEnum == null) {
+            log.warn("Unsupported MCP transport: {}", transportType);
+            return;
+        }
+
+        McpSyncClient client = connectMcpServer(desc, transportEnum);
         if (client != null) {
             connectedClients.add(client);
             registerToolCallbacks(client, callbacks);
-            log.info("MCP server connected: name={}, type={}", desc.getName(), transportType);
+            log.info("MCP server connected: name={}, type={}", desc.getName(), transportEnum.getProtocol());
         }
     }
 
@@ -86,15 +94,15 @@ public class ClientMcpToolResolver {
         callbacks.addAll(Arrays.asList(provider.getToolCallbacks()));
     }
 
-    private McpSyncClient connectMcpServer(ChatDispatchRequest.McpServerDescriptor desc, Integer transportType) {
+    private McpSyncClient connectMcpServer(ChatDispatchRequest.McpServerDescriptor desc,
+                                           McpTransportTypeEnum transportType) {
         return switch (transportType) {
-            case 1 -> connectSseClient(desc);
-            case 2 -> connectStreamableHttp(desc);
-            case 3 -> connectStdioClient(desc);
-            default -> {
-                log.warn("Unsupported MCP transport: {}", transportType);
+            case SSE -> {
+                log.warn(SSE_TRANSPORT_DEPRECATED_MESSAGE, desc.getName());
                 yield null;
             }
+            case STREAMABLE_HTTP -> connectStreamableHttp(desc);
+            case STDIO -> connectStdioClient(desc);
         };
     }
 
@@ -116,29 +124,6 @@ public class ClientMcpToolResolver {
         }
 
         HttpClientStreamableHttpTransport transport = HttpClientStreamableHttpTransport.builder(endpoint).build();
-        McpSyncClient client = McpClient.sync(transport).build();
-        client.initialize();
-        return client;
-    }
-
-    private McpSyncClient connectSseClient(ChatDispatchRequest.McpServerDescriptor desc) {
-        String baseUri = desc.getBaseUri();
-        String endpoint = desc.getEndpoint();
-
-        if (StrUtil.isNotBlank(baseUri)) {
-            HttpClientSseClientTransport transport = HttpClientSseClientTransport.builder(baseUri)
-                    .sseEndpoint(endpoint).build();
-            McpSyncClient client = McpClient.sync(transport).build();
-            client.initialize();
-            return client;
-        }
-
-        if (StrUtil.isBlank(endpoint)) {
-            log.warn("SSE endpoint is blank for server: {}", desc.getName());
-            return null;
-        }
-
-        HttpClientSseClientTransport transport = HttpClientSseClientTransport.builder(endpoint).build();
         McpSyncClient client = McpClient.sync(transport).build();
         client.initialize();
         return client;

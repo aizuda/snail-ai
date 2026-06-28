@@ -37,8 +37,6 @@ public class McpServerResponseVO {
 
     private Integer authType;
 
-    private Integer status;
-
     private List<String> capabilities;
 
     private LocalDateTime lastConnectDt;

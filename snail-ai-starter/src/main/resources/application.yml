@@ -21,10 +21,10 @@ spring:
     active: dev
   datasource:
     name: snail_ai
-#    driver-class-name: com.mysql.cj.jdbc.Driver
-#    url: jdbc:mysql://localhost:3306/snail_ai?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&useUnicode=true
-#    username: root
-#    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/snail_ai?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&useUnicode=true
+    username: root
+    password: 123456
 # 支持pgsql配置
 #    driver-class-name: org.postgresql.Driver
 #    url: jdbc:postgresql://localhost:5432/snail_ai?allowMultiQueries=true
@@ -32,11 +32,11 @@ spring:
 #    password: 123456
     # 支持dameng配置
     # 达梦驱动类
-    driver-class-name: dm.jdbc.driver.DmDriver
-    # 达梦JDBC格式：jdbc:dm://ip:port?schema=模式名
-    url: jdbc:dm://127.0.0.1:5236?schema=SNAIL_AI
-    username: SYSDBA
-    password: Dameng@123456
+#    driver-class-name: dm.jdbc.driver.DmDriver
+#    # 达梦JDBC格式：jdbc:dm://ip:port?schema=模式名
+#    url: jdbc:dm://127.0.0.1:5236?schema=SNAIL_AI
+#    username: SYSDBA
+#    password: Dameng@123456
 
     type: com.zaxxer.hikari.HikariDataSource
     hikari:

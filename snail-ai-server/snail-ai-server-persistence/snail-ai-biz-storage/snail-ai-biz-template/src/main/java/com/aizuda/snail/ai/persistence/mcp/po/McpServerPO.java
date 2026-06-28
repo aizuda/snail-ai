@@ -118,15 +118,6 @@ public class McpServerPO implements McpServerRef {
     private String authConfig;
 
     /**
-     * 服务器状态
-     * ACTIVE: 活跃/正常
-     * INACTIVE: 非活跃/已禁用
-     * ERROR: 错误/连接失败
-     * DISCONNECTED: 已断开连接
-     */
-    private Integer status;
-
-    /**
      * MCP服务器支持的能力 (JSON数组格式)
      * 定义该服务器支持的工具和资源
      * 示例: ["tools", "resources", "prompts"]

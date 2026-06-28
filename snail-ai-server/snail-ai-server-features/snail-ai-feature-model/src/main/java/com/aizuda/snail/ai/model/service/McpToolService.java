@@ -12,7 +12,6 @@ import com.aizuda.snail.ai.persistence.mcp.po.McpServerPO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.McpSyncClient;
-import io.modelcontextprotocol.client.transport.HttpClientSseClientTransport;
 import io.modelcontextprotocol.client.transport.HttpClientStreamableHttpTransport;
 import io.modelcontextprotocol.client.transport.ServerParameters;
 import io.modelcontextprotocol.client.transport.StdioClientTransport;
@@ -41,6 +40,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class McpToolService {
+
+    private static final String SSE_TRANSPORT_DEPRECATED_MESSAGE =
+            "MCP SSE transport is deprecated in MCP SDK 2.x, please use Streamable HTTP for MCP server: ";
 
     private final McpServerMapper mcpServerMapper;
     private final AgentMcpServerMapper agentMcpServerMapper;
@@ -106,16 +108,17 @@ public class McpToolService {
         return clientCache.computeIfAbsent(server.getId(), id -> {
             Integer transportType = server.getTransportType();
             if (transportType == null) {
-                transportType = McpTransportTypeEnum.SSE.getValue();
+                transportType = McpTransportTypeEnum.STREAMABLE_HTTP.getValue();
             }
             McpTransportTypeEnum transportEnum = McpTransportTypeEnum.fromValue(transportType);
-            String protocol = transportEnum != null ? transportEnum.getProtocol() : McpTransportTypeEnum.SSE.getProtocol();
+            if (transportEnum == null) {
+                throw new SnailAiException("Unsupported transport type: " + transportType);
+            }
 
-            return switch (protocol) {
-                case "stdio" -> createStdioClient(server);
-                case "streamable_http" -> createStreamableHttpClient(server);
-                case "sse" -> createSseClient(server);
-                default -> throw new SnailAiException("Unsupported transport type: " + protocol);
+            return switch (transportEnum) {
+                case STDIO -> createStdioClient(server);
+                case STREAMABLE_HTTP -> createStreamableHttpClient(server);
+                case SSE -> throwDeprecatedSseTransport(server.getName());
             };
         });
     }
@@ -186,33 +189,8 @@ public class McpToolService {
         return client;
     }
 
-    /**
-     * 创建 SSE 传输的 MCP Client
-     */
-    private McpSyncClient createSseClient(McpServerRef server) {
-        String baseUri = server.getBaseUri();
-        String endpoint = server.getEndpoint();
-
-        if (StrUtil.isNotBlank(baseUri)) {
-            HttpClientSseClientTransport.Builder builder = HttpClientSseClientTransport.builder(baseUri);
-            if (StrUtil.isNotBlank(endpoint)) {
-                builder.sseEndpoint(endpoint);
-            }
-            McpSyncClient client = McpClient.sync(builder.build()).build();
-            client.initialize();
-            log.info("MCP client connected via SSE to: {}{}", baseUri, endpoint);
-            return client;
-        }
-
-        if (StrUtil.isBlank(endpoint)) {
-            throw new SnailAiException("SSE transport requires baseUri or endpoint for MCP server: " + server.getName());
-        }
-
-        HttpClientSseClientTransport transport = HttpClientSseClientTransport.builder(endpoint).build();
-        McpSyncClient client = McpClient.sync(transport).build();
-        client.initialize();
-        log.info("MCP client connected via SSE to: {}", endpoint);
-        return client;
+    private McpSyncClient throwDeprecatedSseTransport(String serverName) {
+        throw new SnailAiException(SSE_TRANSPORT_DEPRECATED_MESSAGE + serverName);
     }
 
     /**

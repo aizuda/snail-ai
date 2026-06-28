@@ -59,7 +59,7 @@ public class RagHandler implements AgentChatHandler {
             return;
         }
 
-        List<RagPO> ragList = ragMapper.selectBatchIds(ragIds);
+        List<RagPO> ragList = ragMapper.selectByIds(ragIds);
         if (ragList.isEmpty()) {
             log.warn("知识库不存在, ragIds={}", ragIdsStr);
             return;

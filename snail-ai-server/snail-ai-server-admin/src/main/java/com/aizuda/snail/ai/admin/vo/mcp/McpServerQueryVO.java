@@ -10,7 +10,5 @@ public class McpServerQueryVO extends BaseQueryVO {
 
     private String keyword;
 
-    private Integer status;
-
     private Integer transportType;
 }

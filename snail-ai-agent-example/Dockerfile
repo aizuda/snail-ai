@@ -9,6 +9,7 @@ WORKDIR /snailai/agent
 
 #对外暴漏的端口号
 EXPOSE 8081
+EXPOSE 18889
 
 # 数据卷, 用于映射日志目录
 VOLUME /snailai/agent/data/log

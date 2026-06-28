@@ -336,7 +336,6 @@ CREATE TABLE IF NOT EXISTS sai_mcp_server
     version          VARCHAR(32)   DEFAULT '1.0.0' COMMENT '版本',
     auth_type        TINYINT(1)    DEFAULT 0 COMMENT '认证方式: 0-无需认证 1-API Key 2-OAuth 3-Basic Auth',
     auth_config      TEXT          COMMENT '认证配置(JSON)',
-    status           TINYINT(1)    DEFAULT 0 COMMENT '状态: 0-未连接 1-已连接 2-异常',
     capabilities     TEXT          COMMENT '能力列表(JSON数组)',
     last_connect_dt  TIMESTAMP NULL COMMENT '最后连接时间',
     creator_id       BIGINT        COMMENT '创建者用户ID',
@@ -347,7 +346,6 @@ CREATE TABLE IF NOT EXISTS sai_mcp_server
     COLLATE = utf8mb4_unicode_ci COMMENT = 'MCP服务配置表';
 
 CREATE INDEX idx_mcp_server_creator ON sai_mcp_server (creator_id);
-CREATE INDEX idx_mcp_server_status ON sai_mcp_server (status);
 
 -- 5.2 智能体与MCP服务关联表（多对多）
 CREATE TABLE IF NOT EXISTS sai_agent_mcp_server

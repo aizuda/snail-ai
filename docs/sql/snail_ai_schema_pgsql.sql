@@ -504,7 +504,6 @@ CREATE TABLE IF NOT EXISTS sai_mcp_server
     version VARCHAR(32) DEFAULT '1.0.0',
     auth_type SMALLINT DEFAULT 0,
     auth_config TEXT,
-    status SMALLINT DEFAULT 0,
     capabilities TEXT,
     last_connect_dt TIMESTAMP NULL,
     creator_id BIGINT,
@@ -524,7 +523,6 @@ COMMENT ON COLUMN sai_mcp_server.env_vars IS 'Stdio环境变量(JSON对象)';
 COMMENT ON COLUMN sai_mcp_server.version IS '版本';
 COMMENT ON COLUMN sai_mcp_server.auth_type IS '认证方式: 0-无需认证 1-API Key 2-OAuth 3-Basic Auth';
 COMMENT ON COLUMN sai_mcp_server.auth_config IS '认证配置(JSON)';
-COMMENT ON COLUMN sai_mcp_server.status IS '状态: 0-未连接 1-已连接 2-异常';
 COMMENT ON COLUMN sai_mcp_server.capabilities IS '能力列表(JSON数组)';
 COMMENT ON COLUMN sai_mcp_server.last_connect_dt IS '最后连接时间';
 COMMENT ON COLUMN sai_mcp_server.creator_id IS '创建者用户ID';
@@ -535,7 +533,6 @@ CREATE TRIGGER trigger_sai_mcp_server_update
     EXECUTE FUNCTION update_timestamp();
 
 CREATE INDEX idx_mcp_server_creator ON sai_mcp_server (creator_id);
-CREATE INDEX idx_mcp_server_status ON sai_mcp_server (status);
 
 -- 5.2 智能体与MCP服务关联表（多对多）
 CREATE TABLE IF NOT EXISTS sai_agent_mcp_server

@@ -53,7 +53,7 @@ public class McpServerController {
 
     @PostMapping("/{id}/test-connection")
     @LoginRequired
-    public Result<McpServerResponseVO> testConnection(@PathVariable("id") Long id) {
+    public Result<Boolean> testConnection(@PathVariable("id") Long id) {
         return Result.ok(mcpServerService.testConnection(id));
     }
 

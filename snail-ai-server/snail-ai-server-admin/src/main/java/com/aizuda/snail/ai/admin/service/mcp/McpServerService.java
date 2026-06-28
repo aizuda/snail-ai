@@ -3,7 +3,6 @@ package com.aizuda.snail.ai.admin.service.mcp;
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.common.enums.mcp.McpAuthTypeEnum;
-import com.aizuda.snail.ai.common.enums.mcp.McpConnectionStatusEnum;
 import com.aizuda.snail.ai.common.enums.mcp.McpTransportTypeEnum;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.common.util.JsonUtil;
@@ -19,6 +18,14 @@ import com.aizuda.snail.ai.persistence.security.UserSessionUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
+import io.modelcontextprotocol.client.McpClient;
+import io.modelcontextprotocol.client.McpSyncClient;
+import io.modelcontextprotocol.client.transport.HttpClientStreamableHttpTransport;
+import io.modelcontextprotocol.client.transport.ServerParameters;
+import io.modelcontextprotocol.client.transport.StdioClientTransport;
+import io.modelcontextprotocol.json.McpJsonMapper;
+import io.modelcontextprotocol.json.jackson3.JacksonMcpJsonMapperSupplier;
+import io.modelcontextprotocol.spec.McpSchema;
 import tools.jackson.core.type.TypeReference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +44,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class McpServerService {
 
+    private static final String SSE_TRANSPORT_DEPRECATED_MESSAGE =
+            "MCP SSE transport is deprecated in MCP SDK 2.x, please use Streamable HTTP for MCP server: ";
+
     private final McpServerMapper mcpServerMapper;
     private final AgentMcpServerMapper agentMcpServerMapper;
 
@@ -47,7 +57,6 @@ public class McpServerService {
         LambdaQueryWrapper<McpServerPO> wrapper = new LambdaQueryWrapper<>();
 
         wrapper.like(StrUtil.isNotBlank(query.getKeyword()), McpServerPO::getName, query.getKeyword())
-                .eq(ObjUtil.isNotNull(query.getStatus()), McpServerPO::getStatus, query.getStatus())
                 .eq(ObjUtil.isNotNull(query.getTransportType()), McpServerPO::getTransportType, query.getTransportType())
                 .between(ObjUtil.isNotNull(query.getStartDt()) && ObjUtil.isNotNull(query.getEndDt()),
                         McpServerPO::getCreateDt, query.getStartDt(), query.getEndDt())
@@ -81,7 +90,8 @@ public class McpServerService {
         McpServerPO po = McpServerPO.builder()
                 .name(request.getName())
                 .description(request.getDescription())
-                .transportType(request.getTransportType() != null ? request.getTransportType() : McpTransportTypeEnum.SSE.getValue())
+                .transportType(request.getTransportType() != null ? request.getTransportType()
+                        : McpTransportTypeEnum.STREAMABLE_HTTP.getValue())
                 .baseUri(request.getBaseUri())
                 .endpoint(request.getEndpoint())
                 .command(request.getCommand())
@@ -90,7 +100,6 @@ public class McpServerService {
                 .version("1.0.0")
                 .authType(request.getAuthType() != null ? request.getAuthType() : McpAuthTypeEnum.NONE.getType())
                 .authConfig(toJson(request.getAuthConfig()))
-                .status(McpConnectionStatusEnum.DISCONNECTED.getValue())
                 .capabilities(toJson(request.getCapabilities()))
                 .creatorId(UserSessionUtils.currentUserSession().getId())
                 .build();
@@ -144,22 +153,27 @@ public class McpServerService {
     /**
      * 测试连接
      */
-    public McpServerResponseVO testConnection(Long id) {
+    public boolean testConnection(Long id) {
         McpServerPO po = mcpServerMapper.selectById(id);
         if (po == null) {
             throw new SnailAiException("MCP Server not found: " + id);
         }
 
+        McpSyncClient client = null;
+        boolean connected = false;
         try {
-            // TODO: 实际的 MCP 连接测试逻辑
-            po.setStatus(McpConnectionStatusEnum.CONNECTED.getValue());
+            client = createTestClient(po);
+            client.initialize();
+            verifyServerCapabilities(client);
+            connected = true;
             po.setLastConnectDt(LocalDateTime.now());
         } catch (Exception e) {
-            log.error("MCP 连接测试失败, id={}", id, e);
-            po.setStatus(McpConnectionStatusEnum.ERROR.getValue());
+            log.warn("MCP 连接测试失败, id={}, name={}, error={}", id, po.getName(), e.getMessage(), e);
+        } finally {
+            closeTestClient(client, id);
         }
         mcpServerMapper.updateById(po);
-        return toResponseVO(po);
+        return connected;
     }
 
     /**
@@ -185,7 +199,7 @@ public class McpServerService {
         List<Long> serverIds = relations.stream()
                 .map(AgentMcpServerPO::getMcpServerId)
                 .collect(Collectors.toList());
-        List<McpServerPO> servers = mcpServerMapper.selectBatchIds(serverIds);
+        List<McpServerPO> servers = mcpServerMapper.selectByIds(serverIds);
         return servers.stream().map(this::toResponseVO).collect(Collectors.toList());
     }
 
@@ -225,7 +239,6 @@ public class McpServerService {
                 .envVars(parseJsonMap(po.getEnvVars()))
                 .version(po.getVersion())
                 .authType(po.getAuthType())
-                .status(po.getStatus())
                 .capabilities(parseJsonList(po.getCapabilities()))
                 .lastConnectDt(po.getLastConnectDt())
                 .createDt(po.getCreateDt())
@@ -248,5 +261,100 @@ public class McpServerService {
         if (StrUtil.isBlank(json)) return null;
         return JsonUtil.parseObject(json, new TypeReference<Map<String, String>>() {
         });
+    }
+
+    private McpSyncClient createTestClient(McpServerPO server) {
+        Integer transportType = server.getTransportType() != null
+                ? server.getTransportType()
+                : McpTransportTypeEnum.STREAMABLE_HTTP.getValue();
+        McpTransportTypeEnum transportEnum = McpTransportTypeEnum.fromValue(transportType);
+        if (transportEnum == null) {
+            throw new SnailAiException("Unsupported MCP transport type: " + transportType);
+        }
+
+        return switch (transportEnum) {
+            case SSE -> throwDeprecatedSseTransport(server.getName());
+            case STREAMABLE_HTTP -> createStreamableHttpClient(server);
+            case STDIO -> createStdioClient(server);
+        };
+    }
+
+    private McpSyncClient throwDeprecatedSseTransport(String serverName) {
+        throw new SnailAiException(SSE_TRANSPORT_DEPRECATED_MESSAGE + serverName);
+    }
+
+    private McpSyncClient createStreamableHttpClient(McpServerPO server) {
+        String baseUri = server.getBaseUri();
+        String endpoint = server.getEndpoint();
+
+        if (StrUtil.isNotBlank(baseUri)) {
+            HttpClientStreamableHttpTransport.Builder builder = HttpClientStreamableHttpTransport.builder(baseUri);
+            if (StrUtil.isNotBlank(endpoint)) {
+                builder.endpoint(endpoint);
+            }
+            return McpClient.sync(builder.build()).build();
+        }
+
+        if (StrUtil.isBlank(endpoint)) {
+            throw new SnailAiException("Streamable HTTP transport requires baseUri or endpoint for MCP server: "
+                    + server.getName());
+        }
+
+        return McpClient.sync(HttpClientStreamableHttpTransport.builder(endpoint).build()).build();
+    }
+
+    private McpSyncClient createStdioClient(McpServerPO server) {
+        String command = server.getCommand();
+        if (StrUtil.isBlank(command)) {
+            throw new SnailAiException("Stdio transport requires command for MCP server: " + server.getName());
+        }
+
+        ServerParameters.Builder paramsBuilder = ServerParameters.builder(command);
+        addArgs(paramsBuilder, server.getArgs());
+        addEnvVars(paramsBuilder, server.getEnvVars());
+
+        JacksonMcpJsonMapperSupplier supplier = new JacksonMcpJsonMapperSupplier();
+        McpJsonMapper jsonMapper = supplier.get();
+        return McpClient.sync(new StdioClientTransport(paramsBuilder.build(), jsonMapper)).build();
+    }
+
+    private void addArgs(ServerParameters.Builder paramsBuilder, String argsJson) {
+        if (StrUtil.isBlank(argsJson)) {
+            return;
+        }
+        List<String> args = JsonUtil.parseObject(argsJson, new TypeReference<List<String>>() {
+        });
+        if (args != null && !args.isEmpty()) {
+            paramsBuilder.args(args);
+        }
+    }
+
+    private void addEnvVars(ServerParameters.Builder paramsBuilder, String envVarsJson) {
+        if (StrUtil.isBlank(envVarsJson)) {
+            return;
+        }
+        Map<String, String> envVars = JsonUtil.parseObject(envVarsJson, new TypeReference<Map<String, String>>() {
+        });
+        if (envVars != null && !envVars.isEmpty()) {
+            paramsBuilder.env(envVars);
+        }
+    }
+
+    private void verifyServerCapabilities(McpSyncClient client) {
+        McpSchema.ServerCapabilities serverCapabilities = client.getServerCapabilities();
+        if (serverCapabilities != null && serverCapabilities.tools() != null) {
+            client.listTools();
+        }
+    }
+
+    private void closeTestClient(McpSyncClient client, Long serverId) {
+        if (client == null) {
+            return;
+        }
+        try {
+            client.closeGracefully();
+        } catch (Exception e) {
+            log.warn("关闭 MCP 测试连接失败, id={}", serverId, e);
+        }
     }
 }

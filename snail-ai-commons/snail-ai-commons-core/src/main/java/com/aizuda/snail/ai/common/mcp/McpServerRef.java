@@ -24,6 +24,4 @@ public interface McpServerRef {
     Integer getAuthType();
 
     String getAuthConfig();
-
-    Integer getStatus();
 }

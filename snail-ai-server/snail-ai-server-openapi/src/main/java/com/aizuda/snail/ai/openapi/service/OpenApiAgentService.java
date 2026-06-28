@@ -214,7 +214,7 @@ public class OpenApiAgentService {
         List<Long> serverIds = relations.stream()
                 .map(AgentMcpServerPO::getMcpServerId)
                 .collect(Collectors.toList());
-        List<McpServerPO> servers = mcpServerMapper.selectBatchIds(serverIds);
+        List<McpServerPO> servers = mcpServerMapper.selectByIds(serverIds);
         if (servers == null || servers.isEmpty()) {
             return List.of();
         }
