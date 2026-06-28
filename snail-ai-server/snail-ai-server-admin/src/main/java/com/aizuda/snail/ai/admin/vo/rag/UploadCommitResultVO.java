@@ -1,10 +1,11 @@
 package com.aizuda.snail.ai.admin.vo.rag;
 
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
  * commit 结果：每个文件的最终落地状态（含 TOCTOU 冲突告警）

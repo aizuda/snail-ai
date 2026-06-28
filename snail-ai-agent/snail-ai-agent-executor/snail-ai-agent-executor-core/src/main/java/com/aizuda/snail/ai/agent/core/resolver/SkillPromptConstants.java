@@ -1,13 +1,14 @@
 package com.aizuda.snail.ai.agent.core.resolver;
 
-/** Skill 渐进式披露 — 系统提示词模板常量 + 轻量级技能列表构建 */
+/**
+ * Skill 渐进式披露 — 系统提示词模板常量 + 轻量级技能列表构建
+ */
 public final class SkillPromptConstants {
 
     private SkillPromptConstants() {}
 
     /** 渐进式披露系统提示词模板，{skills_list} 为占位符 */
-    public static final String SYSTEM_PROMPT_TEMPLATE =
-            """
+    public static final String SYSTEM_PROMPT_TEMPLATE = """
 
             ## Skills System
 

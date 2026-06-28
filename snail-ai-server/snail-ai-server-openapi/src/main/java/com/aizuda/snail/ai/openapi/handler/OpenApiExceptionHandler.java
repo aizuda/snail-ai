@@ -35,21 +35,19 @@ public class OpenApiExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public Result<Void> onValidationException(MethodArgumentNotValidException ex) {
-        String message =
-                ex.getBindingResult().getFieldErrors().stream()
-                        .findFirst()
-                        .map(e -> e.getField() + " " + e.getDefaultMessage())
-                        .orElse("参数校验失败");
+        String message = ex.getBindingResult().getFieldErrors().stream()
+                .findFirst()
+                .map(e -> e.getField() + " " + e.getDefaultMessage())
+                .orElse("参数校验失败");
         return Result.fail(message);
     }
 
     @ExceptionHandler(BindException.class)
     public Result<Void> onBindException(BindException ex) {
-        String message =
-                ex.getBindingResult().getFieldErrors().stream()
-                        .findFirst()
-                        .map(e -> e.getField() + " " + e.getDefaultMessage())
-                        .orElse("参数校验失败");
+        String message = ex.getBindingResult().getFieldErrors().stream()
+                .findFirst()
+                .map(e -> e.getField() + " " + e.getDefaultMessage())
+                .orElse("参数校验失败");
         return Result.fail(message);
     }
 

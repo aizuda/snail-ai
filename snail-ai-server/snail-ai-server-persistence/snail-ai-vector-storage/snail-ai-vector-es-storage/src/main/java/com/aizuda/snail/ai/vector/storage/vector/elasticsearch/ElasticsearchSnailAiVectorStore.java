@@ -1,7 +1,5 @@
 package com.aizuda.snail.ai.vector.storage.vector.elasticsearch;
 
-import static org.springframework.ai.vectorstore.filter.Filter.ExpressionType.*;
-
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.json.jackson.Jackson3JsonpMapper;
 import co.elastic.clients.transport.Version;
@@ -10,9 +8,6 @@ import co.elastic.clients.transport.rest5_client.low_level.Rest5Client;
 import com.aizuda.snail.ai.vector.storage.enums.VectorStoreType;
 import com.aizuda.snail.ai.vector.storage.exception.VectorStoreException;
 import com.aizuda.snail.ai.vector.storage.vector.core.AbstractSnailAiVectorStore;
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.embedding.TokenCountBatchingStrategy;
@@ -20,22 +15,26 @@ import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.elasticsearch.ElasticsearchVectorStore;
 import org.springframework.ai.vectorstore.elasticsearch.ElasticsearchVectorStoreOptions;
 import org.springframework.ai.vectorstore.elasticsearch.SimilarityFunction;
+import org.springframework.ai.vectorstore.filter.Filter;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
+import static org.springframework.ai.vectorstore.filter.Filter.ExpressionType.*;
 
 @Slf4j
 public class ElasticsearchSnailAiVectorStore extends AbstractSnailAiVectorStore {
 
-    private static final String INDEX_NAME = "test_index";
+    private final static String INDEX_NAME = "test_index";
     private final ElasticsearchVectorSettings config;
     private final Rest5Client rest5Client;
-    private final ConcurrentHashMap<
-                    String,
-                    org.springframework.ai.vectorstore.elasticsearch.ElasticsearchVectorStore>
-            cache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, org.springframework.ai.vectorstore.elasticsearch.ElasticsearchVectorStore> cache =
+            new ConcurrentHashMap<>();
 
-    public ElasticsearchSnailAiVectorStore(
-            EmbeddingModel embeddingModel,
-            Integer embeddingDimensions,
-            ElasticsearchVectorSettings config) {
+    public ElasticsearchSnailAiVectorStore(EmbeddingModel embeddingModel,
+                                           Integer embeddingDimensions,
+                                           ElasticsearchVectorSettings config) {
         super(embeddingModel, embeddingDimensions);
         this.config = config;
         // 使用工厂获取或创建客户端（复用连接）
@@ -48,27 +47,25 @@ public class ElasticsearchSnailAiVectorStore extends AbstractSnailAiVectorStore 
     }
 
     private ElasticsearchVectorStore getStore(String indexName) {
-        return cache.computeIfAbsent(
-                indexName,
-                idx -> {
-                    ElasticsearchVectorStoreOptions options = new ElasticsearchVectorStoreOptions();
-                    options.setIndexName(idx);
-                    options.setDimensions(embeddingDimensions);
-                    options.setSimilarity(parseSimilarity(config.getSimilarity()));
+        return cache.computeIfAbsent(indexName, idx -> {
+            ElasticsearchVectorStoreOptions options = new ElasticsearchVectorStoreOptions();
+            options.setIndexName(idx);
+            options.setDimensions(embeddingDimensions);
+            options.setSimilarity(parseSimilarity(config.getSimilarity()));
 
-                    var store =
-                            ElasticsearchVectorStore.builder(rest5Client, springAiEmbeddingModel)
-                                    .options(options)
-                                    .initializeSchema(true)
-                                    .batchingStrategy(new TokenCountBatchingStrategy())
-                                    .build();
-                    try {
-                        store.afterPropertiesSet();
-                    } catch (Exception e) {
-                        throw new VectorStoreException("ElasticsearchVectorStore 初始化失败: " + idx, e);
-                    }
-                    return store;
-                });
+            var store = ElasticsearchVectorStore
+                    .builder(rest5Client, springAiEmbeddingModel)
+                    .options(options)
+                    .initializeSchema(true)
+                    .batchingStrategy(new TokenCountBatchingStrategy())
+                    .build();
+            try {
+                store.afterPropertiesSet();
+            } catch (Exception e) {
+                throw new VectorStoreException("ElasticsearchVectorStore 初始化失败: " + idx, e);
+            }
+            return store;
+        });
     }
 
     private static SimilarityFunction parseSimilarity(String s) {
@@ -81,6 +78,7 @@ public class ElasticsearchSnailAiVectorStore extends AbstractSnailAiVectorStore 
             return SimilarityFunction.cosine;
         }
     }
+
 
     @Override
     public void delete(String indexName, List<String> ids) {
@@ -100,8 +98,7 @@ public class ElasticsearchSnailAiVectorStore extends AbstractSnailAiVectorStore 
         }
         cache.remove(indexName);
         try {
-            ElasticsearchClient elasticsearchClient =
-                    (ElasticsearchClient) getStore(indexName).getNativeClient().get();
+            ElasticsearchClient elasticsearchClient = (ElasticsearchClient) getStore(indexName).getNativeClient().get();
             if (elasticsearchClient.indices().exists(e -> e.index(indexName)).value()) {
                 elasticsearchClient.indices().delete(d -> d.index(indexName));
                 log.info("Deleted Elasticsearch index: {}", indexName);
@@ -115,12 +112,8 @@ public class ElasticsearchSnailAiVectorStore extends AbstractSnailAiVectorStore 
     public boolean test() {
         String version = Version.VERSION == null ? "Unknown" : Version.VERSION.toString();
         ElasticsearchClient elasticsearchClient =
-                new ElasticsearchClient(
-                                new Rest5ClientTransport(rest5Client, new Jackson3JsonpMapper()))
-                        .withTransportOptions(
-                                t ->
-                                        t.addHeader(
-                                                "user-agent", "spring-ai elastic-java/" + version));
+                new ElasticsearchClient(new Rest5ClientTransport(rest5Client, new Jackson3JsonpMapper()))
+                        .withTransportOptions(t -> t.addHeader("user-agent", "spring-ai elastic-java/" + version));
         try {
             elasticsearchClient.info();
             if (elasticsearchClient.indices().exists(e -> e.index(INDEX_NAME)).value()) {
@@ -132,6 +125,7 @@ public class ElasticsearchSnailAiVectorStore extends AbstractSnailAiVectorStore 
             return false;
         }
     }
+
 
     @Override
     protected VectorStore getVectorStore(String indexName) {

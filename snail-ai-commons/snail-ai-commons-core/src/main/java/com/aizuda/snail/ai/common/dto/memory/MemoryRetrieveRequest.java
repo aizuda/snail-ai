@@ -16,25 +16,39 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MemoryRetrieveRequest {
-
-    /** Agent ID */
+    
+    /**
+     * Agent ID
+     */
     private Long agentId;
-
-    /** 用户 ID */
+    
+    /**
+     * 用户 ID
+     */
     private Long userId;
-
-    /** 对话 ID */
+    
+    /**
+     * 对话 ID
+     */
     private String conversationId;
-
-    /** 问题 */
+    
+    /**
+     * 问题
+     */
     private String query;
-
-    /** 记忆配置 ID */
+    
+    /**
+     * 记忆配置 ID
+     */
     private Long memoryConfigId;
-
-    /** 模型 ID */
+    
+    /**
+     * 模型 ID
+     */
     private Long modelId;
-
-    /** Top K */
+    
+    /**
+     * Top K
+     */
     private Integer topK;
 }

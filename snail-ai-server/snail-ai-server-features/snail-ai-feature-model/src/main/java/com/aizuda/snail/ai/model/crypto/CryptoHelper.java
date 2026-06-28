@@ -13,9 +13,8 @@ public class CryptoHelper {
 
     private final SM4 sm4;
 
-    public CryptoHelper(
-            @Value("${snail-ai.crypto.secret-key}") String secretKey,
-            @Value("${snail-ai.crypto.iv}") String iv) {
+    public CryptoHelper(@Value("${snail-ai.crypto.secret-key}") String secretKey,
+                        @Value("${snail-ai.crypto.iv}") String iv) {
         byte[] keyBytes = HexUtil.decodeHex(secretKey);
         byte[] ivBytes = HexUtil.decodeHex(iv);
         this.sm4 = new SM4(Mode.CBC, Padding.PKCS5Padding, keyBytes, ivBytes);

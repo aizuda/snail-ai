@@ -1,13 +1,16 @@
 package com.aizuda.snail.ai.admin.vo.memory;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/** 对外统一记忆视图（门面 API） */
+import java.time.LocalDateTime;
+import java.util.List;
+
+/**
+ * 对外统一记忆视图（门面 API）
+ */
 @Data
 @Builder
 @NoArgsConstructor

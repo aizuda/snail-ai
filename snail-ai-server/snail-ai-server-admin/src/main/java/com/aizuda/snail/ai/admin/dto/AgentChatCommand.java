@@ -1,12 +1,15 @@
 package com.aizuda.snail.ai.admin.dto;
 
-import com.aizuda.snail.ai.feature.agent.stream.ChatStreamWriter;
 import com.aizuda.snail.ai.persistence.admin.po.UserPO;
-import java.util.List;
+import com.aizuda.snail.ai.feature.agent.stream.ChatStreamWriter;
 import lombok.Builder;
 import lombok.Data;
 
-/** 智能体对话命令对象 */
+import java.util.List;
+
+/**
+ * 智能体对话命令对象
+ */
 @Data
 @Builder
 public class AgentChatCommand {
@@ -19,7 +22,8 @@ public class AgentChatCommand {
     private ChatStreamWriter streamWriter;
     private UserPO requestUser;
     private String openId;
-
-    /** 提交ID，用于区分同一用户在同一对话中的并发请求 */
+    /**
+     * 提交ID，用于区分同一用户在同一对话中的并发请求
+     */
     private String sid;
 }

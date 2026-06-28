@@ -2,12 +2,13 @@ package com.aizuda.snail.ai.starter.listener;
 
 import com.aizuda.snail.ai.common.Lifecycle;
 import com.aizuda.snail.ai.common.log.SnailAiLog;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextClosedEvent;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * 关闭监听器

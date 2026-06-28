@@ -1,10 +1,11 @@
 package com.aizuda.snail.ai.admin.service.rag.preview;
 
-import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
 
 /**
  * 预览状态：存于 Redis，commit 时解析回放
@@ -34,13 +35,10 @@ public class UploadPreviewState {
         private String sourceType;
         private Long fileSize;
         private String contentHash;
-
         /** 预览阶段的初始决策 */
         private String decision;
-
         /** 命中维度 */
         private String matchType;
-
         /** 冲突的旧文档 ID */
         private Long conflictDocumentId;
     }

@@ -11,13 +11,14 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+import org.springframework.web.servlet.HandlerInterceptor;
+
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.HandlerInterceptor;
 
 @Slf4j
 @Component
@@ -31,30 +32,24 @@ public class OpenApiAuthInterceptor implements HandlerInterceptor {
     private final LoadingCache<String, AppPO> appCache;
 
     public OpenApiAuthInterceptor(AppMapper appMapper) {
-        this.appCache =
-                CacheBuilder.newBuilder()
-                        .maximumSize(500)
-                        .expireAfterWrite(5, TimeUnit.MINUTES)
-                        .build(
-                                new CacheLoader<>() {
-                                    @Override
-                                    public AppPO load(String appId) {
-                                        AppPO app =
-                                                appMapper.selectOne(
-                                                        new LambdaQueryWrapper<AppPO>()
-                                                                .eq(AppPO::getAppId, appId));
-                                        if (app == null) {
-                                            throw new SnailAiAuthenticationException(
-                                                    "应用不存在: {}", appId);
-                                        }
-                                        return app;
-                                    }
-                                });
+        this.appCache = CacheBuilder.newBuilder()
+                .maximumSize(500)
+                .expireAfterWrite(5, TimeUnit.MINUTES)
+                .build(new CacheLoader<>() {
+                    @Override
+                    public AppPO load(String appId) {
+                        AppPO app = appMapper.selectOne(
+                                new LambdaQueryWrapper<AppPO>().eq(AppPO::getAppId, appId));
+                        if (app == null) {
+                            throw new SnailAiAuthenticationException("应用不存在: {}", appId);
+                        }
+                        return app;
+                    }
+                });
     }
 
     @Override
-    public boolean preHandle(
-            HttpServletRequest request, HttpServletResponse response, Object handler) {
+    public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
         String appId = request.getHeader(HEADER_APP_ID);
         String token = request.getHeader(HEADER_TOKEN);
 
@@ -77,12 +72,11 @@ public class OpenApiAuthInterceptor implements HandlerInterceptor {
             throw new SnailAiAuthenticationException("Token 验证失败");
         }
 
-        OpenApiSessionUtils.set(
-                OpenApiSessionUtils.OpenApiSession.builder()
-                        .appId(appId)
-                        .appDbId(app.getId())
-                        .appToken(app.getToken())
-                        .build());
+        OpenApiSessionUtils.set(OpenApiSessionUtils.OpenApiSession.builder()
+                .appId(appId)
+                .appDbId(app.getId())
+                .appToken(app.getToken())
+                .build());
 
         return true;
     }
@@ -92,15 +86,13 @@ public class OpenApiAuthInterceptor implements HandlerInterceptor {
             return false;
         }
         return MessageDigest.isEqual(
-                actual.getBytes(StandardCharsets.UTF_8), expected.getBytes(StandardCharsets.UTF_8));
+                actual.getBytes(StandardCharsets.UTF_8),
+                expected.getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
-    public void afterCompletion(
-            HttpServletRequest request,
-            HttpServletResponse response,
-            Object handler,
-            Exception ex) {
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response,
+                                Object handler, Exception ex) {
         OpenApiSessionUtils.clear();
     }
 }

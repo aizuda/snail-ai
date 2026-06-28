@@ -1,13 +1,16 @@
 package com.aizuda.snail.ai.agent.core.advisor;
 
 import com.aizuda.snail.ai.agent.core.executor.ClientChatExecutor;
-import java.util.ArrayList;
-import java.util.List;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.messages.AssistantMessage;
 
-/** 单次流式调用的累积状态（由 Advisor 写入，完成时转为 {@link ClientChatExecutor.ChatCompletionResult}）。 */
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 单次流式调用的累积状态（由 Advisor 写入，完成时转为 {@link ClientChatExecutor.ChatCompletionResult}）。
+ */
 @Slf4j
 public class ClientStreamExecutionContext {
 
@@ -19,10 +22,12 @@ public class ClientStreamExecutionContext {
     private final List<AssistantMessage.ToolCall> toolCalls = new ArrayList<>();
 
     /** 流式最终 chunk 中的 Token 使用量 */
-    @Setter private int promptTokens;
-
-    @Setter private int completionTokens;
-    @Setter private int cacheTokens;
+    @Setter
+    private int promptTokens;
+    @Setter
+    private int completionTokens;
+    @Setter
+    private int cacheTokens;
 
     public void addToolCall(AssistantMessage.ToolCall toolCall) {
         if (toolCall != null && !containsToolCall(toolCall.id())) {
@@ -50,18 +55,9 @@ public class ClientStreamExecutionContext {
 
     public ClientChatExecutor.ChatCompletionResult toCompletionResult() {
         long duration = System.currentTimeMillis() - startTime;
-        log.info(
-                "toCompletionResult: promptTokens={}, completionTokens={}, cacheTokens={}, durationMs={}",
-                promptTokens,
-                completionTokens,
-                cacheTokens,
-                duration);
+        log.info("toCompletionResult: promptTokens={}, completionTokens={}, cacheTokens={}, durationMs={}",
+                promptTokens, completionTokens, cacheTokens, duration);
         return new ClientChatExecutor.ChatCompletionResult(
-                fullText.toString(),
-                thinkingText.toString(),
-                promptTokens,
-                completionTokens,
-                cacheTokens,
-                duration);
+                fullText.toString(), thinkingText.toString(), promptTokens, completionTokens, cacheTokens, duration);
     }
 }

@@ -37,5 +37,6 @@ public final class OpenApiSessionUtils {
         SESSION.remove();
     }
 
-    private OpenApiSessionUtils() {}
+    private OpenApiSessionUtils() {
+    }
 }

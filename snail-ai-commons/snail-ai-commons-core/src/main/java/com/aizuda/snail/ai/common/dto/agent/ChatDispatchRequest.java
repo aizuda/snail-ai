@@ -1,12 +1,13 @@
 package com.aizuda.snail.ai.common.dto.agent;
 
 import com.aizuda.snail.ai.common.model.ConfigExtAttrsDTO;
-import java.util.List;
-import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * 聊天分发请求
@@ -19,7 +20,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChatDispatchRequest {
-
+    
     /** 请求ID */
     private String requestId;
 
@@ -28,35 +29,39 @@ public class ChatDispatchRequest {
 
     /** 智能体配置 */
     private AgentConfig agentConfig;
-
+    
     /** 会话ID */
     private String conversationId;
-
+    
     /** 用户消息 */
     private String userMessage;
-
+    
     /** 模型配置 */
     private ModelConfig modelConfig;
-
+    
     /** MCP 服务列表 */
     private List<McpServerDescriptor> mcpServers;
-
+    
     /** 技能列表 */
     private List<SkillDescriptor> skills;
-
+    
     /** 历史消息 */
     private List<HistoryMessage> historyMessages;
-
+    
     /** 记忆上下文 */
     private String memoryContext;
-
+    
     /** 系统提示词 */
     private String systemPrompt;
 
-    /** 服务端web端口 */
+    /**
+     * 服务端web端口
+     */
     private Integer serverHttpPort;
-
-    /** 智能体配置 */
+    
+    /**
+     * 智能体配置
+     */
     @Data
     @Builder
     @NoArgsConstructor
@@ -74,8 +79,10 @@ public class ChatDispatchRequest {
         private String ragIds;
         private Integer ragCallMode;
     }
-
-    /** 模型配置 */
+    
+    /**
+     * 模型配置
+     */
     @Data
     @Builder
     @NoArgsConstructor
@@ -89,8 +96,10 @@ public class ChatDispatchRequest {
         private String apiKey;
         private ConfigExtAttrsDTO configJson;
     }
-
-    /** MCP 服务描述符 */
+    
+    /**
+     * MCP 服务描述符
+     */
     @Data
     @Builder
     @NoArgsConstructor
@@ -107,8 +116,10 @@ public class ChatDispatchRequest {
         private Integer authType;
         private Map<String, String> authConfig;
     }
-
-    /** 技能描述符 */
+    
+    /**
+     * 技能描述符
+     */
     @Data
     @Builder
     @NoArgsConstructor
@@ -118,12 +129,13 @@ public class ChatDispatchRequest {
         private String name;
         private String description;
         private String version;
-
         /** SKILL.md 等完整技能正文 */
         private String skillPrompt;
     }
-
-    /** 历史消息 */
+    
+    /**
+     * 历史消息
+     */
     @Data
     @Builder
     @NoArgsConstructor

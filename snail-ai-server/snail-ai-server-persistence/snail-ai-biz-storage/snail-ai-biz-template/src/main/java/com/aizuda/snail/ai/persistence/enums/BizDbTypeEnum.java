@@ -1,7 +1,8 @@
 package com.aizuda.snail.ai.persistence.enums;
 
-import com.baomidou.mybatisplus.annotation.DbType;
 import java.util.Arrays;
+
+import com.baomidou.mybatisplus.annotation.DbType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.core.env.Environment;
@@ -15,17 +16,18 @@ import org.springframework.core.env.Environment;
 @Getter
 @AllArgsConstructor
 public enum BizDbTypeEnum {
+
     MYSQL(DbType.MYSQL),
     POSTGRESQL(DbType.POSTGRE_SQL),
     DM(DbType.DM);
 
     private static final String[] DATABASE_TYPE_PROPERTIES = {
-        "spring.datasource.url",
-        "spring.datasource.hikari.jdbc-url",
-        "spring.datasource.jdbc-url",
-        "spring.datasource.driver-class-name",
-        "spring.datasource.hikari.driver-class-name",
-        "spring.datasource.driverClassName"
+            "spring.datasource.url",
+            "spring.datasource.hikari.jdbc-url",
+            "spring.datasource.jdbc-url",
+            "spring.datasource.driver-class-name",
+            "spring.datasource.hikari.driver-class-name",
+            "spring.datasource.driverClassName"
     };
 
     private final DbType dbType;
@@ -45,8 +47,7 @@ public enum BizDbTypeEnum {
             }
         }
 
-        throw new IllegalArgumentException(
-                "Unsupported or missing business database url or driver class name");
+        throw new IllegalArgumentException("Unsupported or missing business database url or driver class name");
     }
 
     public static BizDbTypeEnum modeOf(String db) {

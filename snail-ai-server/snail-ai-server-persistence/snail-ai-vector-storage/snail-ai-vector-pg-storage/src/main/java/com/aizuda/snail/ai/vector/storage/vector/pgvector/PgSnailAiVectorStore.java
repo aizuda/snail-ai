@@ -3,17 +3,19 @@ package com.aizuda.snail.ai.vector.storage.vector.pgvector;
 import com.aizuda.snail.ai.vector.storage.enums.VectorStoreType;
 import com.aizuda.snail.ai.vector.storage.exception.VectorStoreException;
 import com.aizuda.snail.ai.vector.storage.vector.core.AbstractSnailAiVectorStore;
-import java.sql.Connection;
-import java.util.concurrent.ConcurrentHashMap;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.jdbc.core.JdbcTemplate;
 
+import java.sql.Connection;
+import java.util.concurrent.ConcurrentHashMap;
+
+
 /**
- * PostgreSQL：单表 {@code vector_store} + metadata 区分 RAG / 记忆分区； 语义删除按 {@code ragId} / {@code
- * agentId+userId} 过滤，不再使用旧表 {@code snail_knowledge_chunk_vector}。
+ * PostgreSQL：单表 {@code vector_store} + metadata 区分 RAG / 记忆分区；
+ * 语义删除按 {@code ragId} / {@code agentId+userId} 过滤，不再使用旧表 {@code snail_knowledge_chunk_vector}。
  */
 @Slf4j
 public class PgSnailAiVectorStore extends AbstractSnailAiVectorStore {
@@ -22,8 +24,9 @@ public class PgSnailAiVectorStore extends AbstractSnailAiVectorStore {
     private final PgVectorSettings config;
     private final ConcurrentHashMap<String, PgVectorStore> storeCache = new ConcurrentHashMap<>();
 
-    public PgSnailAiVectorStore(
-            EmbeddingModel embeddingModel, Integer embeddingDimensions, PgVectorSettings config) {
+    public PgSnailAiVectorStore(EmbeddingModel embeddingModel,
+                                Integer embeddingDimensions,
+                                PgVectorSettings config) {
         super(embeddingModel, embeddingDimensions);
         this.config = config;
         this.jdbcTemplate = PgDataSourceFactory.getOrCreateJdbcTemplate(config);
@@ -35,13 +38,12 @@ public class PgSnailAiVectorStore extends AbstractSnailAiVectorStore {
 
     private PgVectorStore createStore(String indexName) {
         int dim = embeddingDimensions != null ? embeddingDimensions : config.getDefaultDimension();
-        var store =
-                PgVectorStore.builder(jdbcTemplate, springAiEmbeddingModel)
-                        .initializeSchema(true)
-                        .dimensions(dim)
-                        .schemaName("public")
-                        .vectorTableName(indexName)
-                        .build();
+        var store = PgVectorStore.builder(jdbcTemplate, springAiEmbeddingModel)
+                .initializeSchema(true)
+                .dimensions(dim)
+                .schemaName("public")
+                .vectorTableName(indexName)
+                .build();
         try {
             store.afterPropertiesSet();
         } catch (Exception e) {
@@ -79,4 +81,5 @@ public class PgSnailAiVectorStore extends AbstractSnailAiVectorStore {
     protected VectorStore getVectorStore(String indexName) {
         return getStore(indexName);
     }
+
 }

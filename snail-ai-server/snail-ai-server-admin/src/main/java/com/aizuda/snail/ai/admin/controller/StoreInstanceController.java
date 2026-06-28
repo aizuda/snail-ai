@@ -1,23 +1,24 @@
 package com.aizuda.snail.ai.admin.controller;
 
+import com.aizuda.snail.ai.common.model.Result;
 import com.aizuda.snail.ai.admin.security.annotation.LoginRequired;
-import com.aizuda.snail.ai.admin.service.StoreInstanceService;
 import com.aizuda.snail.ai.admin.vo.PageResult;
 import com.aizuda.snail.ai.admin.vo.StoreInstanceQueryVO;
 import com.aizuda.snail.ai.admin.vo.StoreInstanceRequestVO;
 import com.aizuda.snail.ai.admin.vo.StoreInstanceTestRequestVO;
 import com.aizuda.snail.ai.admin.vo.StoreInstanceVO;
 import com.aizuda.snail.ai.admin.vo.VectorDimensionConstraintVO;
-import com.aizuda.snail.ai.common.model.Result;
-import java.util.List;
+import com.aizuda.snail.ai.admin.service.StoreInstanceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * 存储实例管理接口：向量库 / 搜索引擎等存储实例的 CRUD、维度约束查询与连通性测试。
- *
- * <p>全部端点均需 ADMIN 角色。
+ * <p>
+ * 全部端点均需 ADMIN 角色。
  */
 @RestController
 @RequestMapping("/store-instance")
@@ -54,8 +55,8 @@ public class StoreInstanceController {
     /** 查询存储实例对指定嵌入模型的向量维度约束（管理员）。 */
     @GetMapping("/{id}/dimension-constraint")
     @LoginRequired
-    public Result<VectorDimensionConstraintVO> getDimensionConstraint(
-            @PathVariable("id") Long id, @RequestParam("embeddingModelId") Long embeddingModelId) {
+    public Result<VectorDimensionConstraintVO> getDimensionConstraint(@PathVariable("id") Long id,
+                                                                      @RequestParam("embeddingModelId") Long embeddingModelId) {
         return Result.ok(storeInstanceService.getDimensionConstraint(id, embeddingModelId));
     }
 
@@ -69,8 +70,7 @@ public class StoreInstanceController {
     /** 更新存储实例（管理员）。 */
     @PutMapping("/{id}")
     @LoginRequired
-    public Result<StoreInstanceVO> update(
-            @PathVariable("id") Long id, @RequestBody StoreInstanceRequestVO vo) {
+    public Result<StoreInstanceVO> update(@PathVariable("id") Long id, @RequestBody StoreInstanceRequestVO vo) {
         return Result.ok(storeInstanceService.update(id, vo));
     }
 

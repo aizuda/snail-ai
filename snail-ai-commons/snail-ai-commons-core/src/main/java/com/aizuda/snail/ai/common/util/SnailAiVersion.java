@@ -17,25 +17,22 @@ import java.util.jar.JarFile;
  */
 public final class SnailAiVersion {
 
-    private SnailAiVersion() {}
+    private SnailAiVersion() {
+    }
 
-    /** 获取 Snail Job 最新版本号 */
+    /**
+     * 获取 Snail Job 最新版本号
+     */
     public static String getVersion() {
         return determineSpringBootVersion();
     }
 
     private static String determineSpringBootVersion() {
-        String implementationVersion =
-                com.aizuda.snailjob.common.core.util.SnailAiVersion.class
-                        .getPackage()
-                        .getImplementationVersion();
+        String implementationVersion = com.aizuda.snailjob.common.core.util.SnailAiVersion.class.getPackage().getImplementationVersion();
         if (implementationVersion != null) {
             return implementationVersion;
         }
-        CodeSource codeSource =
-                com.aizuda.snailjob.common.core.util.SnailAiVersion.class
-                        .getProtectionDomain()
-                        .getCodeSource();
+        CodeSource codeSource = com.aizuda.snailjob.common.core.util.SnailAiVersion.class.getProtectionDomain().getCodeSource();
         if (codeSource == null) {
             return null;
         }
@@ -54,8 +51,7 @@ public final class SnailAiVersion {
     }
 
     private static String getImplementationVersion(JarFile jarFile) throws IOException {
-        return jarFile.getManifest()
-                .getMainAttributes()
-                .getValue(Attributes.Name.IMPLEMENTATION_VERSION);
+        return jarFile.getManifest().getMainAttributes().getValue(Attributes.Name.IMPLEMENTATION_VERSION);
     }
+
 }

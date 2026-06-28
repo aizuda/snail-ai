@@ -4,15 +4,19 @@ import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/** MCP 传输类型 */
+/**
+ * MCP 传输类型
+ */
 @Getter
 @AllArgsConstructor
 public enum McpTransportTypeEnum {
+
     SSE(1, "sse"),
     STREAMABLE_HTTP(2, "streamable_http"),
     STDIO(3, "stdio");
 
-    @EnumValue private final Integer value;
+    @EnumValue
+    private final Integer value;
     private final String protocol;
 
     public static McpTransportTypeEnum fromValue(Integer value) {

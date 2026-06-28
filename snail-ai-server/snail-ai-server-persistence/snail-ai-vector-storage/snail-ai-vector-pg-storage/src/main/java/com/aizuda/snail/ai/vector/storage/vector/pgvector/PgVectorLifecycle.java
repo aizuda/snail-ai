@@ -19,14 +19,12 @@ public class PgVectorLifecycle implements Lifecycle {
 
     @Override
     public void start() {
-        VectorStoreFactory.REGISTER.put(
-                VectorStoreType.PG_VECTOR,
-                configDTO ->
-                        new PgSnailAiVectorStore(
-                                configDTO.getEmbeddingModel(),
-                                configDTO.getDimensions(),
-                                JsonUtil.parseObject(
-                                        configDTO.getConfig(), PgVectorSettings.class)));
+        VectorStoreFactory.REGISTER.put(VectorStoreType.PG_VECTOR, configDTO ->
+                new PgSnailAiVectorStore(
+                        configDTO.getEmbeddingModel(),
+                        configDTO.getDimensions(),
+                        JsonUtil.parseObject(configDTO.getConfig(), PgVectorSettings.class)
+                ));
     }
 
     @Override

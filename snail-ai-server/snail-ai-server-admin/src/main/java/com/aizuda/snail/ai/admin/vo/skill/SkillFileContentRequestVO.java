@@ -5,7 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/** Skill 文件内容，用于 GET/PUT /skill/{id}/files/content */
+/**
+ * Skill 文件内容，用于 GET/PUT /skill/{id}/files/content
+ */
 @Data
 @Builder
 @NoArgsConstructor

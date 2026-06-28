@@ -1,10 +1,11 @@
 package com.aizuda.snail.ai.route;
 
 import com.aizuda.snail.ai.ClientInstanceManager.ClientInstanceInfo;
+import org.springframework.stereotype.Component;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import org.springframework.stereotype.Component;
 
 /**
  * LRU 路由策略（最近最少使用）
@@ -17,13 +18,12 @@ public class LruClientRoute implements ClientRouteStrategy {
 
     private static final int MAX_CACHE_SIZE = 100;
 
-    private final LinkedHashMap<String, String> accessOrder =
-            new LinkedHashMap<>(16, 0.75f, true) {
-                @Override
-                protected boolean removeEldestEntry(Map.Entry<String, String> eldest) {
-                    return size() > MAX_CACHE_SIZE;
-                }
-            };
+    private final LinkedHashMap<String, String> accessOrder = new LinkedHashMap<>(16, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<String, String> eldest) {
+            return size() > MAX_CACHE_SIZE;
+        }
+    };
 
     @Override
     public ClientInstanceInfo select(List<ClientInstanceInfo> candidates, String routeKey) {

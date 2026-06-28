@@ -2,7 +2,9 @@ package com.aizuda.snail.ai.vector.storage.vector.milvus;
 
 import lombok.Data;
 
-/** Milvus 连接与集合/索引参数，来自存储实例 {@code config} JSON。 */
+/**
+ * Milvus 连接与集合/索引参数，来自存储实例 {@code config} JSON。
+ */
 @Data
 public class MilvusVectorSettings {
 

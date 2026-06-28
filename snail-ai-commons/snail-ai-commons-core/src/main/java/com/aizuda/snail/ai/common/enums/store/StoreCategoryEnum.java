@@ -7,10 +7,12 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum StoreCategoryEnum {
+
     VECTOR_STORE(1, "VECTOR_STORE"),
     SEARCH_ENGINE(2, "SEARCH_ENGINE");
 
-    @EnumValue private final Integer category;
+    @EnumValue
+    private final Integer category;
     private final String code;
 
     public static StoreCategoryEnum fromValue(Integer value) {

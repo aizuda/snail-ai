@@ -9,4 +9,5 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
  * @author opensnail
  * @date 2025-07-12
  */
-public interface UserMapper extends BaseMapper<UserPO> {}
+public interface UserMapper extends BaseMapper<UserPO> {
+}

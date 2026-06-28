@@ -1,9 +1,10 @@
 package com.aizuda.snail.ai.admin.enums;
 
-import java.util.HashMap;
-import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author: byteblogs
@@ -13,10 +14,14 @@ import lombok.Getter;
 @Getter
 public enum RoleEnum {
 
-    /** 普通用户 */
+    /**
+     * 普通用户
+     */
     USER(1, "user"),
 
-    /** 管理员 */
+    /**
+     * 管理员
+     */
     ADMIN(2, "admin");
 
     private static final Map<Integer, RoleEnum> enumTypeMap = new HashMap<>();
@@ -42,4 +47,5 @@ public enum RoleEnum {
     public static boolean isUser(Integer roleId) {
         return USER.getRoleId().equals(roleId);
     }
+
 }

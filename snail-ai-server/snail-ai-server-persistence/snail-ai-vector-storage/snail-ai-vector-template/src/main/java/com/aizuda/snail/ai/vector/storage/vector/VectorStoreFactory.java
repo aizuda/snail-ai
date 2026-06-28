@@ -1,5 +1,18 @@
 package com.aizuda.snail.ai.vector.storage.vector;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Function;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.ai.embedding.EmbeddingModel;
+import org.springframework.stereotype.Component;
+
 import com.aizuda.snail.ai.common.enums.rag.StoreInstanceTypeEnum;
 import com.aizuda.snail.ai.model.dto.ModelConfigInfoDTO;
 import com.aizuda.snail.ai.model.handle.ModelConfigHandler;
@@ -11,28 +24,19 @@ import com.aizuda.snail.ai.vector.storage.embedding.EmbeddingModelDimensionServi
 import com.aizuda.snail.ai.vector.storage.enums.VectorStoreType;
 import com.aizuda.snail.ai.vector.storage.exception.VectorStoreException;
 import com.aizuda.snail.ai.vector.storage.vector.api.SnailAiVectorStore;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.ai.embedding.EmbeddingModel;
-import org.springframework.stereotype.Component;
 
-/** 向量库工厂：连接与索引参数均来自「存储实例」表 config JSON。 */
+/**
+ * 向量库工厂：连接与索引参数均来自「存储实例」表 config JSON。
+ */
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class VectorStoreFactory {
 
-    public static final Map<VectorStoreType, Function<VectorStoreConfigDTO, SnailAiVectorStore>>
-            REGISTER = new HashMap<>();
+    public static final Map<VectorStoreType, Function<VectorStoreConfigDTO, SnailAiVectorStore>> REGISTER =
+            new HashMap<>();
     private static final String CACHE_KEY_SEPARATOR = "_";
-    private static final ConcurrentHashMap<String, CachedVectorStore> STORE_INSTANCE_CACHE =
-            new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, CachedVectorStore> STORE_INSTANCE_CACHE = new ConcurrentHashMap<>();
 
     private final ModelRuntimeHandler modelRuntimeHandler;
     private final ModelConfigHandler modelConfigHandler;
@@ -42,17 +46,20 @@ public class VectorStoreFactory {
     public SnailAiVectorStore create(RagPO knowledge) {
         Integer dimension = knowledge.getDimensionOfVectorModel();
         if (dimension == null) {
-            dimension =
-                    embeddingModelDimensionService.getEmbeddingDimension(
-                            knowledge.getEmbeddingModelId());
+            dimension = embeddingModelDimensionService.getEmbeddingDimension(knowledge.getEmbeddingModelId());
         }
         return createForStoreInstance(
-                knowledge.getVectorStoreInstanceId(), knowledge.getEmbeddingModelId(), dimension);
+                knowledge.getVectorStoreInstanceId(),
+                knowledge.getEmbeddingModelId(),
+                dimension);
     }
 
-    /** 按存储实例 ID + 嵌入模型创建向量库（知识库 / 记忆配置共用） */
-    public SnailAiVectorStore createForStoreInstance(
-            Long vectorStoreInstanceId, Long embeddingModelId, Integer dimensionOfVectorModel) {
+    /**
+     * 按存储实例 ID + 嵌入模型创建向量库（知识库 / 记忆配置共用）
+     */
+    public SnailAiVectorStore createForStoreInstance(Long vectorStoreInstanceId,
+                                                     Long embeddingModelId,
+                                                     Integer dimensionOfVectorModel) {
         if (vectorStoreInstanceId == null) {
             throw new VectorStoreException("vectorStoreInstanceId 不能为空");
         }
@@ -68,26 +75,20 @@ public class VectorStoreFactory {
         LocalDateTime storeUpdateDt = inst.getUpdateDt();
         LocalDateTime modelUpdatedDt = modelConfig.getUpdatedDt();
         String cacheKey = buildCacheKey(vectorStoreInstanceId, embeddingModelId);
-        CachedVectorStore cachedVectorStore =
-                STORE_INSTANCE_CACHE.compute(
-                        cacheKey,
-                        (k, cached) -> {
-                            if (cached != null && cached.matches(storeUpdateDt, modelUpdatedDt)) {
-                                return cached;
-                            }
-                            if (cached != null) {
-                                log.info(
-                                        "配置已变更，重新构建 VectorStore 缓存: vectorStoreInstanceId={}, "
-                                                + "embeddingModelId={}",
-                                        vectorStoreInstanceId,
-                                        embeddingModelId);
-                            }
-                            return new CachedVectorStore(
-                                    storeUpdateDt,
-                                    modelUpdatedDt,
-                                    buildVectorStore(
-                                            inst, typeEnum, modelConfig, dimensionOfVectorModel));
-                        });
+        CachedVectorStore cachedVectorStore = STORE_INSTANCE_CACHE.compute(cacheKey, (k, cached) -> {
+            if (cached != null && cached.matches(storeUpdateDt, modelUpdatedDt)) {
+                return cached;
+            }
+            if (cached != null) {
+                log.info("配置已变更，重新构建 VectorStore 缓存: vectorStoreInstanceId={}, "
+                                + "embeddingModelId={}",
+                        vectorStoreInstanceId, embeddingModelId);
+            }
+            return new CachedVectorStore(
+                    storeUpdateDt,
+                    modelUpdatedDt,
+                    buildVectorStore(inst, typeEnum, modelConfig, dimensionOfVectorModel));
+        });
         return cachedVectorStore.vectorStore();
     }
 
@@ -115,11 +116,10 @@ public class VectorStoreFactory {
         return modelConfig;
     }
 
-    private SnailAiVectorStore buildVectorStore(
-            StoreInstancePO inst,
-            StoreInstanceTypeEnum typeEnum,
-            ModelConfigInfoDTO modelConfig,
-            Integer dimensionOfVectorModel) {
+    private SnailAiVectorStore buildVectorStore(StoreInstancePO inst,
+                                                StoreInstanceTypeEnum typeEnum,
+                                                ModelConfigInfoDTO modelConfig,
+                                                Integer dimensionOfVectorModel) {
         VectorStoreType vectorStoreType = VectorStoreType.valueOf(typeEnum.name());
         Function<VectorStoreConfigDTO, SnailAiVectorStore> factory = REGISTER.get(vectorStoreType);
         if (factory == null) {
@@ -127,26 +127,27 @@ public class VectorStoreFactory {
         }
         EmbeddingModel model = modelRuntimeHandler.buildEmbeddingModel(modelConfig);
         return factory.apply(
-                VectorStoreConfigDTO.builder()
+                VectorStoreConfigDTO
+                        .builder()
                         .config(inst.getConfig())
                         .dimensions(dimensionOfVectorModel)
                         .embeddingModel(model)
-                        .build());
+                        .build()
+        );
     }
 
     private String buildCacheKey(Long vectorStoreInstanceId, Long embeddingModelId) {
         return vectorStoreInstanceId + CACHE_KEY_SEPARATOR + embeddingModelId;
     }
 
-    private record CachedVectorStore(
-            LocalDateTime storeUpdateDt,
-            LocalDateTime modelUpdatedDt,
-            SnailAiVectorStore vectorStore) {
+    private record CachedVectorStore(LocalDateTime storeUpdateDt,
+                                      LocalDateTime modelUpdatedDt,
+                                      SnailAiVectorStore vectorStore) {
 
-        private boolean matches(
-                LocalDateTime currentStoreUpdateDt, LocalDateTime currentModelUpdatedDt) {
+        private boolean matches(LocalDateTime currentStoreUpdateDt, LocalDateTime currentModelUpdatedDt) {
             return Objects.equals(storeUpdateDt, currentStoreUpdateDt)
                     && Objects.equals(modelUpdatedDt, currentModelUpdatedDt);
         }
     }
+
 }

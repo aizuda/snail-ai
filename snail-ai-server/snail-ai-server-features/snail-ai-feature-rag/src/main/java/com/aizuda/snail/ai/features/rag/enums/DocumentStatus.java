@@ -4,7 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
+ * <p>
  * 文章的处理状态
+ * </p>
  *
  * @author opensnail
  * @date 2025-07-19
@@ -18,4 +20,5 @@ public enum DocumentStatus {
     FAIL(3);
 
     private final int status;
+
 }

@@ -4,7 +4,9 @@ import lombok.Builder;
 import lombok.Data;
 import org.springframework.ai.chat.client.ChatClient;
 
-/** ChatClient 自定义上下文。 */
+/**
+ * ChatClient 自定义上下文。
+ */
 @Data
 @Builder
 public class ChatClientBuildContext {

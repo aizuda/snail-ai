@@ -2,11 +2,14 @@ package com.aizuda.snail.ai.agent.core.runtime;
 
 import com.aizuda.snail.ai.agent.core.executor.ClientChatExecutor;
 import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
-import java.util.function.Consumer;
 import lombok.Builder;
 import lombok.Getter;
 
-/** 客户端一次 Chat 会话的执行上下文。 */
+import java.util.function.Consumer;
+
+/**
+ * 客户端一次 Chat 会话的执行上下文。
+ */
 @Getter
 @Builder
 public class ChatSessionRequest {

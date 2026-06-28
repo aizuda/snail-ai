@@ -8,18 +8,18 @@ public class SimpleWorkFlow {
 
     private SimpleWorkFlow nextWork;
 
-    public SimpleWorkFlow(Supplier<Boolean> work) {
+    public SimpleWorkFlow(Supplier<Boolean> work){
         this.work = work;
     }
 
-    public SimpleWorkFlow next(SimpleWorkFlow nextWork) {
+    public SimpleWorkFlow next(SimpleWorkFlow nextWork){
         this.nextWork = nextWork;
         return this;
     }
 
-    public boolean start() {
+    public boolean start(){
         if (Boolean.TRUE.equals(work.get())) {
-            if (nextWork == null) {
+            if (nextWork == null){
                 return true;
             }
             return nextWork.start();

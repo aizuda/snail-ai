@@ -5,16 +5,18 @@ import com.aizuda.snail.ai.agent.common.rpc.RpcClient;
 import com.aizuda.snail.ai.agent.core.tool.RagSearchTool;
 import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
 import com.aizuda.snail.ai.common.enums.agent.RagCallModeEnum;
-import java.util.Arrays;
-import java.util.List;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.ToolCallback;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * 客户端 RAG 知识库搜索工具解析器
- *
- * <p>仅在智能调用模式下注册 rag_search tool； 强制调用模式由服务端预检索，不需要 tool。
+ * <p>
+ * 仅在智能调用模式下注册 rag_search tool；
+ * 强制调用模式由服务端预检索，不需要 tool。
  */
 @Slf4j
 public class ClientRagToolResolver {
@@ -37,14 +39,15 @@ public class ClientRagToolResolver {
             return List.of();
         }
 
-        List<Long> ragIds =
-                Arrays.stream(agentConfig.getRagIds().split(","))
-                        .map(String::trim)
-                        .filter(StrUtil::isNotBlank)
-                        .map(Long::parseLong)
-                        .toList();
+        List<Long> ragIds = Arrays.stream(agentConfig.getRagIds().split(","))
+                .map(String::trim)
+                .filter(StrUtil::isNotBlank)
+                .map(Long::parseLong)
+                .toList();
 
         log.info("RAG tool resolved (smart mode): ragIds={}", ragIds);
-        return Arrays.asList(ToolCallbacks.from(new RagSearchTool(ragIds, rpcClient)));
+        return Arrays.asList(ToolCallbacks.from(
+                new RagSearchTool(ragIds, rpcClient)
+        ));
     }
 }

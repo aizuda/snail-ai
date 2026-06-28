@@ -4,11 +4,14 @@ import com.aizuda.snail.ai.common.model.ConfigExtAttrsDTO;
 import com.aizuda.snail.ai.model.chat.ChatModelAdapter;
 import com.aizuda.snail.ai.model.chat.ChatModelSpec;
 import com.aizuda.snail.ai.model.common.ModelAdapterDefaults;
-import java.time.Duration;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.core.Ordered;
+
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 
 public class OpenAiCompatibleChatModelAdapter implements ChatModelAdapter, Ordered {
 
@@ -19,7 +22,9 @@ public class OpenAiCompatibleChatModelAdapter implements ChatModelAdapter, Order
 
     @Override
     public ChatModel create(ChatModelSpec spec) {
-        return OpenAiChatModel.builder().options(buildOptions(spec)).build();
+        return OpenAiChatModel.builder()
+                .options(buildOptions(spec))
+                .build();
     }
 
     @Override
@@ -29,12 +34,11 @@ public class OpenAiCompatibleChatModelAdapter implements ChatModelAdapter, Order
 
     private OpenAiChatOptions buildOptions(ChatModelSpec spec) {
         ConfigExtAttrsDTO config = spec.configJson();
-        OpenAiChatOptions.Builder builder =
-                OpenAiChatOptions.builder()
-                        .baseUrl(spec.baseUrl())
-                        .apiKey(spec.apiKey())
-                        .model(spec.modelKey())
-                        .timeout(Duration.ofMillis(readTimeoutMs(config)));
+        OpenAiChatOptions.Builder builder = OpenAiChatOptions.builder()
+                .baseUrl(spec.baseUrl())
+                .apiKey(spec.apiKey())
+                .model(spec.modelKey())
+                .timeout(Duration.ofMillis(readTimeoutMs(config)));
         if (config == null) {
             return builder.build();
         }

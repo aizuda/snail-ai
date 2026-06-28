@@ -3,9 +3,6 @@ package com.aizuda.snail.ai.model.builder.chat;
 import com.aizuda.snail.ai.common.model.ModelCallException;
 import com.aizuda.snail.ai.model.adapter.server.ServerModelFacade;
 import com.aizuda.snail.ai.model.dto.ModelConfigInfoDTO;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -16,10 +13,15 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * ChatClient 动态构建器（带缓存）。
- *
- * <p>缓存 key = configId，避免每次切片/对话都重建 OpenAiChatModel 及其底层 HTTP 连接池。 5 分钟 TTL 自动淘汰过期条目。
+ * <p>
+ * 缓存 key = configId，避免每次切片/对话都重建 OpenAiChatModel 及其底层 HTTP 连接池。
+ * 5 分钟 TTL 自动淘汰过期条目。
  */
 @Component
 @Slf4j
@@ -41,17 +43,11 @@ public class ChatClientBuilder {
             return entry.client;
         }
         if (entry != null) {
-            log.info(
-                    "ChatClient cache invalidated for config: {} (expired={}, apiKeyChanged={})",
-                    config.getId(),
-                    entry.isExpired(),
-                    !entry.matchesApiKey(decryptedApiKey));
+            log.info("ChatClient cache invalidated for config: {} (expired={}, apiKeyChanged={})",
+                    config.getId(), entry.isExpired(), !entry.matchesApiKey(decryptedApiKey));
         }
         try {
-            log.debug(
-                    "Building ChatClient for config: {}, provider: {}",
-                    config.getId(),
-                    config.getProviderKey());
+            log.debug("Building ChatClient for config: {}, provider: {}", config.getId(), config.getProviderKey());
             ChatClient client = buildChatClient(config, decryptedApiKey);
             clientCache.put(cacheKey, new CacheEntry(client, decryptedApiKey));
             return client;
@@ -69,12 +65,11 @@ public class ChatClientBuilder {
     public ChatClient buildChatClient(ModelConfigInfoDTO config, String decryptedApiKey) {
         try {
             ChatModel chatModel = serverModelFacade.buildChatModel(config, decryptedApiKey);
-            ChatClient chatClient =
-                    ChatClient.builder(chatModel).defaultAdvisors(buildAdvisors()).build();
-            log.info(
-                    "Successfully built ChatClient for config: {} (model: {})",
-                    config.getId(),
-                    config.getModelKey());
+            ChatClient chatClient = ChatClient.builder(chatModel)
+                    .defaultAdvisors(buildAdvisors())
+                    .build();
+            log.info("Successfully built ChatClient for config: {} (model: {})",
+                    config.getId(), config.getModelKey());
             return chatClient;
         } catch (ModelCallException e) {
             throw e;
@@ -90,16 +85,13 @@ public class ChatClientBuilder {
     @Scheduled(fixedDelay = 300_000)
     public void evictExpiredClients() {
         int before = clientCache.size();
-        clientCache
-                .entrySet()
-                .removeIf(
-                        e -> {
-                            if (e.getValue().isExpired()) {
-                                log.debug("Evicting expired ChatClient for key: {}", e.getKey());
-                                return true;
-                            }
-                            return false;
-                        });
+        clientCache.entrySet().removeIf(e -> {
+            if (e.getValue().isExpired()) {
+                log.debug("Evicting expired ChatClient for key: {}", e.getKey());
+                return true;
+            }
+            return false;
+        });
         int after = clientCache.size();
         if (before != after) {
             log.info("ChatClient cache eviction: {} -> {} entries", before, after);

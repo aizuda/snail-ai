@@ -8,7 +8,6 @@ public class RagChunkCreateRequestVO {
 
     @JsonAlias("knowledgeId")
     private Long ragId;
-
     private Long documentId;
     private String content;
 }

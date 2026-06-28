@@ -9,11 +9,11 @@ import com.aizuda.snail.ai.common.execption.SnailAiException;
  * @date 2025-04-12
  */
 public class CallbackException extends SnailAiException {
-
+    
     public CallbackException(String message) {
         super(message);
     }
-
+    
     public CallbackException(String message, Throwable cause) {
         super(message, cause);
     }

@@ -1,9 +1,10 @@
 package com.aizuda.snail.ai.features.rag.search.pipeline;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Slf4j
 @Component

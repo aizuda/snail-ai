@@ -1,14 +1,15 @@
 package com.aizuda.snail.ai.common.grpc.handler;
 
 import com.aizuda.snail.ai.common.grpc.constant.HeaderConstants;
-import java.util.Map;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.Map;
+
 /**
  * gRPC 请求上下文封装
- *
- * <p>统一入参对象，替代 Handler 中的裸 Map 参数。
+ * <p>
+ * 统一入参对象，替代 Handler 中的裸 Map 参数。
  *
  * @author opensnail
  */

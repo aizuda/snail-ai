@@ -7,10 +7,11 @@ import com.aizuda.snail.ai.features.resource.util.MimeTypeUtils;
 import com.aizuda.snail.ai.features.resource.util.StorageKeyGenerator;
 import io.minio.*;
 import io.minio.errors.ErrorResponseException;
-import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.io.InputStream;
 
 @Slf4j
 @Component
@@ -32,12 +33,12 @@ public class MinioResourceStorageService implements ResourceStorageService {
         try {
             String storageKey = StorageKeyGenerator.generate(bizType, fileName);
             String contentType = MimeTypeUtils.detect(fileName);
-            getClient()
-                    .putObject(
-                            PutObjectArgs.builder().bucket(bucket()).object(storageKey).stream(
-                                            inputStream, -1L, 10485760L)
-                                    .contentType(contentType)
-                                    .build());
+            getClient().putObject(PutObjectArgs.builder()
+                    .bucket(bucket())
+                    .object(storageKey)
+                    .stream(inputStream, -1L, 10485760L)
+                    .contentType(contentType)
+                    .build());
             log.info("Resource stored to MinIO: {}/{}", bucket(), storageKey);
             return storageKey;
         } catch (Exception e) {
@@ -48,8 +49,10 @@ public class MinioResourceStorageService implements ResourceStorageService {
     @Override
     public InputStream load(String storageKey) {
         try {
-            return getClient()
-                    .getObject(GetObjectArgs.builder().bucket(bucket()).object(storageKey).build());
+            return getClient().getObject(GetObjectArgs.builder()
+                    .bucket(bucket())
+                    .object(storageKey)
+                    .build());
         } catch (Exception e) {
             throw new SnailAiException("Failed to load resource from MinIO: " + storageKey, e);
         }
@@ -58,9 +61,10 @@ public class MinioResourceStorageService implements ResourceStorageService {
     @Override
     public void delete(String storageKey) {
         try {
-            getClient()
-                    .removeObject(
-                            RemoveObjectArgs.builder().bucket(bucket()).object(storageKey).build());
+            getClient().removeObject(RemoveObjectArgs.builder()
+                    .bucket(bucket())
+                    .object(storageKey)
+                    .build());
         } catch (Exception e) {
             log.warn("Failed to delete resource from MinIO: {}", storageKey, e);
         }
@@ -74,9 +78,10 @@ public class MinioResourceStorageService implements ResourceStorageService {
     @Override
     public boolean exists(String storageKey) {
         try {
-            getClient()
-                    .statObject(
-                            StatObjectArgs.builder().bucket(bucket()).object(storageKey).build());
+            getClient().statObject(StatObjectArgs.builder()
+                    .bucket(bucket())
+                    .object(storageKey)
+                    .build());
             return true;
         } catch (ErrorResponseException e) {
             return false;
@@ -95,14 +100,12 @@ public class MinioResourceStorageService implements ResourceStorageService {
                 if (minioClient == null) {
                     ResourceConfig.MinioConfig cfg = resourceConfig.getMinio();
                     if (cfg.getEndpoint() == null || cfg.getEndpoint().isBlank()) {
-                        throw new IllegalStateException(
-                                "MinIO is not configured. Set snail-ai.resource.minio.*");
+                        throw new IllegalStateException("MinIO is not configured. Set snail-ai.resource.minio.*");
                     }
-                    this.minioClient =
-                            MinioClient.builder()
-                                    .endpoint(cfg.getEndpoint())
-                                    .credentials(cfg.getAccessKey(), cfg.getSecretKey())
-                                    .build();
+                    this.minioClient = MinioClient.builder()
+                            .endpoint(cfg.getEndpoint())
+                            .credentials(cfg.getAccessKey(), cfg.getSecretKey())
+                            .build();
                     ensureBucketExists();
                 }
             }

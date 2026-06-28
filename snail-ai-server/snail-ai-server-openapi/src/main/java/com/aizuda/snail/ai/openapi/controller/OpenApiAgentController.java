@@ -9,10 +9,11 @@ import com.aizuda.snail.ai.common.openapi.dto.OpenApiAgentVO;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiUserAgentRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiUserQueryRequest;
 import com.aizuda.snail.ai.openapi.service.OpenApiAgentService;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * OpenAPI Agent 查询接口
@@ -27,8 +28,7 @@ public class OpenApiAgentController {
     private final OpenApiAgentService openApiAgentService;
 
     @GetMapping(OpenApiPathConstants.OPEN_API_AGENTS)
-    public PageResult<List<OpenApiAgentVO>> listAgents(
-            @Validated OpenApiAgentQueryRequest request) {
+    public PageResult<List<OpenApiAgentVO>> listAgents(@Validated OpenApiAgentQueryRequest request) {
         return openApiAgentService.listAgents(request);
     }
 

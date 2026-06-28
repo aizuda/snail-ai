@@ -1,24 +1,21 @@
 package com.aizuda.snail.ai.admin.controller;
 
 import com.aizuda.snail.ai.admin.dto.AgentChatCommand;
+import com.aizuda.snail.ai.admin.service.agent.*;
+import com.aizuda.snail.ai.admin.stream.AgentCreateStreamHttpAdapter;
+import com.aizuda.snail.ai.common.model.Result;
 import com.aizuda.snail.ai.admin.enums.RoleEnum;
 import com.aizuda.snail.ai.admin.security.annotation.LoginRequired;
-import com.aizuda.snail.ai.admin.service.agent.*;
-import com.aizuda.snail.ai.admin.service.mcp.McpServerService;
-import com.aizuda.snail.ai.admin.stream.AgentCreateStreamHttpAdapter;
 import com.aizuda.snail.ai.admin.vo.PageResult;
 import com.aizuda.snail.ai.admin.vo.agent.*;
+import com.aizuda.snail.ai.admin.service.mcp.McpServerService;
 import com.aizuda.snail.ai.admin.vo.mcp.McpServerResponseVO;
 import com.aizuda.snail.ai.admin.vo.memory.ConversationSummaryVO;
-import com.aizuda.snail.ai.common.model.Result;
 import com.aizuda.snail.ai.feature.agent.stream.ChatStreamWriter;
 import com.aizuda.snail.ai.persistence.agent.mapper.AgentConversationRecordMapper;
 import com.aizuda.snail.ai.persistence.agent.po.AgentConversationRecordPO;
 import com.aizuda.snail.ai.persistence.security.UserSessionUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
@@ -26,10 +23,15 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 /**
  * 智能体管理接口：CRUD、AI 辅助创建、对话、MCP 绑定、用量分析与智能体市场订阅。
- *
- * <p>权限约定：{@code @LoginRequired} 默认要求 ADMIN 角色；标注 {@code role = USER} 的端点对任意登录用户开放（如对话、市场、订阅、会话记录）。
+ * <p>
+ * 权限约定：{@code @LoginRequired} 默认要求 ADMIN 角色；标注 {@code role = USER}
+ * 的端点对任意登录用户开放（如对话、市场、订阅、会话记录）。
  */
 @RestController
 @RequestMapping("/agent")
@@ -64,8 +66,8 @@ public class AgentController {
     /** 更新智能体配置（管理员）。 */
     @PutMapping("/{id}")
     @LoginRequired
-    public Result<AgentResponseVO> update(
-            @PathVariable("id") Long id, @RequestBody AgentRequestVO request) {
+    public Result<AgentResponseVO> update(@PathVariable("id") Long id,
+                                           @RequestBody AgentRequestVO request) {
         return Result.ok(agentService.update(id, request));
     }
 
@@ -92,8 +94,7 @@ public class AgentController {
     @PostMapping(value = "/create/stream", produces = AgentCreateStreamHttpAdapter.MEDIA_TYPE)
     @LoginRequired
     public Flux<String> createStream(@RequestBody @Validated AgentCreateRequestVO request) {
-        return agentCreateStreamHttpAdapter.encode(
-                agentCreateService.createByDescriptionStream(request.getDescription()));
+        return agentCreateStreamHttpAdapter.encode(agentCreateService.createByDescriptionStream(request.getDescription()));
     }
 
     /** 创建智能体（管理员）。 */
@@ -106,22 +107,19 @@ public class AgentController {
     /** 与指定智能体进行流式对话（登录用户，SSE 流）。 */
     @PostMapping(value = "/{id}/chat", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @LoginRequired(role = RoleEnum.USER)
-    public Flux<String> chat(
-            @PathVariable("id") Long id, @RequestBody @Validated AgentChatRequestVO request) {
-        return Flux.<String>create(
-                sink -> {
-                    agentChatService.chat(
-                            AgentChatCommand.builder()
-                                    .agentId(id)
-                                    .conversationId(request.getConversationId())
-                                    .content(request.getContent())
-                                    .disabledMcpServerIds(request.getDisabledMcpServerIds())
-                                    .disabledSkillIds(request.getDisabledSkillIds())
-                                    .streamWriter(new FluxBridgeChatStreamWriter(sink))
-                                    .build());
-                    sink.onCancel(() -> {});
-                },
-                FluxSink.OverflowStrategy.BUFFER);
+    public Flux<String> chat(@PathVariable("id") Long id,
+                             @RequestBody @Validated AgentChatRequestVO request) {
+        return Flux.<String>create(sink -> {
+            agentChatService.chat(AgentChatCommand.builder()
+                    .agentId(id)
+                    .conversationId(request.getConversationId())
+                    .content(request.getContent())
+                    .disabledMcpServerIds(request.getDisabledMcpServerIds())
+                    .disabledSkillIds(request.getDisabledSkillIds())
+                    .streamWriter(new FluxBridgeChatStreamWriter(sink))
+                    .build());
+            sink.onCancel(() -> {});
+        }, FluxSink.OverflowStrategy.BUFFER);
     }
 
     private static class FluxBridgeChatStreamWriter implements ChatStreamWriter {
@@ -165,8 +163,8 @@ public class AgentController {
     /** 更新智能体绑定的 MCP 服务（管理员）。 */
     @PutMapping("/{id}/mcp-servers")
     @LoginRequired
-    public Result<Void> updateMcpServers(
-            @PathVariable("id") Long id, @RequestBody AgentMcpServersUpdateRequestVO requestVO) {
+    public Result<Void> updateMcpServers(@PathVariable("id") Long id,
+                                          @RequestBody AgentMcpServersUpdateRequestVO requestVO) {
         mcpServerService.updateAgentMcpServers(id, requestVO.getMcpServerIds());
         return Result.ok(null);
     }
@@ -176,8 +174,7 @@ public class AgentController {
     /** 查询智能体用量分析汇总（管理员）。 */
     @GetMapping("/{id}/analytics")
     @LoginRequired
-    public Result<AgentAnalyticsVO> analytics(
-            @PathVariable("id") Long id, AgentAnalyticsQueryVO queryVO) {
+    public Result<AgentAnalyticsVO> analytics(@PathVariable("id") Long id, AgentAnalyticsQueryVO queryVO) {
         return Result.ok(agentAnalyticsService.getAnalytics(id, queryVO));
     }
 
@@ -194,8 +191,8 @@ public class AgentController {
     /** 分页查询当前用户在该智能体下的会话列表（登录用户）。 */
     @GetMapping("/{id}/conversations")
     @LoginRequired(role = RoleEnum.USER)
-    public PageResult<List<ConversationSummaryVO>> conversations(
-            @PathVariable("id") Long id, AgentConversationQueryVO queryVO) {
+    public PageResult<List<ConversationSummaryVO>> conversations(@PathVariable("id") Long id,
+            AgentConversationQueryVO queryVO) {
         return agentService.listConversations(id, queryVO);
     }
 
@@ -210,8 +207,8 @@ public class AgentController {
     /** 分页查询智能体用量明细（管理员）。 */
     @GetMapping("/{id}/usage-detail")
     @LoginRequired
-    public PageResult<List<AgentUsageDetailVO>> usageDetail(
-            @PathVariable("id") Long id, AgentUsageDetailQueryVO queryVO) {
+    public PageResult<List<AgentUsageDetailVO>> usageDetail(@PathVariable("id") Long id,
+                                                            AgentUsageDetailQueryVO queryVO) {
         return agentAnalyticsService.getUsageDetail(id, queryVO);
     }
 
@@ -219,7 +216,8 @@ public class AgentController {
     @PostMapping("/{id}/conversations/batch-delete")
     @LoginRequired
     public Result<Void> batchDeleteConversations(
-            @PathVariable("id") Long agentId, @RequestBody List<String> conversationIds) {
+            @PathVariable("id") Long agentId,
+            @RequestBody List<String> conversationIds) {
         agentService.batchDeleteConversations(agentId, conversationIds);
         return Result.ok(null);
     }
@@ -233,24 +231,18 @@ public class AgentController {
             @PathVariable("id") Long agentId,
             @PathVariable("conversationId") String conversationId) {
         Long userId = UserSessionUtils.currentUserSession().getId();
-        List<AgentConversationRecordPO> records =
-                conversationRecordMapper.selectList(
-                        new LambdaQueryWrapper<AgentConversationRecordPO>()
-                                .eq(AgentConversationRecordPO::getConversationId, conversationId)
-                                .eq(AgentConversationRecordPO::getUserId, userId)
-                                .orderByAsc(AgentConversationRecordPO::getCreateDt));
-        List<ConversationRecordVO> vos =
-                records.stream()
-                        .map(
-                                r ->
-                                        ConversationRecordVO.builder()
-                                                .role(r.getRole())
-                                                .content(r.getContent())
-                                                .thinking(r.getThinking())
-                                                .status(r.getStatus())
-                                                .createDt(r.getCreateDt())
-                                                .build())
-                        .collect(Collectors.toList());
+        List<AgentConversationRecordPO> records = conversationRecordMapper.selectList(
+                new LambdaQueryWrapper<AgentConversationRecordPO>()
+                        .eq(AgentConversationRecordPO::getConversationId, conversationId)
+                        .eq(AgentConversationRecordPO::getUserId, userId)
+                        .orderByAsc(AgentConversationRecordPO::getCreateDt));
+        List<ConversationRecordVO> vos = records.stream().map(r -> ConversationRecordVO.builder()
+                .role(r.getRole())
+                .content(r.getContent())
+                .thinking(r.getThinking())
+                .status(r.getStatus())
+                .createDt(r.getCreateDt())
+                .build()).collect(Collectors.toList());
         return Result.ok(vos);
     }
 

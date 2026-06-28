@@ -6,10 +6,11 @@ import com.aizuda.snail.ai.model.chat.openai.OpenAiCompatibleChatModelAdapter;
 import com.aizuda.snail.ai.model.common.ModelAdapterDefaults;
 import com.aizuda.snail.ai.model.common.ModelAdapterDescriptor;
 import com.aizuda.snail.ai.model.common.ModelCapability;
-import java.util.List;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+
+import java.util.List;
 
 @AutoConfiguration
 public class SnailAiChatModelAutoConfiguration {

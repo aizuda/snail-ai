@@ -1,13 +1,16 @@
 package com.aizuda.snail.ai.agent.core.executor;
 
 import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
-import java.util.List;
-import java.util.function.Consumer;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.ai.tool.ToolCallback;
 
-/** 客户端 Chat 执行请求上下文。 */
+import java.util.List;
+import java.util.function.Consumer;
+
+/**
+ * 客户端 Chat 执行请求上下文。
+ */
 @Data
 @Builder
 public class ClientChatExecutionRequest {

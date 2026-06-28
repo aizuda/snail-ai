@@ -1,6 +1,8 @@
 package com.aizuda.snail.ai.common.grpc.constant;
 
-/** gRPC URI 路由路径常量 */
+/**
+ * gRPC URI 路由路径常量
+ */
 public interface UriConstants {
 
     // Client → Server

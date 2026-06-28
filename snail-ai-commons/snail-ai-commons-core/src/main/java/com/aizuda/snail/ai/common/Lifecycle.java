@@ -8,9 +8,14 @@ package com.aizuda.snail.ai.common;
  */
 public interface Lifecycle {
 
-    /** 启动组件 */
+    /**
+     * 启动组件
+     */
     void start();
 
-    /** 关闭组件 */
+    /**
+     * 关闭组件
+     */
     void close();
+
 }

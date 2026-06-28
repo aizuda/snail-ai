@@ -1,15 +1,18 @@
 package com.aizuda.snail.ai.agent.core.executor.prompt;
 
 import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
-import java.util.ArrayList;
-import java.util.List;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
 
-/** 默认 Prompt 工厂。 */
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * 默认 Prompt 工厂。
+ */
 public class DefaultPromptFactory implements PromptFactory {
 
     private static final String ASSISTANT_ROLE = "assistant";
@@ -23,9 +26,7 @@ public class DefaultPromptFactory implements PromptFactory {
         }
         if (request.getHistoryMessages() != null) {
             request.getHistoryMessages().stream()
-                    .filter(
-                            history ->
-                                    history.getContent() != null && !history.getContent().isEmpty())
+                    .filter(history -> history.getContent() != null && !history.getContent().isEmpty())
                     .map(this::toMessage)
                     .forEach(messages::add);
         }

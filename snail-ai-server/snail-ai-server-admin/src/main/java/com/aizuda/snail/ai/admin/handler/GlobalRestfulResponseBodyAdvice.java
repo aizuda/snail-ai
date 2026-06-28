@@ -2,7 +2,6 @@ package com.aizuda.snail.ai.admin.handler;
 
 import com.aizuda.snail.ai.admin.security.annotation.OriginalControllerReturnValue;
 import com.aizuda.snail.ai.common.model.Result;
-import java.lang.annotation.Annotation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
@@ -12,6 +11,8 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
+import java.lang.annotation.Annotation;
+
 @Slf4j
 @ControllerAdvice(basePackages = {"com.aizuda.snail.ai.admin"})
 public class GlobalRestfulResponseBodyAdvice implements ResponseBodyAdvice<Object> {
@@ -20,20 +21,16 @@ public class GlobalRestfulResponseBodyAdvice implements ResponseBodyAdvice<Objec
 
     @Override
     public Object beforeBodyWrite(
-            Object obj,
-            MethodParameter methodParameter,
-            MediaType mediaType,
+            Object obj, MethodParameter methodParameter, MediaType mediaType,
             Class<? extends HttpMessageConverter<?>> converterType,
-            ServerHttpRequest serverHttpRequest,
-            ServerHttpResponse serverHttpResponse) {
+            ServerHttpRequest serverHttpRequest, ServerHttpResponse serverHttpResponse) {
         // 流式响应不包装
         if (MediaType.TEXT_EVENT_STREAM.isCompatibleWith(mediaType)
                 || NDJSON.isCompatibleWith(mediaType)) {
             return obj;
         }
 
-        Annotation originalControllerReturnValue =
-                methodParameter.getMethodAnnotation(OriginalControllerReturnValue.class);
+        Annotation originalControllerReturnValue = methodParameter.getMethodAnnotation(OriginalControllerReturnValue.class);
         if (originalControllerReturnValue != null) {
             return obj;
         }
@@ -43,11 +40,12 @@ public class GlobalRestfulResponseBodyAdvice implements ResponseBodyAdvice<Objec
         } else {
             return new Result<>("Request succeeded", obj);
         }
+
     }
 
     @Override
-    public boolean supports(
-            MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
+    public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
         return true;
     }
+
 }

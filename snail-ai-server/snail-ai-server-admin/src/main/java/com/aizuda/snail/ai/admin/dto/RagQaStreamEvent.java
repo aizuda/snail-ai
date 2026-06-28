@@ -3,7 +3,9 @@ package com.aizuda.snail.ai.admin.dto;
 import lombok.Builder;
 import lombok.Data;
 
-/** Structured event for RAG QA stream. */
+/**
+ * Structured event for RAG QA stream.
+ */
 @Data
 @Builder
 public class RagQaStreamEvent {
@@ -19,14 +21,22 @@ public class RagQaStreamEvent {
     private String message;
 
     public static RagQaStreamEvent text(String data) {
-        return RagQaStreamEvent.builder().type(TYPE_TEXT).data(data).build();
+        return RagQaStreamEvent.builder()
+                .type(TYPE_TEXT)
+                .data(data)
+                .build();
     }
 
     public static RagQaStreamEvent done() {
-        return RagQaStreamEvent.builder().type(TYPE_DONE).build();
+        return RagQaStreamEvent.builder()
+                .type(TYPE_DONE)
+                .build();
     }
 
     public static RagQaStreamEvent error(String message) {
-        return RagQaStreamEvent.builder().type(TYPE_ERROR).message(message).build();
+        return RagQaStreamEvent.builder()
+                .type(TYPE_ERROR)
+                .message(message)
+                .build();
     }
 }

@@ -5,7 +5,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/** author: zhangshuguang date: 2026-04-01 */
+/**
+ * author: zhangshuguang
+ * date: 2026-04-01
+ */
 @Data
 @Builder
 @NoArgsConstructor
@@ -26,21 +29,15 @@ public class RagConfigDO {
     public static class ChunkParams {
         /** length | delimiter | regex | smart */
         private String mode;
-
         /** 单片段最大 token/字符量级（与 recursive splitter 一致） */
         private Integer maxChunkTokens;
-
         private Integer chunkOverlap;
-
         /** mode=delimiter 时作为一级切分符 */
         private String customDelimiter;
-
         /** mode=regex 时的一级切分正则（Java Pattern） */
         private String chunkRegex;
-
         /** mode=smart 时用于语义切片的对话模型配置 ID */
         private Long chunkModelId;
-
         private Boolean mergeShortSegments;
         private Boolean imageOcr;
     }

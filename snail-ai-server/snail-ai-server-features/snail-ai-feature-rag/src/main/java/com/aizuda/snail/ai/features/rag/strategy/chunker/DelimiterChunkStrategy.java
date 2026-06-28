@@ -1,10 +1,13 @@
 package com.aizuda.snail.ai.features.rag.strategy.chunker;
 
 import com.aizuda.snail.ai.features.rag.enums.ChunkModeEnum;
-import java.util.List;
 import org.springframework.stereotype.Component;
 
-/** 按分隔符一级切分，再递归按长度切分。 */
+import java.util.List;
+
+/**
+ * 按分隔符一级切分，再递归按长度切分。
+ */
 @Component
 public class DelimiterChunkStrategy extends AbstractChunkStrategy {
 

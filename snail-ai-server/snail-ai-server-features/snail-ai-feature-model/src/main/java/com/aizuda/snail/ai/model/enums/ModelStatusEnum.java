@@ -1,11 +1,17 @@
 package com.aizuda.snail.ai.model.enums;
 
-/** 模型状态枚举 */
+/**
+ * 模型状态枚举
+ */
 public enum ModelStatusEnum {
-    /** 已启用 */
+    /**
+     * 已启用
+     */
     ENABLED(1, "已启用"),
 
-    /** 已禁用 */
+    /**
+     * 已禁用
+     */
     DISABLED(0, "已禁用");
 
     private final int code;

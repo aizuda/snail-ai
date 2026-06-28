@@ -16,8 +16,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * 回调：RAG 知识库搜索
- *
- * <p>客户端 KnowledgeSearchTool 通过 gRPC 调用此处理器执行检索， 观测责任由客户端承担。
+ * <p>
+ * 客户端 KnowledgeSearchTool 通过 gRPC 调用此处理器执行检索，
+ * 观测责任由客户端承担。
  */
 @Slf4j
 @Component
@@ -34,8 +35,7 @@ public class RagSearchCallbackHandler implements GrpcRequestHandler {
     @Override
     public GrpcSnailAiResult handle(GrpcHandlerRequest request) {
         try {
-            RagSearchRequest ragSearchRequest =
-                    JsonUtil.parseObject(request.getBody(), RagSearchRequest.class);
+            RagSearchRequest ragSearchRequest = JsonUtil.parseObject(request.getBody(), RagSearchRequest.class);
             Long ragId = ragSearchRequest.getRagId();
             String query = ragSearchRequest.getQuery();
             if (ragId == null || query == null || query.isBlank()) {
@@ -50,8 +50,7 @@ public class RagSearchCallbackHandler implements GrpcRequestHandler {
             RagSearchResponse ragSearchResponse = new RagSearchResponse();
             ragSearchResponse.setResults(resp.getResults());
             return GrpcSnailAiResult.newBuilder()
-                    .setStatus(1)
-                    .setMessage("OK")
+                    .setStatus(1).setMessage("OK")
                     .setData(JsonUtil.toJsonString(ragSearchResponse))
                     .build();
         } catch (Exception e) {

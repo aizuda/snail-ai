@@ -2,7 +2,9 @@ package com.aizuda.snail.ai.common.execption;
 
 import lombok.Getter;
 
-/** (复制自 snail-job) */
+/**
+ * (复制自 snail-job)
+ */
 @Getter
 public class SnailAiAuthenticationException extends BaseSnailAiException {
     private final Integer errorCode = 5001;

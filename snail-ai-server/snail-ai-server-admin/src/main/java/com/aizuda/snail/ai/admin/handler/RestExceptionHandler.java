@@ -9,9 +9,6 @@ import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.aizuda.snail.ai.common.util.StreamUtils;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.MediaType;
@@ -29,6 +26,10 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
 /**
  * @description: 400 统一异常处理
  * @author: byteblogs
@@ -38,20 +39,18 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 @Slf4j
 @ResponseBody
 public class RestExceptionHandler {
-    // 异常类型
+    //异常类型
     public static final String DELIMITER_TO = "@";
     public static final String DELIMITER_COLON = ":";
 
     private boolean isStreamingRequest() {
-        ServletRequestAttributes attrs =
-                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        ServletRequestAttributes attrs = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
         if (attrs == null) {
             return false;
         }
         String accept = attrs.getRequest().getHeader("Accept");
-        return accept != null
-                && (accept.contains(MediaType.TEXT_EVENT_STREAM_VALUE)
-                        || accept.contains("application/x-ndjson"));
+        return accept != null && (accept.contains(MediaType.TEXT_EVENT_STREAM_VALUE)
+                || accept.contains("application/x-ndjson"));
     }
 
     private Object streamingError(int status, String message) {
@@ -83,8 +82,7 @@ public class RestExceptionHandler {
     public Object onBusinessException(BaseSnailAiException ex) {
         log.error("Exception class businessException", ex);
         if (isStreamingRequest()) {
-            int code =
-                    (ex instanceof SnailAiAuthenticationException auth) ? auth.getErrorCode() : 0;
+            int code = (ex instanceof SnailAiAuthenticationException auth) ? auth.getErrorCode() : 0;
             return streamingError(code, ex.getMessage());
         }
         if (ex instanceof final SnailAiAuthenticationException authenticationException) {
@@ -118,11 +116,9 @@ public class RestExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     public Object onConstraintViolationException(ConstraintViolationException e) {
         Set<ConstraintViolation<?>> constraintViolations = e.getConstraintViolations();
-        String errorMessage =
-                CollUtil.isNotEmpty(constraintViolations)
-                        ? StreamUtils.join(
-                                constraintViolations, ConstraintViolation::getMessage, ";")
-                        : e.getMessage();
+        String errorMessage = CollUtil.isNotEmpty(constraintViolations)
+                ? StreamUtils.join(constraintViolations, ConstraintViolation::getMessage, ";")
+                : e.getMessage();
         if (isStreamingRequest()) {
             return streamingError(0, errorMessage);
         }
@@ -153,11 +149,7 @@ public class RestExceptionHandler {
                     if (DELIMITER_COLON.contains(defMsg)) {
                         sb.append(error.getField()).append(" ").append(defMsg);
                     } else {
-                        sb.append(error.getField())
-                                .append(" ")
-                                .append(defMsg)
-                                .append(":")
-                                .append(rejectedValue);
+                        sb.append(error.getField()).append(" ").append(defMsg).append(":").append(rejectedValue);
                     }
                 }
             } else {
@@ -183,17 +175,18 @@ public class RestExceptionHandler {
     @ExceptionHandler(HandlerMethodValidationException.class)
     public Object onHandlerMethodValidationException(HandlerMethodValidationException e) {
         Object[] detailMessageArguments = e.getDetailMessageArguments();
-        String message =
-                (detailMessageArguments != null && detailMessageArguments.length > 0)
-                        ? detailMessageArguments[0].toString()
-                        : "Parameter validation failed";
+        String message = (detailMessageArguments != null && detailMessageArguments.length > 0)
+                ? detailMessageArguments[0].toString()
+                : "Parameter validation failed";
         if (isStreamingRequest()) {
             return streamingError(0, message);
         }
         return new Result<String>(0, message);
     }
 
-    /** 400错误 */
+    /**
+     * 400错误
+     */
     @ExceptionHandler({TypeMismatchException.class})
     public Object requestTypeMismatch(TypeMismatchException ex) {
         log.error("Exception class TypeMismatchException {},", ex.getMessage());
@@ -203,7 +196,9 @@ public class RestExceptionHandler {
         return new Result<String>(0, AbstractError.PARAM_INCORRECT.toString());
     }
 
-    /** 400错误 */
+    /**
+     * 400错误
+     */
     @ExceptionHandler({MissingServletRequestParameterException.class})
     public Object requestMissingServletRequest(MissingServletRequestParameterException ex) {
         log.error("Exception class MissingServletRequestParameterException {},", ex.getMessage());
@@ -213,7 +208,9 @@ public class RestExceptionHandler {
         return new Result<String>(0, AbstractError.PARAM_INCORRECT.toString());
     }
 
-    /** 405错误 */
+    /**
+     * 405错误
+     */
     @ExceptionHandler({HttpRequestMethodNotSupportedException.class})
     @ResponseBody
     public Object request405() {
@@ -224,7 +221,9 @@ public class RestExceptionHandler {
         return new Result<String>(0, AbstractError.PARAM_INCORRECT.toString());
     }
 
-    /** 415错误 */
+    /**
+     * 415错误
+     */
     @ExceptionHandler({HttpMediaTypeNotSupportedException.class})
     public Object request415(HttpMediaTypeNotSupportedException ex) {
         log.error("Exception class HttpMediaTypeNotSupportedException {}", ex.getMessage());

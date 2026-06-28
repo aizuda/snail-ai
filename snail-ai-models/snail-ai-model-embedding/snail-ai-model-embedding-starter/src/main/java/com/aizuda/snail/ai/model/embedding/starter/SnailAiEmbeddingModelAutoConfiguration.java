@@ -6,10 +6,11 @@ import com.aizuda.snail.ai.model.common.ModelCapability;
 import com.aizuda.snail.ai.model.embedding.EmbeddingModelAdapter;
 import com.aizuda.snail.ai.model.embedding.EmbeddingModelRuntime;
 import com.aizuda.snail.ai.model.embedding.openai.OpenAiCompatibleEmbeddingModelAdapter;
-import java.util.List;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
+
+import java.util.List;
 
 @AutoConfiguration
 public class SnailAiEmbeddingModelAutoConfiguration {

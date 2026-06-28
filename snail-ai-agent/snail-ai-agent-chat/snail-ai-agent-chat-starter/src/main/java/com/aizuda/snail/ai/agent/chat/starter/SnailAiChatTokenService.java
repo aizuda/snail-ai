@@ -11,6 +11,7 @@ import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
+
 import java.time.Instant;
 import java.util.Date;
 import java.util.Objects;
@@ -40,8 +41,7 @@ public class SnailAiChatTokenService {
         }
 
         try {
-            JWTVerifier verifier =
-                    JWT.require(Algorithm.HMAC256(agentProperties.getToken())).build();
+            JWTVerifier verifier = JWT.require(Algorithm.HMAC256(agentProperties.getToken())).build();
             DecodedJWT jwt = verifier.verify(token);
             String openId = claimAsString(jwt, CLAIM_OPEN_ID);
             if (StrUtil.isBlank(openId)) {

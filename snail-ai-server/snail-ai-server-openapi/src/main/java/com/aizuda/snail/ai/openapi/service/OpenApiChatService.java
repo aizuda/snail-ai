@@ -12,14 +12,15 @@ import com.aizuda.snail.ai.feature.agent.stream.ChatStreamWriter;
 import com.aizuda.snail.ai.openapi.security.OpenApiSessionUtils;
 import com.aizuda.snail.ai.openapi.stream.CollectingChatStreamWriter;
 import com.aizuda.snail.ai.persistence.admin.po.UserPO;
-import java.util.UUID;
-import java.util.concurrent.TimeoutException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
+
+import java.util.UUID;
+import java.util.concurrent.TimeoutException;
 
 /**
  * OpenAPI 对话服务
@@ -36,72 +37,66 @@ public class OpenApiChatService {
     private final OpenApiUserResolver openApiUserResolver;
     private final AgentChatService agentChatService;
 
-    /** 流式对话 — 返回 OpenAPI 事件流 */
+    /**
+     * 流式对话 — 返回 OpenAPI 事件流
+     */
     public Flux<OpenApiChatStreamEvent> chatStream(OpenApiChatRequest request) {
         UserPO requestUser = resolveRequestUser(request.getOpenId());
 
-        String sid =
-                StringUtils.hasText(request.getSid())
-                        ? request.getSid()
-                        : UUID.randomUUID().toString();
+        String sid = StringUtils.hasText(request.getSid())
+                ? request.getSid()
+                : UUID.randomUUID().toString();
 
-        return Flux.create(
-                sink -> {
-                    ChatStreamState state = new ChatStreamState(request.getConversationId());
+        return Flux.create(sink -> {
+            ChatStreamState state = new ChatStreamState(request.getConversationId());
 
-                    Thread.startVirtualThread(
-                            () -> {
-                                try {
-                                    agentChatService.chat(
-                                            AgentChatCommand.builder()
-                                                    .agentId(request.getAgentId())
-                                                    .conversationId(request.getConversationId())
-                                                    .content(request.getContent())
-                                                    .disabledMcpServerIds(
-                                                            request.getDisabledMcpServerIds())
-                                                    .disabledSkillIds(request.getDisabledSkillIds())
-                                                    .streamWriter(
-                                                            new FluxBridgeChatStreamWriter(
-                                                                    sink, state))
-                                                    .requestUser(requestUser)
-                                                    .openId(request.getOpenId())
-                                                    .sid(sid)
-                                                    .build());
-                                } catch (Exception e) {
-                                    log.error("Chat stream error", e);
-                                    emitError(sink, state, e);
-                                    complete(sink);
-                                }
-                            });
+            Thread.startVirtualThread(() -> {
+                try {
+                    agentChatService.chat(AgentChatCommand.builder()
+                            .agentId(request.getAgentId())
+                            .conversationId(request.getConversationId())
+                            .content(request.getContent())
+                            .disabledMcpServerIds(request.getDisabledMcpServerIds())
+                            .disabledSkillIds(request.getDisabledSkillIds())
+                            .streamWriter(new FluxBridgeChatStreamWriter(sink, state))
+                            .requestUser(requestUser)
+                            .openId(request.getOpenId())
+                            .sid(sid)
+                            .build());
+                } catch (Exception e) {
+                    log.error("Chat stream error", e);
+                    emitError(sink, state, e);
+                    complete(sink);
+                }
+            });
 
-                    sink.onCancel(() -> log.debug("Chat stream cancelled"));
-                },
-                FluxSink.OverflowStrategy.BUFFER);
+            sink.onCancel(() -> log.debug("Chat stream cancelled"));
+        }, FluxSink.OverflowStrategy.BUFFER);
     }
 
-    /** 同步对话 — 阻塞等待完整响应 */
+    /**
+     * 同步对话 — 阻塞等待完整响应
+     */
     public OpenApiChatSyncResponse chatSync(OpenApiChatRequest request) {
         long start = System.currentTimeMillis();
         CollectingChatStreamWriter collector = new CollectingChatStreamWriter();
         UserPO requestUser = resolveRequestUser(request.getOpenId());
 
-        String sid =
-                StringUtils.hasText(request.getSid())
-                        ? request.getSid()
-                        : UUID.randomUUID().toString();
+        String sid = StringUtils.hasText(request.getSid())
+                ? request.getSid()
+                : UUID.randomUUID().toString();
 
-        agentChatService.chat(
-                AgentChatCommand.builder()
-                        .agentId(request.getAgentId())
-                        .conversationId(request.getConversationId())
-                        .content(request.getContent())
-                        .disabledMcpServerIds(request.getDisabledMcpServerIds())
-                        .disabledSkillIds(request.getDisabledSkillIds())
-                        .streamWriter(collector)
-                        .requestUser(requestUser)
-                        .openId(request.getOpenId())
-                        .sid(sid)
-                        .build());
+        agentChatService.chat(AgentChatCommand.builder()
+                .agentId(request.getAgentId())
+                .conversationId(request.getConversationId())
+                .content(request.getContent())
+                .disabledMcpServerIds(request.getDisabledMcpServerIds())
+                .disabledSkillIds(request.getDisabledSkillIds())
+                .streamWriter(collector)
+                .requestUser(requestUser)
+                .openId(request.getOpenId())
+                .sid(sid)
+                .build());
 
         try {
             String fullText = collector.awaitAndGetFullText(SYNC_CHAT_TIMEOUT_MS);
@@ -123,10 +118,8 @@ public class OpenApiChatService {
         return openApiUserResolver.resolvePlatformUser(appId, openId);
     }
 
-    private void emitError(
-            FluxSink<OpenApiChatStreamEvent> sink, ChatStreamState state, Throwable error) {
-        String message =
-                error != null && error.getMessage() != null ? error.getMessage() : "Unknown error";
+    private void emitError(FluxSink<OpenApiChatStreamEvent> sink, ChatStreamState state, Throwable error) {
+        String message = error != null && error.getMessage() != null ? error.getMessage() : "Unknown error";
         emit(sink, OpenApiChatStreamEvent.error(message));
         state.doneSent = true;
     }
@@ -161,14 +154,15 @@ public class OpenApiChatService {
         }
     }
 
-    /** 桥接 ChatStreamWriter → FluxSink，将回调式推送转为响应式流 */
+    /**
+     * 桥接 ChatStreamWriter → FluxSink，将回调式推送转为响应式流
+     */
     private class FluxBridgeChatStreamWriter implements ChatStreamWriter {
 
         private final FluxSink<OpenApiChatStreamEvent> sink;
         private final ChatStreamState state;
 
-        private FluxBridgeChatStreamWriter(
-                FluxSink<OpenApiChatStreamEvent> sink, ChatStreamState state) {
+        private FluxBridgeChatStreamWriter(FluxSink<OpenApiChatStreamEvent> sink, ChatStreamState state) {
             this.sink = sink;
             this.state = state;
         }
@@ -188,7 +182,8 @@ public class OpenApiChatService {
                 }
                 case ChatStreamResponse.TYPE_THINKING ->
                         emit(sink, OpenApiChatStreamEvent.thinking(data));
-                default -> emit(sink, OpenApiChatStreamEvent.of(response.getType(), data));
+                default ->
+                        emit(sink, OpenApiChatStreamEvent.of(response.getType(), data));
             }
         }
 

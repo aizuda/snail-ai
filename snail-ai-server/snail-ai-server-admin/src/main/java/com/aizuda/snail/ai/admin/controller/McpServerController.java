@@ -1,20 +1,21 @@
 package com.aizuda.snail.ai.admin.controller;
 
+import com.aizuda.snail.ai.common.model.Result;
 import com.aizuda.snail.ai.admin.security.annotation.LoginRequired;
-import com.aizuda.snail.ai.admin.service.mcp.McpServerService;
 import com.aizuda.snail.ai.admin.vo.PageResult;
 import com.aizuda.snail.ai.admin.vo.mcp.McpServerQueryVO;
 import com.aizuda.snail.ai.admin.vo.mcp.McpServerRequestVO;
 import com.aizuda.snail.ai.admin.vo.mcp.McpServerResponseVO;
-import com.aizuda.snail.ai.common.model.Result;
-import java.util.List;
+import com.aizuda.snail.ai.admin.service.mcp.McpServerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * MCP 服务管理接口：MCP 服务的分页、CRUD、连通性测试与列表查询。
- *
- * <p>全部端点均需 ADMIN 角色。
+ * <p>
+ * 全部端点均需 ADMIN 角色。
  */
 @RestController
 @RequestMapping("/mcp-server")
@@ -47,8 +48,8 @@ public class McpServerController {
     /** 更新 MCP 服务（管理员）。 */
     @PutMapping("/{id}")
     @LoginRequired
-    public Result<McpServerResponseVO> update(
-            @PathVariable("id") Long id, @RequestBody McpServerRequestVO request) {
+    public Result<McpServerResponseVO> update(@PathVariable("id") Long id,
+                                               @RequestBody McpServerRequestVO request) {
         return Result.ok(mcpServerService.update(id, request));
     }
 

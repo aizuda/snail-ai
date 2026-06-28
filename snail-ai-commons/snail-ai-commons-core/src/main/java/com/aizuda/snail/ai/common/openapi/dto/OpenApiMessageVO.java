@@ -5,7 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/** OpenAPI 消息记录 */
+/**
+ * OpenAPI 消息记录
+ */
 @Data
 @Builder
 @AllArgsConstructor

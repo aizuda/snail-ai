@@ -2,7 +2,8 @@ package com.aizuda.snail.ai.search.storage.search.constant;
 
 public final class SearchMetadataKeys {
 
-    private SearchMetadataKeys() {}
+    private SearchMetadataKeys() {
+    }
 
     public static final String INDEX_NAME = "indexName";
     public static final String RAG_ID = "ragId";

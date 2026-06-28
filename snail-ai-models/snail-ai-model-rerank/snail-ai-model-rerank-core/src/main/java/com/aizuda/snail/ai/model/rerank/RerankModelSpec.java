@@ -8,4 +8,5 @@ public record RerankModelSpec(
         String baseUrl,
         String apiKey,
         String modelKey,
-        ConfigExtAttrsDTO configJson) {}
+        ConfigExtAttrsDTO configJson) {
+}

@@ -2,7 +2,9 @@ package com.aizuda.snail.ai.agent.core.executor.model;
 
 import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
 
-/** 客户端模型配置校验器。 */
+/**
+ * 客户端模型配置校验器。
+ */
 public class ClientModelConfigValidator {
 
     public void validate(ChatDispatchRequest.ModelConfig modelConfig) {

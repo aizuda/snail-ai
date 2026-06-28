@@ -1,9 +1,10 @@
 package com.aizuda.snail.ai.route;
 
 import com.aizuda.snail.ai.ClientInstanceManager.ClientInstanceInfo;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
-import org.springframework.stereotype.Component;
 
 /**
  * 随机路由策略
@@ -27,7 +28,6 @@ public class RandomClientRoute implements ClientRouteStrategy {
 
     /**
      * 生成随机索引
-     *
      * @param candidateSize 候选实例数量
      * @return 随机索引
      */

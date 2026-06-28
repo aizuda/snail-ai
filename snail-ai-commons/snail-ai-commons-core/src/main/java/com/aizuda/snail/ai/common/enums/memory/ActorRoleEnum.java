@@ -7,11 +7,13 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum ActorRoleEnum {
+
     USER(1, "用户"),
     AGENT(2, "智能体"),
     SYSTEM(3, "系统");
 
-    @EnumValue private final Integer role;
+    @EnumValue
+    private final Integer role;
     private final String description;
 
     public static ActorRoleEnum fromRole(Integer role) {

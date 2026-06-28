@@ -2,18 +2,18 @@ package com.aizuda.snail.ai.admin.service.mcp;
 
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
-import com.aizuda.snail.ai.admin.vo.PageResult;
-import com.aizuda.snail.ai.admin.vo.mcp.McpServerQueryVO;
-import com.aizuda.snail.ai.admin.vo.mcp.McpServerRequestVO;
-import com.aizuda.snail.ai.admin.vo.mcp.McpServerResponseVO;
 import com.aizuda.snail.ai.common.enums.mcp.McpAuthTypeEnum;
 import com.aizuda.snail.ai.common.enums.mcp.McpTransportTypeEnum;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.aizuda.snail.ai.persistence.agent.mapper.AgentMcpServerMapper;
-import com.aizuda.snail.ai.persistence.agent.po.AgentMcpServerPO;
 import com.aizuda.snail.ai.persistence.mcp.mapper.McpServerMapper;
+import com.aizuda.snail.ai.admin.vo.PageResult;
+import com.aizuda.snail.ai.persistence.agent.po.AgentMcpServerPO;
 import com.aizuda.snail.ai.persistence.mcp.po.McpServerPO;
+import com.aizuda.snail.ai.admin.vo.mcp.McpServerQueryVO;
+import com.aizuda.snail.ai.admin.vo.mcp.McpServerRequestVO;
+import com.aizuda.snail.ai.admin.vo.mcp.McpServerResponseVO;
 import com.aizuda.snail.ai.persistence.security.UserSessionUtils;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -26,17 +26,18 @@ import io.modelcontextprotocol.client.transport.StdioClientTransport;
 import io.modelcontextprotocol.json.McpJsonMapper;
 import io.modelcontextprotocol.json.jackson3.JacksonMcpJsonMapperSupplier;
 import io.modelcontextprotocol.spec.McpSchema;
+import tools.jackson.core.type.TypeReference;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import tools.jackson.core.type.TypeReference;
 
 @Slf4j
 @Service
@@ -49,36 +50,31 @@ public class McpServerService {
     private final McpServerMapper mcpServerMapper;
     private final AgentMcpServerMapper agentMcpServerMapper;
 
-    /** 分页查询 MCP 服务 */
+    /**
+     * 分页查询 MCP 服务
+     */
     public PageResult<List<McpServerResponseVO>> page(McpServerQueryVO query) {
         LambdaQueryWrapper<McpServerPO> wrapper = new LambdaQueryWrapper<>();
 
-        wrapper.like(
-                        StrUtil.isNotBlank(query.getKeyword()),
-                        McpServerPO::getName,
-                        query.getKeyword())
-                .eq(
-                        ObjUtil.isNotNull(query.getTransportType()),
-                        McpServerPO::getTransportType,
-                        query.getTransportType())
-                .between(
-                        ObjUtil.isNotNull(query.getStartDt())
-                                && ObjUtil.isNotNull(query.getEndDt()),
-                        McpServerPO::getCreateDt,
-                        query.getStartDt(),
-                        query.getEndDt())
+        wrapper.like(StrUtil.isNotBlank(query.getKeyword()), McpServerPO::getName, query.getKeyword())
+                .eq(ObjUtil.isNotNull(query.getTransportType()), McpServerPO::getTransportType, query.getTransportType())
+                .between(ObjUtil.isNotNull(query.getStartDt()) && ObjUtil.isNotNull(query.getEndDt()),
+                        McpServerPO::getCreateDt, query.getStartDt(), query.getEndDt())
                 .orderByDesc(McpServerPO::getCreateDt);
 
         PageDTO<McpServerPO> pageDTO = new PageDTO<>(query.getPage(), query.getSize());
         IPage<McpServerPO> page = mcpServerMapper.selectPage(pageDTO, wrapper);
 
-        List<McpServerResponseVO> records =
-                page.getRecords().stream().map(this::toResponseVO).collect(Collectors.toList());
+        List<McpServerResponseVO> records = page.getRecords().stream()
+                .map(this::toResponseVO)
+                .collect(Collectors.toList());
 
         return new PageResult<>(pageDTO, records);
     }
 
-    /** 获取 MCP 服务详情 */
+    /**
+     * 获取 MCP 服务详情
+     */
     public McpServerResponseVO getById(Long id) {
         McpServerPO po = mcpServerMapper.selectById(id);
         if (po == null) {
@@ -87,35 +83,33 @@ public class McpServerService {
         return toResponseVO(po);
     }
 
-    /** 创建 MCP 服务 */
+    /**
+     * 创建 MCP 服务
+     */
     public McpServerResponseVO create(McpServerRequestVO request) {
-        McpServerPO po =
-                McpServerPO.builder()
-                        .name(request.getName())
-                        .description(request.getDescription())
-                        .transportType(
-                                request.getTransportType() != null
-                                        ? request.getTransportType()
-                                        : McpTransportTypeEnum.STREAMABLE_HTTP.getValue())
-                        .baseUri(request.getBaseUri())
-                        .endpoint(request.getEndpoint())
-                        .command(request.getCommand())
-                        .args(toJson(request.getArgs()))
-                        .envVars(toJson(request.getEnvVars()))
-                        .version("1.0.0")
-                        .authType(
-                                request.getAuthType() != null
-                                        ? request.getAuthType()
-                                        : McpAuthTypeEnum.NONE.getType())
-                        .authConfig(toJson(request.getAuthConfig()))
-                        .capabilities(toJson(request.getCapabilities()))
-                        .creatorId(UserSessionUtils.currentUserSession().getId())
-                        .build();
+        McpServerPO po = McpServerPO.builder()
+                .name(request.getName())
+                .description(request.getDescription())
+                .transportType(request.getTransportType() != null ? request.getTransportType()
+                        : McpTransportTypeEnum.STREAMABLE_HTTP.getValue())
+                .baseUri(request.getBaseUri())
+                .endpoint(request.getEndpoint())
+                .command(request.getCommand())
+                .args(toJson(request.getArgs()))
+                .envVars(toJson(request.getEnvVars()))
+                .version("1.0.0")
+                .authType(request.getAuthType() != null ? request.getAuthType() : McpAuthTypeEnum.NONE.getType())
+                .authConfig(toJson(request.getAuthConfig()))
+                .capabilities(toJson(request.getCapabilities()))
+                .creatorId(UserSessionUtils.currentUserSession().getId())
+                .build();
         mcpServerMapper.insert(po);
         return toResponseVO(po);
     }
 
-    /** 更新 MCP 服务 */
+    /**
+     * 更新 MCP 服务
+     */
     public McpServerResponseVO update(Long id, McpServerRequestVO request) {
         McpServerPO po = mcpServerMapper.selectById(id);
         if (po == null) {
@@ -165,17 +159,20 @@ public class McpServerService {
         return toResponseVO(po);
     }
 
-    /** 删除 MCP 服务 */
+    /**
+     * 删除 MCP 服务
+     */
     @Transactional
     public void delete(Long id) {
         // 删除关联关系
         agentMcpServerMapper.delete(
-                new LambdaQueryWrapper<AgentMcpServerPO>()
-                        .eq(AgentMcpServerPO::getMcpServerId, id));
+                new LambdaQueryWrapper<AgentMcpServerPO>().eq(AgentMcpServerPO::getMcpServerId, id));
         mcpServerMapper.deleteById(id);
     }
 
-    /** 测试连接 */
+    /**
+     * 测试连接
+     */
     public boolean testConnection(Long id) {
         McpServerPO po = mcpServerMapper.selectById(id);
         if (po == null) {
@@ -199,47 +196,49 @@ public class McpServerService {
         return connected;
     }
 
-    /** 获取所有 MCP 服务（给智能体选择下拉使用） */
+    /**
+     * 获取所有 MCP 服务（给智能体选择下拉使用）
+     */
     public List<McpServerResponseVO> listAll() {
-        List<McpServerPO> list =
-                mcpServerMapper.selectList(
-                        new LambdaQueryWrapper<McpServerPO>()
-                                .orderByDesc(McpServerPO::getCreateDt));
+        List<McpServerPO> list = mcpServerMapper.selectList(
+                new LambdaQueryWrapper<McpServerPO>().orderByDesc(McpServerPO::getCreateDt));
         return list.stream().map(this::toResponseVO).collect(Collectors.toList());
     }
 
-    /** 获取智能体关联的 MCP 服务列表 */
+    /**
+     * 获取智能体关联的 MCP 服务列表
+     */
     public List<McpServerResponseVO> getByAgentId(Long agentId) {
-        List<AgentMcpServerPO> relations =
-                agentMcpServerMapper.selectList(
-                        new LambdaQueryWrapper<AgentMcpServerPO>()
-                                .eq(AgentMcpServerPO::getAgentId, agentId));
+        List<AgentMcpServerPO> relations = agentMcpServerMapper.selectList(
+                new LambdaQueryWrapper<AgentMcpServerPO>().eq(AgentMcpServerPO::getAgentId, agentId));
 
         if (relations.isEmpty()) {
             return Collections.emptyList();
         }
 
-        List<Long> serverIds =
-                relations.stream()
-                        .map(AgentMcpServerPO::getMcpServerId)
-                        .collect(Collectors.toList());
+        List<Long> serverIds = relations.stream()
+                .map(AgentMcpServerPO::getMcpServerId)
+                .collect(Collectors.toList());
         List<McpServerPO> servers = mcpServerMapper.selectByIds(serverIds);
         return servers.stream().map(this::toResponseVO).collect(Collectors.toList());
     }
 
-    /** 更新智能体的 MCP 服务关联 */
+    /**
+     * 更新智能体的 MCP 服务关联
+     */
     @Transactional
     public void updateAgentMcpServers(Long agentId, List<Long> mcpServerIds) {
         // 先删除旧关联
         agentMcpServerMapper.delete(
-                new LambdaQueryWrapper<AgentMcpServerPO>()
-                        .eq(AgentMcpServerPO::getAgentId, agentId));
+                new LambdaQueryWrapper<AgentMcpServerPO>().eq(AgentMcpServerPO::getAgentId, agentId));
 
         // 再插入新关联
         if (mcpServerIds != null && !mcpServerIds.isEmpty()) {
             for (Long serverId : mcpServerIds) {
-                AgentMcpServerPO relation =
-                        AgentMcpServerPO.builder().agentId(agentId).mcpServerId(serverId).build();
+                AgentMcpServerPO relation = AgentMcpServerPO.builder()
+                        .agentId(agentId)
+                        .mcpServerId(serverId)
+                        .build();
                 agentMcpServerMapper.insert(relation);
             }
         }
@@ -278,21 +277,22 @@ public class McpServerService {
         if (StrUtil.isBlank(json)) {
             return new ArrayList<>();
         }
-        return JsonUtil.parseObject(json, new TypeReference<List<String>>() {});
+        return JsonUtil.parseObject(json, new TypeReference<List<String>>() {
+        });
     }
 
     private Map<String, String> parseJsonMap(String json) {
         if (StrUtil.isBlank(json)) {
             return null;
         }
-        return JsonUtil.parseObject(json, new TypeReference<Map<String, String>>() {});
+        return JsonUtil.parseObject(json, new TypeReference<Map<String, String>>() {
+        });
     }
 
     private McpSyncClient createTestClient(McpServerPO server) {
-        Integer transportType =
-                server.getTransportType() != null
-                        ? server.getTransportType()
-                        : McpTransportTypeEnum.STREAMABLE_HTTP.getValue();
+        Integer transportType = server.getTransportType() != null
+                ? server.getTransportType()
+                : McpTransportTypeEnum.STREAMABLE_HTTP.getValue();
         McpTransportTypeEnum transportEnum = McpTransportTypeEnum.fromValue(transportType);
         if (transportEnum == null) {
             throw new SnailAiException("Unsupported MCP transport type: " + transportType);
@@ -314,8 +314,7 @@ public class McpServerService {
         String endpoint = server.getEndpoint();
 
         if (StrUtil.isNotBlank(baseUri)) {
-            HttpClientStreamableHttpTransport.Builder builder =
-                    HttpClientStreamableHttpTransport.builder(baseUri);
+            HttpClientStreamableHttpTransport.Builder builder = HttpClientStreamableHttpTransport.builder(baseUri);
             if (StrUtil.isNotBlank(endpoint)) {
                 builder.endpoint(endpoint);
             }
@@ -323,9 +322,8 @@ public class McpServerService {
         }
 
         if (StrUtil.isBlank(endpoint)) {
-            throw new SnailAiException(
-                    "Streamable HTTP transport requires baseUri or endpoint for MCP server: "
-                            + server.getName());
+            throw new SnailAiException("Streamable HTTP transport requires baseUri or endpoint for MCP server: "
+                    + server.getName());
         }
 
         return McpClient.sync(HttpClientStreamableHttpTransport.builder(endpoint).build()).build();
@@ -334,8 +332,7 @@ public class McpServerService {
     private McpSyncClient createStdioClient(McpServerPO server) {
         String command = server.getCommand();
         if (StrUtil.isBlank(command)) {
-            throw new SnailAiException(
-                    "Stdio transport requires command for MCP server: " + server.getName());
+            throw new SnailAiException("Stdio transport requires command for MCP server: " + server.getName());
         }
 
         ServerParameters.Builder paramsBuilder = ServerParameters.builder(command);
@@ -351,7 +348,8 @@ public class McpServerService {
         if (StrUtil.isBlank(argsJson)) {
             return;
         }
-        List<String> args = JsonUtil.parseObject(argsJson, new TypeReference<List<String>>() {});
+        List<String> args = JsonUtil.parseObject(argsJson, new TypeReference<List<String>>() {
+        });
         if (args != null && !args.isEmpty()) {
             paramsBuilder.args(args);
         }
@@ -361,8 +359,8 @@ public class McpServerService {
         if (StrUtil.isBlank(envVarsJson)) {
             return;
         }
-        Map<String, String> envVars =
-                JsonUtil.parseObject(envVarsJson, new TypeReference<Map<String, String>>() {});
+        Map<String, String> envVars = JsonUtil.parseObject(envVarsJson, new TypeReference<Map<String, String>>() {
+        });
         if (envVars != null && !envVars.isEmpty()) {
             paramsBuilder.env(envVars);
         }

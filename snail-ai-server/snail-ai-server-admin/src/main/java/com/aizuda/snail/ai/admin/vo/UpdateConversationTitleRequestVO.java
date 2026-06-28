@@ -11,6 +11,8 @@ import lombok.Data;
  */
 @Data
 public class UpdateConversationTitleRequestVO {
-    @NotBlank private String title;
-    @NotBlank private String conversationId;
+    @NotBlank
+    private String title;
+    @NotBlank
+    private String conversationId;
 }

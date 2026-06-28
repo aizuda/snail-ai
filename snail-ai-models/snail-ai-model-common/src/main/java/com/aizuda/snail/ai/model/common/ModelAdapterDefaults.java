@@ -11,23 +11,21 @@ public final class ModelAdapterDefaults {
     public static final String OPENAI_COMPATIBLE_ADAPTER = "openai-compatible";
     public static final String QWEN_RERANK = "qwen-rerank";
 
-    private static final ModelAdapterDescriptor CHAT_OPENAI_COMPATIBLE =
-            ModelAdapterDescriptor.of(
-                    OPENAI_COMPATIBLE_ADAPTER, "OpenAI Compatible", ModelCapability.CHAT);
-    private static final ModelAdapterDescriptor EMBEDDING_OPENAI_COMPATIBLE =
-            ModelAdapterDescriptor.of(
-                    OPENAI_COMPATIBLE_ADAPTER, "OpenAI Compatible", ModelCapability.EMBEDDING);
-    private static final ModelAdapterDescriptor RERANK =
-            ModelAdapterDescriptor.of(QWEN_RERANK, "QWEN RERANK", ModelCapability.RERANKER);
+    private static final ModelAdapterDescriptor CHAT_OPENAI_COMPATIBLE = ModelAdapterDescriptor.of(
+            OPENAI_COMPATIBLE_ADAPTER, "OpenAI Compatible", ModelCapability.CHAT);
+    private static final ModelAdapterDescriptor EMBEDDING_OPENAI_COMPATIBLE = ModelAdapterDescriptor.of(
+            OPENAI_COMPATIBLE_ADAPTER, "OpenAI Compatible", ModelCapability.EMBEDDING);
+    private static final ModelAdapterDescriptor RERANK = ModelAdapterDescriptor.of(
+            QWEN_RERANK, "QWEN RERANK", ModelCapability.RERANKER);
 
-    private ModelAdapterDefaults() {}
+    private ModelAdapterDefaults() {
+    }
 
     public static String resolve(String adapterKey, String modelType) {
         if (adapterKey != null && !adapterKey.isBlank()) {
             return adapterKey.trim();
         }
-        if (CHAT_MODEL_TYPE.equalsIgnoreCase(modelType)
-                || EMBEDDING_MODEL_TYPE.equalsIgnoreCase(modelType)) {
+        if (CHAT_MODEL_TYPE.equalsIgnoreCase(modelType) || EMBEDDING_MODEL_TYPE.equalsIgnoreCase(modelType)) {
             return OPENAI_COMPATIBLE_ADAPTER;
         }
         if (RERANKER_MODEL_TYPE.equalsIgnoreCase(modelType)) {

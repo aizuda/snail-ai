@@ -1,6 +1,8 @@
 package com.aizuda.snail.ai.common.constants;
 
-/** 向量存储元数据键名常量 */
+/**
+ * 向量存储元数据键名常量
+ */
 public final class VectorMetadataKeys {
 
     private VectorMetadataKeys() {}
@@ -10,4 +12,5 @@ public final class VectorMetadataKeys {
     public static final String CONVERSATION_ID = "conversationId";
     public static final String MEMORY_TYPE = "memoryType";
     public static final String TITLE = "title";
+
 }

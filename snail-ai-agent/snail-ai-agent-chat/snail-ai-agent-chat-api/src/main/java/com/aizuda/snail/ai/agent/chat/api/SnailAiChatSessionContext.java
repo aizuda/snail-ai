@@ -6,7 +6,8 @@ public final class SnailAiChatSessionContext {
 
     private static final ThreadLocal<SnailAiChatSession> SESSION = new ThreadLocal<>();
 
-    private SnailAiChatSessionContext() {}
+    private SnailAiChatSessionContext() {
+    }
 
     public static void set(SnailAiChatSession session) {
         SESSION.set(session);
@@ -17,8 +18,7 @@ public final class SnailAiChatSessionContext {
     }
 
     public static SnailAiChatSession current() {
-        return get().orElseThrow(
-                        () -> new IllegalStateException("Snail AI chat session not initialized"));
+        return get().orElseThrow(() -> new IllegalStateException("Snail AI chat session not initialized"));
     }
 
     public static void clear() {

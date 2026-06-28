@@ -4,13 +4,14 @@ import com.aizuda.snail.ai.common.model.ConfigExtAttrsDTO;
 import com.aizuda.snail.ai.model.common.ModelAdapterDefaults;
 import com.aizuda.snail.ai.model.embedding.EmbeddingModelAdapter;
 import com.aizuda.snail.ai.model.embedding.EmbeddingModelSpec;
-import java.time.Duration;
-import java.util.Locale;
 import org.springframework.ai.document.MetadataMode;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.openai.OpenAiEmbeddingModel;
 import org.springframework.ai.openai.OpenAiEmbeddingOptions;
 import org.springframework.core.Ordered;
+
+import java.time.Duration;
+import java.util.Locale;
 
 public class OpenAiCompatibleEmbeddingModelAdapter implements EmbeddingModelAdapter, Ordered {
 
@@ -33,21 +34,19 @@ public class OpenAiCompatibleEmbeddingModelAdapter implements EmbeddingModelAdap
 
     private OpenAiEmbeddingOptions buildOptions(EmbeddingModelSpec spec) {
         ConfigExtAttrsDTO config = spec.configJson();
-        OpenAiEmbeddingOptions.Builder builder =
-                OpenAiEmbeddingOptions.builder()
-                        .baseUrl(spec.baseUrl())
-                        .apiKey(spec.apiKey())
-                        .model(spec.modelKey())
-                        .timeout(Duration.ofMillis(readTimeoutMs(config)))
-                        .maxRetries(readMaxRetries(config));
+        OpenAiEmbeddingOptions.Builder builder = OpenAiEmbeddingOptions.builder()
+                .baseUrl(spec.baseUrl())
+                .apiKey(spec.apiKey())
+                .model(spec.modelKey())
+                .timeout(Duration.ofMillis(readTimeoutMs(config)))
+                .maxRetries(readMaxRetries(config));
         if (config == null) {
             return builder.build();
         }
         if (config.getEmbeddingDimension() != null) {
             builder.dimensions(config.getEmbeddingDimension());
         }
-        OpenAiEmbeddingOptions.EncodingFormat encodingFormat =
-                parseEncodingFormat(config.getEncodingFormat());
+        OpenAiEmbeddingOptions.EncodingFormat encodingFormat = parseEncodingFormat(config.getEncodingFormat());
         if (encodingFormat != null) {
             builder.encodingFormat(encodingFormat);
         }
@@ -59,8 +58,7 @@ public class OpenAiCompatibleEmbeddingModelAdapter implements EmbeddingModelAdap
             return null;
         }
         try {
-            return OpenAiEmbeddingOptions.EncodingFormat.valueOf(
-                    encodingFormat.trim().toUpperCase(Locale.ROOT));
+            return OpenAiEmbeddingOptions.EncodingFormat.valueOf(encodingFormat.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
             return null;
         }

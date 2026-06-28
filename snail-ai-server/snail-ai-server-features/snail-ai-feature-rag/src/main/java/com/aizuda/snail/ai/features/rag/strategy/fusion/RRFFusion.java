@@ -1,11 +1,14 @@
 package com.aizuda.snail.ai.features.rag.strategy.fusion;
 
 import com.aizuda.snail.ai.common.dto.rag.SearchResult;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Reciprocal Rank Fusion: score = 1 / (k + rank) */
+/**
+ * Reciprocal Rank Fusion: score = 1 / (k + rank)
+ */
 public class RRFFusion implements HybridFusion {
 
     private final int k;
@@ -15,8 +18,9 @@ public class RRFFusion implements HybridFusion {
     }
 
     @Override
-    public List<SearchResult> fuse(
-            List<SearchResult> vectorResults, List<SearchResult> bm25Results, int outputSize) {
+    public List<SearchResult> fuse(List<SearchResult> vectorResults,
+                                   List<SearchResult> bm25Results,
+                                   int outputSize) {
         Map<Long, Double> scores = new HashMap<>();
         Map<Long, SearchResult> resultMap = new HashMap<>();
 
@@ -35,13 +39,11 @@ public class RRFFusion implements HybridFusion {
         return scores.entrySet().stream()
                 .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
                 .limit(outputSize)
-                .map(
-                        e ->
-                                SearchResult.builder()
-                                        .chunkId(e.getKey())
-                                        .content(resultMap.get(e.getKey()).getContent())
-                                        .score(e.getValue())
-                                        .build())
+                .map(e -> SearchResult.builder()
+                        .chunkId(e.getKey())
+                        .content(resultMap.get(e.getKey()).getContent())
+                        .score(e.getValue())
+                        .build())
                 .toList();
     }
 }

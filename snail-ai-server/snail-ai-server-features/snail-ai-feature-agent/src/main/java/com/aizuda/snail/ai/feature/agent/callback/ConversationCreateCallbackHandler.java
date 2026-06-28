@@ -17,7 +17,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-/** 回调：创建对话 + 保存用户消息 */
+/**
+ * 回调：创建对话 + 保存用户消息
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -34,41 +36,29 @@ public class ConversationCreateCallbackHandler implements GrpcRequestHandler {
     @Override
     public GrpcSnailAiResult handle(GrpcHandlerRequest request) {
         try {
-            ConversationCreateRequest req =
-                    JsonUtil.parseObject(request.getBody(), ConversationCreateRequest.class);
+            ConversationCreateRequest req = JsonUtil.parseObject(request.getBody(), ConversationCreateRequest.class);
 
             // 创建对话（如不存在）
-            long count =
-                    conversationMapper.selectCount(
-                            new LambdaQueryWrapper<AgentConversationPO>()
-                                    .eq(
-                                            AgentConversationPO::getConversationId,
-                                            req.getConversationId()));
+            long count = conversationMapper.selectCount(
+                    new LambdaQueryWrapper<AgentConversationPO>()
+                            .eq(AgentConversationPO::getConversationId, req.getConversationId()));
             if (count == 0) {
                 String content = req.getUserMessage();
-                String title =
-                        content != null && content.length() > 16
-                                ? content.substring(0, 16)
-                                : content;
-                conversationMapper.insert(
-                        AgentConversationPO.builder()
-                                .agentId(req.getAgentId())
-                                .userId(req.getUserId())
-                                .conversationId(req.getConversationId())
-                                .title(title)
-                                .build());
+                String title = content != null && content.length() > 16
+                        ? content.substring(0, 16) : content;
+                conversationMapper.insert(AgentConversationPO.builder()
+                        .agentId(req.getAgentId()).userId(req.getUserId())
+                        .conversationId(req.getConversationId()).title(title)
+                        .build());
             }
 
             // 保存用户消息
-            recordMapper.insert(
-                    AgentConversationRecordPO.builder()
-                            .agentId(req.getAgentId())
-                            .conversationId(req.getConversationId())
-                            .userId(req.getUserId())
-                            .role(ConversationRoleEnum.USER.getValue())
-                            .content(req.getUserMessage())
-                            .status(StatusEnum.RUNNING.getValue())
-                            .build());
+            recordMapper.insert(AgentConversationRecordPO.builder()
+                    .agentId(req.getAgentId()).conversationId(req.getConversationId()).userId(req.getUserId())
+                    .role(ConversationRoleEnum.USER.getValue())
+                    .content(req.getUserMessage())
+                    .status(StatusEnum.RUNNING.getValue())
+                    .build());
 
             return buildSuccess();
         } catch (Exception e) {

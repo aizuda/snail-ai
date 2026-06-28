@@ -31,11 +31,6 @@ import com.aizuda.snail.ai.openapi.client.core.api.OpenApiConversationClient;
 import com.aizuda.snail.ai.openapi.client.core.api.OpenApiEmbedClient;
 import com.aizuda.snail.ai.openapi.client.core.config.SnailAiOpenApiProperties;
 import jakarta.validation.Valid;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
@@ -48,6 +43,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Validated
 @RestController
@@ -85,22 +86,17 @@ public class SnailAiChatGatewayController {
     public Result<Map<String, Object>> config() {
         Map<String, Object> config = new LinkedHashMap<>();
         config.put(CONFIG_KEY_GATEWAY_PATH, SnailAiChatConstants.GATEWAY_PATH);
-        config.put(
-                CONFIG_KEY_PAGE_TITLE,
-                StrUtil.blankToDefault(
-                        chatProperties.getUi().getPageTitle(),
-                        SnailAiChatProperties.DEFAULT_PAGE_TITLE));
-        config.put(
-                CONFIG_KEY_LOGO,
-                StrUtil.nullToDefault(chatProperties.getUi().getLogo(), DEFAULT_LOGO));
+        config.put(CONFIG_KEY_PAGE_TITLE, StrUtil.blankToDefault(
+                chatProperties.getUi().getPageTitle(),
+                SnailAiChatProperties.DEFAULT_PAGE_TITLE));
+        config.put(CONFIG_KEY_LOGO, StrUtil.nullToDefault(chatProperties.getUi().getLogo(), DEFAULT_LOGO));
         config.put(CONFIG_KEY_RESOURCE_BASE_URL, resolveResourceBaseUrl());
         putEmbedConfig(config, chatProperties.getUi().getEmbed());
         return Result.ok(config);
     }
 
     @PostMapping("/session")
-    public Result<OpenApiEmbedTokenResponse> session(
-            @RequestBody @Valid OpenApiEmbedTokenRequest request) {
+    public Result<OpenApiEmbedTokenResponse> session(@RequestBody @Valid OpenApiEmbedTokenRequest request) {
         request.setOpenId(StrUtil.trim(request.getOpenId()));
         request.setTrustedCredential(trimToNull(request.getTrustedCredential()));
         request.setTtlSeconds(chatProperties.getSession().getTokenTtlSeconds());
@@ -167,17 +163,15 @@ public class SnailAiChatGatewayController {
 
     @SnailAiChatAuthorize
     @PostMapping("/conversations")
-    public Result<OpenApiConversationVO> createConversation(
-            @RequestBody OpenApiCreateConversationRequest request) {
+    public Result<OpenApiConversationVO> createConversation(@RequestBody OpenApiCreateConversationRequest request) {
         request.setOpenId(currentOpenId());
         return openApiConversationClient.createConversation(request);
     }
 
     @SnailAiChatAuthorize
     @DeleteMapping(value = "/conversations", params = "conversationId")
-    public Result<Void> deleteConversation(
-            @RequestParam("agentId") Long agentId,
-            @RequestParam("conversationId") String conversationId) {
+    public Result<Void> deleteConversation(@RequestParam("agentId") Long agentId,
+                                           @RequestParam("conversationId") String conversationId) {
         OpenApiConversationIdentityRequest request = new OpenApiConversationIdentityRequest();
         request.setAgentId(agentId);
         request.setConversationId(conversationId);
@@ -196,9 +190,8 @@ public class SnailAiChatGatewayController {
 
     @SnailAiChatAuthorize
     @GetMapping({"/messages", "/conversations/messages"})
-    public Result<List<OpenApiMessageVO>> getMessages(
-            @RequestParam("agentId") Long agentId,
-            @RequestParam("conversationId") String conversationId) {
+    public Result<List<OpenApiMessageVO>> getMessages(@RequestParam("agentId") Long agentId,
+                                                       @RequestParam("conversationId") String conversationId) {
         OpenApiConversationIdentityRequest request = new OpenApiConversationIdentityRequest();
         request.setAgentId(agentId);
         request.setConversationId(conversationId);
@@ -210,13 +203,10 @@ public class SnailAiChatGatewayController {
     @PostMapping(value = "/completions", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<String>> completions(@RequestBody OpenApiChatRequest request) {
         request.setOpenId(currentOpenId());
-        return openApiChatClient
-                .chatStream(request)
-                .map(
-                        event ->
-                                ServerSentEvent.<String>builder(event.getData())
-                                        .event(event.getType())
-                                        .build());
+        return openApiChatClient.chatStream(request)
+                .map(event -> ServerSentEvent.<String>builder(event.getData())
+                        .event(event.getType())
+                        .build());
     }
 
     private String currentOpenId() {
@@ -231,8 +221,7 @@ public class SnailAiChatGatewayController {
         return StrUtil.isBlank(value) ? null : value.trim();
     }
 
-    private void putEmbedConfig(
-            Map<String, Object> config, SnailAiChatProperties.Embed embedProperties) {
+    private void putEmbedConfig(Map<String, Object> config, SnailAiChatProperties.Embed embedProperties) {
         if (embedProperties == null) {
             return;
         }
@@ -270,8 +259,9 @@ public class SnailAiChatGatewayController {
         }
 
         String protocol = openApiProperties.isHttps() ? HTTPS_PROTOCOL : HTTP_PROTOCOL;
-        StringBuilder url =
-                new StringBuilder(protocol).append("://").append(host.replaceAll("/$", ""));
+        StringBuilder url = new StringBuilder(protocol)
+                .append("://")
+                .append(host.replaceAll("/$", ""));
         appendPort(url);
         appendPrefix(url);
         return url.toString();
@@ -279,9 +269,8 @@ public class SnailAiChatGatewayController {
 
     private void appendPort(StringBuilder url) {
         int port = openApiProperties.getWebPort();
-        boolean defaultPort =
-                (openApiProperties.isHttps() && port == HTTPS_DEFAULT_PORT)
-                        || (!openApiProperties.isHttps() && port == HTTP_DEFAULT_PORT);
+        boolean defaultPort = (openApiProperties.isHttps() && port == HTTPS_DEFAULT_PORT)
+                || (!openApiProperties.isHttps() && port == HTTP_DEFAULT_PORT);
         if (!defaultPort) {
             url.append(":").append(port);
         }
@@ -302,12 +291,11 @@ public class SnailAiChatGatewayController {
         if (credentialValidators == null || credentialValidators.isEmpty()) {
             return;
         }
-        SnailAiChatSession session =
-                SnailAiChatSession.builder()
-                        .appId(agentProperties.getAppId())
-                        .openId(request.getOpenId())
-                        .trustedCredential(request.getTrustedCredential())
-                        .build();
+        SnailAiChatSession session = SnailAiChatSession.builder()
+                .appId(agentProperties.getAppId())
+                .openId(request.getOpenId())
+                .trustedCredential(request.getTrustedCredential())
+                .build();
         for (SnailAiChatCredentialValidator validator : credentialValidators) {
             validator.validate(session);
         }
@@ -341,12 +329,13 @@ public class SnailAiChatGatewayController {
 
     private Set<Long> subscribedAgentIds() {
         try {
-            List<OpenApiAgentVO> userAgents =
-                    requireData(openApiAgentClient.listUserAgents(userQuery()));
+            List<OpenApiAgentVO> userAgents = requireData(openApiAgentClient.listUserAgents(userQuery()));
             if (userAgents == null || userAgents.isEmpty()) {
                 return Set.of();
             }
-            return userAgents.stream().map(OpenApiAgentVO::getId).collect(Collectors.toSet());
+            return userAgents.stream()
+                    .map(OpenApiAgentVO::getId)
+                    .collect(Collectors.toSet());
         } catch (RuntimeException ignored) {
             return Set.of();
         }

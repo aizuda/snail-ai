@@ -15,13 +15,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface OpenApiMapping {
     String path();
-
     HttpMethod method() default HttpMethod.GET;
 
     enum HttpMethod {
-        GET,
-        POST,
-        PUT,
-        DELETE
+        GET, POST, PUT, DELETE
     }
 }

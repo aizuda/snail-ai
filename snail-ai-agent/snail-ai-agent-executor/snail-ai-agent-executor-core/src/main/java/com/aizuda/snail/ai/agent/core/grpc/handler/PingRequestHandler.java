@@ -10,7 +10,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
-/** 客户端 Ping：{@link UriConstants#PING} */
+/**
+ * 客户端 Ping：{@link UriConstants#PING}
+ */
 @RequiredArgsConstructor
 public class PingRequestHandler implements GrpcRequestHandler {
 
@@ -25,19 +27,20 @@ public class PingRequestHandler implements GrpcRequestHandler {
 
     @Override
     public GrpcSnailAiResult handle(GrpcHandlerRequest request) {
-        PingResponse response =
-                PingResponse.builder()
-                        .timestamp(System.currentTimeMillis())
-                        .activeChats(activeChatCounter.get())
-                        .build();
-
+        PingResponse response = PingResponse.builder()
+                .timestamp(System.currentTimeMillis())
+                .activeChats(activeChatCounter.get())
+                .build();
+        
         return GrpcSnailAiResult.newBuilder()
                 .setStatus(REQUEST_STATUS_SUCCESS)
                 .setData(JsonUtil.toJsonString(response))
                 .build();
     }
 
-    /** Ping 响应数据 */
+    /**
+     * Ping 响应数据
+     */
     @Data
     @Builder
     private static class PingResponse {

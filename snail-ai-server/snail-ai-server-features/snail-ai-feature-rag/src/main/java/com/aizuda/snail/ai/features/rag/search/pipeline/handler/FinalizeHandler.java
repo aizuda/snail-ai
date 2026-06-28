@@ -9,12 +9,13 @@ import com.aizuda.snail.ai.persistence.rag.mapper.RagDocumentMapper;
 import com.aizuda.snail.ai.persistence.rag.po.RagChunkPO;
 import com.aizuda.snail.ai.persistence.rag.po.RagDocumentPO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import java.util.*;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -32,7 +33,7 @@ public class FinalizeHandler implements RagSearchHandler {
         enrichWithContent(results);
 
         // 扩展相邻切片
-        Integer nearbySliceCount = ctx.getModelParams().getNearbySliceCount();
+        Integer nearbySliceCount = ctx.getModelParams().getNearbySliceCount() ;
         if (Objects.nonNull(nearbySliceCount) && nearbySliceCount > 0) {
             results = expandNearbySlices(results, nearbySliceCount);
         }
@@ -44,10 +45,8 @@ public class FinalizeHandler implements RagSearchHandler {
             ctx.getMetrics().setFinalCount(results.size());
         }
 
-        log.info(
-                "RAG search: query='{}', ragId={}, vec={}, bm25={}, final={}, ms={}",
-                ctx.getQuery(),
-                ctx.getRagId(),
+        log.info("RAG search: query='{}', ragId={}, vec={}, bm25={}, final={}, ms={}",
+                ctx.getQuery(), ctx.getRagId(),
                 ctx.getMetrics() != null ? ctx.getMetrics().getVectorHitCount() : 0,
                 ctx.getMetrics() != null ? ctx.getMetrics().getBm25HitCount() : 0,
                 results.size(),
@@ -66,39 +65,38 @@ public class FinalizeHandler implements RagSearchHandler {
                 expanded.add(result);
                 continue;
             }
-            List<RagChunkPO> nearbyChunks =
-                    ragChunkMapper.selectList(
-                            new LambdaQueryWrapper<RagChunkPO>()
-                                    .eq(RagChunkPO::getDocumentId, currentChunk.getDocumentId())
-                                    .between(
-                                            RagChunkPO::getChunkIndex,
-                                            Math.max(0, currentChunk.getChunkIndex() - nearbyCount),
-                                            currentChunk.getChunkIndex() + nearbyCount)
-                                    .orderByAsc(RagChunkPO::getChunkIndex));
-            result.setContent(
-                    nearbyChunks.stream()
-                            .map(RagChunkPO::getContent)
-                            .collect(Collectors.joining("\n")));
+            List<RagChunkPO> nearbyChunks = ragChunkMapper.selectList(
+                    new LambdaQueryWrapper<RagChunkPO>()
+                            .eq(RagChunkPO::getDocumentId, currentChunk.getDocumentId())
+                            .between(RagChunkPO::getChunkIndex,
+                                    Math.max(0, currentChunk.getChunkIndex() - nearbyCount),
+                                    currentChunk.getChunkIndex() + nearbyCount)
+                            .orderByAsc(RagChunkPO::getChunkIndex)
+            );
+            result.setContent(nearbyChunks.stream()
+                    .map(RagChunkPO::getContent)
+                    .collect(Collectors.joining("\n")));
             expanded.add(result);
         }
         return expanded;
     }
 
+
     private void enrichWithContent(List<SearchResult> results) {
-        List<Long> chunkIds =
-                results.stream().map(SearchResult::getChunkId).filter(Objects::nonNull).toList();
+        List<Long> chunkIds = results.stream()
+                .map(SearchResult::getChunkId)
+                .filter(Objects::nonNull)
+                .toList();
         if (chunkIds.isEmpty()) {
             return;
         }
 
-        Map<Long, RagChunkPO> chunkMap =
-                ragChunkMapper.selectByIds(chunkIds).stream()
-                        .collect(Collectors.toMap(RagChunkPO::getId, c -> c));
+        Map<Long, RagChunkPO> chunkMap = ragChunkMapper.selectByIds(chunkIds).stream()
+                .collect(Collectors.toMap(RagChunkPO::getId, c -> c));
 
-        Set<Long> docIds =
-                chunkMap.values().stream()
-                        .map(RagChunkPO::getDocumentId)
-                        .collect(Collectors.toSet());
+        Set<Long> docIds = chunkMap.values().stream()
+                .map(RagChunkPO::getDocumentId)
+                .collect(Collectors.toSet());
         Map<Long, String> docNameMap = new HashMap<>();
         if (!docIds.isEmpty()) {
             for (Long docId : docIds) {

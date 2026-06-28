@@ -1,11 +1,14 @@
 package com.aizuda.snail.ai.features.rag.strategy.fusion;
 
 import com.aizuda.snail.ai.common.dto.rag.SearchResult;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/** Weighted Sum Fusion: final_score = alpha * vector_score + beta * bm25_score */
+/**
+ * Weighted Sum Fusion: final_score = alpha * vector_score + beta * bm25_score
+ */
 public class WeightedSumFusion implements HybridFusion {
 
     private final double alpha;
@@ -17,14 +20,14 @@ public class WeightedSumFusion implements HybridFusion {
     }
 
     @Override
-    public List<SearchResult> fuse(
-            List<SearchResult> vectorResults, List<SearchResult> bm25Results, int outputSize) {
+    public List<SearchResult> fuse(List<SearchResult> vectorResults,
+                                   List<SearchResult> bm25Results,
+                                   int outputSize) {
         Map<Long, Double> vectorScoreMap = new HashMap<>();
         Map<Long, Double> bm25ScoreMap = new HashMap<>();
         Map<Long, SearchResult> resultMap = new HashMap<>();
 
-        double maxVec =
-                vectorResults.stream().mapToDouble(SearchResult::getScore).max().orElse(1.0);
+        double maxVec = vectorResults.stream().mapToDouble(SearchResult::getScore).max().orElse(1.0);
         double maxBm25 = bm25Results.stream().mapToDouble(SearchResult::getScore).max().orElse(1.0);
 
         for (SearchResult r : vectorResults) {
@@ -47,13 +50,11 @@ public class WeightedSumFusion implements HybridFusion {
         return finalScores.entrySet().stream()
                 .sorted(Map.Entry.<Long, Double>comparingByValue().reversed())
                 .limit(outputSize)
-                .map(
-                        e ->
-                                SearchResult.builder()
-                                        .chunkId(e.getKey())
-                                        .content(resultMap.get(e.getKey()).getContent())
-                                        .score(e.getValue())
-                                        .build())
+                .map(e -> SearchResult.builder()
+                        .chunkId(e.getKey())
+                        .content(resultMap.get(e.getKey()).getContent())
+                        .score(e.getValue())
+                        .build())
                 .toList();
     }
 }

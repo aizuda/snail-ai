@@ -10,11 +10,14 @@ import io.grpc.MethodDescriptor;
 import io.grpc.protobuf.ProtoUtils;
 import io.grpc.stub.ClientCalls;
 import io.grpc.stub.StreamObserver;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 import lombok.extern.slf4j.Slf4j;
 
-/** gRPC 客户端调用工具 */
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicLong;
+
+/**
+ * gRPC 客户端调用工具
+ */
 @Slf4j
 public final class GrpcChannelUtil {
 
@@ -22,52 +25,50 @@ public final class GrpcChannelUtil {
 
     private GrpcChannelUtil() {}
 
-    /** 发送 Unary 请求（同步阻塞，默认 CallOptions） */
-    public static GrpcSnailAiResult sendUnary(
-            ManagedChannel channel, String uri, String body, Map<String, String> headers) {
+    /**
+     * 发送 Unary 请求（同步阻塞，默认 CallOptions）
+     */
+    public static GrpcSnailAiResult sendUnary(ManagedChannel channel, String uri, String body,
+                                               Map<String, String> headers) {
         return sendUnary(channel, uri, body, headers, CallOptions.DEFAULT);
     }
 
-    /** 发送 Unary 请求（同步阻塞，自定义 CallOptions） */
-    public static GrpcSnailAiResult sendUnary(
-            ManagedChannel channel,
-            String uri,
-            String body,
-            Map<String, String> headers,
-            CallOptions callOptions) {
+    /**
+     * 发送 Unary 请求（同步阻塞，自定义 CallOptions）
+     */
+    public static GrpcSnailAiResult sendUnary(ManagedChannel channel, String uri, String body,
+                                               Map<String, String> headers, CallOptions callOptions) {
         GrpcSnailAiRequest request = buildRequest(uri, body, headers);
 
         MethodDescriptor<GrpcSnailAiRequest, GrpcSnailAiResult> md =
-                buildMethodDescriptor(
-                        MethodDescriptor.MethodType.UNARY,
-                        GrpcConstants.UNARY_SERVICE_NAME,
-                        GrpcConstants.UNARY_METHOD_NAME);
+                buildMethodDescriptor(MethodDescriptor.MethodType.UNARY,
+                        GrpcConstants.UNARY_SERVICE_NAME, GrpcConstants.UNARY_METHOD_NAME);
 
-        return ClientCalls.blockingUnaryCall(channel.newCall(md, callOptions), request);
+        return ClientCalls.blockingUnaryCall(
+                channel.newCall(md, callOptions), request);
     }
 
-    /** 发送 Server Streaming 请求（异步回调） */
-    public static void sendServerStreaming(
-            ManagedChannel channel,
-            String uri,
-            String body,
-            Map<String, String> headers,
-            StreamObserver<GrpcSnailAiResult> responseObserver) {
+    /**
+     * 发送 Server Streaming 请求（异步回调）
+     */
+    public static void sendServerStreaming(ManagedChannel channel, String uri, String body,
+                                           Map<String, String> headers,
+                                           StreamObserver<GrpcSnailAiResult> responseObserver) {
         GrpcSnailAiRequest request = buildRequest(uri, body, headers);
 
         MethodDescriptor<GrpcSnailAiRequest, GrpcSnailAiResult> md =
-                buildMethodDescriptor(
-                        MethodDescriptor.MethodType.SERVER_STREAMING,
-                        GrpcConstants.STREAMING_SERVICE_NAME,
-                        GrpcConstants.STREAMING_METHOD_NAME);
+                buildMethodDescriptor(MethodDescriptor.MethodType.SERVER_STREAMING,
+                        GrpcConstants.STREAMING_SERVICE_NAME, GrpcConstants.STREAMING_METHOD_NAME);
 
         ClientCalls.asyncServerStreamingCall(
                 channel.newCall(md, CallOptions.DEFAULT), request, responseObserver);
     }
 
-    private static GrpcSnailAiRequest buildRequest(
-            String uri, String body, Map<String, String> headers) {
-        Metadata metadata = Metadata.newBuilder().setUri(uri).putAllHeaders(headers).build();
+    private static GrpcSnailAiRequest buildRequest(String uri, String body, Map<String, String> headers) {
+        Metadata metadata = Metadata.newBuilder()
+                .setUri(uri)
+                .putAllHeaders(headers)
+                .build();
 
         return GrpcSnailAiRequest.newBuilder()
                 .setReqId(REQ_ID_GEN.incrementAndGet())
@@ -81,10 +82,8 @@ public final class GrpcChannelUtil {
         return MethodDescriptor.<GrpcSnailAiRequest, GrpcSnailAiResult>newBuilder()
                 .setType(type)
                 .setFullMethodName(MethodDescriptor.generateFullMethodName(serviceName, methodName))
-                .setRequestMarshaller(
-                        ProtoUtils.marshaller(GrpcSnailAiRequest.getDefaultInstance()))
-                .setResponseMarshaller(
-                        ProtoUtils.marshaller(GrpcSnailAiResult.getDefaultInstance()))
+                .setRequestMarshaller(ProtoUtils.marshaller(GrpcSnailAiRequest.getDefaultInstance()))
+                .setResponseMarshaller(ProtoUtils.marshaller(GrpcSnailAiResult.getDefaultInstance()))
                 .build();
     }
 }

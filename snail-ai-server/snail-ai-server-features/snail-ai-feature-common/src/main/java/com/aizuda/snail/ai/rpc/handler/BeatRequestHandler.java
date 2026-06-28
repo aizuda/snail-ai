@@ -12,7 +12,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-/** 客户端心跳：{@link UriConstants#BEAT} */
+/**
+ * 客户端心跳：{@link UriConstants#BEAT}
+ */
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -47,17 +49,12 @@ public class BeatRequestHandler implements GrpcRequestHandler {
         ClientInstanceManager.ClientRegistration registration = buildRegistration(request);
         instanceManager.registerOrUpdate(registration);
 
-        log.debug(
-                "Client heartbeat received: appId={}, hostId={}, activeChats={}/{}",
-                appId,
-                registration.getHostId(),
-                registration.getActiveChats(),
-                registration.getMaxConcurrent());
+        log.debug("Client heartbeat received: appId={}, hostId={}, activeChats={}/{}",
+                 appId, registration.getHostId(), registration.getActiveChats(), registration.getMaxConcurrent());
 
-        ServerTimestampResponse response =
-                ServerTimestampResponse.builder()
-                        .serverTimestamp(System.currentTimeMillis())
-                        .build();
+        ServerTimestampResponse response = ServerTimestampResponse.builder()
+                .serverTimestamp(System.currentTimeMillis())
+                .build();
 
         return GrpcSnailAiResult.newBuilder()
                 .setStatus(REQUEST_STATUS_SUCCESS)
@@ -67,13 +64,11 @@ public class BeatRequestHandler implements GrpcRequestHandler {
     }
 
     private ClientInstanceManager.ClientRegistration buildRegistration(GrpcHandlerRequest request) {
-        HeartbeatBodyRequest body =
-                JsonUtil.parseObject(request.getBody(), HeartbeatBodyRequest.class);
+        HeartbeatBodyRequest body = JsonUtil.parseObject(request.getBody(), HeartbeatBodyRequest.class);
         int maxConcurrent = body != null ? body.getMaxConcurrentChats() : DEFAULT_MAX_CONCURRENT;
         int activeChats = body != null ? body.getActiveChats() : DEFAULT_ACTIVE_CHATS;
 
-        ClientInstanceManager.ClientRegistration registration =
-                new ClientInstanceManager.ClientRegistration();
+        ClientInstanceManager.ClientRegistration registration = new ClientInstanceManager.ClientRegistration();
         registration.setAppId(request.getAppId());
         registration.setHostId(request.getHostId());
         registration.setHostIp(request.getHostIp());

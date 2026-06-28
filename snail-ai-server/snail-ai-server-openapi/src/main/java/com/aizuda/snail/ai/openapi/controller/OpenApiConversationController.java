@@ -10,10 +10,11 @@ import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationVO;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiCreateConversationRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiMessageVO;
 import com.aizuda.snail.ai.openapi.service.OpenApiConversationService;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * OpenAPI 会话管理接口
@@ -40,18 +41,16 @@ public class OpenApiConversationController {
         return Result.ok(openApiConversationService.createConversation(request));
     }
 
-    @DeleteMapping(
-            value = OpenApiPathConstants.OPEN_API_AGENT_CONVERSATIONS,
-            params = "conversationId")
-    public Result<Void> deleteConversation(@Validated OpenApiConversationIdentityRequest request) {
+    @DeleteMapping(value = OpenApiPathConstants.OPEN_API_AGENT_CONVERSATIONS, params = "conversationId")
+    public Result<Void> deleteConversation(
+            @Validated OpenApiConversationIdentityRequest request) {
         openApiConversationService.deleteConversation(request);
         return Result.ok(null);
     }
 
-    @DeleteMapping(
-            value = OpenApiPathConstants.OPEN_API_AGENT_CONVERSATIONS,
-            params = "!conversationId")
-    public Result<Void> clearConversations(@Validated OpenApiConversationClearRequest request) {
+    @DeleteMapping(value = OpenApiPathConstants.OPEN_API_AGENT_CONVERSATIONS, params = "!conversationId")
+    public Result<Void> clearConversations(
+            @Validated OpenApiConversationClearRequest request) {
         openApiConversationService.clearConversations(request);
         return Result.ok(null);
     }

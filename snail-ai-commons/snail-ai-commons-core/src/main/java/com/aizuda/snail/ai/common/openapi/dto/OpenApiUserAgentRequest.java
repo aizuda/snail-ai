@@ -4,7 +4,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
-/** OpenAPI 用户智能体关联请求。 */
+/**
+ * OpenAPI 用户智能体关联请求。
+ */
 @Data
 public class OpenApiUserAgentRequest {
 

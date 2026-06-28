@@ -11,7 +11,8 @@ import lombok.Data;
  */
 @Data
 public class AuthorizeRequestVO {
-    @NotBlank private String email;
+    @NotBlank
+    private String email;
     private Integer days;
     private Integer totals;
 }

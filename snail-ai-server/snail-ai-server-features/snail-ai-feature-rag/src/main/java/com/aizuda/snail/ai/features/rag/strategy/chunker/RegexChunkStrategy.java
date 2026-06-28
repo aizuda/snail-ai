@@ -2,13 +2,16 @@ package com.aizuda.snail.ai.features.rag.strategy.chunker;
 
 import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.features.rag.enums.ChunkModeEnum;
-import java.util.List;
-import java.util.regex.Pattern;
-import java.util.regex.PatternSyntaxException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-/** 按 Java 正则一级切分，再递归按长度切分。正则为空时回退为 \\n\\n 分隔。 */
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
+
+/**
+ * 按 Java 正则一级切分，再递归按长度切分。正则为空时回退为 \\n\\n 分隔。
+ */
 @Slf4j
 @Component
 public class RegexChunkStrategy extends AbstractChunkStrategy {

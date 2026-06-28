@@ -3,7 +3,9 @@ package com.aizuda.snail.ai.features.rag.strategy.chunker;
 import com.aizuda.snail.ai.features.rag.enums.ChunkModeEnum;
 import org.springframework.stereotype.Component;
 
-/** 按长度：不做一级切分，整篇作为一个段落进入二级递归。 */
+/**
+ * 按长度：不做一级切分，整篇作为一个段落进入二级递归。
+ */
 @Component
 public class LengthChunkStrategy extends AbstractChunkStrategy {
 
@@ -18,6 +20,6 @@ public class LengthChunkStrategy extends AbstractChunkStrategy {
 
     @Override
     protected String[] splitIntoParagraphs(ChunkContext ctx) {
-        return new String[] {ctx.getContent()};
+        return new String[] { ctx.getContent() };
     }
 }

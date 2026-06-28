@@ -7,15 +7,16 @@ import com.aizuda.snail.ai.admin.vo.resource.ResourceQueryVO;
 import com.aizuda.snail.ai.admin.vo.resource.ResourceResponseVO;
 import com.aizuda.snail.ai.admin.vo.resource.ResourceUploadRequestVO;
 import com.aizuda.snail.ai.common.model.Result;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
+
 /**
  * 资源管理接口：文件资源上传、删除与分页查询（后台管理用）。
- *
- * <p>全部端点均需 ADMIN 角色；公开访问入口见 {@link FileAccessController}。
+ * <p>
+ * 全部端点均需 ADMIN 角色；公开访问入口见 {@link FileAccessController}。
  */
 @RestController
 @RequestMapping("/resource")
@@ -27,8 +28,8 @@ public class ResourceController {
     /** 上传资源文件（管理员）。 */
     @PostMapping("/upload")
     @LoginRequired
-    public Result<ResourceResponseVO> upload(
-            @RequestParam("file") MultipartFile file, ResourceUploadRequestVO request) {
+    public Result<ResourceResponseVO> upload(@RequestParam("file") MultipartFile file,
+                                              ResourceUploadRequestVO request) {
         return Result.ok(resourceAdminService.upload(file, request));
     }
 

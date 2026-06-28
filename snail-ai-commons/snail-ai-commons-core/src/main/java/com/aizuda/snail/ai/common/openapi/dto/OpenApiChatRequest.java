@@ -2,10 +2,13 @@ package com.aizuda.snail.ai.common.openapi.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.util.List;
 import lombok.Data;
 
-/** OpenAPI 对话请求 */
+import java.util.List;
+
+/**
+ * OpenAPI 对话请求
+ */
 @Data
 public class OpenApiChatRequest {
 
@@ -29,7 +32,10 @@ public class OpenApiChatRequest {
 
     private Boolean webSearchEnabled;
 
-    /** 提交ID，用于区分同一用户在同一对话中的并发请求。 可选，不传则服务端自动生成 UUID。 */
+    /**
+     * 提交ID，用于区分同一用户在同一对话中的并发请求。
+     * 可选，不传则服务端自动生成 UUID。
+     */
     private String sid;
 
     private long timeout;

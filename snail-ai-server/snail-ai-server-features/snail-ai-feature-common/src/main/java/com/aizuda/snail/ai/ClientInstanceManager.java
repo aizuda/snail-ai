@@ -9,13 +9,6 @@ import com.aizuda.snail.ai.persistence.app.po.ClientNodePO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingDeque;
-import java.util.concurrent.TimeUnit;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -24,11 +17,22 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.TimeUnit;
+
 /**
  * 客户端实例管理器
- *
- * <p>职责： 1. 维护内存中的活跃实例映射和 gRPC Channel 2. 心跳数据入队，定时批量刷盘（LinkedBlockingDeque 模式） 3. 定时从 DB
- * 拉取远程节点，实现集群间客户端发现 4. 读取时 DB 降级，保证跨节点分发可用
+ * <p>
+ * 职责：
+ * 1. 维护内存中的活跃实例映射和 gRPC Channel
+ * 2. 心跳数据入队，定时批量刷盘（LinkedBlockingDeque 模式）
+ * 3. 定时从 DB 拉取远程节点，实现集群间客户端发现
+ * 4. 读取时 DB 降级，保证跨节点分发可用
  *
  * @author opensnail
  * @date 2025-04-08
@@ -77,48 +81,41 @@ public class ClientInstanceManager {
     // ==================== 核心数据结构 ====================
 
     /** 活跃实例缓存，key = "{appId}/{hostId}" */
-    private final ConcurrentHashMap<String, ClientInstanceInfo> liveInstances =
-            new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ClientInstanceInfo> liveInstances = new ConcurrentHashMap<>();
 
     /** 心跳注册队列：接收心跳数据，定时批量刷盘到 DB */
-    private final LinkedBlockingDeque<ClientRegistration> registerQueue =
-            new LinkedBlockingDeque<>(REGISTER_QUEUE_CAPACITY);
+    private final LinkedBlockingDeque<ClientRegistration> registerQueue = new LinkedBlockingDeque<>(REGISTER_QUEUE_CAPACITY);
 
     // ==================== 心跳注册（写入路径） ====================
 
     /**
      * 注册或更新客户端实例（心跳调用）
-     *
-     * <p>1. 更新内存缓存（实时） 2. 入队等待批量刷盘（异步）
+     * <p>
+     * 1. 更新内存缓存（实时）
+     * 2. 入队等待批量刷盘（异步）
      */
     public void registerOrUpdate(ClientRegistration registration) {
         String key = buildInstanceKey(registration.getAppId(), registration.getHostId());
 
-        liveInstances.compute(
-                key,
-                (k, existing) -> {
-                    if (existing == null) {
-                        log.info(
-                                "新客户端注册: appId={}, hostId={}, {}:{}",
-                                registration.getAppId(),
-                                registration.getHostId(),
-                                registration.getHostIp(),
-                                registration.getGrpcPort());
-                        ClientInstanceInfo info =
-                                new ClientInstanceInfo(
-                                        registration.getAppId(), registration.getHostId(),
-                                        registration.getHostIp(), registration.getGrpcPort());
-                        applyRegistration(info, registration);
-                        info.setSource(InstanceSource.LOCAL);
-                        info.setChannel(createChannel(info.getHostIp(), info.getGrpcPort()));
-                        return info;
-                    }
+        liveInstances.compute(key, (k, existing) -> {
+            if (existing == null) {
+                log.info("新客户端注册: appId={}, hostId={}, {}:{}",
+                        registration.getAppId(), registration.getHostId(),
+                        registration.getHostIp(), registration.getGrpcPort());
+                ClientInstanceInfo info = new ClientInstanceInfo(
+                        registration.getAppId(), registration.getHostId(),
+                        registration.getHostIp(), registration.getGrpcPort());
+                applyRegistration(info, registration);
+                info.setSource(InstanceSource.LOCAL);
+                info.setChannel(createChannel(info.getHostIp(), info.getGrpcPort()));
+                return info;
+            }
 
-                    applyRegistration(existing, registration);
-                    existing.setSource(InstanceSource.LOCAL);
-                    ensureChannelAlive(existing);
-                    return existing;
-                });
+            applyRegistration(existing, registration);
+            existing.setSource(InstanceSource.LOCAL);
+            ensureChannelAlive(existing);
+            return existing;
+        });
 
         // 心跳优先放队头，与 snail-job 一致
         registerQueue.offerFirst(registration);
@@ -136,8 +133,9 @@ public class ClientInstanceManager {
 
     /**
      * 获取指定应用的所有活跃实例
-     *
-     * <p>优先从内存缓存读取；若缓存为空则降级查询 DB， 将结果注册到本地缓存后重试（单次重试，无递归风险）。
+     * <p>
+     * 优先从内存缓存读取；若缓存为空则降级查询 DB，
+     * 将结果注册到本地缓存后重试（单次重试，无递归风险）。
      */
     public List<ClientInstanceInfo> getAliveInstances(String appId) {
         List<ClientInstanceInfo> cached = getAliveInstancesFromCache(appId);
@@ -146,11 +144,10 @@ public class ClientInstanceManager {
         }
 
         // DB 降级：查询该 appId 下所有未过期的客户端节点
-        List<ClientNodePO> dbNodes =
-                clientNodeMapper.selectList(
-                        new LambdaQueryWrapper<ClientNodePO>()
-                                .eq(ClientNodePO::getAppId, appId)
-                                .gt(ClientNodePO::getExpireDt, LocalDateTime.now()));
+        List<ClientNodePO> dbNodes = clientNodeMapper.selectList(
+                new LambdaQueryWrapper<ClientNodePO>()
+                        .eq(ClientNodePO::getAppId, appId)
+                        .gt(ClientNodePO::getExpireDt, LocalDateTime.now()));
         if (CollUtil.isEmpty(dbNodes)) {
             return List.of();
         }
@@ -182,56 +179,45 @@ public class ClientInstanceManager {
 
     /**
      * 将 DB 行注册到本地缓存
-     *
-     * <p>核心保护逻辑： - LOCAL 条目不覆盖（本地心跳数据更权威） - REMOTE 条目仅刷新心跳时间（保活） - 新条目创建 gRPC Channel 并标记为 REMOTE
+     * <p>
+     * 核心保护逻辑：
+     * - LOCAL 条目不覆盖（本地心跳数据更权威）
+     * - REMOTE 条目仅刷新心跳时间（保活）
+     * - 新条目创建 gRPC Channel 并标记为 REMOTE
      */
     private void registerFromDb(ClientNodePO node) {
         String key = buildInstanceKey(node.getAppId(), node.getHostId());
 
-        liveInstances.compute(
-                key,
-                (k, existing) -> {
-                    if (existing != null && existing.getSource() == InstanceSource.LOCAL) {
-                        // 本地心跳数据更权威，不覆盖
-                        return existing;
-                    }
+        liveInstances.compute(key, (k, existing) -> {
+            if (existing != null && existing.getSource() == InstanceSource.LOCAL) {
+                // 本地心跳数据更权威，不覆盖
+                return existing;
+            }
 
-                    if (existing != null) {
-                        // REMOTE 条目：刷新心跳时间 + 更新动态字段
-                        existing.setLastHeartbeatTime(System.currentTimeMillis());
-                        existing.setMaxConcurrent(
-                                node.getMaxConcurrent() != null
-                                        ? node.getMaxConcurrent()
-                                        : existing.getMaxConcurrent());
-                        existing.setActiveChats(
-                                node.getActiveChats() != null
-                                        ? node.getActiveChats()
-                                        : existing.getActiveChats());
-                        ensureChannelAlive(existing);
-                        return existing;
-                    }
+            if (existing != null) {
+                // REMOTE 条目：刷新心跳时间 + 更新动态字段
+                existing.setLastHeartbeatTime(System.currentTimeMillis());
+                existing.setMaxConcurrent(node.getMaxConcurrent() != null ? node.getMaxConcurrent() : existing.getMaxConcurrent());
+                existing.setActiveChats(node.getActiveChats() != null ? node.getActiveChats() : existing.getActiveChats());
+                ensureChannelAlive(existing);
+                return existing;
+            }
 
-                    // 新建 REMOTE 条目
-                    ClientInstanceInfo info =
-                            new ClientInstanceInfo(
-                                    node.getAppId(), node.getHostId(),
-                                    node.getHostIp(), node.getGrpcPort());
-                    info.setSource(InstanceSource.REMOTE);
-                    info.setMaxConcurrent(
-                            node.getMaxConcurrent() != null ? node.getMaxConcurrent() : 10);
-                    info.setActiveChats(node.getActiveChats() != null ? node.getActiveChats() : 0);
-                    info.setSupportedProviders(node.getSupportedProviders());
-                    info.setLabels(parseLabels(node.getLabels()));
-                    info.setLastHeartbeatTime(System.currentTimeMillis());
-                    info.setChannel(createChannel(node.getHostIp(), node.getGrpcPort()));
-                    log.info(
-                            "从 DB 加载远程客户端: appId={}, hostId={}, {}:{}",
-                            node.getAppId(),
-                            node.getHostId(),
-                            node.getHostIp(),
-                            node.getGrpcPort());
-                    return info;
-                });
+            // 新建 REMOTE 条目
+            ClientInstanceInfo info = new ClientInstanceInfo(
+                    node.getAppId(), node.getHostId(),
+                    node.getHostIp(), node.getGrpcPort());
+            info.setSource(InstanceSource.REMOTE);
+            info.setMaxConcurrent(node.getMaxConcurrent() != null ? node.getMaxConcurrent() : 10);
+            info.setActiveChats(node.getActiveChats() != null ? node.getActiveChats() : 0);
+            info.setSupportedProviders(node.getSupportedProviders());
+            info.setLabels(parseLabels(node.getLabels()));
+            info.setLastHeartbeatTime(System.currentTimeMillis());
+            info.setChannel(createChannel(node.getHostIp(), node.getGrpcPort()));
+            log.info("从 DB 加载远程客户端: appId={}, hostId={}, {}:{}",
+                    node.getAppId(), node.getHostId(), node.getHostIp(), node.getGrpcPort());
+            return info;
+        });
     }
 
     private Map<String, String> parseLabels(String labelsJson) {
@@ -250,9 +236,9 @@ public class ClientInstanceManager {
 
     /**
      * 每 5 秒批量将注册队列中的心跳数据刷入 DB
-     *
-     * <p>参考 snail-job AbstractRegister.refreshExpireAt() 的批量写入模式： drain 队列 → 按 (appId, hostId) 去重 →
-     * 分为 insert/update 两组 → 批量执行
+     * <p>
+     * 参考 snail-job AbstractRegister.refreshExpireAt() 的批量写入模式：
+     * drain 队列 → 按 (appId, hostId) 去重 → 分为 insert/update 两组 → 批量执行
      */
     @Scheduled(fixedDelay = 5_000)
     public void flushRegistrationQueue() {
@@ -267,7 +253,9 @@ public class ClientInstanceManager {
             deduped.put(buildInstanceKey(reg.getAppId(), reg.getHostId()), reg);
         }
 
-        List<ClientNodePO> nodes = deduped.values().stream().map(this::toClientNodePO).toList();
+        List<ClientNodePO> nodes = deduped.values().stream()
+                .map(this::toClientNodePO)
+                .toList();
 
         // 查询 DB 中已存在的记录
         Set<String> existingKeys = queryExistingKeys(nodes);
@@ -320,12 +308,11 @@ public class ClientInstanceManager {
             appIds.add(node.getAppId());
         }
 
-        List<ClientNodePO> existing =
-                clientNodeMapper.selectList(
-                        new LambdaQueryWrapper<ClientNodePO>()
-                                .select(ClientNodePO::getAppId, ClientNodePO::getHostId)
-                                .in(ClientNodePO::getAppId, appIds)
-                                .in(ClientNodePO::getHostId, hostIds));
+        List<ClientNodePO> existing = clientNodeMapper.selectList(
+                new LambdaQueryWrapper<ClientNodePO>()
+                        .select(ClientNodePO::getAppId, ClientNodePO::getHostId)
+                        .in(ClientNodePO::getAppId, appIds)
+                        .in(ClientNodePO::getHostId, hostIds));
 
         Set<String> keys = new HashSet<>();
         for (ClientNodePO e : existing) {
@@ -362,16 +349,16 @@ public class ClientInstanceManager {
 
     /**
      * 每 10 秒从 DB 拉取所有未过期的客户端节点，预热本地缓存
-     *
-     * <p>解决集群部署场景：客户端心跳只到一台服务器，其他服务器通过 DB 共享发现。 registerFromDb 内部保护 LOCAL 条目不被覆盖。
+     * <p>
+     * 解决集群部署场景：客户端心跳只到一台服务器，其他服务器通过 DB 共享发现。
+     * registerFromDb 内部保护 LOCAL 条目不被覆盖。
      */
     @Scheduled(fixedDelay = 10_000)
     public void pullRemoteNodesFromDb() {
         try {
-            List<ClientNodePO> aliveNodes =
-                    clientNodeMapper.selectList(
-                            new LambdaQueryWrapper<ClientNodePO>()
-                                    .gt(ClientNodePO::getExpireDt, LocalDateTime.now()));
+            List<ClientNodePO> aliveNodes = clientNodeMapper.selectList(
+                    new LambdaQueryWrapper<ClientNodePO>()
+                            .gt(ClientNodePO::getExpireDt, LocalDateTime.now()));
             if (CollUtil.isEmpty(aliveNodes)) {
                 return;
             }
@@ -386,7 +373,9 @@ public class ClientInstanceManager {
 
     // ==================== 定时任务：过期清理 ====================
 
-    /** 每 10 秒清理过期的内存实例 */
+    /**
+     * 每 10 秒清理过期的内存实例
+     */
     @Scheduled(fixedDelay = 10_000)
     public void expireStaleInstances() {
         long now = System.currentTimeMillis();
@@ -409,15 +398,14 @@ public class ClientInstanceManager {
                 || (info.getChannel() != null && info.getChannel().isTerminated());
     }
 
-    /** 每 30 秒清理 DB 中过期的节点行 */
+    /**
+     * 每 30 秒清理 DB 中过期的节点行
+     */
     @Scheduled(fixedDelay = 30_000)
     public void cleanExpiredNodes() {
         try {
-            clientNodeMapper.delete(
-                    new LambdaQueryWrapper<ClientNodePO>()
-                            .lt(
-                                    ClientNodePO::getExpireDt,
-                                    LocalDateTime.now().minusSeconds(EXPIRE_OFFSET_SECONDS)));
+            clientNodeMapper.delete(new LambdaQueryWrapper<ClientNodePO>()
+                    .lt(ClientNodePO::getExpireDt, LocalDateTime.now().minusSeconds(EXPIRE_OFFSET_SECONDS)));
         } catch (Exception e) {
             log.error("清理过期客户端节点失败", e);
         }
@@ -425,13 +413,14 @@ public class ClientInstanceManager {
 
     // ==================== Token 验证 ====================
 
-    /** 验证 appId + token */
+    /**
+     * 验证 appId + token
+     */
     public boolean validateToken(String appId, String token) {
-        AppPO app =
-                appMapper.selectOne(
-                        new LambdaQueryWrapper<AppPO>()
-                                .eq(AppPO::getAppId, appId)
-                                .eq(AppPO::getStatus, APP_STATUS_ENABLED));
+        AppPO app = appMapper.selectOne(
+                new LambdaQueryWrapper<AppPO>()
+                        .eq(AppPO::getAppId, appId)
+                        .eq(AppPO::getStatus, APP_STATUS_ENABLED));
         return app != null && tokenEquals(token, app.getToken());
     }
 
@@ -440,12 +429,15 @@ public class ClientInstanceManager {
             return false;
         }
         return MessageDigest.isEqual(
-                actual.getBytes(StandardCharsets.UTF_8), expected.getBytes(StandardCharsets.UTF_8));
+                actual.getBytes(StandardCharsets.UTF_8),
+                expected.getBytes(StandardCharsets.UTF_8));
     }
 
     // ==================== 实例移除 ====================
 
-    /** 主动移除实例 */
+    /**
+     * 主动移除实例
+     */
     public void removeInstance(String appId, String hostId) {
         String key = buildInstanceKey(appId, hostId);
         ClientInstanceInfo removed = liveInstances.remove(key);
@@ -488,7 +480,9 @@ public class ClientInstanceManager {
 
     // ==================== 数据类 ====================
 
-    /** 客户端实例信息 */
+    /**
+     * 客户端实例信息
+     */
     @Data
     public static class ClientInstanceInfo {
         private final String appId;
@@ -501,9 +495,9 @@ public class ClientInstanceManager {
         private volatile String supportedProviders;
         private volatile Map<String, String> labels;
         private volatile long lastHeartbeatTime;
-
         /** 实例来源：LOCAL=本地心跳，REMOTE=DB 加载 */
-        @Getter private volatile InstanceSource source;
+        @Getter
+        private volatile InstanceSource source;
 
         public ClientInstanceInfo(String appId, String hostId, String hostIp, int grpcPort) {
             this.appId = appId;
@@ -515,7 +509,9 @@ public class ClientInstanceManager {
         }
     }
 
-    /** 客户端注册信息（心跳上报的数据） */
+    /**
+     * 客户端注册信息（心跳上报的数据）
+     */
     @Data
     public static class ClientRegistration {
         private String appId;

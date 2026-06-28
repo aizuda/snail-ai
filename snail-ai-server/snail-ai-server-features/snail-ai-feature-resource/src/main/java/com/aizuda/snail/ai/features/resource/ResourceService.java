@@ -7,11 +7,12 @@ import com.aizuda.snail.ai.features.resource.util.MimeTypeUtils;
 import com.aizuda.snail.ai.persistence.resource.mapper.ResourceMapper;
 import com.aizuda.snail.ai.persistence.resource.po.ResourcePO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import java.io.InputStream;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.InputStream;
 
 @Slf4j
 @Service
@@ -22,28 +23,22 @@ public class ResourceService {
     private final ResourceStorageFactory storageFactory;
 
     @Transactional
-    public ResourcePO upload(
-            InputStream inputStream,
-            String originalName,
-            long fileSize,
-            String bizType,
-            Long bizId,
-            Long creatorId) {
+    public ResourcePO upload(InputStream inputStream, String originalName, long fileSize,
+                             String bizType, Long bizId, Long creatorId) {
         ResourceStorageService storage = storageFactory.getDefault();
         String storageKey = storage.store(bizType, originalName, inputStream);
         String mimeType = MimeTypeUtils.detect(originalName);
 
-        ResourcePO resource =
-                ResourcePO.builder()
-                        .storageKey(storageKey)
-                        .originalName(originalName)
-                        .fileSize(fileSize)
-                        .mimeType(mimeType)
-                        .storageType(storage.getType())
-                        .bizType(bizType)
-                        .bizId(bizId)
-                        .creatorId(creatorId)
-                        .build();
+        ResourcePO resource = ResourcePO.builder()
+                .storageKey(storageKey)
+                .originalName(originalName)
+                .fileSize(fileSize)
+                .mimeType(mimeType)
+                .storageType(storage.getType())
+                .bizType(bizType)
+                .bizId(bizId)
+                .creatorId(creatorId)
+                .build();
         resourceMapper.insert(resource);
 
         String accessUrl = storage.getAccessUrl(resource.getId(), storageKey);
@@ -79,11 +74,13 @@ public class ResourceService {
     }
 
     public ResourcePO getByStorageKey(String storageKey) {
-        return resourceMapper.selectOne(
-                new LambdaQueryWrapper<ResourcePO>().eq(ResourcePO::getStorageKey, storageKey));
+        return resourceMapper.selectOne(new LambdaQueryWrapper<ResourcePO>()
+                .eq(ResourcePO::getStorageKey, storageKey));
     }
 
-    /** 调整资源的 bizType（例如：预览阶段 DOCUMENT_PREVIEW → 提交后 DOCUMENT）。 */
+    /**
+     * 调整资源的 bizType（例如：预览阶段 DOCUMENT_PREVIEW → 提交后 DOCUMENT）。
+     */
     public void updateBizType(Long resourceId, String bizType) {
         ResourcePO resource = resourceMapper.selectById(resourceId);
         if (resource == null) {

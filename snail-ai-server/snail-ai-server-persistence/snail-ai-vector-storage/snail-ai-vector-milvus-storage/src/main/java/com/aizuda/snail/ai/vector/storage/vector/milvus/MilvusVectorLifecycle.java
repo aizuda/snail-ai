@@ -19,14 +19,12 @@ public class MilvusVectorLifecycle implements Lifecycle {
 
     @Override
     public void start() {
-        VectorStoreFactory.REGISTER.put(
-                VectorStoreType.MILVUS,
-                configDTO ->
-                        new MilvusSnailAiVectorStore(
-                                configDTO.getEmbeddingModel(),
-                                configDTO.getDimensions(),
-                                JsonUtil.parseObject(
-                                        configDTO.getConfig(), MilvusVectorSettings.class)));
+        VectorStoreFactory.REGISTER.put(VectorStoreType.MILVUS, configDTO ->
+                new MilvusSnailAiVectorStore(
+                        configDTO.getEmbeddingModel(),
+                        configDTO.getDimensions(),
+                        JsonUtil.parseObject(configDTO.getConfig(), MilvusVectorSettings.class)
+                ));
     }
 
     @Override

@@ -1,8 +1,9 @@
 package com.aizuda.snail.ai.features.rag.strategy.parser;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -14,7 +15,6 @@ public class DocumentParserFactory {
         return parsers.stream()
                 .filter(p -> p.supports(fileType))
                 .findFirst()
-                .orElseThrow(
-                        () -> new IllegalArgumentException("Unsupported file type: " + fileType));
+                .orElseThrow(() -> new IllegalArgumentException("Unsupported file type: " + fileType));
     }
 }

@@ -6,6 +6,7 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum SearchEngineEnum {
+
     ELASTICSEARCH("ELASTICSEARCH");
 
     private final String type;

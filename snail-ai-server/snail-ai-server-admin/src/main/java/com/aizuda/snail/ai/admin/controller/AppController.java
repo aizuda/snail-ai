@@ -5,14 +5,15 @@ import com.aizuda.snail.ai.admin.service.app.AppService;
 import com.aizuda.snail.ai.admin.vo.PageResult;
 import com.aizuda.snail.ai.admin.vo.app.*;
 import com.aizuda.snail.ai.common.model.Result;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * 应用（App）管理接口：应用 CRUD、启用状态切换与接入节点管理。
- *
- * <p>全部端点均需 ADMIN 角色。
+ * <p>
+ * 全部端点均需 ADMIN 角色。
  */
 @RestController
 @RequestMapping("/app")
@@ -31,8 +32,8 @@ public class AppController {
     /** 更新应用（管理员）。 */
     @PutMapping("/{id}")
     @LoginRequired
-    public Result<AppResponseVO> update(
-            @PathVariable("id") Long id, @RequestBody AppRequestVO request) {
+    public Result<AppResponseVO> update(@PathVariable("id") Long id,
+                                         @RequestBody AppRequestVO request) {
         return Result.ok(appService.update(id, request));
     }
 
@@ -83,8 +84,8 @@ public class AppController {
     /** 踢除指定接入节点（管理员）。 */
     @DeleteMapping("/{appId}/nodes/{hostId}")
     @LoginRequired
-    public Result<Void> kickNode(
-            @PathVariable("appId") String appId, @PathVariable("hostId") String hostId) {
+    public Result<Void> kickNode(@PathVariable("appId") String appId,
+                                  @PathVariable("hostId") String hostId) {
         appService.kickNode(appId, hostId);
         return Result.ok(null);
     }

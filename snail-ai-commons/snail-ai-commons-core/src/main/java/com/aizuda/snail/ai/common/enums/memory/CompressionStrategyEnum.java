@@ -7,10 +7,12 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public enum CompressionStrategyEnum {
+
     SLIDING_WINDOW(1, "滑动窗口"),
     IMPORTANCE_BASED(2, "基于重要性");
 
-    @EnumValue private final Integer strategy;
+    @EnumValue
+    private final Integer strategy;
     private final String description;
 
     public static CompressionStrategyEnum fromStrategy(Integer strategy) {

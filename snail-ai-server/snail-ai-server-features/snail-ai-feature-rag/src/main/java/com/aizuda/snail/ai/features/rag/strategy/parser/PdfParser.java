@@ -1,12 +1,13 @@
 package com.aizuda.snail.ai.features.rag.strategy.parser;
 
 import com.aizuda.snail.ai.common.execption.SnailAiException;
-import java.io.InputStream;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.text.PDFTextStripper;
 import org.springframework.stereotype.Component;
+
+import java.io.InputStream;
 
 @Slf4j
 @Component

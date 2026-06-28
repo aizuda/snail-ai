@@ -1,8 +1,9 @@
 package com.aizuda.snail.ai.common.vo;
 
 import cn.hutool.core.util.ObjUtil;
-import java.time.LocalDateTime;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 
 /**
  * @author opensnail
@@ -12,13 +13,20 @@ import lombok.Data;
 @Data
 public class BaseQueryVO {
 
-    /** 当前页码 */
+    /**
+     * 当前页码
+     */
     private int page = 1;
 
-    /** 每页条数 */
+    /**
+     * 每页条数
+     */
     private int size = 10;
 
-    /** 时间区间, 用于筛选 createDt 字段, 前端传入使用 SpringBoot 默认 ISO 8601 格式: yyyy-MM-dd'T'HH:mm:ss */
+    /**
+     * 时间区间, 用于筛选 createDt 字段,
+     * 前端传入使用 SpringBoot 默认 ISO 8601 格式: yyyy-MM-dd'T'HH:mm:ss
+     */
     private LocalDateTime[] datetimeRange;
 
     /**
@@ -38,4 +46,5 @@ public class BaseQueryVO {
     public LocalDateTime getEndDt() {
         return ObjUtil.isEmpty(datetimeRange) ? null : datetimeRange[1];
     }
+
 }

@@ -1,9 +1,10 @@
 package com.aizuda.snail.ai.route;
 
 import com.aizuda.snail.ai.ClientInstanceManager.ClientInstanceInfo;
+import org.springframework.stereotype.Component;
+
 import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
-import org.springframework.stereotype.Component;
 
 /**
  * 轮询路由策略
@@ -32,7 +33,6 @@ public class RoundRobinClientRoute implements ClientRouteStrategy {
 
     /**
      * 计算轮询索引
-     *
      * @param candidateSize 候选实例数量
      * @return 索引值
      */

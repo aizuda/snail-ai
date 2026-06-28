@@ -6,18 +6,19 @@ import com.aizuda.snail.ai.persistence.admin.po.StoreInstancePO;
 import com.aizuda.snail.ai.search.storage.search.api.SearchEngine;
 import com.aizuda.snail.ai.search.storage.search.enums.SearchEngineEnum;
 import com.aizuda.snail.ai.search.storage.search.exception.SearchEngineException;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class SearchEngineFactory {
 
-    public static final Map<SearchEngineEnum, Function<SearchEngineConfigDTO, SearchEngine>>
-            REGISTER = new ConcurrentHashMap<>();
+    public static final Map<SearchEngineEnum, Function<SearchEngineConfigDTO, SearchEngine>> REGISTER
+            = new ConcurrentHashMap<>();
 
     private final StoreInstanceMapper storeInstanceMapper;
 
@@ -41,10 +42,9 @@ public class SearchEngineFactory {
         if (constructor == null) {
             throw new SearchEngineException("搜索引擎类型未注册 type:" + type);
         }
-        return constructor.apply(
-                SearchEngineConfigDTO.builder()
-                        .storeInstance(inst)
-                        .config(inst.getConfig())
-                        .build());
+        return constructor.apply(SearchEngineConfigDTO.builder()
+                .storeInstance(inst)
+                .config(inst.getConfig())
+                .build());
     }
 }

@@ -1,35 +1,35 @@
 package com.aizuda.snail.ai.openapi.client.core;
 
 import com.aizuda.snail.ai.common.execption.SnailAiException;
-import com.aizuda.snail.ai.common.model.PageResult;
-import com.aizuda.snail.ai.common.model.Result;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiAgentIdentityRequest;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiAgentQueryRequest;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiAgentVO;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatRequest;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatStreamEvent;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatSyncResponse;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationClearRequest;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationIdentityRequest;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationQueryRequest;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationVO;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiCreateConversationRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiMessageVO;
-import com.aizuda.snail.ai.common.openapi.dto.OpenApiUserQueryRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiUserRegisterRequest;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiUserQueryRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiUserVO;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiAgentVO;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiAgentIdentityRequest;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiAgentQueryRequest;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationClearRequest;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationIdentityRequest;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationQueryRequest;
 import com.aizuda.snail.ai.openapi.client.core.api.OpenApiAgentClient;
 import com.aizuda.snail.ai.openapi.client.core.api.OpenApiChatClient;
 import com.aizuda.snail.ai.openapi.client.core.api.OpenApiConversationClient;
 import com.aizuda.snail.ai.openapi.client.core.api.OpenApiUserClient;
-import java.util.List;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatStreamEvent;
+import com.aizuda.snail.ai.common.model.PageResult;
+import com.aizuda.snail.ai.common.model.Result;
 import reactor.core.publisher.Flux;
+
+import java.util.List;
 
 /**
  * Snail AI OpenAPI Fluent Builder 门面
- *
- * <p>使用示例：
- *
+ * <p>
+ * 使用示例：
  * <pre>
  * // 流式对话
  * SnailAiOpenApi.chat(agentId)
@@ -55,11 +55,8 @@ public class SnailAiOpenApi {
     private static OpenApiAgentClient agentClient;
     private static OpenApiUserClient userClient;
 
-    public static void init(
-            OpenApiChatClient chat,
-            OpenApiConversationClient conv,
-            OpenApiAgentClient agent,
-            OpenApiUserClient user) {
+    public static void init(OpenApiChatClient chat, OpenApiConversationClient conv,
+                            OpenApiAgentClient agent, OpenApiUserClient user) {
         chatClient = chat;
         conversationClient = conv;
         agentClient = agent;
@@ -79,6 +76,7 @@ public class SnailAiOpenApi {
         private String content;
         private List<Long> disabledMcpServerIds;
         private List<Long> disabledSkillIds;
+
 
         ChatBuilder(Long agentId) {
             this.agentId = agentId;
@@ -139,8 +137,7 @@ public class SnailAiOpenApi {
 
         private void checkClient() {
             if (chatClient == null) {
-                throw new IllegalStateException(
-                        "SnailAiOpenApi not initialized. Use @EnableSnailAiOpenApi or call SnailAiOpenApi.init()");
+                throw new IllegalStateException("SnailAiOpenApi not initialized. Use @EnableSnailAiOpenApi or call SnailAiOpenApi.init()");
             }
         }
     }
@@ -226,15 +223,13 @@ public class SnailAiOpenApi {
 
         private void checkClient() {
             if (conversationClient == null) {
-                throw new IllegalStateException(
-                        "SnailAiOpenApi not initialized. Use @EnableSnailAiOpenApi or call SnailAiOpenApi.init()");
+                throw new IllegalStateException("SnailAiOpenApi not initialized. Use @EnableSnailAiOpenApi or call SnailAiOpenApi.init()");
             }
         }
 
         private void requireOpenId() {
             if (openId == null || openId.isBlank()) {
-                throw new IllegalStateException(
-                        "openId is required for OpenAPI conversation operations");
+                throw new IllegalStateException("openId is required for OpenAPI conversation operations");
             }
         }
     }

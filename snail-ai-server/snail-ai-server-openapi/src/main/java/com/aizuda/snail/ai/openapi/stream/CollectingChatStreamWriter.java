@@ -4,10 +4,11 @@ import com.aizuda.snail.ai.common.dto.agent.ChatStreamResponse;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.aizuda.snail.ai.feature.agent.stream.ChatStreamWriter;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class CollectingChatStreamWriter implements ChatStreamWriter {
@@ -23,8 +24,7 @@ public class CollectingChatStreamWriter implements ChatStreamWriter {
             buffer.append(data);
             return;
         }
-        if (ChatStreamResponse.TYPE_TEXT.equals(response.getType())
-                && response.getContent() != null) {
+        if (ChatStreamResponse.TYPE_TEXT.equals(response.getType()) && response.getContent() != null) {
             buffer.append(response.getContent());
         }
     }
@@ -40,8 +40,7 @@ public class CollectingChatStreamWriter implements ChatStreamWriter {
         latch.countDown();
     }
 
-    public String awaitAndGetFullText(long timeoutMs)
-            throws InterruptedException, TimeoutException {
+    public String awaitAndGetFullText(long timeoutMs) throws InterruptedException, TimeoutException {
         if (!latch.await(timeoutMs, TimeUnit.MILLISECONDS)) {
             throw new TimeoutException("对话响应超时");
         }

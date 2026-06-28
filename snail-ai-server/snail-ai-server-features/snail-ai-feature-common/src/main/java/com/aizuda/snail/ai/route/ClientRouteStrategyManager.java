@@ -1,8 +1,9 @@
 package com.aizuda.snail.ai.route;
 
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * 路由策略管理器

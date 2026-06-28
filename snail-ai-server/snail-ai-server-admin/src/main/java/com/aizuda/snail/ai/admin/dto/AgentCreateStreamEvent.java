@@ -3,7 +3,9 @@ package com.aizuda.snail.ai.admin.dto;
 import lombok.Builder;
 import lombok.Data;
 
-/** Structured event for agent creation stream. */
+/**
+ * Structured event for agent creation stream.
+ */
 @Data
 @Builder
 public class AgentCreateStreamEvent {
@@ -30,7 +32,9 @@ public class AgentCreateStreamEvent {
     private String message;
 
     public static AgentCreateStreamEvent start() {
-        return AgentCreateStreamEvent.builder().type(TYPE_START).build();
+        return AgentCreateStreamEvent.builder()
+                .type(TYPE_START)
+                .build();
     }
 
     public static AgentCreateStreamEvent fieldDone(String field, Object data) {
@@ -42,10 +46,16 @@ public class AgentCreateStreamEvent {
     }
 
     public static AgentCreateStreamEvent done(Long agentId) {
-        return AgentCreateStreamEvent.builder().type(TYPE_DONE).agentId(agentId).build();
+        return AgentCreateStreamEvent.builder()
+                .type(TYPE_DONE)
+                .agentId(agentId)
+                .build();
     }
 
     public static AgentCreateStreamEvent error(String message) {
-        return AgentCreateStreamEvent.builder().type(TYPE_ERROR).message(message).build();
+        return AgentCreateStreamEvent.builder()
+                .type(TYPE_ERROR)
+                .message(message)
+                .build();
     }
 }

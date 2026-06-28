@@ -7,13 +7,14 @@ import com.aizuda.snail.ai.common.grpc.server.GrpcServiceDefinitionBuilder;
 import io.grpc.Server;
 import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import io.grpc.stub.StreamObserver;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Server 端 gRPC 服务器（接收客户端心跳和结果上报）
@@ -93,9 +94,8 @@ public class SnailAiServerGrpcServer implements SmartLifecycle {
 
     private Server buildGrpcServer() {
         return NettyServerBuilder.forPort(grpcPort)
-                .addService(
-                        GrpcServiceDefinitionBuilder.createUnaryServiceDefinition(
-                                this::handleUnaryRequest))
+                .addService(GrpcServiceDefinitionBuilder.createUnaryServiceDefinition(
+                        this::handleUnaryRequest))
                 .maxInboundMessageSize(GRPC_MAX_INBOUND_MESSAGE_SIZE)
                 .keepAliveTime(GRPC_KEEP_ALIVE_TIME_SECONDS, TimeUnit.SECONDS)
                 .keepAliveTimeout(GRPC_KEEP_ALIVE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
@@ -104,15 +104,13 @@ public class SnailAiServerGrpcServer implements SmartLifecycle {
                 .build();
     }
 
-    private void handleUnaryRequest(
-            GrpcSnailAiRequest request, StreamObserver<GrpcSnailAiResult> observer) {
+    private void handleUnaryRequest(GrpcSnailAiRequest request, StreamObserver<GrpcSnailAiResult> observer) {
         String uri = request.getMetadata().getUri();
         Map<String, String> headers = request.getMetadata().getHeadersMap();
 
         try {
-            GrpcSnailAiResult result =
-                    grpcRequestDispatcher.dispatchUnary(
-                            request.getReqId(), uri, headers, request.getBody());
+            GrpcSnailAiResult result = grpcRequestDispatcher.dispatchUnary(
+                    request.getReqId(), uri, headers, request.getBody());
             observer.onNext(result);
             observer.onCompleted();
         } catch (Exception e) {

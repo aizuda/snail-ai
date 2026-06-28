@@ -7,7 +7,9 @@ import com.aizuda.snail.ai.model.handle.ModelConfigHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-/** 将服务端模型配置组装为客户端 dispatch 模型配置。 */
+/**
+ * 将服务端模型配置组装为客户端 dispatch 模型配置。
+ */
 @Component
 @RequiredArgsConstructor
 public class DispatchModelConfigAssembler {
@@ -21,8 +23,7 @@ public class DispatchModelConfigAssembler {
         return assembleChatModelConfig(configInfo, decryptedApiKey);
     }
 
-    public ChatDispatchRequest.ModelConfig assembleChatModelConfig(
-            ModelConfigInfoDTO configInfo, String decryptedApiKey) {
+    public ChatDispatchRequest.ModelConfig assembleChatModelConfig(ModelConfigInfoDTO configInfo, String decryptedApiKey) {
         ChatModelSpec spec = serverModelSpecFactory.chatSpec(configInfo, decryptedApiKey);
         return ChatDispatchRequest.ModelConfig.builder()
                 .modelConfigId(configInfo.getId())

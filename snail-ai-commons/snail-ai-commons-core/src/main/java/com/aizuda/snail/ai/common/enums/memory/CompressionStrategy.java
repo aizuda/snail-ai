@@ -1,6 +1,8 @@
 package com.aizuda.snail.ai.common.enums.memory;
 
-/** 记忆压缩策略 */
+/**
+ * 记忆压缩策略
+ */
 public enum CompressionStrategy {
 
     /** 滑动窗口：保留最近 N 条，将更早的一批压缩为摘要并归档 */

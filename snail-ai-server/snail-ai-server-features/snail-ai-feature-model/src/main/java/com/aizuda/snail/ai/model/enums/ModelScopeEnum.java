@@ -1,11 +1,17 @@
 package com.aizuda.snail.ai.model.enums;
 
-/** 模型作用域枚举 */
+/**
+ * 模型作用域枚举
+ */
 public enum ModelScopeEnum {
-    /** 全局模型 - Admin配置 */
+    /**
+     * 全局模型 - Admin配置
+     */
     GLOBAL("GLOBAL", "全局"),
 
-    /** 个人模型 - 用户个人配置 */
+    /**
+     * 个人模型 - 用户个人配置
+     */
     PERSONAL("PERSONAL", "个人");
 
     private final String value;

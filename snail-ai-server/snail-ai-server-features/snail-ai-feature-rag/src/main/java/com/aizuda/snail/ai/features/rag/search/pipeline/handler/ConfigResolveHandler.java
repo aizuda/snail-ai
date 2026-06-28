@@ -32,19 +32,16 @@ public class ConfigResolveHandler implements RagSearchHandler {
 
         RagConfigDO configDO = ctx.getExternalConfigDO();
         if (configDO == null) {
-            configDO =
-                    StrUtil.isNotBlank(knowledge.getConfig())
-                            ? JsonUtil.parseObject(knowledge.getConfig(), RagConfigDO.class)
-                            : new RagConfigDO();
+            configDO = StrUtil.isNotBlank(knowledge.getConfig())
+                    ? JsonUtil.parseObject(knowledge.getConfig(), RagConfigDO.class)
+                    : new RagConfigDO();
             if (configDO == null) {
                 configDO = new RagConfigDO();
             }
         }
 
-        ctx.setSearchParams(
-                configDO.getSearchParams() != null
-                        ? configDO.getSearchParams()
-                        : new RagConfigDO.SearchParams());
+        ctx.setSearchParams(configDO.getSearchParams() != null
+                ? configDO.getSearchParams() : new RagConfigDO.SearchParams());
         ctx.setModelParams(configDO.getModelParams());
         ctx.setQuery(ctx.getOriginalQuery());
     }

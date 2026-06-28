@@ -1,6 +1,8 @@
 package com.aizuda.snail.ai.common.execption;
 
-/** 异常信息 */
+/**
+ * 异常信息
+ */
 public class SnailAiCommonException extends BaseSnailAiException {
 
     public SnailAiCommonException(String message) {

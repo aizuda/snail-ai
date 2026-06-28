@@ -2,7 +2,9 @@ package com.aizuda.snail.ai.features.resource.strategy;
 
 import java.io.InputStream;
 
-/** 通用资源存储接口（不绑定任何业务字段） */
+/**
+ * 通用资源存储接口（不绑定任何业务字段）
+ */
 public interface ResourceStorageService {
 
     /** 存储类型标识 */
@@ -11,7 +13,7 @@ public interface ResourceStorageService {
     /**
      * 存储文件并返回存储键
      *
-     * @param bizType 业务类型（用于路径分区）
+     * @param bizType  业务类型（用于路径分区）
      * @param fileName 原始文件名
      * @param inputStream 文件内容
      * @return 存储键（相对路径或对象 Key）

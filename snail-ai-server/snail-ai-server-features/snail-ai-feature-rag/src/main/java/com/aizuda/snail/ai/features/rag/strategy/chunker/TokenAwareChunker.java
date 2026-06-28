@@ -7,19 +7,24 @@ import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentSplitter;
 import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.segment.TextSegment;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.regex.Pattern;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
-/** 各 {@link ChunkStrategy} 共用的二级递归切分与工具方法，不再作为对外切片入口。 */
+/**
+ * 各 {@link ChunkStrategy} 共用的二级递归切分与工具方法，不再作为对外切片入口。
+ */
 @Slf4j
 @Component
 public class TokenAwareChunker {
 
-    /** 将段落数组按 maxTokens 递归切分。 */
+    /**
+     * 将段落数组按 maxTokens 递归切分。
+     */
     public List<ChunkDTO> chunkParagraphs(String[] paragraphs, int maxTokens, int overlap) {
         DocumentSplitter splitter = DocumentSplitters.recursive(maxTokens, overlap);
         List<ChunkDTO> chunks = new ArrayList<>();
@@ -36,19 +41,20 @@ public class TokenAwareChunker {
                 if (text.isEmpty()) {
                     continue;
                 }
-                chunks.add(
-                        ChunkDTO.builder()
-                                .paragraphIndex(pIdx)
-                                .chunkIndex(cIdx)
-                                .content(text)
-                                .tokenCount(estimateTokens(text))
-                                .build());
+                chunks.add(ChunkDTO.builder()
+                        .paragraphIndex(pIdx)
+                        .chunkIndex(cIdx)
+                        .content(text)
+                        .tokenCount(estimateTokens(text))
+                        .build());
             }
         }
         return chunks;
     }
 
-    /** delimiter 为 null 时按段落 \\n\\n；为普通字符串时按该串切分；若以 [ 开头则解析为 JSON 字符串数组，按任一匹配切分（长串优先）。 */
+    /**
+     * delimiter 为 null 时按段落 \\n\\n；为普通字符串时按该串切分；若以 [ 开头则解析为 JSON 字符串数组，按任一匹配切分（长串优先）。
+     */
     public List<String> resolveDelimiterList(String raw) {
         if (StrUtil.isBlank(raw)) {
             return List.of("\n\n");
@@ -57,8 +63,7 @@ public class TokenAwareChunker {
         if (s.startsWith("[")) {
             try {
                 List<String> list = JsonUtil.parseList(s, String.class);
-                List<String> filtered =
-                        list.stream().filter(StrUtil::isNotBlank).map(String::trim).toList();
+                List<String> filtered = list.stream().filter(StrUtil::isNotBlank).map(String::trim).toList();
                 if (filtered.isEmpty()) {
                     return List.of("\n\n");
                 }
@@ -73,10 +78,12 @@ public class TokenAwareChunker {
         return List.of(s);
     }
 
-    /** 按多个分隔符切分内容（正则或字面值）。 */
+    /**
+     * 按多个分隔符切分内容（正则或字面值）。
+     */
     public String[] splitByAnyDelimiter(String content, List<String> delimiters) {
         if (delimiters.isEmpty()) {
-            return new String[] {content};
+            return new String[] { content };
         }
         if (delimiters.size() == 1) {
             return content.split(Pattern.quote(delimiters.get(0)));
@@ -93,8 +100,9 @@ public class TokenAwareChunker {
 
     /**
      * CJK 感知的 token 估算（启发式，无需调用分词器）。
-     *
-     * <p>经验系数：单个 CJK 字符约折算 1.5 token，连续的 ASCII 字母/数字按「词」计 1 token， 用于在切分阶段快速估算长度，不追求与具体模型分词器精确一致。
+     * <p>
+     * 经验系数：单个 CJK 字符约折算 1.5 token，连续的 ASCII 字母/数字按「词」计 1 token，
+     * 用于在切分阶段快速估算长度，不追求与具体模型分词器精确一致。
      */
     public int estimateTokens(String text) {
         int cjkCount = 0;

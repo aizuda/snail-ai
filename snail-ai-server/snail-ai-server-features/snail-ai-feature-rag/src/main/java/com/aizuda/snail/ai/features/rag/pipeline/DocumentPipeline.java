@@ -2,39 +2,40 @@ package com.aizuda.snail.ai.features.rag.pipeline;
 
 import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
-import com.aizuda.snail.ai.features.rag.dto.ChunkDTO;
-import com.aizuda.snail.ai.features.rag.enums.RagDocumentStatus;
-import com.aizuda.snail.ai.features.rag.strategy.parser.DocumentParser;
-import com.aizuda.snail.ai.features.rag.strategy.parser.DocumentParserFactory;
-import com.aizuda.snail.ai.features.rag.util.ContentHashUtil;
 import com.aizuda.snail.ai.features.resource.ResourceService;
+import com.aizuda.snail.ai.persistence.rag.mapper.RagMapper;
 import com.aizuda.snail.ai.persistence.rag.mapper.RagChunkMapper;
 import com.aizuda.snail.ai.persistence.rag.mapper.RagDocumentMapper;
-import com.aizuda.snail.ai.persistence.rag.mapper.RagMapper;
+import com.aizuda.snail.ai.features.rag.dto.ChunkDTO;
+import com.aizuda.snail.ai.features.rag.enums.RagDocumentStatus;
+import com.aizuda.snail.ai.features.rag.util.ContentHashUtil;
+import com.aizuda.snail.ai.persistence.rag.po.RagPO;
 import com.aizuda.snail.ai.persistence.rag.po.RagChunkPO;
 import com.aizuda.snail.ai.persistence.rag.po.RagDocumentPO;
-import com.aizuda.snail.ai.persistence.rag.po.RagPO;
 import com.aizuda.snail.ai.search.storage.search.SearchEngineFactory;
 import com.aizuda.snail.ai.search.storage.search.api.SearchAddRequest;
 import com.aizuda.snail.ai.search.storage.search.api.SearchDocument;
 import com.aizuda.snail.ai.search.storage.search.api.SearchEngine;
 import com.aizuda.snail.ai.search.storage.search.constant.SearchMetadataKeys;
+import com.aizuda.snail.ai.features.rag.strategy.parser.DocumentParser;
+import com.aizuda.snail.ai.features.rag.strategy.parser.DocumentParserFactory;
 import com.aizuda.snail.ai.vector.storage.vector.VectorStoreFactory;
 import com.aizuda.snail.ai.vector.storage.vector.api.IndexNameBuilder;
-import com.aizuda.snail.ai.vector.storage.vector.api.SnailAiVectorStore;
 import com.aizuda.snail.ai.vector.storage.vector.api.VectorAddRequest;
 import com.aizuda.snail.ai.vector.storage.vector.api.VectorDocument;
+import com.aizuda.snail.ai.vector.storage.vector.api.SnailAiVectorStore;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.google.common.collect.Lists;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
@@ -65,10 +66,7 @@ public class DocumentPipeline {
         try {
             RagPO knowledge = knowledgeMapper.selectById(document.getRagId());
             if (knowledge == null) {
-                log.error(
-                        "Knowledge not found: {} for document: {}",
-                        document.getRagId(),
-                        documentId);
+                log.error("Knowledge not found: {} for document: {}", document.getRagId(), documentId);
                 updateStatus(documentId, RagDocumentStatus.FAILED, "Knowledge not found");
                 return;
             }
@@ -92,16 +90,15 @@ public class DocumentPipeline {
 
             List<RagChunkPO> chunkPOs = new ArrayList<>();
             for (ChunkDTO chunk : chunks) {
-                chunkPOs.add(
-                        RagChunkPO.builder()
-                                .ragId(knowledge.getId())
-                                .documentId(documentId)
-                                .paragraphIndex(chunk.getParagraphIndex())
-                                .chunkIndex(chunk.getChunkIndex())
-                                .content(chunk.getContent())
-                                .tokenCount(chunk.getTokenCount())
-                                .contentHash(ContentHashUtil.sha256Hex(chunk.getContent()))
-                                .build());
+                chunkPOs.add(RagChunkPO.builder()
+                        .ragId(knowledge.getId())
+                        .documentId(documentId)
+                        .paragraphIndex(chunk.getParagraphIndex())
+                        .chunkIndex(chunk.getChunkIndex())
+                        .content(chunk.getContent())
+                        .tokenCount(chunk.getTokenCount())
+                        .contentHash(ContentHashUtil.sha256Hex(chunk.getContent()))
+                        .build());
             }
 
             ragChunkMapper.insert(chunkPOs);
@@ -113,10 +110,7 @@ public class DocumentPipeline {
             document.setErrorMsg(null);
             ragDocumentMapper.updateById(document);
 
-            log.info(
-                    "Document processed successfully: [{}], chunks: {}",
-                    documentId,
-                    chunkPOs.size());
+            log.info("Document processed successfully: [{}], chunks: {}", documentId, chunkPOs.size());
 
         } catch (Exception e) {
             log.error("Document processing failed: [{}]", documentId, e);
@@ -128,22 +122,21 @@ public class DocumentPipeline {
         RagDocumentPO update = new RagDocumentPO();
         update.setStatus(RagDocumentStatus.PROCESSING.getStatus());
         update.setErrorMsg(null);
-        return ragDocumentMapper.update(
-                        update,
-                        new LambdaUpdateWrapper<RagDocumentPO>()
-                                .eq(RagDocumentPO::getId, documentId)
-                                .eq(
-                                        RagDocumentPO::getStatus,
-                                        RagDocumentStatus.PENDING.getStatus()))
-                > 0;
+        return ragDocumentMapper.update(update, new LambdaUpdateWrapper<RagDocumentPO>()
+                .eq(RagDocumentPO::getId, documentId)
+                .eq(RagDocumentPO::getStatus, RagDocumentStatus.PENDING.getStatus())) > 0;
     }
 
-    /** 为单个切片生成向量并写入向量库与搜索引擎（新增切片场景） */
+    /**
+     * 为单个切片生成向量并写入向量库与搜索引擎（新增切片场景）
+     */
     public void embedSingleChunk(RagChunkPO chunk, RagPO knowledge) {
         dualWrite(List.of(chunk), knowledge);
     }
 
-    /** 删除旧向量后重新嵌入（编辑切片场景） */
+    /**
+     * 删除旧向量后重新嵌入（编辑切片场景）
+     */
     public void reEmbedSingleChunk(RagChunkPO chunk, RagPO knowledge) {
         if (StrUtil.isNotBlank(chunk.getVectorId())) {
             try {
@@ -158,7 +151,10 @@ public class DocumentPipeline {
         dualWrite(List.of(chunk), knowledge);
     }
 
-    /** 删除切片对应的向量（删除切片时调用） 只有当没有其他 chunk 引用同一个 vectorId 时才真正删除向量 */
+    /**
+     * 删除切片对应的向量（删除切片时调用）
+     * 只有当没有其他 chunk 引用同一个 vectorId 时才真正删除向量
+     */
     public void deleteChunkVector(RagChunkPO chunk) {
         if (StrUtil.isBlank(chunk.getVectorId())) {
             return;
@@ -168,12 +164,11 @@ public class DocumentPipeline {
             return;
         }
         // 引用计数检查：是否有其他 chunk 共享同一 vectorId
-        Long refCount =
-                ragChunkMapper.selectCount(
-                        new LambdaQueryWrapper<RagChunkPO>()
-                                .eq(RagChunkPO::getRagId, chunk.getRagId())
-                                .eq(RagChunkPO::getVectorId, chunk.getVectorId())
-                                .ne(RagChunkPO::getId, chunk.getId()));
+        Long refCount = ragChunkMapper.selectCount(
+                new LambdaQueryWrapper<RagChunkPO>()
+                        .eq(RagChunkPO::getRagId, chunk.getRagId())
+                        .eq(RagChunkPO::getVectorId, chunk.getVectorId())
+                        .ne(RagChunkPO::getId, chunk.getId()));
         if (refCount > 0) {
             return;
         }
@@ -186,7 +181,9 @@ public class DocumentPipeline {
         }
     }
 
-    /** Dual-write: embed chunks → write to VectorStore, and insert into SearchEngine. */
+    /**
+     * Dual-write: embed chunks → write to VectorStore, and insert into SearchEngine.
+     */
     private void dualWrite(List<RagChunkPO> chunkPOs, RagPO knowledge) {
         SnailAiVectorStore snailAiVectorStore = vectorStoreFactory.create(knowledge);
 
@@ -198,55 +195,42 @@ public class DocumentPipeline {
         // Write to search engine (if enabled)
         if (Boolean.TRUE.equals(knowledge.getSearchEngineEnable())) {
             try {
-                SearchEngine searchEngine =
-                        searchEngineFactory.forStoreInstance(knowledge.getSearchEngineInstanceId());
-                String searchIndexName =
-                        IndexNameBuilder.KNOWLEDGE.build(Map.of("ragId", knowledge.getId()));
+                SearchEngine searchEngine = searchEngineFactory.forStoreInstance(knowledge.getSearchEngineInstanceId());
+                String searchIndexName = IndexNameBuilder.KNOWLEDGE.build(Map.of("ragId", knowledge.getId()));
 
-                List<SearchDocument> searchDocs =
-                        chunkPOs.stream()
-                                .map(
-                                        c ->
-                                                SearchDocument.builder()
-                                                        .id(String.valueOf(c.getId()))
-                                                        .content(c.getContent())
-                                                        .metadata(
-                                                                Map.of(
-                                                                        SearchMetadataKeys.RAG_ID,
-                                                                                knowledge.getId(),
-                                                                        SearchMetadataKeys
-                                                                                        .DOCUMENT_ID,
-                                                                                c.getDocumentId(),
-                                                                        SearchMetadataKeys.CHUNK_ID,
-                                                                                c.getId()))
-                                                        .build())
-                                .toList();
-                searchEngine.insert(
-                        SearchAddRequest.builder()
-                                .indexName(searchIndexName)
-                                .documents(searchDocs)
-                                .build());
+                List<SearchDocument> searchDocs = chunkPOs.stream()
+                        .map(c -> SearchDocument.builder()
+                                .id(String.valueOf(c.getId()))
+                                .content(c.getContent())
+                                .metadata(Map.of(
+                                        SearchMetadataKeys.RAG_ID, knowledge.getId(),
+                                        SearchMetadataKeys.DOCUMENT_ID, c.getDocumentId(),
+                                        SearchMetadataKeys.CHUNK_ID, c.getId()))
+                                .build())
+                        .toList();
+                searchEngine.insert(SearchAddRequest.builder()
+                        .indexName(searchIndexName)
+                        .documents(searchDocs)
+                        .build());
             } catch (Exception e) {
                 log.warn("SearchEngine insert failed (non-fatal): {}", e.getMessage());
             }
         }
     }
 
-    private void processVectorBatch(
-            List<RagChunkPO> batch, SnailAiVectorStore snailAiVectorStore, RagPO knowledge) {
+    private void processVectorBatch(List<RagChunkPO> batch, SnailAiVectorStore snailAiVectorStore, RagPO knowledge) {
         List<VectorDocument> toEmbed = new ArrayList<>();
 
         for (RagChunkPO chunk : batch) {
             // Chunk 级去重：查找同一 RAG 下已有相同内容且已向量化的 chunk
             if (StrUtil.isNotBlank(chunk.getContentHash())) {
-                RagChunkPO existing =
-                        ragChunkMapper.selectOne(
-                                new LambdaQueryWrapper<RagChunkPO>()
-                                        .eq(RagChunkPO::getRagId, knowledge.getId())
-                                        .eq(RagChunkPO::getContentHash, chunk.getContentHash())
-                                        .isNotNull(RagChunkPO::getVectorId)
-                                        .ne(RagChunkPO::getId, chunk.getId())
-                                        .last("LIMIT 1"));
+                RagChunkPO existing = ragChunkMapper.selectOne(
+                        new LambdaQueryWrapper<RagChunkPO>()
+                                .eq(RagChunkPO::getRagId, knowledge.getId())
+                                .eq(RagChunkPO::getContentHash, chunk.getContentHash())
+                                .isNotNull(RagChunkPO::getVectorId)
+                                .ne(RagChunkPO::getId, chunk.getId())
+                                .last("LIMIT 1"));
                 if (existing != null) {
                     // 复用已有向量，不重复 embedding
                     chunk.setVectorId(existing.getVectorId());
@@ -259,22 +243,22 @@ public class DocumentPipeline {
             String vectorId = UUID.randomUUID().toString();
             chunk.setVectorId(vectorId);
 
-            toEmbed.add(
-                    VectorDocument.builder()
-                            .id(vectorId)
-                            .content(chunk.getContent())
-                            .metadata(
-                                    Map.of(
-                                            "ragId", knowledge.getId(),
-                                            "documentId", chunk.getDocumentId(),
-                                            "chunkId", chunk.getId()))
-                            .build());
+            toEmbed.add(VectorDocument.builder()
+                    .id(vectorId)
+                    .content(chunk.getContent())
+                    .metadata(Map.of(
+                            "ragId", knowledge.getId(),
+                            "documentId", chunk.getDocumentId(),
+                            "chunkId", chunk.getId()))
+                    .build());
         }
 
         if (!toEmbed.isEmpty()) {
             String indexName = IndexNameBuilder.KNOWLEDGE.build(Map.of("ragId", knowledge.getId()));
-            snailAiVectorStore.add(
-                    VectorAddRequest.builder().indexName(indexName).documents(toEmbed).build());
+            snailAiVectorStore.add(VectorAddRequest.builder()
+                    .indexName(indexName)
+                    .documents(toEmbed)
+                    .build());
             for (RagChunkPO chunk : batch) {
                 if (StrUtil.isNotBlank(chunk.getVectorId())) {
                     ragChunkMapper.updateById(chunk);
@@ -300,12 +284,11 @@ public class DocumentPipeline {
         try {
             SnailAiVectorStore snailAiVectorStore = vectorStoreFactory.create(knowledge);
             String indexName = IndexNameBuilder.KNOWLEDGE.build(Map.of("ragId", knowledge.getId()));
-            List<RagChunkPO> existing =
-                    ragChunkMapper.selectList(
-                            new LambdaQueryWrapper<RagChunkPO>()
-                                    .eq(RagChunkPO::getDocumentId, documentId)
-                                    .eq(RagChunkPO::getRagId, knowledge.getId())
-                                    .isNotNull(RagChunkPO::getVectorId));
+            List<RagChunkPO> existing = ragChunkMapper.selectList(
+                    new LambdaQueryWrapper<RagChunkPO>()
+                            .eq(RagChunkPO::getDocumentId, documentId)
+                            .eq(RagChunkPO::getRagId, knowledge.getId())
+                            .isNotNull(RagChunkPO::getVectorId));
             if (!existing.isEmpty()) {
                 // 只删除没有被其他文档的 chunk 引用的向量
                 List<String> vectorIdsToDelete = new ArrayList<>();
@@ -313,12 +296,11 @@ public class DocumentPipeline {
                     if (StrUtil.isBlank(chunk.getVectorId())) {
                         continue;
                     }
-                    Long refCount =
-                            ragChunkMapper.selectCount(
-                                    new LambdaQueryWrapper<RagChunkPO>()
-                                            .eq(RagChunkPO::getRagId, knowledge.getId())
-                                            .eq(RagChunkPO::getVectorId, chunk.getVectorId())
-                                            .ne(RagChunkPO::getDocumentId, documentId));
+                    Long refCount = ragChunkMapper.selectCount(
+                            new LambdaQueryWrapper<RagChunkPO>()
+                                    .eq(RagChunkPO::getRagId, knowledge.getId())
+                                    .eq(RagChunkPO::getVectorId, chunk.getVectorId())
+                                    .ne(RagChunkPO::getDocumentId, documentId));
                     if (refCount == 0) {
                         vectorIdsToDelete.add(chunk.getVectorId());
                     }
@@ -330,10 +312,9 @@ public class DocumentPipeline {
         } catch (Exception e) {
             log.warn("Failed to clean vector store for document: {}", documentId, e);
         }
-        ragChunkMapper.delete(
-                new LambdaQueryWrapper<RagChunkPO>()
-                        .eq(RagChunkPO::getDocumentId, documentId)
-                        .eq(RagChunkPO::getRagId, knowledge.getId()));
+        ragChunkMapper.delete(new LambdaQueryWrapper<RagChunkPO>()
+                .eq(RagChunkPO::getDocumentId, documentId)
+                .eq(RagChunkPO::getRagId, knowledge.getId()));
     }
 
     private void updateStatus(Long documentId, RagDocumentStatus status, String errorMsg) {
@@ -343,4 +324,5 @@ public class DocumentPipeline {
         update.setErrorMsg(errorMsg);
         ragDocumentMapper.updateById(update);
     }
+
 }

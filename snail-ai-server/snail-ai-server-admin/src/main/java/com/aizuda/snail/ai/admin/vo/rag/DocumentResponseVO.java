@@ -1,7 +1,8 @@
 package com.aizuda.snail.ai.admin.vo.rag;
 
-import java.time.LocalDateTime;
 import lombok.Data;
+
+import java.time.LocalDateTime;
 
 /**
  * RAG 文档响应：文档内容、解析状态及创建 / 更新时间。

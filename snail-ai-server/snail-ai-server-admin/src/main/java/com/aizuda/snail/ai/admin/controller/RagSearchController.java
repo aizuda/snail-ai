@@ -1,31 +1,32 @@
 package com.aizuda.snail.ai.admin.controller;
 
-import com.aizuda.snail.ai.admin.security.annotation.LoginRequired;
 import com.aizuda.snail.ai.admin.service.knowledge.KnowledgeService;
-import com.aizuda.snail.ai.admin.service.rag.RagQAService;
-import com.aizuda.snail.ai.admin.stream.RagQaStreamHttpAdapter;
 import com.aizuda.snail.ai.admin.vo.PageResult;
 import com.aizuda.snail.ai.admin.vo.knowledge.KnowledgeConfigRequestVO;
 import com.aizuda.snail.ai.admin.vo.knowledge.KnowledgeQueryVO;
 import com.aizuda.snail.ai.admin.vo.knowledge.KnowledgeRequestVO;
 import com.aizuda.snail.ai.admin.vo.knowledge.KnowledgeResponseVO;
+import com.aizuda.snail.ai.common.model.Result;
+import com.aizuda.snail.ai.admin.security.annotation.LoginRequired;
 import com.aizuda.snail.ai.admin.vo.rag.RagQARequestVO;
 import com.aizuda.snail.ai.admin.vo.rag.RagSearchRequestVO;
 import com.aizuda.snail.ai.admin.vo.rag.RagSearchResponseVO;
-import com.aizuda.snail.ai.common.model.Result;
+import com.aizuda.snail.ai.admin.service.rag.RagQAService;
+import com.aizuda.snail.ai.admin.stream.RagQaStreamHttpAdapter;
 import com.aizuda.snail.ai.features.rag.dto.RagSearchRequestDTO;
 import com.aizuda.snail.ai.features.rag.dto.RagSearchResponseDTO;
 import com.aizuda.snail.ai.features.rag.service.RagSearchService;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 
+import java.util.List;
+
 /**
  * 知识库（RAG）管理与检索接口：知识库 CRUD / 配置、向量检索与流式问答。
- *
- * <p>全部端点均需 ADMIN 角色。
+ * <p>
+ * 全部端点均需 ADMIN 角色。
  */
 @RestController
 @RequestMapping("/rag")
@@ -47,16 +48,16 @@ public class RagSearchController {
     /** 更新知识库基本信息（管理员）。 */
     @PutMapping("/{id}")
     @LoginRequired
-    public Result<KnowledgeResponseVO> update(
-            @PathVariable("id") Long id, @RequestBody @Validated KnowledgeRequestVO request) {
+    public Result<KnowledgeResponseVO> update(@PathVariable("id") Long id,
+                                              @RequestBody @Validated KnowledgeRequestVO request) {
         return Result.ok(knowledgeService.update(id, request));
     }
 
     /** 更新知识库检索 / 切块配置（管理员）。 */
     @PutMapping("/{id}/config")
     @LoginRequired
-    public Result<Void> updateConfig(
-            @PathVariable("id") Long id, @RequestBody KnowledgeConfigRequestVO config) {
+    public Result<Void> updateConfig(@PathVariable("id") Long id,
+                                     @RequestBody KnowledgeConfigRequestVO config) {
         knowledgeService.updateConfig(id, config);
         return Result.ok(null);
     }
@@ -92,11 +93,10 @@ public class RagSearchController {
         dto.setQuery(request.getQuery());
         dto.setDebug(request.getDebug());
         RagSearchResponseDTO resp = ragSearchService.search(dto);
-        return Result.ok(
-                RagSearchResponseVO.builder()
-                        .results(resp.getResults())
-                        .metrics(resp.getMetrics())
-                        .build());
+        return Result.ok(RagSearchResponseVO.builder()
+                .results(resp.getResults())
+                .metrics(resp.getMetrics())
+                .build());
     }
 
     /** 基于知识库的流式问答（管理员，SSE 流）。 */

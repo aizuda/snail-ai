@@ -10,7 +10,9 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.stereotype.Component;
 
-/** 服务端模型构建门面。 */
+/**
+ * 服务端模型构建门面。
+ */
 @Component
 @RequiredArgsConstructor
 public class ServerModelFacade {

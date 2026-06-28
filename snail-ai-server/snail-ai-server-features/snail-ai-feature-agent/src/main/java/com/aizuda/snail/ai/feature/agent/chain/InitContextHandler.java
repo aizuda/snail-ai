@@ -9,7 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-/** 初始化：加载用户与智能体 */
+/**
+ * 初始化：加载用户与智能体
+ */
 @Slf4j
 @Component
 @Order(10)
@@ -20,10 +22,7 @@ public class InitContextHandler implements AgentChatHandler {
 
     @Override
     public void handle(AgentChatContext ctx) {
-        UserPO user =
-                ctx.getRequestUser() != null
-                        ? ctx.getRequestUser()
-                        : UserSessionUtils.currentUserSession();
+        UserPO user = ctx.getRequestUser() != null ? ctx.getRequestUser() : UserSessionUtils.currentUserSession();
         AgentPO agent = agentMapper.selectById(ctx.getAgentId());
         if (agent == null) {
             ctx.getStreamWriter().send("Error: Agent not found: " + ctx.getAgentId());

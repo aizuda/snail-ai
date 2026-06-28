@@ -2,19 +2,22 @@ package com.aizuda.snail.ai.admin.vo.memory;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import java.math.BigDecimal;
 import lombok.Data;
+
+import java.math.BigDecimal;
 
 @Data
 public class MemoryConfigRequestVO {
 
-    @NotBlank private String name;
+    @NotBlank
+    private String name;
 
     private Integer status;
 
     private Long vectorStoreInstanceId;
 
-    @NotNull private Long embeddingModelId;
+    @NotNull
+    private Long embeddingModelId;
 
     private Boolean searchEngineEnable;
 
@@ -53,18 +56,15 @@ public class MemoryConfigRequestVO {
 
     private String customUpdatePrompt;
 
-    /**
-     * @deprecated 已废弃，请使用 customExtractionPrompt
-     */
-    @Deprecated private String extractionRuleType;
+    /** @deprecated 已废弃，请使用 customExtractionPrompt */
+    @Deprecated
+    private String extractionRuleType;
 
-    /**
-     * @deprecated 已废弃，请使用 customExtractionPrompt
-     */
-    @Deprecated private String extractionRuleInstruction;
+    /** @deprecated 已废弃，请使用 customExtractionPrompt */
+    @Deprecated
+    private String extractionRuleInstruction;
 
-    /**
-     * @deprecated 已废弃，请使用 customExtractionPrompt
-     */
-    @Deprecated private String extractionPromptType;
+    /** @deprecated 已废弃，请使用 customExtractionPrompt */
+    @Deprecated
+    private String extractionPromptType;
 }

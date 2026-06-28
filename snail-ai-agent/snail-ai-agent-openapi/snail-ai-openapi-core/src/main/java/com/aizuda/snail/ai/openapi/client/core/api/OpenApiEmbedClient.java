@@ -6,11 +6,11 @@ import com.aizuda.snail.ai.common.openapi.dto.OpenApiEmbedTokenRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiEmbedTokenResponse;
 import com.aizuda.snail.ai.openapi.client.core.annotation.OpenApiMapping;
 
-/** OpenAPI 嵌入式对话客户端接口。 */
+/**
+ * OpenAPI 嵌入式对话客户端接口。
+ */
 public interface OpenApiEmbedClient {
 
-    @OpenApiMapping(
-            path = OpenApiPathConstants.OPEN_API_EMBED_TOKEN,
-            method = OpenApiMapping.HttpMethod.POST)
+    @OpenApiMapping(path = OpenApiPathConstants.OPEN_API_EMBED_TOKEN, method = OpenApiMapping.HttpMethod.POST)
     Result<OpenApiEmbedTokenResponse> embedToken(OpenApiEmbedTokenRequest request);
 }

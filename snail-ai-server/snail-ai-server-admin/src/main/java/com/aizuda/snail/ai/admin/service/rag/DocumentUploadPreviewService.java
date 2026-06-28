@@ -11,6 +11,7 @@ import com.aizuda.snail.ai.admin.vo.rag.UploadCommitResultVO;
 import com.aizuda.snail.ai.admin.vo.rag.UploadPreviewItemVO;
 import com.aizuda.snail.ai.admin.vo.rag.UploadPreviewResultVO;
 import com.aizuda.snail.ai.common.execption.SnailAiCommonException;
+import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.aizuda.snail.ai.features.rag.dedup.DedupResult;
 import com.aizuda.snail.ai.features.rag.dedup.DocumentDedupChecker;
 import com.aizuda.snail.ai.features.rag.dedup.UploadDecision;
@@ -21,10 +22,16 @@ import com.aizuda.snail.ai.features.rag.enums.DocumentSourceTypeEnum;
 import com.aizuda.snail.ai.features.rag.util.ContentHashUtil;
 import com.aizuda.snail.ai.features.resource.ResourceService;
 import com.aizuda.snail.ai.features.resource.enums.ResourceBizTypeEnum;
-import com.aizuda.snail.ai.persistence.rag.po.RagDocumentPO;
 import com.aizuda.snail.ai.persistence.rag.po.RagPO;
+import com.aizuda.snail.ai.persistence.rag.po.RagDocumentPO;
 import com.aizuda.snail.ai.persistence.resource.po.ResourcePO;
 import com.aizuda.snail.ai.persistence.security.UserSessionUtils;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,17 +40,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 /**
  * 知识库上传预览-提交两阶段流程
- *
- * <p>- preview：落临时资源、按策略生成每文件决策、token 写入内存 - commit：在知识库锁内重新校验决策（TOCTOU），按用户最终选择执行入库 -
- * cancel：删除临时资源、失效 token
+ * <p>
+ * - preview：落临时资源、按策略生成每文件决策、token 写入内存
+ * - commit：在知识库锁内重新校验决策（TOCTOU），按用户最终选择执行入库
+ * - cancel：删除临时资源、失效 token
  *
  * @author opensnail
  */
@@ -60,7 +63,7 @@ public class DocumentUploadPreviewService {
 
     private final RagDocumentService ragDocumentService;
     private final ResourceService resourceService;
-
+    
     private static class TokenEntry {
         UploadPreviewState state;
         long expiresAt;
@@ -77,8 +80,7 @@ public class DocumentUploadPreviewService {
 
     // ──────────────────────────────────── preview ────────────────────────────────────
 
-    public UploadPreviewResultVO preview(
-            MultipartFile[] files, RagDocumentUploadRequestVO request) {
+    public UploadPreviewResultVO preview(MultipartFile[] files, RagDocumentUploadRequestVO request) {
         if (files == null || files.length == 0) {
             throw new SnailAiCommonException("请选择要上传的文件");
         }
@@ -105,56 +107,43 @@ public class DocumentUploadPreviewService {
             }
             String contentHash = ContentHashUtil.sha256Hex(bytes);
 
-            ResourcePO resource =
-                    resourceService.upload(
-                            new ByteArrayInputStream(bytes),
-                            fileName,
-                            bytes.length,
-                            ResourceBizTypeEnum.DOCUMENT_PREVIEW.getValue(),
-                            knowledge.getId(),
-                            userId);
+            ResourcePO resource = resourceService.upload(
+                    new ByteArrayInputStream(bytes),
+                    fileName,
+                    bytes.length,
+                    ResourceBizTypeEnum.DOCUMENT_PREVIEW.getValue(),
+                    knowledge.getId(),
+                    userId
+            );
 
             DedupResult dedup = checker.check(knowledge.getId(), fileName, contentHash, strategy);
             UploadDecision decision = checker.decide(dedup, action);
 
-            stateItems.add(
-                    UploadPreviewItemState.builder()
-                            .tempResourceId(resource.getId())
-                            .fileName(fileName)
-                            .fileType(fileType)
-                            .sourceType(DocumentSourceTypeEnum.UPLOAD.getValue())
-                            .fileSize((long) bytes.length)
-                            .contentHash(contentHash)
-                            .decision(decision.getType().name())
-                            .matchType(decision.getMatchType().name())
-                            .conflictDocumentId(
-                                    decision.getConflict() != null
-                                            ? decision.getConflict().getId()
-                                            : null)
-                            .build());
+            stateItems.add(UploadPreviewItemState.builder()
+                    .tempResourceId(resource.getId())
+                    .fileName(fileName)
+                    .fileType(fileType)
+                    .sourceType(DocumentSourceTypeEnum.UPLOAD.getValue())
+                    .fileSize((long) bytes.length)
+                    .contentHash(contentHash)
+                    .decision(decision.getType().name())
+                    .matchType(decision.getMatchType().name())
+                    .conflictDocumentId(decision.getConflict() != null ? decision.getConflict().getId() : null)
+                    .build());
 
-            voItems.add(
-                    UploadPreviewItemVO.builder()
-                            .tempResourceId(resource.getId())
-                            .fileName(fileName)
-                            .fileType(fileType)
-                            .fileSize((long) bytes.length)
-                            .contentHash(contentHash)
-                            .decision(decision.getType().name())
-                            .matchType(decision.getMatchType().name())
-                            .conflictDocumentId(
-                                    decision.getConflict() != null
-                                            ? decision.getConflict().getId()
-                                            : null)
-                            .conflictDocumentName(
-                                    decision.getConflict() != null
-                                            ? decision.getConflict().getName()
-                                            : null)
-                            .rejectReason(
-                                    decision.getType() == UploadDecisionType.REJECT
-                                            ? buildConflictReason(decision)
-                                            : null)
-                            .build());
+            voItems.add(UploadPreviewItemVO.builder()
+                    .tempResourceId(resource.getId())
+                    .fileName(fileName)
+                    .fileType(fileType)
+                    .fileSize((long) bytes.length)
+                    .contentHash(contentHash)
+                    .decision(decision.getType().name())
+                    .matchType(decision.getMatchType().name())
+                    .conflictDocumentId(decision.getConflict() != null ? decision.getConflict().getId() : null)
+                    .conflictDocumentName(decision.getConflict() != null ? decision.getConflict().getName() : null)
+                    .rejectReason(decision.getType() == UploadDecisionType.REJECT
+                            ? buildConflictReason(decision) : null)
+                    .build());
         }
 
         if (stateItems.isEmpty()) {
@@ -162,14 +151,13 @@ public class DocumentUploadPreviewService {
         }
 
         String token = IdUtil.fastSimpleUUID();
-        UploadPreviewState state =
-                UploadPreviewState.builder()
-                        .ragId(knowledge.getId())
-                        .userId(userId)
-                        .dedupStrategy(strategy.getCode())
-                        .dedupAction(action.getCode())
-                        .items(stateItems)
-                        .build();
+        UploadPreviewState state = UploadPreviewState.builder()
+                .ragId(knowledge.getId())
+                .userId(userId)
+                .dedupStrategy(strategy.getCode())
+                .dedupAction(action.getCode())
+                .items(stateItems)
+                .build();
         tokenCache.put(token, new TokenEntry(state));
 
         return UploadPreviewResultVO.builder()
@@ -189,7 +177,7 @@ public class DocumentUploadPreviewService {
         Object lock = uploadLocks.computeIfAbsent(knowledge.getId(), ignored -> new Object());
         synchronized (lock) {
             UploadCommitResultVO result = doCommit(knowledge, state, request);
-
+            
             // 整批 commit 完成才删除 token，避免部分失败时用户无法重试
             if (Boolean.FALSE.equals(result.getConflictChanged())) {
                 tokenCache.remove(request.getPreviewToken());
@@ -198,8 +186,8 @@ public class DocumentUploadPreviewService {
         }
     }
 
-    private UploadCommitResultVO doCommit(
-            RagPO knowledge, UploadPreviewState state, UploadCommitRequestVO request) {
+    private UploadCommitResultVO doCommit(RagPO knowledge, UploadPreviewState state,
+                                          UploadCommitRequestVO request) {
         Map<Long, UploadPreviewItemState> stateByResource = new HashMap<>();
         for (UploadPreviewItemState item : state.getItems()) {
             stateByResource.put(item.getTempResourceId(), item);
@@ -218,9 +206,8 @@ public class DocumentUploadPreviewService {
             UploadDecisionType userChoice = parseDecision(ui.getDecision());
 
             // TOCTOU 重新判定
-            DedupResult fresh =
-                    checker.check(
-                            knowledge.getId(), item.getFileName(), item.getContentHash(), strategy);
+            DedupResult fresh = checker.check(knowledge.getId(), item.getFileName(),
+                    item.getContentHash(), strategy);
             if (isConflictChanged(item, fresh, userChoice)) {
                 conflictChanged = true;
                 committed.add(buildConflictChangedResponse(item, fresh));
@@ -236,9 +223,12 @@ public class DocumentUploadPreviewService {
                 .build();
     }
 
-    /** 判断「最新冲突状态」是否与用户在预览时基于的状态发生变化。 任一情况成立即视为冲突已变化，需用户重新确认。 */
-    private boolean isConflictChanged(
-            UploadPreviewItemState item, DedupResult fresh, UploadDecisionType userChoice) {
+    /**
+     * 判断「最新冲突状态」是否与用户在预览时基于的状态发生变化。
+     * 任一情况成立即视为冲突已变化，需用户重新确认。
+     */
+    private boolean isConflictChanged(UploadPreviewItemState item, DedupResult fresh,
+                                      UploadDecisionType userChoice) {
         boolean previewHadConflict = item.getConflictDocumentId() != null;
         boolean freshHasConflict = fresh.isHit();
 
@@ -255,34 +245,25 @@ public class DocumentUploadPreviewService {
             return true;
         }
         // 仍有冲突但目标文档发生了变化
-        if (freshHasConflict
-                && fresh.getConflict() != null
+        if (freshHasConflict && fresh.getConflict() != null
                 && !fresh.getConflict().getId().equals(item.getConflictDocumentId())) {
             return true;
         }
         return false;
     }
 
-    private RagDocumentResponseVO executeOne(
-            RagPO knowledge,
-            UploadPreviewItemState item,
-            DedupResult fresh,
-            UploadDecisionType userChoice) {
+    private RagDocumentResponseVO executeOne(RagPO knowledge, UploadPreviewItemState item,
+                                             DedupResult fresh, UploadDecisionType userChoice) {
         RagDocumentPO conflict = fresh.getConflict();
         UploadDecision decision = new UploadDecision(userChoice, fresh.getMatchType(), conflict);
 
         return switch (userChoice) {
             case NEW -> {
-                resourceService.updateBizType(
-                        item.getTempResourceId(), ResourceBizTypeEnum.DOCUMENT.getValue());
-                yield ragDocumentService.persistDocumentRow(
-                        knowledge,
-                        item.getFileName(),
-                        item.getFileType(),
-                        item.getSourceType(),
-                        item.getContentHash(),
-                        item.getTempResourceId(),
-                        decision);
+                resourceService.updateBizType(item.getTempResourceId(),
+                        ResourceBizTypeEnum.DOCUMENT.getValue());
+                yield ragDocumentService.persistDocumentRow(knowledge, item.getFileName(),
+                        item.getFileType(), item.getSourceType(), item.getContentHash(),
+                        item.getTempResourceId(), decision);
             }
             case SKIP -> {
                 // 跳过：临时资源不再需要，直接删除
@@ -293,17 +274,11 @@ public class DocumentUploadPreviewService {
                 if (conflict != null) {
                     ragDocumentService.cleanupDocument(conflict.getId());
                 }
-                resourceService.updateBizType(
-                        item.getTempResourceId(), ResourceBizTypeEnum.DOCUMENT.getValue());
-                RagDocumentResponseVO vo =
-                        ragDocumentService.persistDocumentRow(
-                                knowledge,
-                                item.getFileName(),
-                                item.getFileType(),
-                                item.getSourceType(),
-                                item.getContentHash(),
-                                item.getTempResourceId(),
-                                decision);
+                resourceService.updateBizType(item.getTempResourceId(),
+                        ResourceBizTypeEnum.DOCUMENT.getValue());
+                RagDocumentResponseVO vo = ragDocumentService.persistDocumentRow(knowledge,
+                        item.getFileName(), item.getFileType(), item.getSourceType(),
+                        item.getContentHash(), item.getTempResourceId(), decision);
                 vo.setConflictDocumentId(conflict != null ? conflict.getId() : null);
                 yield vo;
             }
@@ -357,8 +332,7 @@ public class DocumentUploadPreviewService {
         return state;
     }
 
-    private RagDocumentResponseVO buildSkipResponse(
-            UploadPreviewItemState item, RagDocumentPO conflict) {
+    private RagDocumentResponseVO buildSkipResponse(UploadPreviewItemState item, RagDocumentPO conflict) {
         return RagDocumentResponseVO.builder()
                 .ragId(conflict != null ? conflict.getRagId() : null)
                 .name(item.getFileName())
@@ -371,8 +345,7 @@ public class DocumentUploadPreviewService {
                 .build();
     }
 
-    private RagDocumentResponseVO buildConflictChangedResponse(
-            UploadPreviewItemState item, DedupResult fresh) {
+    private RagDocumentResponseVO buildConflictChangedResponse(UploadPreviewItemState item, DedupResult fresh) {
         return RagDocumentResponseVO.builder()
                 .name(item.getFileName())
                 .fileType(item.getFileType())
@@ -380,8 +353,7 @@ public class DocumentUploadPreviewService {
                 .fileSize(item.getFileSize())
                 .decision("CONFLICT_CHANGED")
                 .matchType(fresh.getMatchType().name())
-                .conflictDocumentId(
-                        fresh.getConflict() != null ? fresh.getConflict().getId() : null)
+                .conflictDocumentId(fresh.getConflict() != null ? fresh.getConflict().getId() : null)
                 .errorMsg("冲突状态已变化，请重新预览后再提交")
                 .build();
     }

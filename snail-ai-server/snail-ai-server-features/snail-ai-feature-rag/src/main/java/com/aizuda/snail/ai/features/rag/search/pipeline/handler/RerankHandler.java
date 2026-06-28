@@ -5,11 +5,12 @@ import com.aizuda.snail.ai.features.rag.search.pipeline.RagSearchContext;
 import com.aizuda.snail.ai.features.rag.search.pipeline.RagSearchHandler;
 import com.aizuda.snail.ai.features.rag.strategy.rerank.RerankService;
 import com.aizuda.snail.ai.persistence.rag.dataobject.RagConfigDO;
-import java.util.Comparator;
-import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+
+import java.util.Comparator;
+import java.util.List;
 
 @Component
 @Order(60)
@@ -21,10 +22,8 @@ public class RerankHandler implements RagSearchHandler {
     @Override
     public void handle(RagSearchContext ctx) {
         RagConfigDO.SearchParams sp = ctx.getSearchParams();
-        Long rerankModelId =
-                sp.getRerankModelId() != null
-                        ? sp.getRerankModelId()
-                        : ctx.getKnowledge().getRerankModelId();
+        Long rerankModelId = sp.getRerankModelId() != null
+                ? sp.getRerankModelId() : ctx.getKnowledge().getRerankModelId();
 
         if (!Boolean.TRUE.equals(sp.getRerankEnabled()) || rerankModelId == null) {
             return;
@@ -35,16 +34,15 @@ public class RerankHandler implements RagSearchHandler {
         int enterRerankCount = sp.getEnterRerankCount();
         int resultCount = sp.getResultCount();
 
-        List<SearchResult> sorted =
-                ctx.getResults().stream()
-                        .sorted(Comparator.comparing(SearchResult::getScore).reversed())
-                        .toList();
-        List<SearchResult> rerankInput =
-                sorted.stream().limit(Math.max(1, enterRerankCount)).toList();
+        List<SearchResult> sorted = ctx.getResults().stream()
+                .sorted(Comparator.comparing(SearchResult::getScore).reversed())
+                .toList();
+        List<SearchResult> rerankInput = sorted.stream()
+                .limit(Math.max(1, enterRerankCount))
+                .toList();
         int rerankOutputTopN = Math.min(Math.max(1, resultCount), rerankInput.size());
 
-        ctx.setResults(
-                rerankService.rerank(ctx.getQuery(), rerankInput, rerankOutputTopN, rerankModelId));
+        ctx.setResults(rerankService.rerank(ctx.getQuery(), rerankInput, rerankOutputTopN, rerankModelId));
 
         if (ctx.getMetrics() != null) {
             ctx.getMetrics().setRerankMs(System.currentTimeMillis() - start);

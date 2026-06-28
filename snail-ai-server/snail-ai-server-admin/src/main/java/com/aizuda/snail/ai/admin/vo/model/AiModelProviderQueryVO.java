@@ -6,4 +6,5 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-public class AiModelProviderQueryVO extends BaseQueryVO {}
+public class AiModelProviderQueryVO extends BaseQueryVO {
+}

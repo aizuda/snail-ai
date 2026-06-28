@@ -11,7 +11,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-/** 会话管理：创建或复用对话记录，持久化用户消息 */
+/**
+ * 会话管理：创建或复用对话记录，持久化用户消息
+ */
 @Component
 @Order(20)
 @RequiredArgsConstructor
@@ -30,28 +32,26 @@ public class ConversationHandler implements AgentChatHandler {
         String content = ctx.getContent();
         Long userId = ctx.getUser().getId();
 
-        Long convCount =
-                conversationMapper.selectCount(
-                        new LambdaQueryWrapper<AgentConversationPO>()
-                                .eq(AgentConversationPO::getConversationId, conversationId));
+        Long convCount = conversationMapper.selectCount(
+                new LambdaQueryWrapper<AgentConversationPO>()
+                        .eq(AgentConversationPO::getConversationId, conversationId));
         if (convCount == 0) {
-            conversationMapper.insert(
-                    AgentConversationPO.builder()
-                            .agentId(agentId)
-                            .userId(userId)
-                            .conversationId(conversationId)
-                            .title(content.substring(0, Math.min(content.length(), 16)))
-                            .build());
+            conversationMapper.insert(AgentConversationPO.builder()
+                    .agentId(agentId)
+                    .userId(userId)
+                    .conversationId(conversationId)
+                    .title(content.substring(0, Math.min(content.length(), 16)))
+                    .build());
         }
 
-        recordMapper.insert(
-                AgentConversationRecordPO.builder()
-                        .agentId(agentId)
-                        .conversationId(conversationId)
-                        .userId(userId)
-                        .role(ConversationRoleEnum.USER.getValue())
-                        .content(content)
-                        .status(StatusEnum.RUNNING.getValue())
-                        .build());
+        recordMapper.insert(AgentConversationRecordPO.builder()
+                .agentId(agentId)
+                .conversationId(conversationId)
+                .userId(userId)
+                .role(ConversationRoleEnum.USER.getValue())
+                .content(content)
+                .status(StatusEnum.RUNNING.getValue())
+                .build());
+
     }
 }

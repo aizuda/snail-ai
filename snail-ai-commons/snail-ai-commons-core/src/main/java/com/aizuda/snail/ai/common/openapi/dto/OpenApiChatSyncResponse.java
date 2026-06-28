@@ -5,7 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/** OpenAPI 同步对话响应 */
+/**
+ * OpenAPI 同步对话响应
+ */
 @Data
 @Builder
 @AllArgsConstructor

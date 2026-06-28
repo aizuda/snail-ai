@@ -1,10 +1,14 @@
 package com.aizuda.snail.ai.admin.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import java.time.LocalDateTime;
 import lombok.Data;
 
-/** author: opensnail date: 2025-07-18 */
+import java.time.LocalDateTime;
+
+/**
+ * author: opensnail
+ * date: 2025-07-18
+ */
 @Data
 public class UserInfoVO {
 
@@ -38,4 +42,5 @@ public class UserInfoVO {
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss", timezone = "GMT+8")
     private LocalDateTime updateDt;
+
 }

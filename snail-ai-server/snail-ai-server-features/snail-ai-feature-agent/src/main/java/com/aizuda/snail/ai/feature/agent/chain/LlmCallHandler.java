@@ -1,23 +1,23 @@
 package com.aizuda.snail.ai.feature.agent.chain;
 
+import com.aizuda.snail.ai.feature.agent.persist.ChatResultPersistService;
 import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
 import com.aizuda.snail.ai.common.grpc.client.GrpcChannelUtil;
 import com.aizuda.snail.ai.common.grpc.constant.UriConstants;
 import com.aizuda.snail.ai.common.util.JsonUtil;
-import com.aizuda.snail.ai.feature.agent.persist.ChatResultPersistService;
-import com.aizuda.snail.ai.feature.agent.stream.ChatStreamWriter;
 import com.aizuda.snail.ai.persistence.agent.po.AgentPO;
-import java.util.Map;
-import java.util.UUID;
+import com.aizuda.snail.ai.feature.agent.stream.ChatStreamWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+import java.util.UUID;
+
 /**
- * 责任链终点：从 {@link AgentChatContext} 组装 {@link
- * com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest}，通过 gRPC 流式调用远程 Client。
+ * 责任链终点：从 {@link AgentChatContext} 组装 {@link com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest}，通过 gRPC 流式调用远程 Client。
  */
 @Slf4j
 @Component
@@ -50,18 +50,14 @@ public class LlmCallHandler implements AgentChatHandler {
             return;
         }
 
-        com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest request =
-                buildDispatchRequest(ctx);
+        com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest request = buildDispatchRequest(ctx);
         String dispatchBody = JsonUtil.toJsonString(request);
 
-        int shortTermWindow =
-                ctx.getAgent().getShortTermMemorySize() != null
-                                && ctx.getAgent().getShortTermMemorySize() > 0
-                        ? ctx.getAgent().getShortTermMemorySize()
-                        : DEFAULT_SHORT_TERM_WINDOW;
+        int shortTermWindow = ctx.getAgent().getShortTermMemorySize() != null && ctx.getAgent().getShortTermMemorySize() > 0
+                ? ctx.getAgent().getShortTermMemorySize()
+                : DEFAULT_SHORT_TERM_WINDOW;
 
-        log.info(
-                "Dispatching chat via chain: host={}:{}, conversationId={}, modelName={}",
+        log.info("Dispatching chat via chain: host={}:{}, conversationId={}, modelName={}",
                 ctx.getTargetClient().getHostIp(),
                 ctx.getTargetClient().getGrpcPort(),
                 ctx.getConversationId(),
@@ -84,19 +80,18 @@ public class LlmCallHandler implements AgentChatHandler {
     private ChatDispatchRequest buildDispatchRequest(AgentChatContext ctx) {
         AgentPO agent = ctx.getAgent();
 
-        ChatDispatchRequest.AgentConfig agentConfig =
-                ChatDispatchRequest.AgentConfig.builder()
-                        .agentId(agent.getId())
-                        .name(agent.getName())
-                        .instruction(agent.getInstruction())
-                        .mcpEnabled(agent.getMcpEnabled())
-                        .skillEnabled(agent.getSkillEnabled())
-                        .ragEnabled(agent.getRagEnabled())
-                        .memoryEnabled(agent.getMemoryEnabled())
-                        .embeddingModelId(ctx.getModelId())
-                        .ragIds(agent.getRagIds())
-                        .ragCallMode(agent.getRagCallMode())
-                        .build();
+        ChatDispatchRequest.AgentConfig agentConfig = ChatDispatchRequest.AgentConfig.builder()
+                .agentId(agent.getId())
+                .name(agent.getName())
+                .instruction(agent.getInstruction())
+                .mcpEnabled(agent.getMcpEnabled())
+                .skillEnabled(agent.getSkillEnabled())
+                .ragEnabled(agent.getRagEnabled())
+                .memoryEnabled(agent.getMemoryEnabled())
+                .embeddingModelId(ctx.getModelId())
+                .ragIds(agent.getRagIds())
+                .ragCallMode(agent.getRagCallMode())
+                .build();
 
         return ChatDispatchRequest.builder()
                 .requestId(UUID.randomUUID().toString())

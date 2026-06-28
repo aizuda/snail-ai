@@ -4,15 +4,16 @@ import com.aizuda.snail.ai.agent.common.rpc.RpcClient;
 import com.aizuda.snail.ai.common.dto.rag.RagSearchRequest;
 import com.aizuda.snail.ai.common.dto.rag.RagSearchResponse;
 import com.aizuda.snail.ai.common.dto.rag.SearchResult;
-import java.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 
+import java.util.*;
+
 /**
  * 客户端本地 RAG 知识库搜索工具
- *
- * <p>通过 gRPC 回调服务端执行检索，支持多知识库（由 LLM 通过 ragId 参数选择）。
+ * <p>
+ * 通过 gRPC 回调服务端执行检索，支持多知识库（由 LLM 通过 ragId 参数选择）。
  */
 @Slf4j
 public class RagSearchTool {
@@ -25,12 +26,10 @@ public class RagSearchTool {
         this.rpcClient = rpcClient;
     }
 
-    @Tool(
-            name = "rag_search",
-            description =
-                    "Search a specific knowledge base by ragId. "
-                            + "Use the ragId parameter to specify which knowledge base to search. "
-                            + "Call this tool when the user's question may require professional knowledge or domain-specific information.")
+    @Tool(name = "rag_search",
+            description = "Search a specific knowledge base by ragId. "
+                    + "Use the ragId parameter to specify which knowledge base to search. "
+                    + "Call this tool when the user's question may require professional knowledge or domain-specific information.")
     public String search(
             @ToolParam(description = "The ID of the knowledge base to search") Long ragId,
             @ToolParam(description = "The user's question or related query") String queryQuestion) {
@@ -42,8 +41,10 @@ public class RagSearchTool {
         log.info("rag_search: ragId={}, query={}", ragId, queryQuestion);
 
         try {
-            RagSearchRequest req =
-                    RagSearchRequest.builder().ragId(ragId).query(queryQuestion.trim()).build();
+            RagSearchRequest req = RagSearchRequest.builder()
+                    .ragId(ragId)
+                    .query(queryQuestion.trim())
+                    .build();
 
             RagSearchResponse resp = rpcClient.searchRag(req);
             List<SearchResult> results = resp != null ? resp.getResults() : null;
@@ -64,4 +65,5 @@ public class RagSearchTool {
             return "搜索失败: " + e.getMessage();
         }
     }
+
 }

@@ -1,17 +1,20 @@
 package com.aizuda.snail.ai.common.util;
 
 import com.aizuda.snail.ai.common.dto.rag.SearchResult;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * RAG 搜索结果重排序工具
- *
- * <p>Lost in the Middle 策略：将高相关性结果分布在首尾，低相关性放在中间， 缓解 LLM 对长上下文中间部分注意力不足的问题。
+ * <p>
+ * Lost in the Middle 策略：将高相关性结果分布在首尾，低相关性放在中间，
+ * 缓解 LLM 对长上下文中间部分注意力不足的问题。
  */
 public final class RagResultReorderUtil {
 
-    private RagResultReorderUtil() {}
+    private RagResultReorderUtil() {
+    }
 
     public static List<SearchResult> reorderForLostInTheMiddle(List<SearchResult> ranked) {
         if (ranked == null || ranked.size() <= 2) {
