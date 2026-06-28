@@ -7,7 +7,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
- * QueryRewriteHandler
+ * 查询改写节点（当前为空实现，改写功能已移除，保留以维持链路顺序）。
  *
  * @author opensnail
  * @since 2026-06-14

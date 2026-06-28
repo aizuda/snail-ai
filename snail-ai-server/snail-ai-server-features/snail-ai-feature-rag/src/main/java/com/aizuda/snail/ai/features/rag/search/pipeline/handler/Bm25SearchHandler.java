@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Bm25SearchHandler
+ * BM25 检索节点：启用搜索引擎时执行全文检索并按阈值过滤，结果写入上下文。
  *
  * @author opensnail
  * @since 2026-06-14

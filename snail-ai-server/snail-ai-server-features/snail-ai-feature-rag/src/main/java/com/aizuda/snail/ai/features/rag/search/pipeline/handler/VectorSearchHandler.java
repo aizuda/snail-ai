@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * VectorSearchHandler
+ * 向量检索节点：对查询做向量相似检索并按阈值过滤，作为初始结果集。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -73,11 +73,14 @@ public class VectorSearchHandler implements RagSearchHandler {
         try { return Long.parseLong(id); } catch (NumberFormatException e) { return null; }
     }
 
+    /**
+     * 启用分数阈值时过滤掉低于阈值的结果；未启用则原样返回。
+     */
     static List<SearchResult> filterByThreshold(RagConfigDO.SearchParams sp, List<SearchResult> list) {
-        if (Boolean.TRUE.equals(sp.getThresholdEnabled()) && sp.getThreshold() != null && sp.getThreshold() > 0) {
-            double threshold = sp.getThreshold();
-            list = list.stream().filter(r -> r.getScore() >= threshold).toList();
+        if (!(Boolean.TRUE.equals(sp.getThresholdEnabled()) && sp.getThreshold() != null && sp.getThreshold() > 0)) {
+            return list;
         }
-        return list;
+        double threshold = sp.getThreshold();
+        return list.stream().filter(r -> r.getScore() >= threshold).toList();
     }
 }

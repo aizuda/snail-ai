@@ -12,7 +12,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
- * HybridFusionHandler
+ * 混合融合节点：存在 BM25 结果时，按策略（加权和 / RRF）融合向量与 BM25 结果。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -42,6 +42,9 @@ public class HybridFusionHandler implements RagSearchHandler {
         }
     }
 
+    /**
+     * 按融合策略创建实现：加权和（denseWeight 决定 α/β）或默认 RRF（rrfK 控制 k）。
+     */
     private HybridFusion createFusion(String strategy, Double denseWeight, Integer rrfK) {
         if (FusionStrategy.WEIGHTED_SUM.getStrategy().equalsIgnoreCase(strategy)) {
             double alpha = denseWeight != null ? denseWeight : ALPHA;

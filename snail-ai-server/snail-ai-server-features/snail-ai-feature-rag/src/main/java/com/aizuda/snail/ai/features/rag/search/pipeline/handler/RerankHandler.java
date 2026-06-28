@@ -13,7 +13,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * RerankHandler
+ * 重排节点：启用重排且配置了重排模型时，对候选结果调用重排服务取 TopN。
  *
  * @author opensnail
  * @since 2026-06-14
