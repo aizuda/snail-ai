@@ -4,7 +4,7 @@ import com.aizuda.snail.ai.persistence.rag.po.RagDocumentPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
- * RagDocumentMapper
+ * 知识库文档数据访问层
  *
  * @author opensnail
  * @since 2026-06-14

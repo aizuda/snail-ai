@@ -7,7 +7,7 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 
 /**
- * ClientNodeMapper
+ * 客户端节点数据访问层
  *
  * @author opensnail
  * @since 2026-06-14

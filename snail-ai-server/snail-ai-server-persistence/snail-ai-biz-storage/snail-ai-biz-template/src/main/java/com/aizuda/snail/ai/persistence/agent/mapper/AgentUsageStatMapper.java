@@ -4,7 +4,7 @@ import com.aizuda.snail.ai.persistence.agent.po.AgentUsageStatPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
- * AgentUsageStatMapper
+ * 智能体用量统计数据访问层
  *
  * @author opensnail
  * @since 2026-06-14

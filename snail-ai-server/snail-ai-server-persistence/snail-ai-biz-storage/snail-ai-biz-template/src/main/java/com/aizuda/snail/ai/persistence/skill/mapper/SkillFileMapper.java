@@ -5,7 +5,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
- * SkillFileMapper
+ * 技能文件数据访问层
  *
  * @author opensnail
  * @since 2026-06-14

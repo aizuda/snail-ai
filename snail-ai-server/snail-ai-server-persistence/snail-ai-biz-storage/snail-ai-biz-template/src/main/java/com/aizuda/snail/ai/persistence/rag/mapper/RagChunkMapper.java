@@ -8,7 +8,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import org.apache.ibatis.annotations.Param;
 
 /**
- * RagChunkMapper
+ * 知识库切片数据访问层
  *
  * @author opensnail
  * @since 2026-06-14

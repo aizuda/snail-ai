@@ -4,7 +4,7 @@ import com.aizuda.snail.ai.persistence.app.po.AppPO;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 
 /**
- * AppMapper
+ * 应用数据访问层
  *
  * @author opensnail
  * @since 2026-06-14
