@@ -1,12 +1,12 @@
 #!/bin/sh
-# Conventional Commits 提交信息校验
+# 提交信息校验（scope = 版本号）
 # 启用方式（每位开发者执行一次）：
 #   git config core.hooksPath .githooks
 #
-# 规范：<type>(<scope>): <描述>
-#   type  : feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert
-#   scope : 模块/领域（小写，如 agent、model、rag、quality），可省略；切勿写版本号
-#   描述  : 简洁中文，说明“为什么”而非“做了什么”
+# 规范：<type>(<版本号>): <描述>
+#   type   : feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert
+#   版本号 : 当前迭代版本，与 pom.xml <revision> 一致（如 1.1.0）
+#   描述   : 简洁中文，说明“为什么”而非“做了什么”
 
 msg_file="$1"
 first_line=$(head -n 1 "$msg_file")
@@ -16,30 +16,20 @@ case "$first_line" in
     "Merge "*|"Revert "*|"fixup! "*|"squash! "*) exit 0 ;;
 esac
 
-# 拒绝把版本号当作 scope（如 feat(1.0.0): ...）——历史遗留问题
-if printf '%s' "$first_line" | grep -Eq '^[a-z]+\(v?[0-9]'; then
-    echo "" >&2
-    echo "✗ scope 不应是版本号：$first_line" >&2
-    echo "  请用模块/领域名作为 scope（如 agent、model、rag），版本号在 pom <revision> 与 git tag 管理。" >&2
-    echo "" >&2
-    exit 1
-fi
-
-pattern='^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\([a-z0-9._/-]+\))?(!)?: .+'
+# <type>(<版本号>): <描述>，版本号形如 1.1.0 / 1.1 / v1.1.0
+pattern='^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)\(v?[0-9]+\.[0-9]+(\.[0-9]+)?\)(!)?: .+'
 
 if printf '%s' "$first_line" | grep -Eq "$pattern"; then
     exit 0
 fi
 
 echo "" >&2
-echo "✗ 提交信息不符合 Conventional Commits 规范：" >&2
+echo "✗ 提交信息不符合规范：" >&2
 echo "    $first_line" >&2
 echo "" >&2
-echo "  正确格式： <type>(<scope>): <中文描述>" >&2
+echo "  正确格式： <type>(<版本号>): <中文描述>" >&2
 echo "  type    ： feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert" >&2
-echo "  scope   ： 模块/领域，小写（如 agent、model、rag、quality），可省略" >&2
-echo "  示例    ： refactor(hutool): 统一空判到 Hutool StrUtil/CollUtil" >&2
-echo "" >&2
-echo "  注意：scope 用模块名，不要写版本号；版本号在 pom <revision> 与 git tag 管理。" >&2
+echo "  版本号  ： 当前迭代版本（与 pom.xml <revision> 一致，如 1.1.0）" >&2
+echo "  示例    ： refactor(1.1.0): 卫语句与提前 continue 降低嵌套" >&2
 echo "" >&2
 exit 1
