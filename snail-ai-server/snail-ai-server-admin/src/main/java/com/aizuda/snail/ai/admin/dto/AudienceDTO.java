@@ -3,9 +3,7 @@ package com.aizuda.snail.ai.admin.dto;
 import lombok.Data;
 
 /**
- * <p>
- *
- * </p>
+ * JWT audience 载荷：封装 token 中携带的用户名。
  *
  * @author opensnail
  * @date 2025-07-12

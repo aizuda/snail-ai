@@ -5,9 +5,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * <p>
- *
- * </p>
+ * RAG 文档响应：文档内容、解析状态及创建 / 更新时间。
  *
  * @author opensnail
  * @date 2025-07-19

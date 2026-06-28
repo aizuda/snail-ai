@@ -4,9 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * <p>
- *
- * </p>
+ * 文本文件向量化请求：文件名与文件路径。
  *
  * @author opensnail
  * @date 2025-07-12

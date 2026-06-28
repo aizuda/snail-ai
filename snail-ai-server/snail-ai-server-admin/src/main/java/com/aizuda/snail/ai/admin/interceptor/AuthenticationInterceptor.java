@@ -129,7 +129,6 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        // 可以在这里做一些后置处理
     }
 
     @Override
