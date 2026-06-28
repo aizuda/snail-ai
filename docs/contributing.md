@@ -303,6 +303,32 @@ BREAKING CHANGE: The chat API response structure has changed.
 `data.content` is now `data.message.content`.
 ```
 
+### 本地启用提交校验
+
+仓库在 `.githooks/` 下提供 `commit-msg` 钩子，自动校验提交信息格式。每位开发者克隆后执行一次：
+
+```bash
+git config core.hooksPath .githooks
+```
+
+启用后，不符合 `<type>(<scope>): <描述>` 格式的提交会被拦截。
+
+> **注意**：`scope` 填模块/领域名（如 `agent`、`model`、`rag`、`quality`），**不要写版本号**。
+
+## 版本号规范
+
+项目采用[语义化版本 SemVer](https://semver.org/lang/zh-CN/)（`MAJOR.MINOR.PATCH`）：
+
+| 版本位 | 递增时机 |
+|--------|---------|
+| MAJOR | 不兼容的 API 变更 |
+| MINOR | 向后兼容的新功能、成规模的重构 / 质量整改 |
+| PATCH | 向后兼容的 Bug 修复、小修小补 |
+
+- 版本号统一在根 `pom.xml` 的 `<revision>` 维护（各模块继承 `${revision}`），**不写进提交信息**。
+- 按**里程碑 / 发布**升版并打 git tag（如 `v1.1.0`），**而非每次提交都升版**。
+- 当前版本：`1.1.0`。
+
 ## Issue 提交指南
 
 ### Bug 报告
