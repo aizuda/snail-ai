@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.web.multipart.MultipartFile;
 
 /**
- * ImportRequest
+ * 文档导入请求：承载知识库 ID 与来源（上传文件 / URL / 文本）及其元信息。
  *
  * @author opensnail
  * @since 2026-06-14

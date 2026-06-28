@@ -10,7 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 /**
- * LocalFileImportStrategy
+ * 本地上传文件导入策略：读取 MultipartFile 字节、计算内容哈希并组装导入结果。
  *
  * @author opensnail
  * @since 2026-06-14

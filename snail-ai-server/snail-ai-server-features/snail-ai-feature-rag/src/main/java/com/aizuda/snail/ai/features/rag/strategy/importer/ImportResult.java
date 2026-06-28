@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * ImportResult
+ * 文档导入结果：文件名、类型、大小、内容哈希（去重用）与原始字节（仅文件类来源）。
  *
  * @author opensnail
  * @since 2026-06-14

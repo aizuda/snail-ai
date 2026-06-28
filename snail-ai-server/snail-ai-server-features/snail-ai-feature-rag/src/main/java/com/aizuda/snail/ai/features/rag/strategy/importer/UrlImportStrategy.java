@@ -19,7 +19,7 @@ import java.time.Duration;
 import java.util.Locale;
 
 /**
- * UrlImportStrategy
+ * URL 远程文档导入策略：下载远端文件（含 SSRF 防护与大小限制）并组装导入结果。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -116,6 +116,9 @@ public class UrlImportStrategy implements DocumentImportStrategy {
                 });
     }
 
+    /**
+     * 流式读取并限制最大字节数，超过 {@link #MAX_URL_IMPORT_BYTES} 即中断。
+     */
     private byte[] readLimited(InputStream inputStream) throws IOException {
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         byte[] buffer = new byte[8192];
@@ -131,6 +134,9 @@ public class UrlImportStrategy implements DocumentImportStrategy {
         return output.toByteArray();
     }
 
+    /**
+     * SSRF 防护：仅允许 http(s) 公网地址，拒绝 localhost、回环、内网与组播等目标。
+     */
     private void validatePublicHttpTarget(URI uri) throws Exception {
         String scheme = uri.getScheme();
         if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme)) {
