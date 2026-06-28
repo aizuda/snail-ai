@@ -6,7 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * RagSearchRequestDTO
+ * RAG 检索请求：知识库 ID、查询语句与调试开关。
  *
  * @author opensnail
  * @since 2026-06-14

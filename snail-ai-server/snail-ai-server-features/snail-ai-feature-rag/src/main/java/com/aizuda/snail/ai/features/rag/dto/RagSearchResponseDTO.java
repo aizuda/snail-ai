@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * RagSearchResponseDTO
+ * RAG 检索响应：命中结果列表与各阶段耗时 / 命中量指标。
  *
  * @author opensnail
  * @since 2026-06-14

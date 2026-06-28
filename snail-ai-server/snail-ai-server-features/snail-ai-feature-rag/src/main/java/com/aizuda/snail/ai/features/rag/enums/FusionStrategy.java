@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * FusionStrategy
+ * 混合检索融合策略：RRF 与加权和。
  *
  * @author opensnail
  * @since 2026-06-14

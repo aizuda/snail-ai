@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * RagStageMetricsDTO
+ * RAG 检索各阶段指标：嵌入 / 向量 / BM25 / 融合 / 重排耗时与命中数。
  *
  * @author opensnail
  * @since 2026-06-14

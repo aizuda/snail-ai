@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * RagDocumentStatus
+ * RAG 文档处理状态：待处理 / 解析中 / 处理中 / 成功 / 失败。
  *
  * @author opensnail
  * @since 2026-06-14
