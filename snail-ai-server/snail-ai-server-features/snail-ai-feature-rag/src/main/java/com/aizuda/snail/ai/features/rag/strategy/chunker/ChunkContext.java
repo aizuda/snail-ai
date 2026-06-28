@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
- * ChunkContext
+ * 切片上下文：承载待切文档全文及各模式所需参数（最大 token、重叠、分隔符、正则、模型 ID）。
  *
  * @author opensnail
  * @since 2026-06-14

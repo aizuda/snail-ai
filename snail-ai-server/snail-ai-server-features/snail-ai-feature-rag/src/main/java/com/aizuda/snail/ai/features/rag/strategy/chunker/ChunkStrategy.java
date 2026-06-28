@@ -6,7 +6,7 @@ import com.aizuda.snail.ai.features.rag.enums.ChunkModeEnum;
 import java.util.List;
 
 /**
- * ChunkStrategy
+ * 文档切片策略：按切片模式将文档全文切分为带重叠的片段列表。
  *
  * @author opensnail
  * @since 2026-06-14
