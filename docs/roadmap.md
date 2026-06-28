@@ -22,8 +22,8 @@
 | MCP 工具集成 | 已完成 | 支持 SSE、Streamable HTTP、Stdio 等接入方式 |
 | Skill 技能系统 | 已完成 | 支持 Skill 定义和资源加载 |
 | 短期记忆 | 已完成 | 支持 `memory` / `db` 存储模式 |
-| MySQL / PostgreSQL | 已完成 | 初始化脚本位于 `script/sql/` |
-| PgVector / Milvus / Elasticsearch | 已完成 | Compose 依赖位于 `script/docker/docker-compose.yaml` |
+| MySQL / PostgreSQL | 已完成 | 初始化脚本位于 `docs/sql/` |
+| PgVector / Milvus / Elasticsearch | 已完成 | Compose 依赖位于 `docs/docker/docker-compose.yaml` |
 | 文件存储 | 已完成 | 支持本地资源目录和 MinIO |
 | 可观测性 | 已完成 | 支持调用链路、耗时和评分相关能力 |
 
@@ -130,5 +130,5 @@
 - `snail-ai-server/`
 - `snail-ai-agent/`
 - `snail-ai-models/`
-- `script/sql/`
-- `script/docker/docker-compose.yaml`
+- `docs/sql/`
+- `docs/docker/docker-compose.yaml`

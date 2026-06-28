@@ -54,3 +54,4 @@ nbdist/
 !.claude/skills/
 !.claude/skills/**
 .vscode
+.gitnexus

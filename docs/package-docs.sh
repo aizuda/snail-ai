@@ -9,7 +9,7 @@ SKIP_INSTALL=0
 
 usage() {
   cat <<'USAGE'
-Usage: bash script/package-docs.sh [--skip-install] [--out-dir <dir>]
+Usage: bash docs/package-docs.sh [--skip-install] [--out-dir <dir>]
 
 Options:
   --skip-install   Skip pnpm install --frozen-lockfile

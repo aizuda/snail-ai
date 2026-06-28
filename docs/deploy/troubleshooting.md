@@ -4,16 +4,16 @@
 
 ## 概览
 
-默认 HTTP 访问地址为 `http://localhost:8900/snail-ai`，Server gRPC 端口为 `18888`。当前可直接使用的初始化脚本位于 `script/sql/`，Docker Compose 依赖组件文件位于 `script/docker/docker-compose.yaml`。
+默认 HTTP 访问地址为 `http://localhost:8900/snail-ai`，Server gRPC 端口为 `18888`。当前可直接使用的初始化脚本位于 `docs/sql/`，Docker Compose 依赖组件文件位于 `docs/docker/docker-compose.yaml`。
 
 ## 当前支持状态
 
 | 能力 | 状态 | 对应源码或脚本 |
 |------|------|----------------|
 | Java 运行环境 | Java 21+ | `pom.xml` |
-| MySQL | 已支持 | `script/sql/snail_ai_schema.sql` |
-| PostgreSQL | 已支持 | `script/sql/snail_ai_schema_pgsql.sql` |
-| PgVector / Milvus / Elasticsearch | 已支持 | `script/docker/docker-compose.yaml` |
+| MySQL | 已支持 | `docs/sql/snail_ai_schema.sql` |
+| PostgreSQL | 已支持 | `docs/sql/snail_ai_schema_pgsql.sql` |
+| PgVector / Milvus / Elasticsearch | 已支持 | `docs/docker/docker-compose.yaml` |
 | OpenAPI 认证 | `Snail-Ai-App-Id` + `Snail-Ai-Token` | `OpenApiAuthInterceptor` |
 | Admin 认证 | `Snail-Ai-Auth` | Admin API 登录态 |
 | SQL Server / 达梦 / MariaDB | 规划或适配方向 | 不建议按当前文档直接部署 |
@@ -102,8 +102,8 @@ psql -h localhost -p 5432 -U postgres -d snail_ai
 
 **解决：**
 
-- MySQL 使用 `script/sql/snail_ai_schema.sql`。
-- PostgreSQL 使用 `script/sql/snail_ai_schema_pgsql.sql`。
+- MySQL 使用 `docs/sql/snail_ai_schema.sql`。
+- PostgreSQL 使用 `docs/sql/snail_ai_schema_pgsql.sql`。
 - 不要把 MySQL 脚本导入 PostgreSQL，也不要反向导入。
 - 重复导入前请确认是否需要清空数据库。
 
@@ -166,9 +166,9 @@ psql -U postgres -d snail_ai_vector -c "CREATE EXTENSION IF NOT EXISTS vector;"
 **排查步骤：**
 
 ```bash
-docker compose -f script/docker/docker-compose.yaml ps
+docker compose -f docs/docker/docker-compose.yaml ps
 nc -zv localhost 19530
-docker compose -f script/docker/docker-compose.yaml logs milvus
+docker compose -f docs/docker/docker-compose.yaml logs milvus
 ```
 
 确认 Milvus、etcd、MinIO 均处于运行状态，并检查应用配置中的 host 和 port。
@@ -372,10 +372,10 @@ ORDER BY duration DESC;
 journalctl -u snail-ai-server -f --since "10 minutes ago"
 
 # Docker 依赖组件
-docker compose -f script/docker/docker-compose.yaml logs -f elasticsearch
-docker compose -f script/docker/docker-compose.yaml logs -f minio
-docker compose -f script/docker/docker-compose.yaml logs -f milvus
-docker compose -f script/docker/docker-compose.yaml logs -f pgvector
+docker compose -f docs/docker/docker-compose.yaml logs -f elasticsearch
+docker compose -f docs/docker/docker-compose.yaml logs -f minio
+docker compose -f docs/docker/docker-compose.yaml logs -f milvus
+docker compose -f docs/docker/docker-compose.yaml logs -f pgvector
 ```
 
 ### 健康检查

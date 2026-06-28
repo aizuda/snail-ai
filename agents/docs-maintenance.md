@@ -26,8 +26,9 @@ Run this maintenance flow when any of these change:
 - Controller paths, request/response DTOs, interceptors, or authentication headers.
 - `pom.xml` versions, Maven modules, Java version, or dependency baselines.
 - `snail-ai-starter/src/main/resources/application.yml` configuration keys or defaults.
-- Files under `script/docker/` or `script/sql/`.
+- Files under `docs/docker/` or `docs/sql/`.
 - VitePress config under `docs/.vitepress/`.
+- Docs package metadata or packaging script under `docs/package.json` or `docs/package-docs.sh`.
 - Model provider implementations under `snail-ai-models/`.
 - Agent Client, OpenAPI SDK, MCP, RAG, Skill, memory, or resource storage implementations.
 - Release notes, changelog, packaging, or deployment scripts.
@@ -37,7 +38,7 @@ Run this maintenance flow when any of these change:
 When documentation conflicts with implementation, trust sources in this order:
 
 1. Current source code.
-2. `script/` directory.
+2. Documentation runtime assets under `docs/docker/`, `docs/sql/`, and `docs/package-docs.sh`.
 3. Root `pom.xml` and module `pom.xml` files.
 4. `snail-ai-starter/src/main/resources/application.yml`.
 5. VitePress config and docs package metadata.
@@ -49,14 +50,15 @@ Do not preserve old documentation claims when they conflict with higher-priority
 
 - Do not describe planned or partial features as supported production capabilities.
 - Keep executable deployment steps limited to currently supported databases and scripts.
-- Use `script/docker/docker-compose.yaml` for dependency Compose examples.
-- Use `script/sql/snail_ai_schema.sql` for MySQL initialization.
-- Use `script/sql/snail_ai_schema_pgsql.sql` for PostgreSQL initialization.
+- Use `docs/docker/docker-compose.yaml` for dependency Compose examples.
+- Use `docs/sql/snail_ai_schema.sql` for MySQL initialization.
+- Use `docs/sql/snail_ai_schema_pgsql.sql` for PostgreSQL initialization.
+- Use `docs/sql/snail_ai_schema_dameng.sql` for Dameng initialization only after confirming matching datasource and driver support from source configuration.
 - OpenAPI external integrations must use `Snail-Ai-App-Id` and `Snail-Ai-Token`.
 - `Snail-Ai-Auth` is for Admin API or embedded chat session contexts, not generic OpenAPI integration.
 - Model docs must distinguish source-supported providers from OpenAI-compatible endpoint experiments.
-- Current source-supported model calls are OpenAI-compatible Chat, OpenAI-compatible Embedding, and Qwen/HTTP Rerank unless source proves otherwise.
-- SQL Server, DM, and MariaDB belong in roadmap/planning sections unless current scripts and code prove direct support.
+- Current source-supported model adapters are OpenAI-compatible Chat, OpenAI-compatible Embedding, and Qwen/HTTP Rerank unless source proves otherwise.
+- SQL Server and MariaDB belong in roadmap/planning sections unless current scripts and code prove direct support.
 - Java version, Spring Boot version, Spring AI version, modules, ports, and context path must be verified from source before editing docs.
 - VitePress navigation and sidebar links must match actual files.
 - Prefer concise pages with `概览`, `当前支持状态`, `快速示例`, and `相关源码` sections for AI readability.
@@ -67,11 +69,15 @@ Do not preserve old documentation claims when they conflict with higher-priority
    - `pom.xml`
    - `snail-ai-starter/src/main/resources/application.yml`
    - relevant controllers, interceptors, constants, DTOs, and module code
-   - `script/docker/docker-compose.yaml`
-   - `script/sql/`
+   - `docs/docker/docker-compose.yaml`
+   - `docs/sql/`
+   - `docs/package.json`
+   - `docs/package-docs.sh`
+   - `docs/.vitepress/config.mts`, `docs/.vitepress/config/nav.ts`, and `docs/.vitepress/config/sidebar.ts`
 2. Search docs for stale references:
-   - `docs/sql`
-   - `docs/docker`
+   - `script/sql`
+   - `script/docker`
+   - `script/package-docs.sh`
    - `deploy/docker`
    - `localhost:8080`
    - `Java 17`
@@ -90,13 +96,15 @@ Run or request equivalent checks:
 ```bash
 pnpm --dir docs install --frozen-lockfile
 pnpm --dir docs docs:build
-bash script/package-docs.sh
+bash docs/package-docs.sh
 ```
+
+If dependencies are already installed and network access is unavailable, `bash docs/package-docs.sh --skip-install` is an acceptable equivalent for packaging; report that substitution explicitly.
 
 Then check residual references:
 
 ```bash
-rg "docs/sql|docs/docker|localhost:8080|Java 17|/open-api|snail-job" docs
+rg "script/sql|script/docker|script/package-docs|localhost:8080|Java 17|/open-api|snail-job" docs --glob '!docs/node_modules/**' --glob '!docs/dist/**' --glob '!docs/.vitepress/cache/**'
 rg "Snail-Ai-Auth" docs/api/openapi docs/guide/quick-start.md docs/faq/index.md
 ```
 
@@ -104,7 +112,7 @@ Expected results:
 
 - `docs/dist/index.html` exists.
 - A docs archive exists under `dist/packages/`.
-- Old script paths are gone.
+- Old `script/sql`, `script/docker`, and `script/package-docs.sh` paths are gone, except intentionally retained historical changelog references.
 - OpenAPI docs use `Snail-Ai-App-Id` and `Snail-Ai-Token`.
 - Any remaining `Snail-Ai-Auth` references are explicitly Admin API or embedded chat contexts.
 

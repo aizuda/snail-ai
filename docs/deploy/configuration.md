@@ -16,11 +16,11 @@ http://localhost:8900/snail-ai
 |------|------|----------------|
 | HTTP 服务 | 已支持，默认 `8900` + `/snail-ai` | `snail-ai-starter/src/main/resources/application.yml` |
 | gRPC Server | 已支持，默认 `18888` | `snail-ai-starter/src/main/resources/application.yml` |
-| MySQL | 已支持 | `script/sql/snail_ai_schema.sql` |
-| PostgreSQL | 已支持 | `script/sql/snail_ai_schema_pgsql.sql` |
-| PgVector | 已支持 | `script/docker/docker-compose.yaml`、Spring AI PgVector 配置 |
-| Milvus | 已支持 | `script/docker/docker-compose.yaml` |
-| Elasticsearch | 已支持 | `script/docker/docker-compose.yaml` |
+| MySQL | 已支持 | `docs/sql/snail_ai_schema.sql` |
+| PostgreSQL | 已支持 | `docs/sql/snail_ai_schema_pgsql.sql` |
+| PgVector | 已支持 | `docs/docker/docker-compose.yaml`、Spring AI PgVector 配置 |
+| Milvus | 已支持 | `docs/docker/docker-compose.yaml` |
+| Elasticsearch | 已支持 | `docs/docker/docker-compose.yaml` |
 | MinIO / 本地资源存储 | 已支持 | `snail-ai.resource.*` |
 | 短期记忆 | 已支持，`memory` / `db` | `snail-ai.memory.short-term.store-type` |
 | SQL Server / 达梦 / MariaDB | 规划或适配方向 | 不建议按当前文档直接部署 |
@@ -85,7 +85,7 @@ spring:
 初始化脚本：
 
 ```bash
-mysql -u root -p snail_ai < script/sql/snail_ai_schema.sql
+mysql -u root -p snail_ai < docs/sql/snail_ai_schema.sql
 ```
 
 ### PostgreSQL
@@ -102,7 +102,7 @@ spring:
 初始化脚本：
 
 ```bash
-psql -U postgres -d snail_ai -f script/sql/snail_ai_schema_pgsql.sql
+psql -U postgres -d snail_ai -f docs/sql/snail_ai_schema_pgsql.sql
 ```
 
 ## 向量与检索存储
@@ -135,7 +135,7 @@ spring:
 开发或验证环境可使用仓库中的 Compose 文件启动依赖组件：
 
 ```bash
-docker compose -f script/docker/docker-compose.yaml up -d
+docker compose -f docs/docker/docker-compose.yaml up -d
 ```
 
 当前 Compose 文件主要提供 Elasticsearch、MinIO、Milvus 和 PgVector 等依赖组件，不直接包含 Snail AI Server 容器。
@@ -261,6 +261,6 @@ logging:
 
 - `snail-ai-starter/src/main/resources/application.yml`
 - `pom.xml`
-- `script/docker/docker-compose.yaml`
-- `script/sql/snail_ai_schema.sql`
-- `script/sql/snail_ai_schema_pgsql.sql`
+- `docs/docker/docker-compose.yaml`
+- `docs/sql/snail_ai_schema.sql`
+- `docs/sql/snail_ai_schema_pgsql.sql`

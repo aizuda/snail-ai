@@ -12,11 +12,11 @@
 |------|------|----------------|
 | Server HTTP 服务 | 已支持，默认 `8900` + `/snail-ai` | `snail-ai-starter/src/main/resources/application.yml` |
 | Server gRPC | 已支持，默认 `18888` | `snail-ai-starter/src/main/resources/application.yml` |
-| MySQL | 已支持 | `script/sql/snail_ai_schema.sql` |
-| PostgreSQL | 已支持 | `script/sql/snail_ai_schema_pgsql.sql` |
-| PgVector | 已支持 | `script/docker/docker-compose.yaml` |
-| Milvus | 已支持 | `script/docker/docker-compose.yaml` |
-| Elasticsearch | 已支持 | `script/docker/docker-compose.yaml` |
+| MySQL | 已支持 | `docs/sql/snail_ai_schema.sql` |
+| PostgreSQL | 已支持 | `docs/sql/snail_ai_schema_pgsql.sql` |
+| PgVector | 已支持 | `docs/docker/docker-compose.yaml` |
+| Milvus | 已支持 | `docs/docker/docker-compose.yaml` |
+| Elasticsearch | 已支持 | `docs/docker/docker-compose.yaml` |
 | MinIO / 本地资源存储 | 已支持 | `snail-ai.resource.*` |
 | SQL Server / 达梦 / MariaDB | 规划或适配方向 | 不建议按当前版本直接部署 |
 
@@ -265,9 +265,9 @@ journalctl -u snail-ai-server -f
 ## 相关源码
 
 - `snail-ai-starter/src/main/resources/application.yml`
-- `script/docker/docker-compose.yaml`
-- `script/sql/snail_ai_schema.sql`
-- `script/sql/snail_ai_schema_pgsql.sql`
+- `docs/docker/docker-compose.yaml`
+- `docs/sql/snail_ai_schema.sql`
+- `docs/sql/snail_ai_schema_pgsql.sql`
 - `pom.xml`
 
 ## 下一步

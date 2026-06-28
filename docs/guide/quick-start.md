@@ -12,9 +12,9 @@
 | HTTP 端口 | `8900` | `snail-ai-starter/src/main/resources/application.yml` |
 | Context Path | `/snail-ai` | `snail-ai-starter/src/main/resources/application.yml` |
 | gRPC 端口 | `18888` | `snail-ai-starter/src/main/resources/application.yml` |
-| MySQL 初始化脚本 | `script/sql/snail_ai_schema.sql` | 仓库脚本 |
-| PostgreSQL 初始化脚本 | `script/sql/snail_ai_schema_pgsql.sql` | 仓库脚本 |
-| 依赖组件 Docker Compose | `script/docker/docker-compose.yaml` | 仓库脚本 |
+| MySQL 初始化脚本 | `docs/sql/snail_ai_schema.sql` | 仓库脚本 |
+| PostgreSQL 初始化脚本 | `docs/sql/snail_ai_schema_pgsql.sql` | 仓库脚本 |
+| 依赖组件 Docker Compose | `docs/docker/docker-compose.yaml` | 仓库脚本 |
 
 ## 环境准备
 
@@ -38,7 +38,7 @@ cd snail-ai
 如果你需要 PgVector、Milvus、Elasticsearch 或 MinIO，可使用仓库提供的 Compose 文件：
 
 ```bash
-docker compose -f script/docker/docker-compose.yaml up -d
+docker compose -f docs/docker/docker-compose.yaml up -d
 ```
 
 该 Compose 文件负责启动依赖组件，不包含 Snail AI Server 本身。
@@ -52,14 +52,14 @@ CREATE DATABASE snail_ai DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_c
 ```
 
 ```bash
-mysql -u root -p snail_ai < script/sql/snail_ai_schema.sql
+mysql -u root -p snail_ai < docs/sql/snail_ai_schema.sql
 ```
 
 ### PostgreSQL
 
 ```bash
 createdb -U postgres snail_ai
-psql -U postgres -d snail_ai -f script/sql/snail_ai_schema_pgsql.sql
+psql -U postgres -d snail_ai -f docs/sql/snail_ai_schema_pgsql.sql
 ```
 
 如果同时使用 PgVector，请确保目标 PostgreSQL 实例安装了 `vector` 扩展。
@@ -148,4 +148,4 @@ curl -N -X POST 'http://localhost:8900/snail-ai/openapi/v1/agent/chat' \
 - [模型管理](/guide/model/)：配置 Chat、Embedding、Rerank 模型。
 - [RAG 知识库](/guide/rag/)：创建知识库并绑定智能体。
 - [MCP 集成](/guide/mcp/)：接入 SSE、Streamable HTTP 或 Stdio MCP 服务。
-- [Docker 部署](/deploy/docker)：了解 `script/docker/docker-compose.yaml` 中的依赖组件。
+- [Docker 部署](/deploy/docker)：了解 `docs/docker/docker-compose.yaml` 中的依赖组件。

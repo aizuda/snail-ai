@@ -6,13 +6,13 @@
 
 | 组件 | 状态 | 脚本/来源 |
 |------|------|-----------|
-| Elasticsearch | 已提供 Compose 服务 | `script/docker/docker-compose.yaml` |
-| MinIO | 已提供 Compose 服务 | `script/docker/docker-compose.yaml` |
-| Milvus | 已提供 Compose 服务 | `script/docker/docker-compose.yaml` |
-| PgVector | 已提供 Compose 服务 | `script/docker/docker-compose.yaml` |
+| Elasticsearch | 已提供 Compose 服务 | `docs/docker/docker-compose.yaml` |
+| MinIO | 已提供 Compose 服务 | `docs/docker/docker-compose.yaml` |
+| Milvus | 已提供 Compose 服务 | `docs/docker/docker-compose.yaml` |
+| PgVector | 已提供 Compose 服务 | `docs/docker/docker-compose.yaml` |
 | Snail AI Server 镜像 | 当前 Compose 未包含 | 使用 Maven/JAR 或自行扩展 Compose |
-| MySQL 初始化脚本 | 已提供 | `script/sql/snail_ai_schema.sql` |
-| PostgreSQL 初始化脚本 | 已提供 | `script/sql/snail_ai_schema_pgsql.sql` |
+| MySQL 初始化脚本 | 已提供 | `docs/sql/snail_ai_schema.sql` |
+| PostgreSQL 初始化脚本 | 已提供 | `docs/sql/snail_ai_schema_pgsql.sql` |
 
 ## 前提条件
 
@@ -26,13 +26,13 @@
 在仓库根目录执行：
 
 ```bash
-docker compose -f script/docker/docker-compose.yaml up -d
+docker compose -f docs/docker/docker-compose.yaml up -d
 ```
 
 或进入脚本目录执行：
 
 ```bash
-cd script/docker
+cd docs/docker
 docker compose up -d
 ```
 
@@ -50,13 +50,13 @@ docker compose up -d
 Compose 中的 PgVector 容器可用于 PostgreSQL/PgVector 场景。业务库使用 MySQL 时请自行启动 MySQL 8.0+，并导入：
 
 ```bash
-mysql -u root -p snail_ai < script/sql/snail_ai_schema.sql
+mysql -u root -p snail_ai < docs/sql/snail_ai_schema.sql
 ```
 
 业务库使用 PostgreSQL 时导入：
 
 ```bash
-psql -U postgres -d snail_ai -f script/sql/snail_ai_schema_pgsql.sql
+psql -U postgres -d snail_ai -f docs/sql/snail_ai_schema_pgsql.sql
 ```
 
 ## 启动 Snail AI Server
@@ -83,19 +83,19 @@ gRPC 默认端口：
 
 ```bash
 # 查看依赖组件状态
-docker compose -f script/docker/docker-compose.yaml ps
+docker compose -f docs/docker/docker-compose.yaml ps
 
 # 查看日志
-docker compose -f script/docker/docker-compose.yaml logs -f
+docker compose -f docs/docker/docker-compose.yaml logs -f
 
 # 重启依赖组件
-docker compose -f script/docker/docker-compose.yaml restart
+docker compose -f docs/docker/docker-compose.yaml restart
 
 # 停止依赖组件
-docker compose -f script/docker/docker-compose.yaml down
+docker compose -f docs/docker/docker-compose.yaml down
 
 # 停止并删除依赖组件数据卷（慎用）
-docker compose -f script/docker/docker-compose.yaml down -v
+docker compose -f docs/docker/docker-compose.yaml down -v
 ```
 
 ## 配置对应关系
@@ -110,8 +110,8 @@ docker compose -f script/docker/docker-compose.yaml down -v
 
 ## 相关源码与脚本
 
-- `script/docker/docker-compose.yaml`
-- `script/docker/elasticsearch/Dockerfile`
-- `script/sql/snail_ai_schema.sql`
-- `script/sql/snail_ai_schema_pgsql.sql`
+- `docs/docker/docker-compose.yaml`
+- `docs/docker/elasticsearch/Dockerfile`
+- `docs/sql/snail_ai_schema.sql`
+- `docs/sql/snail_ai_schema_pgsql.sql`
 - `snail-ai-starter/src/main/resources/application.yml`

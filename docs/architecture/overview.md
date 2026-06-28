@@ -24,8 +24,8 @@ Snail AI 采用 Server-Agent 分布式架构：前端和外部系统通过 HTTP/
 | OpenAI-compatible Chat | 已支持 | `snail-ai-models` |
 | OpenAI-compatible Embedding | 已支持 | `snail-ai-models` |
 | Qwen/HTTP Rerank | 已支持 | `snail-ai-models` |
-| MySQL / PostgreSQL | 已支持 | `script/sql/` |
-| PgVector / Milvus / Elasticsearch | 已支持 | `script/docker/docker-compose.yaml` |
+| MySQL / PostgreSQL | 已支持 | `docs/sql/` |
+| PgVector / Milvus / Elasticsearch | 已支持 | `docs/docker/docker-compose.yaml` |
 | SQL Server / 达梦 / MariaDB | 规划或适配方向 | 不建议按当前版本直接部署 |
 
 ## 整体架构
@@ -235,5 +235,5 @@ graph TB
 - `snail-ai-server/snail-ai-server-features/`
 - `snail-ai-agent/`
 - `snail-ai-models/`
-- `script/sql/`
-- `script/docker/docker-compose.yaml`
+- `docs/sql/`
+- `docs/docker/docker-compose.yaml`

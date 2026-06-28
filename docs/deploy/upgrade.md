@@ -8,10 +8,10 @@ Snail AI 0.0.6 当前提供初始化脚本：
 
 | 数据库 | 初始化脚本 |
 |--------|------------|
-| MySQL | `script/sql/snail_ai_schema.sql` |
-| PostgreSQL | `script/sql/snail_ai_schema_pgsql.sql` |
+| MySQL | `docs/sql/snail_ai_schema.sql` |
+| PostgreSQL | `docs/sql/snail_ai_schema_pgsql.sql` |
 
-如果某个版本发布了独立升级脚本，请以对应 Release Notes 为准；不要假设仓库中一定存在 `script/sql/migration/` 目录。
+如果某个版本发布了独立升级脚本，请以对应 Release Notes 为准；不要假设仓库中一定存在 `docs/sql/migration/` 目录。
 
 ## 升级原则
 
@@ -97,9 +97,9 @@ cp /path/to/new/snail-ai-starter.jar /opt/snail-ai/snail-ai-starter.jar
 
 # 4. 如 Release Notes 要求，先执行对应数据库变更脚本
 # MySQL 示例
-# mysql -u root -p snail_ai < script/sql/xxx.sql
+# mysql -u root -p snail_ai < docs/sql/xxx.sql
 # PostgreSQL 示例
-# psql -U postgres -d snail_ai -f script/sql/xxx.sql
+# psql -U postgres -d snail_ai -f docs/sql/xxx.sql
 
 # 5. 启动服务
 systemctl start snail-ai-server
@@ -113,9 +113,9 @@ journalctl -u snail-ai-server -f
 仓库中的 Compose 文件主要用于 Elasticsearch、MinIO、Milvus、PgVector 等依赖组件：
 
 ```bash
-docker compose -f script/docker/docker-compose.yaml pull
-docker compose -f script/docker/docker-compose.yaml up -d
-docker compose -f script/docker/docker-compose.yaml ps
+docker compose -f docs/docker/docker-compose.yaml pull
+docker compose -f docs/docker/docker-compose.yaml up -d
+docker compose -f docs/docker/docker-compose.yaml ps
 ```
 
 当前 Compose 文件不直接包含 Snail AI Server 容器。Server 升级请按 JAR、镜像或你自己的部署方式执行。
@@ -246,9 +246,9 @@ tar -xzf snail_ai_resource_YYYYMMDD_HHMMSS.tar.gz -C /opt/snail-ai/
 ## 相关源码
 
 - `snail-ai-starter/src/main/resources/application.yml`
-- `script/sql/snail_ai_schema.sql`
-- `script/sql/snail_ai_schema_pgsql.sql`
-- `script/docker/docker-compose.yaml`
+- `docs/sql/snail_ai_schema.sql`
+- `docs/sql/snail_ai_schema_pgsql.sql`
+- `docs/docker/docker-compose.yaml`
 - `docs/changelog.md`
 
 ## 下一步
