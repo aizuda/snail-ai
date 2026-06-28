@@ -531,10 +531,13 @@
                 <version>${maven-source-plugin.version}</version>
             </plugin>
             <!--
-                代码格式基线（落地路线图阶段 1）：仅按需执行，未绑定生命周期，
+                代码卫生基线（轻量、与 IntelliJ IDEA 风格零冲突）：仅按需执行，未绑定生命周期，
                 不影响 compile/package/install。用法：
-                  mvn spotless:check  检查格式
-                  mvn spotless:apply  自动格式化（建议独立 PR 全量执行）
+                  mvn spotless:check  检查
+                  mvn spotless:apply  自动修复
+                格式风格以 .editorconfig + IDEA Code Style 为准，此处不引入整体格式化引擎
+                （google-java-format 会与 IDEA 默认风格冲突，已移除）；仅做去除未用 import、
+                行尾空白、文件末尾换行这三项与 IDEA 不冲突的卫生处理。
                 已排除 vendored 上游代码与 gRPC 生成代码。
             -->
             <plugin>
@@ -551,11 +554,7 @@
                             <exclude>src/main/java/org/springframework/**/*.java</exclude>
                             <exclude>**/grpc/auto/**/*.java</exclude>
                         </excludes>
-                        <googleJavaFormat>
-                            <style>AOSP</style>
-                        </googleJavaFormat>
                         <removeUnusedImports/>
-                        <importOrder/>
                         <trimTrailingWhitespace/>
                         <endWithNewline/>
                     </java>
