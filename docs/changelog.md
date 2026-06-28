@@ -65,15 +65,14 @@
 
 ### 新功能
 
-- **Chat 嵌入组件** (`snail-ai-agent-chat`)：新增独立 Chat 模块，包含：
+- **客户端 Chat 模式**：新增独立前端 `snail-ai-chat` 与后端模块 `snail-ai-agent-chat`，包含：
   - `snail-ai-agent-chat-api`：Chat 会话、认证、凭证校验等 API 定义
   - `snail-ai-agent-chat-starter`：自动装配、网关控制器、Token 服务、认证拦截器
-  - 内嵌 Chat 前端页面资源，支持 `/snail-chat` 路径访问
+  - 前端构建产物嵌入 Starter 静态资源目录，支持 `/snail-chat` 路径访问
 - **OpenAPI 客户端模块** (`snail-ai-agent-openapi`)：新增面向外部调用的 OpenAPI 模块，包含：
   - Agent 客户端、Embed 客户端接口
-  - 嵌入式 Token 请求/响应 DTO
+  - 客户端 Chat Token 请求/响应 DTO
   - OpenAPI 认证拦截器与会话管理
-- **Observation 可观测性**：新增 `ClientChatClientObservationHandler`、`ClientChatModelObservationHandler`、`ClientToolCallingObservationHandler` 等观测处理器，支持对话和工具调用的全链路追踪
 - **gRPC 通信层**：新增 `ClientGrpcServer`、`GrpcChannelProvider`、`GrpcClientInvokeHandler` 等 gRPC 组件及 `ChatDispatchStreamingHandler` 流式分发处理器
 - **记忆系统**：新增对话记忆（`ConversationMemory`）相关 Mapper 和 PO，支持记忆注入 Advisor（`MemoryInjectionAdvisor`）
 - **初始化测试数据**：新增初始化测试应用和测试 OpenID，方便开箱即用
@@ -207,7 +206,7 @@
 #### 智能体管理
 - AI 辅助流式创建智能体（基于自然语言描述自动生成配置）
 - 手动创建和模板快速创建
-- 智能体详情页：编辑配置、数据分析、可观测性三个标签页
+- 智能体详情页：编辑配置、数据分析等标签页
 - 系统提示词配置、预设问题设置、问候语自定义
 - 智能体市场：发布与订阅机制
 - 企业精选推荐功能
@@ -286,9 +285,8 @@
 
 #### 其他
 - 资源管理（图片库）
-- 用户管理与权限控制（基于 Sa-Token）
-- 仪表盘（统计卡片、雷达图、趋势图）
-- OpenAPI 外部集成接口（认证 + 对话 + RAG）
+- 用户管理与权限控制
+- OpenAPI 外部集成接口（认证 + 对话）
 
 ---
 

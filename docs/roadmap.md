@@ -25,7 +25,7 @@
 | MySQL / PostgreSQL | 已完成 | 初始化脚本位于 `docs/sql/` |
 | PgVector / Milvus / Elasticsearch | 已完成 | Compose 依赖位于 `docs/docker/docker-compose.yaml` |
 | 文件存储 | 已完成 | 支持本地资源目录和 MinIO |
-| 可观测性 | 已完成 | 支持调用链路、耗时和评分相关能力 |
+| 统计分析与客户端日志 | 已完成 | 支持智能体统计分析、客户端日志、Token 用量和思维内容采集 |
 
 ## v0.1.x -- 能力增强（规划中）
 

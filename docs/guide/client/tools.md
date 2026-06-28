@@ -25,20 +25,20 @@ graph TB
             MCP[MCP 工具]
             Skill[技能工具]
         end
-        Tracing["TracingToolCallbackWrapper<br/>（全链路追踪）"]
+        Registry["工具注册表"]
     end
 
     Dispatch -->|gRPC 指令| SDK
-    SDK --> Tracing
-    Tracing --> Shell
-    Tracing --> HTTP
-    Tracing --> Read
-    Tracing --> MCP
-    Tracing --> Skill
+    SDK --> Registry
+    Registry --> Shell
+    Registry --> HTTP
+    Registry --> Read
+    Registry --> MCP
+    Registry --> Skill
 
     style Server fill:#e3f2fd
     style Tools fill:#e8f5e9
-    style Tracing fill:#fff3e0
+    style Registry fill:#fff3e0
 ```
 
 ## 内置工具
@@ -173,43 +173,10 @@ graph TB
     subgraph Resolver["ClientSkillToolResolver"]
         Parse["解析技能定义"]
         Register["注册为 ToolCallback"]
-        Wrap["TracingToolCallbackWrapper 包裹"]
     end
 
-    SkillSystem --> Parse --> Register --> Wrap
-    Wrap --> Available["客户端可用工具列表"]
+    SkillSystem --> Parse --> Register --> Available["客户端可用工具列表"]
 ```
-
-## TracingToolCallbackWrapper 全链路追踪
-
-所有工具（包括内置工具和动态注册的工具）都会被 `TracingToolCallbackWrapper` 自动包裹。这意味着每次工具调用都会生成一个 TOOL_CALLING 类型的 Observation，包含：
-
-| 追踪信息 | 说明 |
-|----------|------|
-| **traceId** | 所属对话请求的全局追踪 ID |
-| **parentToolObservationId** | 父级 Observation ID（来自 GENERATION） |
-| **工具名称** | 被调用的工具名 |
-| **输入参数** | 工具的输入参数（高基数标签） |
-| **执行耗时** | 工具执行的总耗时 |
-| **执行结果** | 工具返回的结果 |
-
-```mermaid
-sequenceDiagram
-    participant LLM
-    participant Wrapper as TracingToolCallbackWrapper
-    participant Tool as 原始工具
-
-    LLM->>Wrapper: call(toolInput)
-    Note over Wrapper: 创建 TOOL_CALLING Observation<br/>注入 traceId + parentObservationId
-    Wrapper->>Wrapper: observation.start()
-    Wrapper->>Tool: delegate.call(toolInput)
-    Tool-->>Wrapper: result
-    Note over Wrapper: 记录结果和耗时
-    Wrapper->>Wrapper: observation.stop()
-    Wrapper-->>LLM: result
-```
-
-详见：[在线日志与追踪](./logging.md)
 
 ## 安全模型
 
@@ -271,7 +238,7 @@ SnailAiOpenApi.chat(agentId)
 | **数据流向** | 数据不出域 | 数据上传到平台 |
 | **工具权限控制** | 客户端自主管理 | 平台统一管理 |
 | **网络隔离** | 支持内网部署，工具仅访问内网资源 | 需要平台能访问目标资源 |
-| **审计追踪** | 本地 Observation 全链路追踪 | 平台基础日志 |
+| **运行日志** | 客户端日志与业务侧审计 | 平台基础日志 |
 
 <!-- screenshot: client-tool-execution.png — 管理后台展示工具执行记录，包括工具名称、输入参数、执行结果和耗时 -->
 

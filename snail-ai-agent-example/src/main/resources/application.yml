@@ -53,7 +53,7 @@ snail-ai:
     # ==================== OpenAPI Client 配置 ====================
     open-api:
       # 启用 OpenAPI Client
-      enabled: false
+      enabled: true
 
       # Server HTTP 端口
       web-port: 8900

@@ -31,13 +31,13 @@ features:
     details: 统一管理 OpenAI-compatible 对话/嵌入模型与 Qwen/HTTP 重排模型，兼容端点可按实际协议接入
   - icon: 🗄️
     title: 多数据库适配
-    details: MySQL、PostgreSQL 已支持，PgVector、Milvus、Elasticsearch 可用于向量/检索存储
+    details: MySQL、PostgreSQL、Dameng 已支持，PgVector、Milvus、Elasticsearch 可用于向量/检索存储
   - icon: 🛠️
     title: MCP 工具集成
     details: 完整 MCP 协议支持（SSE / Streamable HTTP / Stdio），多种认证方式，一键连接测试
   - icon: 📊
-    title: 全链路追踪
-    details: Langfuse 风格可观测性，瀑布图可视化各阶段耗时，评分系统，Micrometer 深度集成
+    title: 统计分析
+    details: 智能体维度活跃用户、对话数、消息数和用户使用明细统计
 ---
 
 <style>
@@ -100,7 +100,7 @@ graph TB
     end
 
     subgraph 存储["💾 数据存储"]
-        DB[(MySQL/PostgreSQL)]
+        DB[(MySQL/PostgreSQL/Dameng)]
         Vector[(PgVector/Milvus/ES)]
         Storage[(MinIO/本地)]
     end
@@ -116,4 +116,3 @@ graph TB
     OpenAPI --> Chain
     RAG --> Storage
 ```
-

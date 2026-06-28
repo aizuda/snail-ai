@@ -168,20 +168,13 @@ snail-ai:
   max-concurrent-chats: 20
   skill-temp-dir: /opt/snail-ai/skills
   agent:
-    logging-interceptor: false  # 生产环境关闭，使用 Observation 体系
+    logging-interceptor: false  # 生产环境按需开启请求/响应日志
   server:
     host: ${SNAIL_AI_SERVER_HOST}
     port: 18888
     timeout: 30s
     retryTimes: 5
     retryInterval: 10s
-
-# 配合 Micrometer 追踪
-management:
-  tracing:
-    enabled: true
-    sampling:
-      probability: 0.1  # 10% 采样率
 ```
 
 ### 多节点部署配置

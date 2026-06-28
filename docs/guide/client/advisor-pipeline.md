@@ -117,7 +117,7 @@ graph LR
 1. 监听每个 streaming chunk 的元数据
 2. 从 chunk 的 `Usage` 字段中提取 Token 使用量
 3. 累计计算总的 promptTokens、completionTokens 和 totalTokens
-4. 将统计结果存入上下文，供后续 Advisor 或追踪系统使用
+4. 将统计结果存入上下文，供后续 Advisor 或业务统计使用
 
 ```java
 // TokenUsageCollectorAdvisor 收集的数据结构
@@ -179,7 +179,7 @@ graph LR
 1. 接收上游 Advisor 处理过的每个 chunk
 2. 将 chunk 通过 gRPC 双向流实时转发给 Server
 3. 同时在本地累积所有 chunk，拼接成完整的响应文本
-4. 流结束时，将完整文本存入上下文，用于后续存储和追踪
+4. 流结束时，将完整文本存入上下文，用于后续存储和统计
 
 ```mermaid
 sequenceDiagram

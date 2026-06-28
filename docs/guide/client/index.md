@@ -56,7 +56,7 @@ Server 不直接调用大模型，它只负责**编排和调度**。真正的 LL
 
 ## 核心能力概览
 
-客户端 SDK 提供了四大核心能力，让开发者拥有对 AI 交互的完全控制权：
+客户端 SDK 提供多项核心能力，让开发者拥有对 AI 交互的控制权：
 
 ### 1. 拦截器机制（Interceptor）
 
@@ -72,15 +72,21 @@ Server 不直接调用大模型，它只负责**编排和调度**。真正的 LL
 
 ### 3. 本地工具执行
 
-Shell 命令、HTTP 调用、MCP 工具等均在客户端节点本地执行，数据不出域。支持动态注册工具和 TracingToolCallbackWrapper 全链路追踪。
+Shell 命令、HTTP 调用、MCP 工具等均在客户端节点本地执行，数据不出域。支持内置工具和动态工具注册。
 
 详见：[本地工具执行](./tools.md)
 
-### 4. 在线日志与追踪
+### 4. 客户端日志
 
-内置 `LoggingInterceptor`、Micrometer ObservationRegistry 集成，以及完整的 Trace Context 传播机制，实现生产级别的可观测性。
+内置 `LoggingInterceptor`、`TokenUsageCollectorAdvisor` 和 `ThinkingCollectorAdvisor`，用于请求响应日志、Token 用量采集和思维内容采集。
 
-详见：[在线日志与追踪](./logging.md)
+详见：[客户端日志](./logging.md)
+
+### 5. 客户端 Chat 模式
+
+独立前端 `snail-ai-chat` 可通过 Agent Chat Starter 提供 `/snail-chat` 页面和 `/api/snail/chat` 网关，用于独立聊天页或业务系统嵌入。
+
+详见：[客户端 Chat 模式](./chat.md)
 
 ## 一键启用：@EnableSnailAiAgent
 
@@ -102,7 +108,7 @@ public class MyBusinessApplication {
 2. **初始化拦截器链**：扫描所有 `SnailAiInterceptor` 实现，按 order 排序组装
 3. **装配 Advisor 流水线**：注入 5 级 Advisor，构建完整的请求处理流水线
 4. **注册本地工具**：发现并注册 Shell、HTTP、MCP 等工具
-5. **启用可观测性**：配置 ObservationRegistry 和 Trace Context 传播
+5. **启用采集能力**：按配置启用日志、Token 用量和思维内容采集
 
 配合 `application.yml` 中的少量配置即可运行：
 
@@ -129,7 +135,7 @@ snail-ai:
 | **工具执行位置** | 客户端本地，数据不出域 | 服务端 | 服务端 |
 | **自定义处理逻辑** | Java 代码级深度定制 | 可视化编排，定制有限 | 可视化编排，定制有限 |
 | **数据安全** | 敏感数据不经过中心服务器 | 所有数据经过平台服务端 | 所有数据经过平台服务端 |
-| **可观测性** | Micrometer + Trace Context 全链路追踪 | 基础日志 | 基础日志 |
+| **日志与用量采集** | 客户端日志、Token 用量和思维内容采集 | 基础日志 | 基础日志 |
 | **部署灵活性** | 任意 Spring Boot 应用一键接入 | 绑定平台部署 | 绑定平台部署 |
 | **技术栈** | Java 生态原生，Spring AI 集成 | Python 生态 | Node.js 生态 |
 
@@ -143,7 +149,8 @@ Dify 和 FastGPT 是 SaaS 平台，用户只能通过可视化界面编排流程
 |------|------|
 | [拦截器机制](./interceptor.md) | SnailAiInterceptor SPI 接口、拦截器链、执行顺序 |
 | [Advisor 处理流水线](./advisor-pipeline.md) | 5 级 Advisor 流水线的设计与扩展 |
-| [在线日志与追踪](./logging.md) | 日志拦截器、Micrometer 集成、Trace Context 传播 |
+| [客户端日志](./logging.md) | 日志拦截器、Token 用量和思维内容采集 |
 | [本地工具执行](./tools.md) | 内置工具、MCP 集成、动态注册、安全模型 |
+| [客户端 Chat 模式](./chat.md) | 独立 Chat 前端、后端网关、会话 Token 和嵌入配置 |
 | [客户端配置参考](./config.md) | SnailAiAgentProperties 完整配置项 |
 | [OpenAPI 客户端 SDK](./openapi-sdk.md) | 流式调用、事件监听、类型安全接口 |

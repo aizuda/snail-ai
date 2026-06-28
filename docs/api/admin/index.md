@@ -1,6 +1,6 @@
 # Admin API 概述
 
-Admin API 是 Snail AI 平台的管理后台接口，提供智能体、知识库、模型、MCP 服务、技能、记忆、应用、资源及用户等模块的完整管理能力。
+Admin API 是 Snail AI 平台的管理后台接口，提供智能体、知识库、模型、MCP 服务、技能、应用、资源及用户等模块的管理能力。
 
 ## Base URL
 
@@ -116,7 +116,6 @@ curl -X GET 'http://localhost:8900/snail-ai/agent/page' \
 | [模型 API](./model.md)       | `/ai-model`            | 模型提供商、模型配置、用量统计 |
 | [MCP API](./mcp.md)          | `/mcp-server`          | MCP 服务管理、连接测试       |
 | [技能 API](./skill.md)       | `/skill`               | 技能包管理、文件在线编辑     |
-| [记忆 API](./memory.md)      | `/memory`              | 对话记忆检索、管理、配置     |
 | [应用 API](./app.md)         | `/app`                 | 应用管理、客户端节点         |
 | [资源 API](./resource.md)    | `/resource`            | 文件上传、预览、下载         |
 | [用户 API](./user.md)        | `/user`                | 用户登录、管理、授权         |

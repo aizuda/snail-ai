@@ -89,7 +89,6 @@ sequenceDiagram
 
     Client-->>Observer: StreamComplete
     Observer->>Observer: 保存对话记录
-    Observer->>Observer: 记录 Trace
     Observer-->>User: SSE stream end
 ```
 
@@ -286,7 +285,7 @@ flowchart TD
     D --> E["ChatStreamObserver 桥接<br/>gRPC Stream → HTTP SSE"]
     E --> F["等待流式输出完成"]
     F --> G["保存对话记录到数据库"]
-    G --> H["记录 Trace 追踪数据"]
+    G --> H["完成流式响应"]
 ```
 
 ## ChatStreamObserver：gRPC 到 SSE 的桥接
@@ -320,7 +319,6 @@ sequenceDiagram
     Client->>Observer: onCompleted()
     Observer->>Observer: 保存完整对话记录
     Observer->>Observer: 异步提取长期记忆
-    Observer->>Observer: 记录 Trace 数据
     Observer->>SSE: complete()
     SSE-->>Browser: SSE 流结束
 ```
@@ -337,7 +335,7 @@ sequenceDiagram
 
 ## Client 端 Advisor 流水线
 
-当请求通过 gRPC 到达 Client 节点后，Client 端的 **Advisor 流水线**（基于 Spring AI Advisor 机制）会对请求进行二次处理。Advisor 分为 5 个层级：
+当请求通过 gRPC 到达 Client 节点后，Client 端的 **Advisor 流水线**（基于 Spring AI Advisor 机制）会对请求进行二次处理。当前开源版本内置 5 个主要 Advisor：
 
 ```mermaid
 graph TB
@@ -347,22 +345,22 @@ graph TB
         
         subgraph Advisors["Advisor 流水线 (before)"]
             direction TB
-            L1["Level 1: LoggingAdvisor<br/>日志记录"]
-            L2["Level 2: TraceAdvisor<br/>Trace 埋点"]
-            L3["Level 3: TokenCountAdvisor<br/>Token 统计"]
-            L4["Level 4: ContentFilterAdvisor<br/>内容过滤"]
-            L5["Level 5: CustomAdvisor<br/>用户自定义"]
+            L1["Level 1: MemoryInjectionAdvisor<br/>记忆注入"]
+            L2["Level 2: InterceptorChainAdvisor<br/>拦截器链"]
+            L3["Level 3: TokenUsageCollectorAdvisor<br/>Token 统计"]
+            L4["Level 4: ThinkingCollectorAdvisor<br/>思维内容采集"]
+            L5["Level 5: StreamChunkForwarderAdvisor<br/>流式转发"]
         end
 
         CALL["调用大模型 API"]
 
         subgraph AdvisorsAfter["Advisor 流水线 (after)"]
             direction TB
-            L5A["Level 5: CustomAdvisor"]
-            L4A["Level 4: ContentFilterAdvisor"]
-            L3A["Level 3: TokenCountAdvisor"]
-            L2A["Level 2: TraceAdvisor"]
-            L1A["Level 1: LoggingAdvisor"]
+            L5A["Level 5: StreamChunkForwarderAdvisor"]
+            L4A["Level 4: ThinkingCollectorAdvisor"]
+            L3A["Level 3: TokenUsageCollectorAdvisor"]
+            L2A["Level 2: InterceptorChainAdvisor"]
+            L1A["Level 1: MemoryInjectionAdvisor"]
         end
 
         SEND["gRPC StreamResponse 回传"]
@@ -390,11 +388,11 @@ graph TB
 
 | 层级 | Advisor | 阶段 | 职责 |
 |------|---------|------|------|
-| Level 1 | **LoggingAdvisor** | Before/After | 记录请求/响应日志，便于调试排查 |
-| Level 2 | **TraceAdvisor** | Before/After | 创建 Observation 节点，记录耗时和状态 |
-| Level 3 | **TokenCountAdvisor** | After | 统计输入/输出 Token 用量，上报费用数据 |
-| Level 4 | **ContentFilterAdvisor** | Before/After | 敏感内容过滤（输入审查 + 输出审查） |
-| Level 5 | **CustomAdvisor** | Before/After | 用户自定义扩展点，可注入任意业务逻辑 |
+| Level 1 | **MemoryInjectionAdvisor** | Before | 注入对话历史与记忆上下文 |
+| Level 2 | **InterceptorChainAdvisor** | Before/After | 桥接 `SnailAiInterceptor` 拦截器链 |
+| Level 3 | **TokenUsageCollectorAdvisor** | Stream | 统计输入/输出 Token 用量 |
+| Level 4 | **ThinkingCollectorAdvisor** | Stream | 收集模型思考内容 |
+| Level 5 | **StreamChunkForwarderAdvisor** | Stream | 转发流式响应并累积完整文本 |
 
 ### Agentic Loop（工具调用循环）
 
@@ -521,8 +519,8 @@ graph TB
 
     subgraph ClientSide["Client 端：Advisor 流水线"]
         direction LR
-        A1["Logging"] --> A2["Trace"] --> A3["TokenCount"]
-        A3 --> A4["Filter"] --> A5["Custom"]
+        A1["Memory"] --> A2["Interceptor"] --> A3["TokenUsage"]
+        A3 --> A4["Thinking"] --> A5["StreamForward"]
         A5 --> CALL["模型调用"]
     end
 
@@ -538,6 +536,6 @@ graph TB
 |------|-----------------|------------------------|
 | **运行节点** | Server | Client |
 | **处理对象** | 业务上下文 (ChatContext) | 模型请求/响应 (Request/Response) |
-| **关注层面** | 业务编排（知识检索、记忆注入、上下文组装） | 执行控制（日志、追踪、过滤、审计） |
+| **关注层面** | 业务编排（知识检索、记忆注入、上下文组装） | 执行控制（日志、Token 统计、思维内容采集） |
 | **扩展方式** | 实现 ChatHandler 接口 | 实现 ChatClientAdvisor 接口 |
 | **配置方式** | Spring Bean 自动发现 | Spring Bean 自动发现 |

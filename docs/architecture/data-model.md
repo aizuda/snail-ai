@@ -35,9 +35,6 @@ erDiagram
 
     App ||--o{ ClientNode : "管理节点"
 
-    Trace ||--o{ Observation : "包含观测"
-    Trace ||--o{ Score : "关联评分"
-
     Skill ||--o{ SkillFile : "包含文件"
 
     User {
@@ -395,99 +392,6 @@ erDiagram
     }
 ```
 
-## 追踪与可观测性实体
-
-```mermaid
-erDiagram
-    Trace ||--o{ Observation : "包含"
-    Trace ||--o{ Score : "评分"
-
-    Trace {
-        varchar id PK
-        bigint agentId FK
-        varchar conversationId FK
-        bigint userId FK
-        text input
-        text output
-        varchar model
-        bigint startTime
-        bigint endTime
-        bigint durationMs
-        int status
-        varchar statusMessage
-        varchar environment
-        varchar release
-        boolean bookmarked
-        json tags
-        bigint totalInputTokens
-        bigint totalOutputTokens
-        decimal totalCost
-    }
-
-    Observation {
-        varchar id PK
-        varchar traceId FK
-        varchar parentObservationId FK
-        varchar type
-        varchar name
-        text input
-        text output
-        bigint startTime
-        bigint endTime
-        bigint durationMs
-        bigint completionStartTime
-        varchar model
-        json modelParameters
-        json usageDetails
-        json costDetails
-        decimal totalCost
-        varchar finishReason
-        text thinkingContent
-        json toolDefinitions
-        json toolCalls
-        json toolCallNames
-        varchar toolCallId
-        varchar level
-        int status
-        varchar statusMessage
-    }
-
-    Score {
-        varchar id PK
-        varchar traceId FK
-        varchar observationId FK
-        varchar name
-        decimal value
-        varchar stringValue
-        varchar dataType
-        varchar source
-        varchar comment
-        varchar authorUserName
-    }
-```
-
-**Observation 类型（ObservationType）：**
-
-| 类型 | 说明 |
-|------|------|
-| `GENERATION` | 大模型调用（含输入/输出 Token、费用） |
-| `TOOL` | 工具调用（MCP 工具执行） |
-| `THINKING` | 思考过程（推理模型的 chain-of-thought） |
-| `SPAN` | 通用执行段（如责任链某个 Handler） |
-| `EVENT` | 事件节点 |
-| `AGENT` | Agent 级别的观测 |
-| `RETRIEVER` | RAG 检索 |
-| `EMBEDDING` | 向量嵌入 |
-
-**Score 数据类型：**
-
-| 类型 | 说明 |
-|------|------|
-| `NUMERIC` | 数值型（如 1-5 星评分） |
-| `CATEGORICAL` | 分类型（如 "positive" / "negative"） |
-| `BOOLEAN` | 布尔型（如 "有帮助" / "无帮助"） |
-| `TEXT` | 文本型（自由评论） |
-
 ## 资源管理实体
 
 ```mermaid
@@ -555,12 +459,6 @@ graph TB
         RES["Resource<br/>资源"]
     end
 
-    subgraph Observe["可观测性"]
-        TRACE["Trace<br/>追踪"]
-        OBS["Observation<br/>观测"]
-        SCORE["Score<br/>评分"]
-    end
-
     USER --> AGENT
     USER --> CONV
     AGENT --> CONV
@@ -577,9 +475,6 @@ graph TB
     MC --> STORE
     PROVIDER --> CONFIG
     APP --> NODE
-    TRACE --> OBS
-    TRACE --> SCORE
-    AGENT --> TRACE
     USER --> MEM
 
     style Core fill:#3498db,color:#fff
@@ -588,7 +483,6 @@ graph TB
     style Tool fill:#e74c3c,color:#fff
     style Memory fill:#f39c12,color:#fff
     style Infra fill:#1abc9c,color:#fff
-    style Observe fill:#e67e22,color:#fff
 ```
 
 ## 数据库设计规范
@@ -605,7 +499,6 @@ graph TB
 | `t_skill_` | 技能 | `t_skill_info`, `t_skill_file` |
 | `t_memory_` | 记忆 | `t_memory_info`, `t_memory_config` |
 | `t_app_` | 应用 | `t_app_info`, `t_app_client_node` |
-| `t_trace_` | 追踪 | `t_trace_info`, `t_trace_observation`, `t_trace_score` |
 | `t_resource_` | 资源 | `t_resource_info` |
 | `t_user_` | 用户 | `t_user_info` |
 | `t_store_` | 存储 | `t_store_instance` |
@@ -618,5 +511,3 @@ graph TB
 | `create_dt` | DATETIME | 创建时间 |
 | `update_dt` | DATETIME | 更新时间 |
 | `is_deleted` | TINYINT(1) | 逻辑删除标记（0=未删除, 1=已删除） |
-
-

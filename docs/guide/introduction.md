@@ -2,7 +2,7 @@
 
 ## 什么是 Snail AI？
 
-Snail AI 是一款开源 AI Agent 平台，基于 Java 21、Spring Boot 4.1.0 和 Spring AI 2.0 构建，采用 Server-Agent 分布式架构，为企业提供智能体创建、对话、RAG、MCP、Skill、OpenAPI 集成和可观测性能力。
+Snail AI 是一款开源 AI Agent 平台，基于 Java 21、Spring Boot 4.1.0 和 Spring AI 2.0 构建，采用 Server-Agent 分布式架构，为企业提供智能体创建、对话、RAG、MCP、Skill 和 OpenAPI 集成能力。
 
 ## 概览
 
@@ -31,16 +31,17 @@ http://localhost:8900/snail-ai
 | MySQL / PostgreSQL | 已支持 | `docs/sql/` |
 | PgVector / Milvus / Elasticsearch | 已支持 | `docs/docker/docker-compose.yaml` |
 | MinIO / 本地资源存储 | 已支持 | `snail-ai.resource.*` |
-| SQL Server / 达梦 / MariaDB | 规划或适配方向 | 不建议按当前版本直接部署 |
+| 达梦 | 已支持 | `docs/sql/snail_ai_schema_dameng.sql` |
+| SQL Server / MariaDB | 规划或适配方向 | 不建议按当前版本直接部署 |
 
 ## 设计理念
 
 | 理念 | 说明 |
 |------|------|
-| 企业级 | 面向生产环境，关注认证、密钥加密、存储、可观测性和部署运维 |
+| 企业级 | 面向生产环境，关注认证、密钥加密、存储、统计分析和部署运维 |
 | 可扩展 | 通过责任链、Agent Client、MCP 和 Skill 扩展智能体能力 |
 | 自主可控 | 模型调用和工具执行可下发到 Agent Client，便于接入内网资源和本地工具 |
-| 源码优先 | 文档描述以当前源码、`pom.xml`、`application.yml` 和 `script/` 为准 |
+| 源码优先 | 文档描述以当前源码、`pom.xml`、`application.yml`、`docs/docker/` 和 `docs/sql/` 为准 |
 
 ## 核心优势
 
@@ -49,7 +50,7 @@ http://localhost:8900/snail-ai
 - **OpenAPI 外部集成**：通过 `Snail-Ai-App-Id` 和 `Snail-Ai-Token` 对外提供应用级接口。
 - **RAG 知识库**：支持文档上传、解析、分片、向量化、检索和重排链路。
 - **MCP 与 Skill**：支持接入外部 MCP 工具和自定义技能。
-- **可观测性**：提供调用链路追踪、耗时分析和评分等能力。
+- **统计分析**：提供智能体对话量、消息趋势、用户活跃度等统计能力。
 - **多存储选择**：关系库支持 MySQL/PostgreSQL，检索存储支持 PgVector、Milvus、Elasticsearch，资源存储支持本地或 MinIO。
 
 ## 技术栈
@@ -63,7 +64,7 @@ http://localhost:8900/snail-ai
 | Spring AI | 2.0.0 |
 | gRPC | Server-Agent 双向流通信 |
 | MyBatis-Plus | ORM 框架 |
-| Sa-Token | Admin 认证鉴权 |
+| 自定义 Admin 认证 | `AuthenticationInterceptor`、`@LoginRequired`、`Snail-Ai-Auth` |
 
 ### 前端
 

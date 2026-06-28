@@ -8,7 +8,7 @@ OpenAPI 外部集成使用应用级凭证认证。每个请求都必须携带应
 |----------|--------|------|----------|
 | OpenAPI 外部集成 | `Snail-Ai-App-Id`、`Snail-Ai-Token` | 第三方系统调用 `/snail-ai/openapi/v1/**` | `snail-ai-server/snail-ai-server-openapi/src/main/java/com/aizuda/snail/ai/openapi/interceptor/OpenApiAuthInterceptor.java` |
 | Admin API | `Snail-Ai-Auth` | 管理后台登录态 | `snail-ai-server/snail-ai-server-admin` |
-| 嵌入式聊天 | `Snail-Ai-Auth` | `/snail-chat` 嵌入页会话 Token | `snail-ai-agent/snail-ai-agent-chat/snail-ai-agent-chat-starter/src/main/java/com/aizuda/snail/ai/agent/chat/starter/SnailAiChatTokenService.java` |
+| 客户端 Chat 模式 | `Snail-Ai-Auth` | `/snail-chat` 页面与 `/api/snail/chat/**` 网关会话 Token | `snail-ai-agent/snail-ai-agent-chat/snail-ai-agent-chat-starter/src/main/java/com/aizuda/snail/ai/agent/chat/starter/SnailAiChatTokenService.java` |
 
 ## 获取应用凭证
 
@@ -54,7 +54,7 @@ curl -N -X POST 'http://localhost:8900/snail-ai/openapi/v1/agent/chat' \
 |------|------|----------|
 | 缺少认证信息 | 未提供 `Snail-Ai-App-Id` 或 `Snail-Ai-Token` | 同时传入两个 Header |
 | Token 校验失败 | Token 与 App 不匹配或已变更 | 到应用管理重新复制 Token |
-| 使用了 `Snail-Ai-Auth` | 将 Admin/嵌入式聊天认证头误用于 OpenAPI | 改用 `Snail-Ai-App-Id` + `Snail-Ai-Token` |
+| 使用了 `Snail-Ai-Auth` | 将 Admin/客户端 Chat 认证头误用于 OpenAPI | 改用 `Snail-Ai-App-Id` + `Snail-Ai-Token` |
 
 ## 最佳实践
 

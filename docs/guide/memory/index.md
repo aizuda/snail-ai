@@ -10,7 +10,6 @@
 | 短期记忆内存存储 | 已支持 | `store-type: memory` |
 | 短期记忆数据库存储 | 已支持配置项 | `store-type: db` |
 | 对话记忆 PO/Mapper | 已存在 | `snail-ai-server/snail-ai-server-persistence` |
-| 独立记忆管理 Admin API | 当前文档不作为已完整开放能力描述 | 未发现独立 `MemoryController` |
 | 长期记忆向量召回 | 谨慎使用，需以当前源码实现验证 | 后续按实际实现补充 |
 
 ## 配置示例

@@ -12,7 +12,7 @@ export const nav = [
       { text: '技能系统', link: '/guide/skill/' },
       { text: '记忆系统', link: '/guide/memory/' },
       { text: '应用与分布式', link: '/guide/app/' },
-      { text: '可观测性(实现中)', link: '/guide/observability/' },
+      { text: '统计分析', link: '/guide/observability/analytics' },
     ],
   },
   {

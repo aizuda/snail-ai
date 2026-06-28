@@ -287,7 +287,6 @@ const isValid = computed(() => agentName.value.length > 0)
 | `chain` | 责任链 |
 | `memory` | 记忆系统 |
 | `skill` | 技能系统 |
-| `trace` | 可观测性 |
 | `auth` | 认证鉴权 |
 | `api` | REST API / OpenAPI |
 | `ui` | 前端界面 |
