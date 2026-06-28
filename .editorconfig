@@ -1,0 +1,29 @@
+# EditorConfig: https://editorconfig.org
+# 统一各编辑器/IDE 的基础排版，配合 Spotless 形成格式基线
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# Java 源码：与现有 4 空格缩进保持一致
+[*.java]
+indent_size = 4
+
+# 构建/配置文件：pom 等 XML 现状为 4 空格，YAML/JSON 用 2 空格更通用
+[*.xml]
+indent_size = 4
+
+[*.{yml,yaml,json}]
+indent_size = 2
+
+# Markdown 允许行尾空格（用于换行语义）
+[*.md]
+trim_trailing_whitespace = false
+
+[*.{bat,cmd}]
+end_of_line = crlf
