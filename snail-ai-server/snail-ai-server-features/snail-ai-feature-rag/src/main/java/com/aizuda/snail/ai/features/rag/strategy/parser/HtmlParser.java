@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
 /**
- * HtmlParser
+ * HTML 文档解析器：剥离标签与 script/style、解码 HTML 实体，提取并保留段落结构的纯文本。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -33,6 +33,9 @@ public class HtmlParser implements DocumentParser {
         }
     }
 
+    /**
+     * 移除脚本 / 样式与标签、解码常见实体、规整空白，将 HTML 转为带段落结构的纯文本。
+     */
     private String stripHtmlTags(String html) {
         String text = html.replaceAll("(?i)<script[^>]*>[\\s\\S]*?</script>", "");
         text = text.replaceAll("(?i)<style[^>]*>[\\s\\S]*?</style>", "");
@@ -55,6 +58,9 @@ public class HtmlParser implements DocumentParser {
         return text.trim();
     }
 
+    /**
+     * 解码形如 {@code &#数字;} 的 HTML 数字实体为对应字符。
+     */
     private String decodeNumericEntities(String text) {
         StringBuilder sb = new StringBuilder();
         int i = 0;
