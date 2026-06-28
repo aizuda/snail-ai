@@ -1,5 +1,6 @@
 package com.aizuda.snail.ai.agent.example.tool;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ToolContext;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
@@ -8,20 +9,19 @@ import org.springframework.stereotype.Component;
 import java.util.Map;
 
 /**
- * <p>
- *
- * </p>
+ * 示例工具：根据订单 ID 返回模拟订单信息，用于演示 Agent 工具调用。
  *
  * @author opensnail
  * @date 2026-05-24
  */
+@Slf4j
 @Component
 public class QueryDbTool {
 
     @Tool(name = "query_order", description = "查询订单信息")
     public String queryOrder(@ToolParam(description = "订单ID") String orderId, ToolContext toolContext) {
         Map<String, Object> context = toolContext.getContext();
-        System.out.println(context);
+        log.debug("query_order toolContext: {}", context);
         return """
         {
           "orderId": "%s",

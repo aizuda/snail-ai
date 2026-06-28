@@ -39,7 +39,7 @@ public class ChatResultPersistService {
     }
 
     private void persistAll(ChatResultPersistCommand cmd) {
-        log.info("persistAll start: conversationId={}, inputTokens={}, outputTokens={}, cacheTokens={}",
+        log.debug("persistAll start: conversationId={}, inputTokens={}, outputTokens={}, cacheTokens={}",
                 cmd.getConversationId(), cmd.getInputTokens(), cmd.getOutputTokens(), cmd.getCacheTokens());
 
         // 1. 插入对话记录
@@ -55,7 +55,7 @@ public class ChatResultPersistService {
                     .outputTokens(cmd.getOutputTokens())
                     .cacheTokens(cmd.getCacheTokens())
                     .build());
-            log.info("persistAll insert done: conversationId={}, rows={}", cmd.getConversationId(), rows);
+            log.debug("persistAll insert done: conversationId={}, rows={}", cmd.getConversationId(), rows);
         } catch (Exception e) {
             log.error("persistAll insert FAILED: conversationId={}, error={}", cmd.getConversationId(), e.getMessage(), e);
             throw e;
@@ -66,7 +66,7 @@ public class ChatResultPersistService {
             if (!Boolean.FALSE.equals(cmd.getMemoryEnabled())) {
                 shortTermMemoryStore.append(cmd.getConversationId(), ConversationRoleEnum.ASSISTANT.getValue(),
                         cmd.getFullText(), cmd.getShortTermWindow());
-                log.info("persistAll memory done: conversationId={}", cmd.getConversationId());
+                log.debug("persistAll memory done: conversationId={}", cmd.getConversationId());
             }
         } catch (Exception e) {
             log.error("persistAll memory FAILED: conversationId={}, error={}", cmd.getConversationId(), e.getMessage(), e);
@@ -76,13 +76,13 @@ public class ChatResultPersistService {
         // 3. 用量统计
         try {
             updateUsageStat(cmd.getAgentId(), cmd.getUserId());
-            log.info("persistAll usageStat done: conversationId={}", cmd.getConversationId());
+            log.debug("persistAll usageStat done: conversationId={}", cmd.getConversationId());
         } catch (Exception e) {
             log.error("persistAll usageStat FAILED: conversationId={}, error={}", cmd.getConversationId(), e.getMessage(), e);
             throw e;
         }
 
-        log.info("persistAll ALL done: conversationId={}", cmd.getConversationId());
+        log.debug("persistAll ALL done: conversationId={}", cmd.getConversationId());
     }
 
     private void updateUsageStat(Long agentId, Long userId) {

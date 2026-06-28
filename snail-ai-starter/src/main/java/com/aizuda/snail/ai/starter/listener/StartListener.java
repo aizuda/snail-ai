@@ -29,13 +29,14 @@ public class StartListener implements ApplicationListener<ContextRefreshedEvent>
     @Override
     public void onApplicationEvent(ContextRefreshedEvent event) {
         if (isStarted) {
-            SnailAiLog.LOCAL.info("snail-ai server already started v{}", 1);
+            SnailAiLog.LOCAL.info("snail-ai server already started v{}", SnailAiVersion.getVersion());
             return;
         }
+        // ASCII LOGO 直接写 stdout，避免日志框架为每行追加时间戳前缀破坏图形
         System.out.println(MessageFormatter.format(SystemConstants.LOGO, SnailAiVersion.getVersion()).getMessage());
-        SnailAiLog.LOCAL.info("snail-job server is preparing to start... v{}", SnailAiVersion.getVersion());
+        SnailAiLog.LOCAL.info("snail-ai server is preparing to start... v{}", SnailAiVersion.getVersion());
         lifecycleList.forEach(Lifecycle::start);
-        SnailAiLog.LOCAL.info("snail-job server started successfully v{}", SnailAiVersion.getVersion());
+        SnailAiLog.LOCAL.info("snail-ai server started successfully v{}", SnailAiVersion.getVersion());
         isStarted = true;
     }
 }
