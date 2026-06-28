@@ -18,7 +18,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * FinalizeHandler
+ * 收尾节点：截断 TopK、回填切片正文与文档名、按需扩展相邻切片，并做「迷失中间」重排。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -59,6 +59,9 @@ public class FinalizeHandler implements RagSearchHandler {
                 ctx.getMetrics() != null ? ctx.getMetrics().getTotalMs() : 0);
     }
 
+    /**
+     * 为每条结果扩展前后相邻切片，拼接为更完整的上下文内容。
+     */
     private List<SearchResult> expandNearbySlices(List<SearchResult> results, int nearbyCount) {
         List<SearchResult> expanded = new ArrayList<>();
         for (SearchResult result : results) {
@@ -88,6 +91,9 @@ public class FinalizeHandler implements RagSearchHandler {
     }
 
 
+    /**
+     * 批量回填结果的切片正文、文档 ID 与文档名（仅填充缺失字段）。
+     */
     private void enrichWithContent(List<SearchResult> results) {
         List<Long> chunkIds = results.stream()
                 .map(SearchResult::getChunkId)
@@ -107,9 +113,10 @@ public class FinalizeHandler implements RagSearchHandler {
         if (!docIds.isEmpty()) {
             for (Long docId : docIds) {
                 RagDocumentPO doc = ragDocumentMapper.selectById(docId);
-                if (doc != null) {
-                    docNameMap.put(docId, doc.getName());
+                if (doc == null) {
+                    continue;
                 }
+                docNameMap.put(docId, doc.getName());
             }
         }
 

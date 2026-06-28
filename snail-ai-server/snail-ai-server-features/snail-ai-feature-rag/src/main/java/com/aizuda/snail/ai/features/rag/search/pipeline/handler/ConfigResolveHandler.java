@@ -13,7 +13,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 /**
- * ConfigResolveHandler
+ * 配置解析节点：加载知识库及其检索 / 模型参数并注入上下文；知识库不存在则终止链路。
  *
  * @author opensnail
  * @since 2026-06-14
