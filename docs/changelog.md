@@ -65,13 +65,13 @@
 
 ### 新功能
 
-- **客户端 Chat 模式**：新增独立前端 `snail-ai-chat` 与后端模块 `snail-ai-agent-chat`，包含：
+- **智能体对话**：新增独立前端 `snail-ai-chat` 与后端模块 `snail-ai-agent-chat`，包含：
   - `snail-ai-agent-chat-api`：Chat 会话、认证、凭证校验等 API 定义
   - `snail-ai-agent-chat-starter`：自动装配、网关控制器、Token 服务、认证拦截器
   - 前端构建产物嵌入 Starter 静态资源目录，支持 `/snail-chat` 路径访问
 - **OpenAPI 客户端模块** (`snail-ai-agent-openapi`)：新增面向外部调用的 OpenAPI 模块，包含：
   - Agent 客户端、Embed 客户端接口
-  - 客户端 Chat Token 请求/响应 DTO
+  - 智能体对话 Token 请求/响应 DTO
   - OpenAPI 认证拦截器与会话管理
 - **gRPC 通信层**：新增 `ClientGrpcServer`、`GrpcChannelProvider`、`GrpcClientInvokeHandler` 等 gRPC 组件及 `ChatDispatchStreamingHandler` 流式分发处理器
 - **记忆系统**：新增对话记忆（`ConversationMemory`）相关 Mapper 和 PO，支持记忆注入 Advisor（`MemoryInjectionAdvisor`）

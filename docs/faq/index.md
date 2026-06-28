@@ -97,7 +97,7 @@ Snail-Ai-App-Id: <your-app-id>
 Snail-Ai-Token: <your-app-token>
 ```
 
-`Snail-Ai-Auth` 是 Admin API 和客户端 Chat 会话使用的认证头，不是 OpenAPI 外部集成的通用认证头。
+`Snail-Ai-Auth` 是 Admin API 和智能体对话会话使用的认证头，不是 OpenAPI 外部集成的通用认证头。
 
 ## 部署运维
 

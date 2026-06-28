@@ -1,14 +1,14 @@
-# 客户端 Chat 模式
+# 智能体对话
 
 ## 概览
 
-客户端 Chat 模式由独立前端项目和 Agent Chat 后端模块共同组成，用于提供可独立访问或嵌入业务系统的聊天界面。
+智能体对话页面由独立前端项目和 Agent Chat 后端模块共同组成，用于提供可独立访问或嵌入业务系统的聊天界面。
 
 当前源码结构：
 
 | 部分 | 位置 | 说明 |
 |------|------|------|
-| Chat 前端源码 | `snail-ai-chat` | 独立 Vue 3 前端项目，默认网关路径为 `/api/snail/chat` |
+| 对话前端源码 | `snail-ai-chat` | 独立 Vue 3 前端项目，默认网关路径为 `/api/snail/chat` |
 | Chat 后端模块 | `snail-ai-agent/snail-ai-agent-chat` | Agent 侧 Chat API 与 Starter |
 | 后端 API 包 | `snail-ai-agent/snail-ai-agent-chat/snail-ai-agent-chat-api` | 会话、认证注解、配置和凭证校验扩展点 |
 | 后端 Starter | `snail-ai-agent/snail-ai-agent-chat/snail-ai-agent-chat-starter` | 自动装配、静态资源、网关 Controller、Token 服务和认证拦截器 |
@@ -60,13 +60,13 @@ http://localhost:8081/snail-chat?openId=46ed53c6a20044c7bbd870848e80f92f
 
 ## 界面预览
 
-首次进入页面时，输入 `openId` 后即可创建客户端 Chat 会话。
+首次进入页面时，输入 `openId` 后即可创建智能体对话会话。
 
-![客户端 Chat openId 输入页](/images/client-chat/openid-page.png)
+![智能体对话 openId 输入页](/images/client-chat/openid-page.png)
 
 会话创建成功后进入对话页面，可选择智能体、查看会话列表并进行流式对话。
 
-![客户端 Chat 对话页面](/images/client-chat/conversation-page.png)
+![智能体对话页面](/images/client-chat/conversation-page.png)
 
 ## 网关接口
 
@@ -85,7 +85,7 @@ http://localhost:8081/snail-chat?openId=46ed53c6a20044c7bbd870848e80f92f
 | 会话消息 | `GET /api/snail/chat/messages` | 查询会话消息 |
 | 流式对话 | `POST /api/snail/chat/completions` | SSE 流式对话 |
 
-除 `/config` 与 `/session` 外，网关接口通过 `Snail-Ai-Auth` 携带会话 Token。该 Header 只用于 Admin API 或客户端 Chat 会话，不是 OpenAPI 外部集成的应用凭证。
+除 `/config` 与 `/session` 外，网关接口通过 `Snail-Ai-Auth` 携带会话 Token。该 Header 只用于 Admin API 或智能体对话会话，不是 OpenAPI 外部集成的应用凭证。
 
 ## 配置示例
 

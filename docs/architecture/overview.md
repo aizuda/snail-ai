@@ -164,7 +164,7 @@ Snail-Ai-App-Id: <your-app-id>
 Snail-Ai-Token: <your-app-token>
 ```
 
-Admin API 和客户端 Chat 会话使用 `Snail-Ai-Auth`，不要混用。
+Admin API 和智能体对话会话使用 `Snail-Ai-Auth`，不要混用。
 
 ## 责任链阶段
 
