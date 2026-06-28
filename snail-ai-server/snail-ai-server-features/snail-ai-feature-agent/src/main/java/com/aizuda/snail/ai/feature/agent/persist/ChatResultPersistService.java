@@ -31,6 +31,9 @@ public class ChatResultPersistService {
     private final AgentUsageStatMapper usageStatMapper;
     private final ShortTermMemoryStore shortTermMemoryStore;
 
+    /**
+     * 异步持久化对话结果：在虚拟线程中执行，避免阻塞流式响应主链路；失败仅记录日志、不向上抛出。
+     */
     public void persistAsync(ChatResultPersistCommand cmd) {
         Thread.startVirtualThread(() -> {
             try {
@@ -41,6 +44,9 @@ public class ChatResultPersistService {
         });
     }
 
+    /**
+     * 串行持久化助手消息、短期记忆窗口与用量统计；任一步失败即抛出，由调用方统一记录。
+     */
     private void persistAll(ChatResultPersistCommand cmd) {
         log.debug("persistAll start: conversationId={}, inputTokens={}, outputTokens={}, cacheTokens={}",
                 cmd.getConversationId(), cmd.getInputTokens(), cmd.getOutputTokens(), cmd.getCacheTokens());
@@ -88,27 +94,34 @@ public class ChatResultPersistService {
         log.debug("persistAll ALL done: conversationId={}", cmd.getConversationId());
     }
 
+    /**
+     * 更新当日用量统计：优先自增已有记录，无记录则插入；并发插入冲突时回退为自增。
+     */
     private void updateUsageStat(Long agentId, Long userId) {
         try {
             LocalDate today = LocalDate.now();
             LocalDateTime now = LocalDateTime.now();
             int updated = incrementUsageStat(agentId, userId, today, now);
-            if (updated == 0) {
-                try {
-                    usageStatMapper.insert(AgentUsageStatPO.builder()
-                            .agentId(agentId).userId(userId)
-                            .statDate(today).messageCount(1).conversationCount(1)
-                            .createDt(now).updateDt(now)
-                            .build());
-                } catch (DuplicateKeyException e) {
-                    incrementUsageStat(agentId, userId, today, now);
-                }
+            if (updated != 0) {
+                return;
+            }
+            try {
+                usageStatMapper.insert(AgentUsageStatPO.builder()
+                        .agentId(agentId).userId(userId)
+                        .statDate(today).messageCount(1).conversationCount(1)
+                        .createDt(now).updateDt(now)
+                        .build());
+            } catch (DuplicateKeyException e) {
+                incrementUsageStat(agentId, userId, today, now);
             }
         } catch (Exception e) {
             log.warn("Failed to update usage stat", e);
         }
     }
 
+    /**
+     * 自增指定 Agent / 用户 / 当日的消息计数，返回受影响行数（0 表示当日记录尚不存在）。
+     */
     private int incrementUsageStat(Long agentId, Long userId, LocalDate today, LocalDateTime now) {
         return usageStatMapper.update(null, new LambdaUpdateWrapper<AgentUsageStatPO>()
                 .eq(AgentUsageStatPO::getAgentId, agentId)
