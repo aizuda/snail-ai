@@ -15,7 +15,9 @@ RAG（Retrieval-Augmented Generation，检索增强生成）是一种结合**信
 
 Snail AI 提供了**生产级 RAG 引擎**，覆盖从文档导入到智能问答的完整链路。
 
-<!-- screenshot: rag-list.png — 知识库列表页面，展示多个知识库卡片，包含文档数量、分片数量、切片策略等信息 -->
+RAG 列表页通过知识库卡片展示文档数、切片数、描述和更新时间，并提供搜索与创建入口。
+
+![RAG 列表页](/images/rag/rag-list-cards.png)
 
 ### 核心特性
 

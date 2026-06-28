@@ -2,6 +2,10 @@
 
 Snail AI 提供统一的模型提供商与模型配置管理。当前源码已落地的模型调用规格主要包括 Chat、Embedding 和 Rerank；Provider 可以配置 OpenAI-compatible 端点来接入兼容 OpenAI API 的服务。
 
+模型管理页上半部分展示模型提供商卡片，下半部分维护具体模型配置、启用状态和默认模型。
+
+![模型管理页面](/images/model/model-management-overview.png)
+
 ## 当前支持状态
 
 | 能力 | 状态 | 对应源码 |

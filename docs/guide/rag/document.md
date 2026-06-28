@@ -23,7 +23,9 @@ Snail AI 支持以下 10 种常见文档格式：
 
 进入知识库详情页的「文档」标签页，点击「导入文档」按钮即可打开导入窗口。
 
-<!-- screenshot: rag-doc-upload.png — 文档导入弹窗，展示本地上传、URL导入、云端导入三种模式的选择卡片和拖拽上传区域 -->
+导入文档弹框支持本地上传、URL 导入和上传预览确认，便于在入库前检查去重和冲突处理结果。
+
+![导入文档弹框](/images/rag/rag-document-import-dialog.png)
 
 ### 导入方式
 
@@ -64,7 +66,7 @@ sequenceDiagram
     end
 ```
 
-<!-- screenshot: rag-doc-preview.png — 上传预览确认弹窗，展示每个文件的去重匹配结果（NEW/SKIP/OVERWRITE/REJECT），用户可调整每个文件的最终决策 -->
+上传预览确认会展示新增、跳过、覆盖等统计，并允许逐个文件调整最终处理决策。
 
 #### 第一阶段：预览（Preview）
 
@@ -163,6 +165,8 @@ stateDiagram-v2
 ### 文档列表
 
 文档列表以数据表格形式展示，包含以下列：
+
+![文档列表页](/images/rag/rag-document-list.png)
 
 | 列 | 说明 |
 |----|------|
