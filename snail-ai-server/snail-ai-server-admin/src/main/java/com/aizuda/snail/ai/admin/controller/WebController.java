@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 public class WebController {
 
+    /** 转发到前端单页应用首页（index）。 */
     @GetMapping("/root")
     public String forwardIndex() {
         return "index";

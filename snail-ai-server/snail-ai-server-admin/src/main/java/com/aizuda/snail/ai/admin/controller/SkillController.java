@@ -23,6 +23,11 @@ import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBo
 
 import java.util.List;
 
+/**
+ * 技能（Skill）管理接口：技能包上传 / 下载、CRUD 与在线文件编辑。
+ * <p>
+ * 全部端点均需 ADMIN 角色（{@code @LoginRequired} 默认角色）。
+ */
 @RestController
 @RequestMapping("/skill")
 @RequiredArgsConstructor
@@ -30,18 +35,21 @@ public class SkillController {
 
     private final SkillService skillService;
 
+    /** 上传技能包（zip）并解析入库（管理员）。 */
     @PostMapping("/upload")
     @LoginRequired
     public Result<SkillResponseVO> upload(@RequestParam("file") MultipartFile file) {
         return Result.ok(skillService.upload(file));
     }
 
+    /** 分页查询技能列表（管理员）。 */
     @GetMapping("/page")
     @LoginRequired
     public PageResult<List<SkillResponseVO>> page(SkillQueryVO queryVO) {
         return skillService.page(queryVO.getPage(), queryVO.getSize(), queryVO.getKeyword());
     }
 
+    /** 删除技能（管理员）。 */
     @DeleteMapping("/{id}")
     @LoginRequired
     public Result<Void> delete(@PathVariable("id") Long id) {
@@ -49,9 +57,7 @@ public class SkillController {
         return Result.ok(null);
     }
 
-    /**
-     * 下载技能包为 zip 文件（Phase 0）
-     */
+    /** 将技能包导出为 zip 文件下载（管理员，流式响应）。 */
     @GetMapping("/{id}/download")
     @LoginRequired
     public ResponseEntity<StreamingResponseBody> download(@PathVariable("id") Long id) {
@@ -63,24 +69,28 @@ public class SkillController {
         return ResponseEntity.ok().headers(headers).body(body);
     }
 
+    /** 查询全部技能（不分页，管理员）。 */
     @GetMapping("/list")
     @LoginRequired
     public Result<List<SkillResponseVO>> listAll() {
         return Result.ok(skillService.listAll());
     }
 
+    /** 在线创建技能（管理员）。 */
     @PostMapping
     @LoginRequired
     public Result<SkillResponseVO> create(@RequestBody @Validated SkillCreateRequestVO request) {
         return Result.ok(skillService.createOnline(request));
     }
 
+    /** 按 ID 查询技能详情（管理员）。 */
     @GetMapping("/{id}")
     @LoginRequired
     public Result<SkillResponseVO> getById(@PathVariable("id") Long id) {
         return Result.ok(skillService.getById(id));
     }
 
+    /** 更新技能基本信息（管理员）。 */
     @PutMapping("/{id}")
     @LoginRequired
     public Result<SkillResponseVO> update(
@@ -90,12 +100,14 @@ public class SkillController {
 
     // ==================== 文件管理（在线编辑） ====================
 
+    /** 查询技能内文件树（管理员）。 */
     @GetMapping("/{skillId}/files")
     @LoginRequired
     public Result<SkillFileTreeNodeVO> getFileTree(@PathVariable("skillId") Long skillId) {
         return Result.ok(skillService.buildFileTree(skillId));
     }
 
+    /** 读取技能内指定文件内容（管理员）。 */
     @GetMapping("/{skillId}/files/content")
     @LoginRequired
     public Result<SkillFileContentRequestVO> getFileContent(
@@ -104,6 +116,7 @@ public class SkillController {
         return Result.ok(skillService.getFileContent(skillId, path));
     }
 
+    /** 保存技能内指定文件内容（管理员）。 */
     @PutMapping("/{skillId}/files/content")
     @LoginRequired
     public Result<Void> saveFileContent(
@@ -114,6 +127,7 @@ public class SkillController {
         return Result.ok(null);
     }
 
+    /** 在技能内新建文件（管理员）。 */
     @PostMapping("/{skillId}/files")
     @LoginRequired
     public Result<Void> createFile(
@@ -123,6 +137,7 @@ public class SkillController {
         return Result.ok(null);
     }
 
+    /** 删除技能内指定文件（管理员）。 */
     @DeleteMapping("/{skillId}/files")
     @LoginRequired
     public Result<Void> deleteFile(
@@ -132,6 +147,7 @@ public class SkillController {
         return Result.ok(null);
     }
 
+    /** 重命名技能内文件（管理员）。 */
     @PutMapping("/{skillId}/files/rename")
     @LoginRequired
     public Result<Void> renameFile(

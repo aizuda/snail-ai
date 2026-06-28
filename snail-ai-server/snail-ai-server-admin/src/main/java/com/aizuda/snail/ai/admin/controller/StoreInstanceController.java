@@ -15,6 +15,11 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * 存储实例管理接口：向量库 / 搜索引擎等存储实例的 CRUD、维度约束查询与连通性测试。
+ * <p>
+ * 全部端点均需 ADMIN 角色。
+ */
 @RestController
 @RequestMapping("/store-instance")
 @RequiredArgsConstructor
@@ -22,18 +27,21 @@ public class StoreInstanceController {
 
     private final StoreInstanceService storeInstanceService;
 
+    /** 按分类查询存储实例列表（管理员）。 */
     @GetMapping
     @LoginRequired
     public Result<List<StoreInstanceVO>> list(StoreInstanceQueryVO queryVO) {
         return Result.ok(storeInstanceService.listByCategory(queryVO.getCategory()));
     }
 
+    /** 分页查询存储实例（管理员）。 */
     @GetMapping("/page")
     @LoginRequired
     public PageResult<List<StoreInstanceVO>> page(StoreInstanceQueryVO queryVO) {
         return storeInstanceService.page(queryVO);
     }
 
+    /** 按 ID 查询存储实例详情（管理员）。 */
     @GetMapping("/{id}")
     @LoginRequired
     public Result<StoreInstanceVO> get(@PathVariable("id") Long id) {
@@ -44,6 +52,7 @@ public class StoreInstanceController {
         return Result.ok(vo);
     }
 
+    /** 查询存储实例对指定嵌入模型的向量维度约束（管理员）。 */
     @GetMapping("/{id}/dimension-constraint")
     @LoginRequired
     public Result<VectorDimensionConstraintVO> getDimensionConstraint(@PathVariable("id") Long id,
@@ -51,18 +60,21 @@ public class StoreInstanceController {
         return Result.ok(storeInstanceService.getDimensionConstraint(id, embeddingModelId));
     }
 
+    /** 创建存储实例（管理员）。 */
     @PostMapping
     @LoginRequired
     public Result<StoreInstanceVO> create(@RequestBody @Validated StoreInstanceRequestVO vo) {
         return Result.ok(storeInstanceService.create(vo));
     }
 
+    /** 更新存储实例（管理员）。 */
     @PutMapping("/{id}")
     @LoginRequired
     public Result<StoreInstanceVO> update(@PathVariable("id") Long id, @RequestBody StoreInstanceRequestVO vo) {
         return Result.ok(storeInstanceService.update(id, vo));
     }
 
+    /** 删除存储实例（管理员）。 */
     @DeleteMapping("/{id}")
     @LoginRequired
     public Result<Void> delete(@PathVariable("id") Long id) {
@@ -70,6 +82,7 @@ public class StoreInstanceController {
         return Result.ok(null);
     }
 
+    /** 按入参测试存储实例连通性（管理员）。 */
     @PostMapping("/test")
     @LoginRequired
     public Result<Boolean> testConnection(@RequestBody @Validated StoreInstanceTestRequestVO req) {
