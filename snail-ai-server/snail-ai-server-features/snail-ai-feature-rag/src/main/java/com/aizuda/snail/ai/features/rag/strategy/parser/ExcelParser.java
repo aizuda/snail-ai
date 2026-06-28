@@ -47,14 +47,18 @@ public class ExcelParser implements DocumentParser {
 
                 for (int r = 1; r <= sheet.getLastRowNum(); r++) {
                     Row row = sheet.getRow(r);
-                    if (row == null) continue;
+                    if (row == null) {
+                        continue;
+                    }
 
                     StringJoiner joiner = new StringJoiner(", ");
                     boolean hasContent = false;
                     for (int c = 0; c < row.getLastCellNum(); c++) {
                         Cell cell = row.getCell(c);
                         String value = cell != null ? formatter.formatCellValue(cell).trim() : "";
-                        if (!value.isEmpty()) hasContent = true;
+                        if (!value.isEmpty()) {
+                            hasContent = true;
+                        }
 
                         String header = (headers != null && c < headers.length) ? headers[c] : "col" + c;
                         if (!value.isEmpty()) {

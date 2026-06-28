@@ -116,8 +116,12 @@ public class McpServerService {
             throw new SnailAiException("MCP Server not found: " + id);
         }
 
-        if (request.getName() != null) po.setName(request.getName());
-        if (request.getDescription() != null) po.setDescription(request.getDescription());
+        if (request.getName() != null) {
+            po.setName(request.getName());
+        }
+        if (request.getDescription() != null) {
+            po.setDescription(request.getDescription());
+        }
         if (request.getTransportType() != null) {
             po.setTransportType(request.getTransportType());
             po.setBaseUri(null);
@@ -126,14 +130,30 @@ public class McpServerService {
             po.setArgs(null);
             po.setEnvVars(null);
         }
-        if (request.getBaseUri() != null) po.setBaseUri(request.getBaseUri());
-        if (request.getEndpoint() != null) po.setEndpoint(request.getEndpoint());
-        if (request.getCommand() != null) po.setCommand(request.getCommand());
-        if (request.getArgs() != null) po.setArgs(toJson(request.getArgs()));
-        if (request.getEnvVars() != null) po.setEnvVars(toJson(request.getEnvVars()));
-        if (request.getAuthType() != null) po.setAuthType(request.getAuthType());
-        if (request.getAuthConfig() != null) po.setAuthConfig(toJson(request.getAuthConfig()));
-        if (request.getCapabilities() != null) po.setCapabilities(toJson(request.getCapabilities()));
+        if (request.getBaseUri() != null) {
+            po.setBaseUri(request.getBaseUri());
+        }
+        if (request.getEndpoint() != null) {
+            po.setEndpoint(request.getEndpoint());
+        }
+        if (request.getCommand() != null) {
+            po.setCommand(request.getCommand());
+        }
+        if (request.getArgs() != null) {
+            po.setArgs(toJson(request.getArgs()));
+        }
+        if (request.getEnvVars() != null) {
+            po.setEnvVars(toJson(request.getEnvVars()));
+        }
+        if (request.getAuthType() != null) {
+            po.setAuthType(request.getAuthType());
+        }
+        if (request.getAuthConfig() != null) {
+            po.setAuthConfig(toJson(request.getAuthConfig()));
+        }
+        if (request.getCapabilities() != null) {
+            po.setCapabilities(toJson(request.getCapabilities()));
+        }
 
         mcpServerMapper.updateById(po);
         return toResponseVO(po);
@@ -247,18 +267,24 @@ public class McpServerService {
     }
 
     private String toJson(Object obj) {
-        if (obj == null) return null;
+        if (obj == null) {
+            return null;
+        }
         return JsonUtil.toJsonString(obj);
     }
 
     private List<String> parseJsonList(String json) {
-        if (StrUtil.isBlank(json)) return new ArrayList<>();
+        if (StrUtil.isBlank(json)) {
+            return new ArrayList<>();
+        }
         return JsonUtil.parseObject(json, new TypeReference<List<String>>() {
         });
     }
 
     private Map<String, String> parseJsonMap(String json) {
-        if (StrUtil.isBlank(json)) return null;
+        if (StrUtil.isBlank(json)) {
+            return null;
+        }
         return JsonUtil.parseObject(json, new TypeReference<Map<String, String>>() {
         });
     }

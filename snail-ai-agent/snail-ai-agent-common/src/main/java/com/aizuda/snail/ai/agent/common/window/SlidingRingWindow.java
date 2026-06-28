@@ -111,10 +111,14 @@ public class SlidingRingWindow<T> {
     }
 
     private void emit(Window<T> window) {
-        if (Objects.isNull(window)) return;
+        if (Objects.isNull(window)) {
+            return;
+        }
 
         final List<T> drainList = window.drain();
-        if (drainList.isEmpty()) return;
+        if (drainList.isEmpty()) {
+            return;
+        }
 
         try {
             listener.forEach(consumer -> consumer.handler(drainList));

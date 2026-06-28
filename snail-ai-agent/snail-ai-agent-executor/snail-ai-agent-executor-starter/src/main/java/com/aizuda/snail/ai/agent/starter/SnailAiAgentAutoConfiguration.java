@@ -274,8 +274,12 @@ public class SnailAiAgentAutoConfiguration {
 
     @PreDestroy
     public void shutdown() {
-        if (heartbeatTask != null) heartbeatTask.stop();
-        if (clientGrpcServer != null) clientGrpcServer.stop();
+        if (heartbeatTask != null) {
+            heartbeatTask.stop();
+        }
+        if (clientGrpcServer != null) {
+            clientGrpcServer.stop();
+        }
         log.info("Snail-AI Agent shutdown");
     }
 }

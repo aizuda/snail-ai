@@ -42,7 +42,9 @@ public class InMemoryShortTermMemoryStore implements ShortTermMemoryStore {
     public void append(String conversationId, String role, String content, int windowSize) {
         int cap = Math.max(1, windowSize);
         store.compute(conversationId, (k, list) -> {
-            if (list == null) list = new LinkedList<>();
+            if (list == null) {
+                list = new LinkedList<>();
+            }
             list.addLast(new ShortTermMessage(role, content));
             // 维护滑动窗口
             while (list.size() > cap) {

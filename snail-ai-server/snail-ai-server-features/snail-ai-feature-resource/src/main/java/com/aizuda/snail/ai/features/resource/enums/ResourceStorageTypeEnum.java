@@ -14,9 +14,13 @@ public enum ResourceStorageTypeEnum {
     private final String value;
 
     public static ResourceStorageTypeEnum fromValue(String value) {
-        if (value == null) return null;
+        if (value == null) {
+            return null;
+        }
         for (ResourceStorageTypeEnum e : values()) {
-            if (e.value.equalsIgnoreCase(value)) return e;
+            if (e.value.equalsIgnoreCase(value)) {
+                return e;
+            }
         }
         return null;
     }

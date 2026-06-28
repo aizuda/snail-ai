@@ -22,9 +22,13 @@ public enum ExtractionRuleTypeEnum {
     private final String description;
 
     public static ExtractionRuleTypeEnum fromCode(String code) {
-        if (code == null) return DEFAULT;
+        if (code == null) {
+            return DEFAULT;
+        }
         for (ExtractionRuleTypeEnum e : values()) {
-            if (e.code.equalsIgnoreCase(code)) return e;
+            if (e.code.equalsIgnoreCase(code)) {
+                return e;
+            }
         }
         return DEFAULT;
     }

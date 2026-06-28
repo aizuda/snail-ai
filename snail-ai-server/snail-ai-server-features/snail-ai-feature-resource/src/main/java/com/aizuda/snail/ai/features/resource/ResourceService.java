@@ -57,7 +57,9 @@ public class ResourceService {
     @Transactional
     public void delete(Long resourceId) {
         ResourcePO resource = resourceMapper.selectById(resourceId);
-        if (resource == null) return;
+        if (resource == null) {
+            return;
+        }
         try {
             ResourceStorageService storage = storageFactory.get(resource.getStorageType());
             storage.delete(resource.getStorageKey());
@@ -90,7 +92,9 @@ public class ResourceService {
 
     public ResourcePO requireResource(Long resourceId) {
         ResourcePO r = resourceMapper.selectById(resourceId);
-        if (r == null) throw new SnailAiException("Resource not found: " + resourceId);
+        if (r == null) {
+            throw new SnailAiException("Resource not found: " + resourceId);
+        }
         return r;
     }
 }

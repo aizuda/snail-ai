@@ -206,8 +206,12 @@ public class AiModelUsageService implements com.aizuda.snail.ai.model.service.Ai
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
             ModelUserKey that = (ModelUserKey) o;
             return Objects.equals(modelKey, that.modelKey) && Objects.equals(userId, that.userId);
         }

@@ -36,12 +36,16 @@ public final class MimeTypeUtils {
     private MimeTypeUtils() {}
 
     public static String detect(String fileName) {
-        if (fileName == null) return "application/octet-stream";
+        if (fileName == null) {
+            return "application/octet-stream";
+        }
         int dot = fileName.lastIndexOf('.');
         if (dot >= 0) {
             String ext = fileName.substring(dot + 1).toLowerCase();
             String mime = EXT_MAP.get(ext);
-            if (mime != null) return mime;
+            if (mime != null) {
+                return mime;
+            }
         }
         String guess = URLConnection.guessContentTypeFromName(fileName);
         return guess != null ? guess : "application/octet-stream";

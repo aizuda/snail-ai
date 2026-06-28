@@ -108,9 +108,13 @@ public class FinalizeHandler implements RagSearchHandler {
         }
 
         for (SearchResult result : results) {
-            if (result.getChunkId() == null) continue;
+            if (result.getChunkId() == null) {
+                continue;
+            }
             RagChunkPO chunk = chunkMap.get(result.getChunkId());
-            if (chunk == null) continue;
+            if (chunk == null) {
+                continue;
+            }
             if (result.getContent() == null) {
                 result.setContent(chunk.getContent());
             }

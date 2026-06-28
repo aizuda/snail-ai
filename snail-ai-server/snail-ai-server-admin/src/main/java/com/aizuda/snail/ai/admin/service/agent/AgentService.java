@@ -165,10 +165,18 @@ public class AgentService {
             throw new SnailAiCommonException("Agent 不存在: {}", id);
         }
 
-        if (request.getName() != null) po.setName(request.getName());
-        if (request.getDescription() != null) po.setDescription(request.getDescription());
-        if (request.getAvatar() != null) po.setAvatar(request.getAvatar());
-        if (request.getInstruction() != null) po.setInstruction(request.getInstruction());
+        if (request.getName() != null) {
+            po.setName(request.getName());
+        }
+        if (request.getDescription() != null) {
+            po.setDescription(request.getDescription());
+        }
+        if (request.getAvatar() != null) {
+            po.setAvatar(request.getAvatar());
+        }
+        if (request.getInstruction() != null) {
+            po.setInstruction(request.getInstruction());
+        }
         
         // greeting 和 presetQuestions 独立处理，不再同步
         if (request.getGreeting() != null) {
@@ -183,14 +191,30 @@ public class AgentService {
                 po.setPresetQuestions(JsonUtil.toJsonString(normalizedPresetQuestions));
             }
         }
-        if (request.getChatModelId() != null) po.setChatModelId(request.getChatModelId());
-        if (request.getMcpEnabled() != null) po.setMcpEnabled(request.getMcpEnabled());
-        if (request.getSkillEnabled() != null) po.setSkillEnabled(request.getSkillEnabled());
-        if (request.getWebSearchEnabled() != null) po.setWebSearchEnabled(request.getWebSearchEnabled());
-        if (request.getRagEnabled() != null) po.setRagEnabled(request.getRagEnabled());
-        if (request.getMemoryEnabled() != null) po.setMemoryEnabled(request.getMemoryEnabled());
-        if (request.getShortTermMemorySize() != null) po.setShortTermMemorySize(request.getShortTermMemorySize());
-        if (request.getIsFeatured() != null) po.setIsFeatured(request.getIsFeatured());
+        if (request.getChatModelId() != null) {
+            po.setChatModelId(request.getChatModelId());
+        }
+        if (request.getMcpEnabled() != null) {
+            po.setMcpEnabled(request.getMcpEnabled());
+        }
+        if (request.getSkillEnabled() != null) {
+            po.setSkillEnabled(request.getSkillEnabled());
+        }
+        if (request.getWebSearchEnabled() != null) {
+            po.setWebSearchEnabled(request.getWebSearchEnabled());
+        }
+        if (request.getRagEnabled() != null) {
+            po.setRagEnabled(request.getRagEnabled());
+        }
+        if (request.getMemoryEnabled() != null) {
+            po.setMemoryEnabled(request.getMemoryEnabled());
+        }
+        if (request.getShortTermMemorySize() != null) {
+            po.setShortTermMemorySize(request.getShortTermMemorySize());
+        }
+        if (request.getIsFeatured() != null) {
+            po.setIsFeatured(request.getIsFeatured());
+        }
         if (request.getRagIds() != null) {
             po.setRagIds(request.getRagIds());
         }

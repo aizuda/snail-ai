@@ -73,7 +73,9 @@ public class AppService {
 
     public void delete(Long id) {
         AppPO po = appMapper.selectById(id);
-        if (po == null) return;
+        if (po == null) {
+            return;
+        }
         
         deleteRelatedNodes(po.getAppId());
         appMapper.deleteById(id);
