@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * AgentResponseVO
+ * 智能体详情响应（视图）对象
  *
  * @author opensnail
  * @since 2026-06-14
@@ -23,16 +23,22 @@ import java.util.List;
 @Builder
 public class AgentResponseVO {
 
+    /** 智能体 ID */
     private Long id;
 
+    /** 智能体名称 */
     private String name;
 
+    /** 智能体描述 */
     private String description;
 
+    /** 头像地址 */
     private String avatar;
 
+    /** 系统指令（提示词） */
     private String instruction;
 
+    /** 开场问候语 */
     private String greeting;
 
     /**
@@ -40,20 +46,28 @@ public class AgentResponseVO {
      */
     private List<String> presetQuestions;
 
+    /** 对话模型 ID */
     private Long chatModelId;
 
+    /** 对话模型名称 */
     private String chatModel;
 
+    /** 是否启用 MCP 工具 */
     private Boolean mcpEnabled;
 
+    /** 绑定的 MCP 服务列表 */
     private List<McpServerResponseVO> mcpServers;
 
+    /** 是否启用技能 */
     private Boolean skillEnabled;
 
+    /** 绑定的技能列表 */
     private List<SkillResponseVO> skills;
 
+    /** 是否启用联网搜索 */
     private Boolean webSearchEnabled;
 
+    /** 是否启用知识库（RAG） */
     @JsonAlias("knowledgeSpaceEnabled")
     private Boolean ragEnabled;
 
@@ -69,10 +83,13 @@ public class AgentResponseVO {
     /** 短期记忆滑动窗口保留条数 */
     private Integer shortTermMemorySize;
 
+    /** 创建者 */
     private String creator;
 
+    /** 查看次数 */
     private Integer viewCount;
 
+    /** 是否企业精选推荐 */
     private Boolean isFeatured;
 
     /**
@@ -84,8 +101,10 @@ public class AgentResponseVO {
     /** 关联应用ID（NULL=本地执行） */
     private String appId;
 
+    /** 创建时间 */
     private LocalDateTime createDt;
 
+    /** 更新时间 */
     private LocalDateTime updateDt;
 
     /** 用户是否已订阅此智能体（仅市场接口返回） */

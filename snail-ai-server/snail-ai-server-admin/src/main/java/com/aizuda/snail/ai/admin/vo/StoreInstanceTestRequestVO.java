@@ -7,7 +7,7 @@ import lombok.EqualsAndHashCode;
 import java.util.Map;
 
 /**
- * StoreInstanceTestRequestVO
+ * 存储实例连接测试请求参数
  *
  * @author opensnail
  * @since 2026-06-14
@@ -15,9 +15,11 @@ import java.util.Map;
 @Data
 public class StoreInstanceTestRequestVO {
 
+    /** 实例类型 */
     @NotBlank
     private String type;
 
+    /** 配置信息 */
     @NotBlank
     private Map<String, Object> config;
 }

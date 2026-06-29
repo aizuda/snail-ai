@@ -6,7 +6,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * RagChunkQueryVO
+ * RAG 切片分页查询参数
  *
  * @author opensnail
  * @since 2026-06-14
@@ -15,8 +15,10 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class RagChunkQueryVO extends BaseQueryVO {
 
+    /** 所属文档 ID */
     private Long documentId;
 
+    /** 知识库 ID */
     @JsonAlias("knowledgeId")
     private Long ragId;
 }

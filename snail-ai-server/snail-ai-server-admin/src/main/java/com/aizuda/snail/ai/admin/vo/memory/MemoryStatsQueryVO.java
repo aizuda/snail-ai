@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * MemoryStatsQueryVO
+ * 记忆统计查询参数
  *
  * @author opensnail
  * @since 2026-06-14
@@ -13,5 +13,6 @@ import lombok.EqualsAndHashCode;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class MemoryStatsQueryVO extends BaseQueryVO {
+    /** 统计天数 */
     private Integer days = 30;
 }

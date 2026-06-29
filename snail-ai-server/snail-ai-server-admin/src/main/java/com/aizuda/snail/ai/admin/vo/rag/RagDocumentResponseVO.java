@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 /**
- * RagDocumentResponseVO
+ * RAG 文档视图对象
  *
  * @author opensnail
  * @since 2026-06-14
@@ -19,28 +19,40 @@ import java.time.LocalDateTime;
 @Builder
 public class RagDocumentResponseVO {
 
+    /** 文档 ID */
     private Long id;
 
+    /** 知识库 ID */
     private Long ragId;
 
+    /** 文档名称 */
     private String name;
 
+    /** 文件类型 */
     private String fileType;
 
+    /** 来源类型 */
     private String sourceType;
 
+    /** 处理状态 */
     private Integer status;
 
+    /** 处理失败时的错误信息 */
     private String errorMsg;
 
+    /** 切片数量 */
     private Integer chunkCount;
 
+    /** 文件大小（字节） */
     private Long fileSize;
 
+    /** 关联资源 ID */
     private Long resourceId;
 
+    /** 预览地址 */
     private String previewUrl;
 
+    /** 下载地址 */
     private String downloadUrl;
 
     /**
@@ -55,7 +67,9 @@ public class RagDocumentResponseVO {
     /** 冲突的旧文档 ID，仅在 SKIP/OVERWRITE 时返回 */
     private Long conflictDocumentId;
 
+    /** 创建时间 */
     private LocalDateTime createDt;
 
+    /** 更新时间 */
     private LocalDateTime updateDt;
 }

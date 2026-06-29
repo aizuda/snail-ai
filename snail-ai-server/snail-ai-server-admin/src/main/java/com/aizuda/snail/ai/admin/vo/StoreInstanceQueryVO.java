@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * StoreInstanceQueryVO
+ * 存储实例分页查询参数
  *
  * @author opensnail
  * @since 2026-06-14
@@ -14,5 +14,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class StoreInstanceQueryVO extends BaseQueryVO {
 
+    /** 实例分类 */
     private Integer category;
 }

@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * RagSearchResponseVO
+ * RAG 检索响应结果
  *
  * @author opensnail
  * @since 2026-06-14
@@ -23,7 +23,9 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class RagSearchResponseVO {
 
+    /** 检索命中的结果列表 */
     private List<SearchResult> results;
 
+    /** 各检索阶段的耗时与指标 */
     private RagStageMetricsDTO metrics;
 }

@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 /**
- * RagDocumentUploadRequestVO
+ * RAG 文档上传请求参数
  *
  * @author opensnail
  * @since 2026-06-14
@@ -13,10 +13,12 @@ import lombok.Data;
 @Data
 public class RagDocumentUploadRequestVO {
 
+    /** 知识库 ID */
     @JsonAlias("knowledgeId")
     @NotNull(message = "ragId is required")
     private Long ragId;
 
+    /** 文档名称 */
     private String name;
 
     /**

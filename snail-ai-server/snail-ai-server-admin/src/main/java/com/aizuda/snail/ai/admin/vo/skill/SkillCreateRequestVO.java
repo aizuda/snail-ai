@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * SkillCreateRequestVO
+ * 技能新增请求参数
  *
  * @author opensnail
  * @since 2026-06-14
@@ -12,8 +12,10 @@ import lombok.Data;
 @Data
 public class SkillCreateRequestVO {
 
+    /** 技能名称 */
     @NotBlank(message = "name is required")
     private String name;
 
+    /** 技能描述 */
     private String description;
 }

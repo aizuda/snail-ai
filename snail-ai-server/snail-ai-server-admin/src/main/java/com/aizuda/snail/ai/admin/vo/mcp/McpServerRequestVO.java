@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * McpServerRequestVO
+ * MCP 服务端新增/更新请求参数
  *
  * @author opensnail
  * @since 2026-06-14
@@ -14,8 +14,10 @@ import java.util.Map;
 @Data
 public class McpServerRequestVO {
 
+    /** 服务端名称 */
     private String name;
 
+    /** 服务端描述 */
     private String description;
 
     /**
@@ -23,8 +25,10 @@ public class McpServerRequestVO {
      */
     private Integer transportType;
 
+    /** 基础地址 */
     private String baseUri;
 
+    /** 端点路径 */
     private String endpoint;
 
     /**
@@ -42,9 +46,12 @@ public class McpServerRequestVO {
      */
     private Map<String, String> envVars;
 
+    /** 鉴权类型 */
     private Integer authType;
 
+    /** 鉴权配置 */
     private Map<String, Object> authConfig;
 
+    /** 能力列表 */
     private List<String> capabilities;
 }

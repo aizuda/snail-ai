@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * AgentConversationQueryVO
+ * 智能体会话记录查询参数
  *
  * @author opensnail
  * @since 2026-06-14
@@ -14,7 +14,9 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class AgentConversationQueryVO extends BaseQueryVO {
 
+    /** 开始日期 */
     private String start;
 
+    /** 结束日期 */
     private String end;
 }
