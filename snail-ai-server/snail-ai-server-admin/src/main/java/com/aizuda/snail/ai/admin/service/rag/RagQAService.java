@@ -23,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * RagQAService
+ * 知识库问答服务，基于检索到的参考资料拼装提示词并调用模型进行（流式）问答。
  *
  * @author opensnail
  * @since 2026-06-14

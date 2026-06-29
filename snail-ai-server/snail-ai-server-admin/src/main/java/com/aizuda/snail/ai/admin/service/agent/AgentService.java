@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 import static com.aizuda.snail.ai.common.constants.SystemConstants.YYYY_MM_DD_HH_MM_SS;
 
 /**
- * AgentService
+ * 智能体管理服务，负责智能体的增删改查、状态流转及关联（模型/MCP/技能）信息聚合。
  *
  * @author opensnail
  * @since 2026-06-14

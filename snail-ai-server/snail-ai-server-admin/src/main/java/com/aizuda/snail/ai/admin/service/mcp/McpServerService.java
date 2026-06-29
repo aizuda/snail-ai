@@ -40,7 +40,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * McpServerService
+ * MCP 服务管理服务，负责 MCP 服务器配置的增删改查、连通性测试与智能体 MCP 关联。
  *
  * @author opensnail
  * @since 2026-06-14

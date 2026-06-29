@@ -56,7 +56,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
- * RagDocumentService
+ * 知识库文档管理服务，负责文档上传/去重/导入、文档与切片的增删改查及向量重建。
  *
  * @author opensnail
  * @since 2026-06-14

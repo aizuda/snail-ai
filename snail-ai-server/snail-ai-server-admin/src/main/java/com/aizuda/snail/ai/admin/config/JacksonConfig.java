@@ -19,15 +19,7 @@ import static com.aizuda.snail.ai.common.constants.SystemConstants.YYYY_MM_DD;
 import static com.aizuda.snail.ai.common.constants.SystemConstants.YYYY_MM_DD_HH_MM_SS;
 
 /**
- * Jackson 全局配置
- * 统一配置日期时间格式化
- *
- * @Author: opensnail
- * @Date: 2018/09/27 12:52
- */
-
-/**
- * JacksonConfig
+ * Jackson 全局配置，统一日期时间的序列化/反序列化格式与默认时区。
  *
  * @author opensnail
  * @since 2026-06-14

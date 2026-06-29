@@ -44,7 +44,7 @@ import java.util.zip.ZipOutputStream;
 import static com.aizuda.snail.ai.common.constants.SystemConstants.SKILL_MD;
 
 /**
- * SkillService
+ * 技能管理服务，负责技能及其文件（SKILL.md、目录树、上传/打包）的增删改查与智能体技能关联。
  *
  * @author opensnail
  * @since 2026-06-14

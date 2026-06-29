@@ -25,7 +25,7 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * ResourceAdminService
+ * 资源管理后台服务，提供资源上传、分页查询与权限校验等管理能力。
  *
  * @author opensnail
  * @since 2026-06-14

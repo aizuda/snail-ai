@@ -34,7 +34,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * StoreInstanceService
+ * 存储实例管理服务，负责向量/搜索存储实例配置的增删改查与连通性测试。
  *
  * @author opensnail
  * @since 2026-06-14

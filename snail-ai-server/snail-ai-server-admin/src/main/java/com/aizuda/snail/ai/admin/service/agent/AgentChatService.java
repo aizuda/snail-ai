@@ -8,7 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 /**
- * AgentChatService
+ * 智能体对话服务，构建对话上下文并委托对话责任链完成流式对话。
  *
  * @author opensnail
  * @since 2026-06-14

@@ -18,7 +18,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * UserAgentService
+ * 用户智能体服务，管理当前用户已订阅/可见的智能体列表。
  *
  * @author opensnail
  * @since 2026-06-14

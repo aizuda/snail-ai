@@ -42,7 +42,7 @@ import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
 /**
- * KnowledgeService
+ * 知识库管理服务，负责知识库的增删改查、检索配置、向量库绑定与维度约束校验。
  *
  * @author opensnail
  * @since 2026-06-14

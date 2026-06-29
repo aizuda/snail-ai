@@ -20,7 +20,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 /**
- * AgentAnalyticsService
+ * 智能体分析服务，统计智能体的用量概览与明细（按时间范围聚合）。
  *
  * @author opensnail
  * @since 2026-06-14

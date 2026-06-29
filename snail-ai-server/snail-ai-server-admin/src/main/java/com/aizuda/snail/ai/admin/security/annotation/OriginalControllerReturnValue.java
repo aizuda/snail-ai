@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * OriginalControllerReturnValue
+ * 标记注解：标注后控制器方法的返回值不被全局响应体包装，保持原样返回。
  *
  * @author opensnail
  * @since 2026-06-14

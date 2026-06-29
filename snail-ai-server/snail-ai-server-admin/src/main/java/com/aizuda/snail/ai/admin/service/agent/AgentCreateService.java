@@ -25,7 +25,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * AgentCreateService
+ * 智能体创建服务，借助大模型流式生成智能体配置（名称/提示词等）并落库。
  *
  * @author opensnail
  * @since 2026-06-14

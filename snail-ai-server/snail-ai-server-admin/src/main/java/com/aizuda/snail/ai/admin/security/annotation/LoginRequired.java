@@ -8,7 +8,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * LoginRequired
+ * 登录校验注解：标注在方法或类上，要求请求已登录，并可指定所需角色。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -17,8 +17,14 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface LoginRequired {
 
+    /**
+     * 是否要求登录
+     */
     boolean required() default true;
 
+    /**
+     * 所需角色，默认管理员
+     */
     RoleEnum role() default RoleEnum.ADMIN;
 
 }
