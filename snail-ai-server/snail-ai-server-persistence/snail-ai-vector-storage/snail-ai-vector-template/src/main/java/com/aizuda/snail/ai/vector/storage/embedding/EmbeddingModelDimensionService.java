@@ -35,6 +35,9 @@ public class EmbeddingModelDimensionService {
 
     /**
      * 获取 embedding 模型向量维度：优先 config_json，其次 API 探测，最后 {@value #FALLBACK_DIMENSION} 并持久化。
+     *
+     * @param embeddingModelId 嵌入模型 ID
+     * @return 向量维度
      */
     public Integer getEmbeddingDimension(Long embeddingModelId) {
         if (embeddingModelId == null) {

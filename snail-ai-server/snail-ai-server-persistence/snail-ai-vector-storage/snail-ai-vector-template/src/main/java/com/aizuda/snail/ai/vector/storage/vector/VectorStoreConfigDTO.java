@@ -14,8 +14,19 @@ import org.springframework.ai.embedding.EmbeddingModel;
 @Builder
 public class VectorStoreConfigDTO {
 
+    /**
+     * 向量库连接配置（来自存储实例 config JSON）
+     */
     private String config;
+
+    /**
+     * 嵌入模型（用于向量化）
+     */
     private EmbeddingModel embeddingModel;
+
+    /**
+     * 向量维度
+     */
     private Integer dimensions;
 
 }

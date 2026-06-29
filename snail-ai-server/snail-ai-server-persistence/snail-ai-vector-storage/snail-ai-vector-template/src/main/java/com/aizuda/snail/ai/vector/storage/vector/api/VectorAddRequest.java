@@ -26,5 +26,8 @@ public class VectorAddRequest {
      */
     private String indexName;
 
+    /**
+     * 待写入的向量文档列表
+     */
     private List<VectorDocument> documents;
 }
