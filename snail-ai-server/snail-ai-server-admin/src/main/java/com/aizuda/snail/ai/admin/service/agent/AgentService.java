@@ -58,6 +58,12 @@ public class AgentService {
     private final McpServerService mcpServerService;
     private final SkillService skillService;
 
+    /**
+     * 分页查询智能体（支持关键字、是否精选、排序）
+     *
+     * @param query 查询条件
+     * @return 智能体分页结果
+     */
     public PageResult<List<AgentResponseVO>> page(AgentQueryVO query) {
         LambdaQueryWrapper<AgentPO> wrapper = new LambdaQueryWrapper<>();
 
@@ -84,6 +90,12 @@ public class AgentService {
         return new PageResult<>(pageDTO, records);
     }
 
+    /**
+     * 创建智能体（解析默认 CHAT 模型，关联 MCP / Skill）
+     *
+     * @param request 智能体创建请求
+     * @return 智能体响应视图
+     */
     public AgentResponseVO create(AgentRequestVO request) {
         Long userId = UserSessionUtils.currentUserSession().getId();
         
@@ -151,6 +163,12 @@ public class AgentService {
         return toResponseVO(savedAgent);
     }
 
+    /**
+     * 按 ID 查询智能体详情（并自增浏览次数）
+     *
+     * @param id 智能体 ID
+     * @return 智能体响应视图
+     */
     public AgentResponseVO getById(Long id) {
         AgentPO po = agentMapper.selectById(id);
         if (po == null) {
@@ -165,6 +183,13 @@ public class AgentService {
         return toResponseVO(po);
     }
 
+    /**
+     * 更新智能体配置（按非空字段增量更新，并同步 MCP / Skill 关联）
+     *
+     * @param id      智能体 ID
+     * @param request 智能体更新请求
+     * @return 智能体响应视图
+     */
     public AgentResponseVO update(Long id, AgentRequestVO request) {
         AgentPO po = agentMapper.selectById(id);
         if (po == null) {
@@ -249,6 +274,11 @@ public class AgentService {
         return toResponseVO(po);
     }
 
+    /**
+     * 删除智能体及其会话、记录与用量统计
+     *
+     * @param id 智能体 ID
+     */
     @Transactional
     public void delete(Long id) {
         AgentPO po = agentMapper.selectById(id);
@@ -268,6 +298,9 @@ public class AgentService {
 
     /**
      * 删除单个对话及其关联数据（不删除长期记忆 {@code sai_memory_conversation}）
+     *
+     * @param agentId        智能体 ID
+     * @param conversationId 会话 ID
      */
     @Transactional
     public void deleteConversation(Long agentId, String conversationId) {
@@ -292,6 +325,8 @@ public class AgentService {
 
     /**
      * 清空当前用户在指定 Agent 下的全部对话（不删除长期记忆 {@code sai_memory_conversation}）
+     *
+     * @param agentId 智能体 ID
      */
     @Transactional
     public void clearConversations(Long agentId) {
@@ -307,6 +342,12 @@ public class AgentService {
         log.info("清空对话成功: agentId={}, userId={}", agentId, userId);
     }
 
+    /**
+     * 批量删除指定会话（逐个调用 {@link #deleteConversation}，受本人权限约束）
+     *
+     * @param agentId         智能体 ID
+     * @param conversationIds 会话 ID 列表
+     */
     @Transactional
     public void batchDeleteConversations(Long agentId, List<String> conversationIds) {
         if (conversationIds == null || conversationIds.isEmpty()) {
@@ -319,6 +360,10 @@ public class AgentService {
 
     /**
      * 分页查询当前用户在指定 Agent 下的会话列表（{@code sai_agent_conversation} + 记录表聚合统计）
+     *
+     * @param agentId 智能体 ID
+     * @param query   分页与时间范围查询条件
+     * @return 会话摘要分页结果
      */
     public PageResult<List<ConversationSummaryVO>> listConversations(Long agentId, AgentConversationQueryVO query) {
         Long userId = UserSessionUtils.currentUserSession().getId();
@@ -412,6 +457,8 @@ public class AgentService {
 
     /**
      * 获取可用的 CHAT 类型模型列表
+     *
+     * @return 模型选项列表（含 value/label/id）
      */
     public List<Map<String, Object>> getChatModels() {
         List<AiModelConfigVO> models = aiModelConfigService.getModelsByType(ModelTypeEnum.CHAT.getValue());
@@ -424,6 +471,12 @@ public class AgentService {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * 将智能体 PO 转换为响应视图（含模型名、MCP / Skill 关联与预设问题）
+     *
+     * @param po 智能体持久化对象
+     * @return 智能体响应视图
+     */
     public AgentResponseVO toResponseVO(AgentPO po) {
         String chatModelName = null;
         if (po.getChatModelId() != null) {
