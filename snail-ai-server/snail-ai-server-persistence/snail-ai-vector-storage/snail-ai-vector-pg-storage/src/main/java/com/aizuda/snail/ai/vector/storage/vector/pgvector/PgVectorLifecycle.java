@@ -25,10 +25,12 @@ public class PgVectorLifecycle implements Lifecycle {
                         configDTO.getDimensions(),
                         JsonUtil.parseObject(configDTO.getConfig(), PgVectorSettings.class)
                 ));
+        log.info("PgVector 向量库已注册");
     }
 
     @Override
     public void close() {
         PgDataSourceFactory.closeAll();
+        log.info("PgVector 向量库连接已关闭");
     }
 }

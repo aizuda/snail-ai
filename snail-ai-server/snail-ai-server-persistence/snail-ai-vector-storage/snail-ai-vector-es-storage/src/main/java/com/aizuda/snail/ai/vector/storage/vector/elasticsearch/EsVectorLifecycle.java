@@ -25,10 +25,12 @@ public class EsVectorLifecycle implements Lifecycle {
                         configDTO.getDimensions(),
                         JsonUtil.parseObject(configDTO.getConfig(), ElasticsearchVectorSettings.class)
                 ));
+        log.info("Elasticsearch 向量库已注册");
     }
 
     @Override
     public void close() {
         EsClientFactory.closeAll();
+        log.info("Elasticsearch 向量库连接已关闭");
     }
 }

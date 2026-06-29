@@ -25,10 +25,12 @@ public class MilvusVectorLifecycle implements Lifecycle {
                         configDTO.getDimensions(),
                         JsonUtil.parseObject(configDTO.getConfig(), MilvusVectorSettings.class)
                 ));
+        log.info("Milvus 向量库已注册");
     }
 
     @Override
     public void close() {
         MilvusClientFactory.closeAll();
+        log.info("Milvus 向量库连接已关闭");
     }
 }
