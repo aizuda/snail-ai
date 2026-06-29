@@ -18,15 +18,33 @@ import org.springframework.web.multipart.MultipartFile;
 @Builder
 public class ImportRequest {
 
+    /**
+     * 目标知识库 ID
+     */
     private Long ragId;
 
+    /**
+     * 上传文件（UPLOAD 来源）
+     */
     private MultipartFile file;
 
+    /**
+     * 远程文档 URL（URL 来源）
+     */
     private String url;
 
+    /**
+     * 文本内容（TEXT 来源）
+     */
     private String textContent;
 
+    /**
+     * 文档名称（可选，缺省时从来源推导）
+     */
     private String name;
 
+    /**
+     * 来源类型（UPLOAD / URL / TEXT）
+     */
     private String sourceType;
 }

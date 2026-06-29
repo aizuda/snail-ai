@@ -19,6 +19,9 @@ public class DocumentParserFactory {
 
     /**
      * 按文件类型选择解析器，未找到匹配实现时抛出 {@link IllegalArgumentException}。
+     *
+     * @param fileType 文件类型（如 txt、md、pdf）
+     * @return 匹配的文档解析器
      */
     public DocumentParser getParser(String fileType) {
         return parsers.stream()

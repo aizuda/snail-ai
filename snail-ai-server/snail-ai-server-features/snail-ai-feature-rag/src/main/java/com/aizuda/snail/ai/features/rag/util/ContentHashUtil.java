@@ -19,6 +19,9 @@ public final class ContentHashUtil {
 
     /**
      * 计算字节数组的 SHA-256 十六进制摘要。
+     *
+     * @param data 待计算的字节数组
+     * @return 64 位十六进制 SHA-256 摘要
      */
     public static String sha256Hex(byte[] data) {
         try {
@@ -36,6 +39,9 @@ public final class ContentHashUtil {
 
     /**
      * 计算文本（UTF-8）的 SHA-256 十六进制摘要；text 为 null 时返回 null。
+     *
+     * @param text 待计算的文本
+     * @return 64 位十六进制 SHA-256 摘要；text 为 null 时返回 null
      */
     public static String sha256Hex(String text) {
         if (text == null) {

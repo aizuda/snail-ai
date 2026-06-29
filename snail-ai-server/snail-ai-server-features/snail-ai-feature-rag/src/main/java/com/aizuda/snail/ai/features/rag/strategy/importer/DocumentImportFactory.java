@@ -19,6 +19,9 @@ public class DocumentImportFactory {
 
     /**
      * 按来源类型选择导入策略，未找到匹配实现时抛出 {@link IllegalArgumentException}。
+     *
+     * @param sourceType 来源类型（如 UPLOAD、URL、TEXT）
+     * @return 匹配的文档导入策略
      */
     public DocumentImportStrategy getStrategy(String sourceType) {
         return strategies.stream()

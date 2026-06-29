@@ -18,12 +18,24 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ImportResult {
 
+    /**
+     * 文件名
+     */
     private String fileName;
 
+    /**
+     * 文件类型（扩展名，如 pdf、docx）
+     */
     private String fileType;
 
+    /**
+     * 来源类型（UPLOAD / URL / TEXT）
+     */
     private String sourceType;
 
+    /**
+     * 文件大小（字节）
+     */
     private long fileSize;
 
     /**
