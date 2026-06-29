@@ -153,6 +153,8 @@ public class UserService {
 
     /**
      * 创建用户（管理员）
+     *
+     * @param requestVO 用户创建请求参数（用户名、密码、角色、可选邮箱）
      */
     public void createUser(UserCreateRequestVO requestVO) {
         if (StrUtil.isBlank(requestVO.getUsername())) {
@@ -211,6 +213,8 @@ public class UserService {
 
     /**
      * 用户注册
+     *
+     * @param requestVO 注册请求参数（账号、密码）
      */
     public void register(LoginRequestVO requestVO) {
         if (StrUtil.isBlank(requestVO.getUsername())) {
@@ -250,6 +254,9 @@ public class UserService {
 
     /**
      * 用户登录（账号密码）
+     *
+     * @param requestVO 登录请求参数（账号、密码）
+     * @return 登录响应（用户名、昵称、令牌）
      */
     public LoginResponseVO login(LoginRequestVO requestVO) {
         if (StrUtil.isBlank(requestVO.getUsername())) {
@@ -305,6 +312,8 @@ public class UserService {
 
     /**
      * 获取当前用户信息
+     *
+     * @return 当前登录用户的信息 VO
      */
     public UserInfoVO getUserInfo() {
         UserPO userPO = UserSessionUtils.currentUserSession();
@@ -321,6 +330,9 @@ public class UserService {
 
     /**
      * 获取用户分页列表（管理员）
+     *
+     * @param queryVO 分页与关键字（邮箱/用户名）查询条件
+     * @return 用户信息分页结果
      */
     public PageResult<List<UserInfoVO>> getPageUserList(UserQueryVO queryVO) {
         PageDTO<UserPO> userPageDTO = new PageDTO<>(queryVO.getPage(), queryVO.getSize());
@@ -358,6 +370,8 @@ public class UserService {
 
     /**
      * 授权用户（管理员）
+     *
+     * @param requestVO 授权请求参数（账号、配额、天数）
      */
     public void authorizeUser(AuthorizeRequestVO requestVO) {
         String account = StrUtil.trim(requestVO.getEmail());
@@ -381,6 +395,9 @@ public class UserService {
 
     /**
      * 更新用户信息（管理员）- 统一更新接口
+     *
+     * @param id        用户 ID
+     * @param requestVO 用户更新参数（角色、邮箱、密码、头像等，仅非空字段生效）
      */
     public void updateUser(Long id, UserUpdateRequestVO requestVO) {
         // 1. 验证用户存在
@@ -455,6 +472,9 @@ public class UserService {
 
     /**
      * 更新用户角色（管理员）
+     *
+     * @param id   用户 ID
+     * @param role 角色 ID
      */
     public void updateUserRole(Long id, Integer role) {
         if (!RoleEnum.getEnumTypeMap().containsKey(role)) {
@@ -474,6 +494,8 @@ public class UserService {
 
     /**
      * 用户自助修改密码（需验证旧密码）
+     *
+     * @param request 修改密码请求参数（旧密码、新密码）
      */
     public void changePassword(ChangePasswordRequestVO request) {
         UserPO currentUser = UserSessionUtils.currentUserSession();
@@ -492,6 +514,9 @@ public class UserService {
 
     /**
      * 重置用户密码（管理员）
+     *
+     * @param id          用户 ID
+     * @param newPassword 新密码（至少 6 位）
      */
     public void resetUserPassword(Long id, String newPassword) {
         if (StrUtil.isBlank(newPassword)) {
@@ -515,6 +540,8 @@ public class UserService {
 
     /**
      * 删除用户（管理员）
+     *
+     * @param id 用户 ID
      */
     public void deleteUser(Long id) {
         UserPO userPO = userMapper.selectById(id);
