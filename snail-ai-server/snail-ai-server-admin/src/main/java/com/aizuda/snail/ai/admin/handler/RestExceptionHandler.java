@@ -119,6 +119,7 @@ public class RestExceptionHandler {
         String errorMessage = CollUtil.isNotEmpty(constraintViolations)
                 ? StreamUtils.join(constraintViolations, ConstraintViolation::getMessage, ";")
                 : e.getMessage();
+        log.warn("参数校验失败(ConstraintViolation): {}", errorMessage);
         if (isStreamingRequest()) {
             return streamingError(0, errorMessage);
         }
@@ -157,6 +158,7 @@ public class RestExceptionHandler {
                 sb.append(msg);
             }
 
+            log.warn("参数校验失败(MethodArgumentNotValid): {}", sb);
             if (isStreamingRequest()) {
                 return streamingError(0, sb.toString());
             }
@@ -178,6 +180,7 @@ public class RestExceptionHandler {
         String message = (detailMessageArguments != null && detailMessageArguments.length > 0)
                 ? detailMessageArguments[0].toString()
                 : "Parameter validation failed";
+        log.warn("参数校验失败(HandlerMethodValidation): {}", message);
         if (isStreamingRequest()) {
             return streamingError(0, message);
         }

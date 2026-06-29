@@ -57,6 +57,7 @@ public class OpenApiExceptionHandler {
                 .findFirst()
                 .map(e -> e.getField() + " " + e.getDefaultMessage())
                 .orElse("参数校验失败");
+        log.warn("OpenAPI 参数校验失败: {}", message);
         return Result.fail(message);
     }
 
@@ -72,6 +73,7 @@ public class OpenApiExceptionHandler {
                 .findFirst()
                 .map(e -> e.getField() + " " + e.getDefaultMessage())
                 .orElse("参数校验失败");
+        log.warn("OpenAPI 参数绑定校验失败: {}", message);
         return Result.fail(message);
     }
 
