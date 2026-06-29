@@ -24,7 +24,7 @@ import java.util.List;
  * 用户控制器
  *
  * @author opensnail
- * @date 2025-07-12
+ * @since 2025-07-12
  */
 @RestController
 @RequestMapping("/user")

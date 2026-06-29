@@ -12,7 +12,7 @@ import java.util.Map;
  * 示例工具：根据订单 ID 返回模拟订单信息，用于演示 Agent 工具调用。
  *
  * @author opensnail
- * @date 2026-05-24
+ * @since 2026-05-24
  */
 @Slf4j
 @Component

@@ -54,7 +54,7 @@ import static com.aizuda.snail.ai.common.constants.SystemConstants.YYYY_MM_DD_HH
  * 自动构建 HTTP 请求并发送，支持 SSE 流式响应。
  *
  * @author opensnail
- * @date 2026-04-24
+ * @since 2026-04-24
  */
 public class OpenApiHttpInvokeHandler implements InvocationHandler {
 

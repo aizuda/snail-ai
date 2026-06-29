@@ -447,7 +447,7 @@ public PageResult<List<UserVO>> listUsers(UserQueryVO queryVO) {
  * 用户管理服务
  *
  * @author opensnail
- * @date 2025-07-19
+ * @since 2025-07-19
  */
 @Service
 public class UserService {

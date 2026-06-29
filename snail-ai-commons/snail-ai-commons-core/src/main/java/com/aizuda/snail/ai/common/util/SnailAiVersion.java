@@ -13,7 +13,7 @@ import java.util.jar.JarFile;
  * 获取系统版本
  *
  * @author: opensnail
- * @date : 2023-05-22 08:55
+ * @since : 2023-05-22 08:55
  */
 public final class SnailAiVersion {
 

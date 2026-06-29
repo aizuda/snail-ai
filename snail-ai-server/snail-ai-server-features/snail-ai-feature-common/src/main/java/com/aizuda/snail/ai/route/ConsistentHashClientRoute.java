@@ -11,20 +11,20 @@ import java.util.TreeMap;
  * 一致性哈希路由（按 conversationId 做会话亲和）
  *
  * @author opensnail
- * @date 2025-04-08
+ * @since 2025-04-08
  */
 @Component
 public class ConsistentHashClientRoute implements ClientRouteStrategy {
 
     /** 虚拟节点数量 */
     private static final int VIRTUAL_NODES_COUNT = 100;
-    
+
     /** 哈希种子 */
     private static final int HASH_SEED = 31;
-    
+
     /** 哈希掩码（保证非负） */
     private static final long HASH_MASK = 0x7fffffffffffffffL;
-    
+
     /** 虚拟节点分隔符 */
     private static final String VIRTUAL_NODE_SEPARATOR = "#";
 
@@ -44,11 +44,11 @@ public class ConsistentHashClientRoute implements ClientRouteStrategy {
      */
     private TreeMap<Long, ClientInstanceInfo> buildHashRing(List<ClientInstanceInfo> candidates) {
         TreeMap<Long, ClientInstanceInfo> ring = new TreeMap<>();
-        
+
         for (ClientInstanceInfo client : candidates) {
             addVirtualNodes(ring, client);
         }
-        
+
         return ring;
     }
 
@@ -76,9 +76,9 @@ public class ConsistentHashClientRoute implements ClientRouteStrategy {
     private ClientInstanceInfo selectFromRing(TreeMap<Long, ClientInstanceInfo> ring, String routeKey) {
         long keyHash = calculateHash(routeKey);
         SortedMap<Long, ClientInstanceInfo> tailMap = ring.tailMap(keyHash);
-        
-        return tailMap.isEmpty() 
-                ? ring.firstEntry().getValue() 
+
+        return tailMap.isEmpty()
+                ? ring.firstEntry().getValue()
                 : tailMap.get(tailMap.firstKey());
     }
 

@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  * 每个chunk是一个可独立向量化和检索的文本片段
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @TableName("sai_rag_chunk")
 @Data

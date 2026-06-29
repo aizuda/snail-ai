@@ -28,7 +28,7 @@ import java.util.*;
  * 负责客户端应用的创建、更新、删除和查询，以及客户端节点的管理。
  *
  * @author opensnail
- * @date 2025-04-08
+ * @since 2025-04-08
  */
 @Slf4j
 @Service
@@ -37,10 +37,10 @@ public class AppService {
 
     /** 应用状态：启用 */
     private static final int APP_STATUS_ENABLED = 1;
-    
+
     /** 应用状态：禁用 */
     private static final int APP_STATUS_DISABLED = 0;
-    
+
     /** Token 前缀 */
     private static final String TOKEN_PREFIX = "SAI_";
 
@@ -94,7 +94,7 @@ public class AppService {
         if (po == null) {
             return;
         }
-        
+
         deleteRelatedNodes(po.getAppId());
         appMapper.deleteById(id);
     }

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
  * OpenAPI 会话信息
  *
  * @author opensnail
- * @date 2026-04-24
+ * @since 2026-04-24
  */
 @Data
 @Builder

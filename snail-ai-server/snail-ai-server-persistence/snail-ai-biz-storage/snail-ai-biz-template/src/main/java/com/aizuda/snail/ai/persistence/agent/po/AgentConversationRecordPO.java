@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  * 支持多轮对话追踪、上下文恢复、记忆提取等
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @TableName("sai_agent_conversation_record")
 @Data

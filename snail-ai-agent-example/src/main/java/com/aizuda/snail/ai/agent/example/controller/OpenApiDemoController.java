@@ -24,13 +24,13 @@ import java.util.List;
  * OpenAPI 使用示例 Controller
  * <p>
  * 演示如何使用 OpenAPI Client 调用 Snail AI 服务端接口
- * 
+ *
  * <pre>
  * 访问 Swagger UI: http://localhost:17889/swagger-ui.html
  * </pre>
  *
  * @author opensnail
- * @date 2026-04-25
+ * @since 2026-04-25
  */
 @RestController
 @RequestMapping("/demo")
@@ -101,7 +101,7 @@ public class OpenApiDemoController {
     public Result<OpenApiConversationVO> createConversation(
             @Parameter(description = "Agent ID", required = true, example = "1")
             @PathVariable Long agentId,
-            @Parameter(description = "创建会话请求") 
+            @Parameter(description = "创建会话请求")
             @RequestBody OpenApiCreateConversationRequest request) {
         request.setAgentId(agentId);
         return conversationClient.createConversation(request);

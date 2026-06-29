@@ -7,7 +7,7 @@ import lombok.Data;
  * 更新会话标题请求：会话 ID 与新标题。
  *
  * @author opensnail
- * @date 2025-07-19
+ * @since 2025-07-19
  */
 @Data
 public class UpdateConversationTitleRequestVO {

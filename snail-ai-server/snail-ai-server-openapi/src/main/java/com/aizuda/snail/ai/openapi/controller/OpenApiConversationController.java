@@ -20,7 +20,7 @@ import java.util.List;
  * OpenAPI 会话管理接口
  *
  * @author opensnail
- * @date 2026-04-24
+ * @since 2026-04-24
  */
 @RestController
 @RequiredArgsConstructor

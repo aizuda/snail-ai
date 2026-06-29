@@ -7,7 +7,7 @@ import lombok.Data;
  * 文本文件向量化请求：文件名与文件路径。
  *
  * @author opensnail
- * @date 2025-07-12
+ * @since 2025-07-12
  */
 @Data
 public class TxtEmbeddingRequestVO {

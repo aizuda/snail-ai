@@ -10,7 +10,7 @@ import java.util.List;
  * 最少负载路由（默认策略）
  *
  * @author opensnail
- * @date 2025-04-08
+ * @since 2025-04-08
  */
 @Component
 public class LeastLoadClientRoute implements ClientRouteStrategy {

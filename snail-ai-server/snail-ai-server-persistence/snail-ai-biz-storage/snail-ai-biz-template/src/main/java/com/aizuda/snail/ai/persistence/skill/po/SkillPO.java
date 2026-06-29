@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  * 支持从DB或文件系统/对象存储读取
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @TableName("sai_skill")
 @Data

@@ -7,7 +7,7 @@ import lombok.Data;
  * 重置密码请求VO
  *
  * @author opensnail
- * @date 2025-04-27
+ * @since 2025-04-27
  */
 @Data
 public class ResetPasswordRequestVO {

@@ -6,7 +6,7 @@ import lombok.Data;
  * 会话列表响应：会话 ID 与标题。
  *
  * @author opensnail
- * @date 2025-07-13
+ * @since 2025-07-13
  */
 @Data
 public class ConversationResponseVO {

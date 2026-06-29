@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  * 表: sai_user
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @Data
 @TableName("sai_user")

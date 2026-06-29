@@ -9,7 +9,7 @@ import lombok.Getter;
  * </p>
  *
  * @author opensnail
- * @date 2025-07-19
+ * @since 2025-07-19
  */
 @AllArgsConstructor
 @Getter

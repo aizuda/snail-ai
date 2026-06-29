@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * @author opensnail
- * @date 2022-03-06
+ * @since 2022-03-06
  * @since 2.0
  */
 @Configuration

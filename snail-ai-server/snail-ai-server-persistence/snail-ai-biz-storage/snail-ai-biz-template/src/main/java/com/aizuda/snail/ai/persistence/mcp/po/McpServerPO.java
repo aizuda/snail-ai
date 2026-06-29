@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
  * Agent可通过MCP调用第三方工具和资源
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @TableName("sai_mcp_server")
 @Data

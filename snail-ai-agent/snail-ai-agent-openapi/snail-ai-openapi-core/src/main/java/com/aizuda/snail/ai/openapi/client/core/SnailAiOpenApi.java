@@ -46,7 +46,7 @@ import java.util.List;
  * </pre>
  *
  * @author opensnail
- * @date 2026-04-24
+ * @since 2026-04-24
  */
 public class SnailAiOpenApi {
 

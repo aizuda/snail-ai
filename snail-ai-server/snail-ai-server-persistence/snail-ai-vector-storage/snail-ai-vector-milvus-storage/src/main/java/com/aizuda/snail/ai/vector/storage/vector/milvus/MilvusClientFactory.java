@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 使用缓存机制复用客户端，避免重复创建导致连接数暴增。
  *
  * @author opensnail
- * @date 2026-06-03
+ * @since 2026-06-03
  */
 @Slf4j
 public final class MilvusClientFactory {

@@ -6,7 +6,7 @@ import lombok.Data;
  * 登录响应：返回用户名、昵称与访问 token。
  *
  * @author opensnail
- * @date 2025-07-12
+ * @since 2025-07-12
  */
 @Data
 public class LoginResponseVO {

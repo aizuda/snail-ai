@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
  * 4. 读取时 DB 降级，保证跨节点分发可用
  *
  * @author opensnail
- * @date 2025-04-08
+ * @since 2025-04-08
  */
 @Slf4j
 @Component

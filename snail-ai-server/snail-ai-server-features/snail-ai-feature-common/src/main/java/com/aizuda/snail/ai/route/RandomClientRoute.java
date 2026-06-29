@@ -10,7 +10,7 @@ import java.util.concurrent.ThreadLocalRandom;
  * 随机路由策略
  *
  * @author opensnail
- * @date 2025-04-08
+ * @since 2025-04-08
  */
 @Component
 public class RandomClientRoute implements ClientRouteStrategy {

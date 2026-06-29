@@ -47,7 +47,7 @@ import javax.crypto.spec.PBEKeySpec;
  * 用户服务
  *
  * @author opensnail
- * @date 2025-07-12
+ * @since 2025-07-12
  */
 @Service
 @RequiredArgsConstructor
@@ -55,7 +55,7 @@ import javax.crypto.spec.PBEKeySpec;
 public class UserService {
     private final UserMapper userMapper;
     private final ResourceMapper resourceMapper;
-    
+
     private static final String PASSWORD_SALT = "snail_ai_2026";
     private static final String PASSWORD_HASH_PREFIX = "pbkdf2";
     private static final int PBKDF2_ITERATIONS = 120_000;
@@ -160,7 +160,7 @@ public class UserService {
         if (StrUtil.isBlank(requestVO.getUsername())) {
             throw new SnailAiCommonException("用户名不能为空");
         }
-        
+
         if (StrUtil.isBlank(requestVO.getPassword())) {
             throw new SnailAiCommonException("密码不能为空");
         }
@@ -181,7 +181,7 @@ public class UserService {
         UserPO existUser = userMapper.selectOne(
             new LambdaQueryWrapper<UserPO>().eq(UserPO::getUsername, requestVO.getUsername())
         );
-        
+
         if (existUser != null) {
             throw new SnailAiCommonException("用户名已存在");
         }
@@ -191,7 +191,7 @@ public class UserService {
             UserPO existEmailUser = userMapper.selectOne(
                 new LambdaQueryWrapper<UserPO>().eq(UserPO::getEmail, requestVO.getEmail())
             );
-            
+
             if (existEmailUser != null) {
                 throw new SnailAiCommonException("邮箱已存在");
             }
@@ -207,7 +207,7 @@ public class UserService {
         }
         userPO.setPassword(encryptPassword(requestVO.getPassword()));
         userMapper.insert(userPO);
-        
+
         log.info("管理员创建新用户成功: username={}, role={}", requestVO.getUsername(), requestVO.getRole());
     }
 
@@ -220,7 +220,7 @@ public class UserService {
         if (StrUtil.isBlank(requestVO.getUsername())) {
             throw new SnailAiCommonException("账号不能为空");
         }
-        
+
         if (StrUtil.isBlank(requestVO.getPassword())) {
             throw new SnailAiCommonException("密码不能为空");
         }
@@ -236,7 +236,7 @@ public class UserService {
                 .or()
                 .eq(UserPO::getUsername, requestVO.getUsername())
         );
-        
+
         if (existUser != null) {
             throw new SnailAiCommonException("账号已存在");
         }
@@ -248,7 +248,7 @@ public class UserService {
         userPO.setEmail(requestVO.getUsername());
         userPO.setPassword(encryptPassword(requestVO.getPassword()));
         userMapper.insert(userPO);
-        
+
         log.info("新用户注册成功: {}", requestVO.getUsername());
     }
 
@@ -262,7 +262,7 @@ public class UserService {
         if (StrUtil.isBlank(requestVO.getUsername())) {
             throw new SnailAiCommonException("账号不能为空");
         }
-        
+
         if (StrUtil.isBlank(requestVO.getPassword())) {
             throw new SnailAiCommonException("密码不能为空");
         }
@@ -271,7 +271,7 @@ public class UserService {
         UserPO userPO = userMapper.selectOne(
             new LambdaQueryWrapper<UserPO>().eq(UserPO::getUsername, requestVO.getUsername())
         );
-        
+
         if (Objects.isNull(userPO)) {
             throw new SnailAiCommonException("账号或密码错误");
         }
@@ -289,7 +289,7 @@ public class UserService {
         // 生成token（使用授权码作为JWT签名密钥）
         AudienceDTO audienceDTO = new AudienceDTO();
         audienceDTO.setUsername(userPO.getUsername());
-        
+
         LoginResponseVO loginResponseVO = new LoginResponseVO();
         loginResponseVO.setUsername(userPO.getUsername());
         loginResponseVO.setNickname(userPO.getNickname());
@@ -389,7 +389,7 @@ public class UserService {
         }
 
         userMapper.updateById(userPO);
-        
+
         log.info("授权用户成功: {}, 配额: {}, 天数: {}", requestVO.getEmail(), requestVO.getTotals(), requestVO.getDays());
     }
 
@@ -405,14 +405,14 @@ public class UserService {
         if (Objects.isNull(userPO)) {
             throw new SnailAiCommonException("用户不存在");
         }
-        
+
         // 2. 验证角色有效性
         if (!RoleEnum.getEnumTypeMap().containsKey(requestVO.getRole())) {
             throw new SnailAiCommonException("无效的角色");
         }
-        
+
         // 3. 如果更新邮箱，检查邮箱是否已被其他用户使用
-        if (StrUtil.isNotBlank(requestVO.getEmail()) 
+        if (StrUtil.isNotBlank(requestVO.getEmail())
             && !requestVO.getEmail().equals(userPO.getEmail())) {
             UserPO existUser = userMapper.selectOne(
                 new LambdaQueryWrapper<UserPO>()
@@ -424,10 +424,10 @@ public class UserService {
             }
             userPO.setEmail(requestVO.getEmail());
         }
-        
+
         // 4. 更新角色
         userPO.setRole(requestVO.getRole());
-        
+
         // 5. 如果提供了密码，则更新密码
         if (StrUtil.isNotBlank(requestVO.getPassword())) {
             if (requestVO.getPassword().length() < 6) {
@@ -440,10 +440,10 @@ public class UserService {
         if (requestVO.getResourceId() != null || Boolean.TRUE.equals(requestVO.getAvatarCleared())) {
             updateUserAvatar(userPO, requestVO);
         }
-        
+
         // 7. 保存更新
         userMapper.updateById(userPO);
-        
+
         log.info("更新用户信息成功: id={}, role={}, email={}", id, requestVO.getRole(), requestVO.getEmail());
     }
 
@@ -488,7 +488,7 @@ public class UserService {
 
         userPO.setRole(role);
         userMapper.updateById(userPO);
-        
+
         log.info("更新用户角色成功: id={}, role={}", id, role);
     }
 
@@ -534,7 +534,7 @@ public class UserService {
 
         userPO.setPassword(encryptPassword(newPassword));
         userMapper.updateById(userPO);
-        
+
         log.info("重置用户密码成功: id={}, username={}", id, userPO.getUsername());
     }
 
@@ -555,7 +555,7 @@ public class UserService {
         }
 
         userMapper.deleteById(id);
-        
+
         log.info("删除用户成功: id={}, email={}", id, userPO.getEmail());
     }
 

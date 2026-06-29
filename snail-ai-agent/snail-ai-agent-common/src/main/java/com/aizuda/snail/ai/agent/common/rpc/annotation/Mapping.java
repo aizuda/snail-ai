@@ -6,13 +6,13 @@ import java.lang.annotation.*;
  * Server 回调方法映射注解
  *
  * @author opensnail
- * @date 2025-04-12
+ * @since 2025-04-12
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface Mapping {
-    
+
     /**
      * 回调路径 (如 /callback/skill/content)
      */

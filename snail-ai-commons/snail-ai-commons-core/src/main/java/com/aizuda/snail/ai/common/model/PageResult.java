@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
  * 分页响应
  *
  * @author opensnail
- * @date 2022-02-16
+ * @since 2022-02-16
  */
 @Data
 @EqualsAndHashCode(callSuper = true)

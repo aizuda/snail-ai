@@ -56,7 +56,7 @@ import com.aizuda.snail.ai.agent.common.counter.ActiveChatCounter;
  * Snail-AI Agent 客户端自动配置
  *
  * @author opensnail
- * @date 2025-04-08
+ * @since 2025-04-08
  */
 @Slf4j
 @AutoConfiguration

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  * OpenAPI 统一异常处理
  *
  * @author opensnail
- * @date 2026-04-24
+ * @since 2026-04-24
  */
 @Slf4j
 @ControllerAdvice(basePackages = {"com.aizuda.snail.ai.openapi"})

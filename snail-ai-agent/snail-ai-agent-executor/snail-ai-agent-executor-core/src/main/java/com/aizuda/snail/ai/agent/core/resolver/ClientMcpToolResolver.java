@@ -22,7 +22,7 @@ import java.util.*;
  * 从 dispatch 数据中的 mcpServers 描述符列表连接 MCP 服务并返回 ToolCallback。
  *
  * @author opensnail
- * @date 2025-04-08
+ * @since 2025-04-08
  */
 @Slf4j
 public class ClientMcpToolResolver {

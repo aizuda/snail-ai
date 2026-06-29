@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
  * 文档会被分割为多个chunk进行向量化和检索
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @TableName("sai_rag_document")
 @Data

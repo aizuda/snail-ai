@@ -17,7 +17,7 @@ import java.util.List;
  * OpenAPI 会话管理客户端接口
  *
  * @author opensnail
- * @date 2026-04-24
+ * @since 2026-04-24
  */
 public interface OpenApiConversationClient {
 

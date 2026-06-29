@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  * 支持多种向量库和搜索引擎的灵活配置
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @TableName("sai_rag")
 @Data

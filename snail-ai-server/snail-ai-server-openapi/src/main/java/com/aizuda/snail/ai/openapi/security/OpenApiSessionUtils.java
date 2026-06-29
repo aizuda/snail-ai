@@ -7,7 +7,7 @@ import lombok.Data;
  * OpenAPI 会话工具类（ThreadLocal，与 OpenApiAuthInterceptor 配合）
  *
  * @author opensnail
- * @date 2026-04-24
+ * @since 2026-04-24
  */
 public final class OpenApiSessionUtils {
 

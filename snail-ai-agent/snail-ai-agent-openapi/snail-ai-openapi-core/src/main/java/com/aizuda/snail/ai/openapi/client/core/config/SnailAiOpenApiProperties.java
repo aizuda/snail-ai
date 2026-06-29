@@ -8,7 +8,7 @@ import lombok.Data;
  * OpenAPI 客户端配置属性
  *
  * @author opensnail
- * @date 2026-04-24
+ * @since 2026-04-24
  */
 @Data
 @ConfigurationProperties(prefix = "snail-ai.openapi")

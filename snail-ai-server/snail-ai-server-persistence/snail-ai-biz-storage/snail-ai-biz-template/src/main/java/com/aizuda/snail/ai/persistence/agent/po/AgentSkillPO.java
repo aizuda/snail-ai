@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  * 一个Agent可以绑定多个Skill，在对话中可调用
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @TableName("sai_agent_skill")
 @Data

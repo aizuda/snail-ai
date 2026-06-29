@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  * 用于负载均衡、健康检查和资源分配
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @TableName("sai_client_node")
 @Data

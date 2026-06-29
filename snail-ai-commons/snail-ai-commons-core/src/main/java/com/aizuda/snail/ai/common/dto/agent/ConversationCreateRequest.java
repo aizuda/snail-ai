@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
  * 创建对话请求
  *
  * @author opensnail
- * @date 2025-04-12
+ * @since 2025-04-12
  */
 @Data
 @Builder

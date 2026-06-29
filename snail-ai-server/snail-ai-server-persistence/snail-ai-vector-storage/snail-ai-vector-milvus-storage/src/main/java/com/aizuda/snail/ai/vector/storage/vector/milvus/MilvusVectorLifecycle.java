@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * Milvus 向量库生命周期管理
  *
  * @author opensnail
- * @date 2026-04-02
+ * @since 2026-04-02
  */
 @Slf4j
 @Component

@@ -18,7 +18,7 @@ import java.util.Optional;
  * 需要模型配置启用 {@code streamUsage(true)}，OpenAI 才会在最终 SSE chunk 中返回 usage 数据。
  *
  * @author opensnail
- * @date 2026-04-20
+ * @since 2026-04-20
  */
 @Slf4j
 public class TokenUsageCollectorAdvisor implements StreamAdvisor {

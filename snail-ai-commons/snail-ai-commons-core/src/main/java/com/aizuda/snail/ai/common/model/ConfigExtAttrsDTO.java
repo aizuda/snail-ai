@@ -15,7 +15,7 @@ import java.util.Map;
  * - RERANKER：rerankPath
  *
  * @author opensnail
- * @date 2026-03-04
+ * @since 2026-03-04
  */
 @Data
 public class ConfigExtAttrsDTO {
