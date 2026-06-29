@@ -6,8 +6,7 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 /**
- * author: opensnail
- * date: 2025-07-18
+ * 用户信息视图对象
  *
  * @author opensnail
  * @since 2026-06-14

@@ -5,8 +5,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * author: opensnail
- * date: 2025-07-21
+ * 用户分页查询条件
  *
  * @author opensnail
  * @since 2026-06-14

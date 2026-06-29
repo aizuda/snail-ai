@@ -4,8 +4,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * author: opensnail
- * date: 2025-07-23
+ * Snail AI 通用模块组件扫描配置
  *
  * @author opensnail
  * @since 2026-05-05

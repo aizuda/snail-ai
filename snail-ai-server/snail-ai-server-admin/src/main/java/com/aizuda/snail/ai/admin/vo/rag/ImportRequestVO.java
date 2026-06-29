@@ -3,7 +3,7 @@ package com.aizuda.snail.ai.admin.vo.rag;
 import lombok.Data;
 
 /**
- * author: opensnail date: 2025-07-18
+ * 文档导入请求参数
  *
  * @author opensnail
  * @since 2026-06-14
