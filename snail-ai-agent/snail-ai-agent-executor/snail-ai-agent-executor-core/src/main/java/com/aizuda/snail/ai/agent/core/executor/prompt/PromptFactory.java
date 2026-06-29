@@ -11,5 +11,11 @@ import org.springframework.ai.chat.prompt.Prompt;
  */
 public interface PromptFactory {
 
+    /**
+     * 根据对话分发请求构建 {@link Prompt}（系统提示 + 历史消息 + 用户消息）。
+     *
+     * @param request 对话分发请求
+     * @return 构建完成的 Prompt
+     */
     Prompt build(ChatDispatchRequest request);
 }

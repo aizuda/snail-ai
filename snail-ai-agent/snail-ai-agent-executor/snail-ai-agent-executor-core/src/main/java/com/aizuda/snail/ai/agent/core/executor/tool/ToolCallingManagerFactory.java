@@ -10,5 +10,11 @@ import org.springframework.ai.model.tool.ToolCallingManager;
  */
 public interface ToolCallingManagerFactory {
 
+    /**
+     * 根据构建请求创建 {@link ToolCallingManager}。
+     *
+     * @param request ToolCallingManager 构建请求
+     * @return 构建完成的 ToolCallingManager
+     */
     ToolCallingManager build(ToolCallingManagerBuildRequest request);
 }
