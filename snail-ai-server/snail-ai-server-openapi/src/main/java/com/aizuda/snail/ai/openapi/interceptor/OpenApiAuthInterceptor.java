@@ -21,7 +21,8 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
- * OpenApiAuthInterceptor
+ * 开放 API 鉴权拦截器，校验请求头中的应用 ID 与 Token（应用信息本地缓存 5 分钟），
+ * 通过后将应用会话写入上下文，请求结束时清理。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -35,6 +36,9 @@ public class OpenApiAuthInterceptor implements HandlerInterceptor {
 
     private static final int APP_STATUS_ACTIVE = 1;
 
+    /**
+     * 应用信息本地缓存（appId → 应用），减少每次请求的数据库查询
+     */
     private final LoadingCache<String, AppPO> appCache;
 
     public OpenApiAuthInterceptor(AppMapper appMapper) {
