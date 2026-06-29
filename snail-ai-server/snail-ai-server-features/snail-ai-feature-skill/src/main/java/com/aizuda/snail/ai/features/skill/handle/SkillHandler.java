@@ -54,7 +54,9 @@ public class SkillHandler {
         List<Long> skillIds = relations.stream()
                 .map(AgentSkillPO::getSkillId)
                 .collect(Collectors.toList());
-        return skillMapper.selectByIds(skillIds);
+        List<SkillPO> skills = skillMapper.selectByIds(skillIds);
+        log.debug("加载智能体技能 agentId={} 技能数={}", agentId, skills.size());
+        return skills;
     }
 
 }

@@ -70,6 +70,7 @@ public class SkillContentCallbackHandler implements GrpcRequestHandler {
             }).toList();
             result.put("files", fileList);
 
+            log.debug("回调获取技能内容 skillId={} 文件数={}", req.getSkillId(), fileList.size());
             return GrpcSnailAiResult.newBuilder()
                     .setStatus(1).setMessage("OK")
                     .setData(JsonUtil.toJsonString(result))
