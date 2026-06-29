@@ -15,10 +15,21 @@ import java.util.List;
 @Component
 public class AgentChatChainService {
     private final List<AgentChatHandler> handlers;
+
+    /**
+     * 构造责任链执行器
+     *
+     * @param handlers 有序的对话处理器列表（由 Spring 注入）
+     */
     public AgentChatChainService(List<AgentChatHandler> handlers) {
         this.handlers = handlers;
     }
 
+    /**
+     * 依次驱动责任链上的所有处理器
+     *
+     * @param ctx 智能体对话上下文
+     */
     public void proceed(AgentChatContext ctx) {
         for (AgentChatHandler handler : handlers) {
             handler.handle(ctx);

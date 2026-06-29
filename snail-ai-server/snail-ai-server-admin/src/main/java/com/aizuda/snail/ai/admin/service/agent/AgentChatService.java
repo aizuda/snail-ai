@@ -25,6 +25,8 @@ public class AgentChatService {
     /**
      * 智能体流式对话——通过责任链依次完成：初始化上下文 → 会话管理 → 模型解析 →
      * MCP加载 → 系统提示词构建 → Skill注入 → RAG检索 → LLM调用
+     *
+     * @param command 智能体对话命令（智能体ID、会话ID、内容、流写入器、用户信息、禁用的 MCP/Skill 等）
      */
     public void chat(AgentChatCommand command) {
         AgentChatContext context = new AgentChatContext(
