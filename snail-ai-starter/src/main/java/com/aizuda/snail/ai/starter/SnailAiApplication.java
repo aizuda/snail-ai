@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import java.util.TimeZone;
 
 /**
- * SnailAiApplication
+ * Snail AI 应用启动类，设置默认时区为 Asia/Shanghai 并启用异步与定时任务。
  *
  * @author 唐亚峰 | battcn
  * @since 2026-06-28
