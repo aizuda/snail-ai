@@ -69,6 +69,7 @@ public class OpenApiAuthInterceptor implements HandlerInterceptor {
         String token = request.getHeader(HEADER_TOKEN);
 
         if (StrUtil.isBlank(appId) || StrUtil.isBlank(token)) {
+            log.warn("OpenAPI 鉴权失败: 缺少 appId 或 token, uri={}", request.getRequestURI());
             throw new SnailAiAuthenticationException("缺少认证信息，请提供 Snail-Ai-App-Id 和 Snail-Ai-Token");
         }
 
@@ -76,14 +77,17 @@ public class OpenApiAuthInterceptor implements HandlerInterceptor {
         try {
             app = appCache.getUnchecked(appId);
         } catch (Exception e) {
+            log.warn("OpenAPI 鉴权失败: 应用不存在或加载失败, appId={}", appId);
             throw new SnailAiAuthenticationException("应用认证失败: {}", appId);
         }
 
         if (!Objects.equals(app.getStatus(), APP_STATUS_ACTIVE)) {
+            log.warn("OpenAPI 鉴权失败: 应用已禁用, appId={}", appId);
             throw new SnailAiAuthenticationException("应用已禁用: {}", appId);
         }
 
         if (!tokenEquals(token, app.getToken())) {
+            log.warn("OpenAPI 鉴权失败: Token 不匹配, appId={}", appId);
             throw new SnailAiAuthenticationException("Token 验证失败");
         }
 

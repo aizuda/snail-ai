@@ -64,6 +64,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         // 从请求头中取出token
         String token = request.getHeader(AUTHENTICATION);
         if (StrUtil.isBlank(token)) {
+            log.warn("管理端鉴权失败: 缺少 Token, uri={}", request.getRequestURI());
             throw new SnailAiAuthenticationException("未登录或登录已过期");
         }
 
@@ -73,6 +74,8 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         // 检查角色权限
         RoleEnum requiredRole = loginRequired.role();
         if (requiredRole == RoleEnum.ADMIN && !RoleEnum.isAdmin(userPO.getRole())) {
+            log.warn("管理端鉴权失败: 权限不足, username={}, role={}, uri={}",
+                    userPO.getUsername(), userPO.getRole(), request.getRequestURI());
             throw new SnailAiAuthenticationException("权限不足");
         }
 
