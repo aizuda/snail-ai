@@ -51,7 +51,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * SnailAiChatGatewayController
+ * 嵌入式对话网关控制器，对前端暴露配置、会话、智能体、会话记录与流式对话等接口，统一转发至 OpenAPI 客户端。
  *
  * @author opensnail
  * @since 2026-06-14

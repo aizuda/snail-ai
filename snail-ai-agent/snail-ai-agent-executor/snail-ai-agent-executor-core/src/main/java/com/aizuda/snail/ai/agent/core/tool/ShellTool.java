@@ -14,7 +14,7 @@ import java.nio.file.Paths;
 import java.util.concurrent.TimeUnit;
 
 /**
- * ShellTool
+ * Shell 命令执行工具，在指定工作目录执行命令并采集输出（支持超时强杀与输出行数截断），供 Agent 作为工具调用。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -22,8 +22,17 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class ShellTool {
 
+    /**
+     * 命令执行的工作目录
+     */
     private final String workingDirectory;
+    /**
+     * 命令超时时间（毫秒），超时则强制终止进程
+     */
     private final long commandTimeout;
+    /**
+     * 采集输出的最大行数，超出部分截断
+     */
     private final int maxOutputLines;
 
     public ShellTool(String workingDirectory, long commandTimeout, int maxOutputLines) {
@@ -32,6 +41,12 @@ public class ShellTool {
         this.maxOutputLines = maxOutputLines;
     }
 
+    /**
+     * 执行 Shell 命令并返回采集到的输出（含截断提示与非零退出码）
+     *
+     * @param command 待执行的 Shell 命令
+     * @return 命令输出文本，或以 "Error:" 开头的错误说明
+     */
     @Tool(name = "shell", description = "Execute a shell command. Can be used to run scripts in the skill directory, view files, install dependencies, etc. "
             + "Supports chained commands (&& or ;).")
     public String execute(@ToolParam(description = "The shell command to execute") String command) {
@@ -129,6 +144,9 @@ public class ShellTool {
         }
     }
 
+    /**
+     * 输出采集统计：累计行数与是否已截断
+     */
     private static class OutputStats {
         private int lineCount;
         private boolean truncated;

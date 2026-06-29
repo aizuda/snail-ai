@@ -18,7 +18,7 @@ import org.springframework.context.annotation.Bean;
 import java.net.http.HttpClient;
 
 /**
- * SnailAiOpenApiAutoConfiguration
+ * OpenAPI 客户端自动配置，按 {@code snail-ai.openapi.enabled} 开关装配 HttpClient 与各 OpenAPI 客户端代理。
  *
  * @author opensnail
  * @since 2026-06-14

@@ -19,7 +19,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.util.List;
 
 /**
- * SnailAiChatAutoConfiguration
+ * 嵌入式对话自动配置，按 {@code snail-ai.openapi.enabled} 装配 Token 服务、鉴权拦截器与静态资源/拦截器映射。
  *
  * @author opensnail
  * @since 2026-06-14

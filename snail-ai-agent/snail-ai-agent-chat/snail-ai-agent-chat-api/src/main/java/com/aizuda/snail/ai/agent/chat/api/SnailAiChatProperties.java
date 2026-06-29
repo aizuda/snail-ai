@@ -4,7 +4,7 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
- * SnailAiChatProperties
+ * 嵌入式对话页面配置，绑定 {@code snail-ai.chat} 前缀，控制页面 UI 展示与会话令牌有效期。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -16,18 +16,34 @@ public class SnailAiChatProperties {
     public static final String DEFAULT_PAGE_TITLE = "Snail AI Chat";
 
 
+    /**
+     * 页面 UI 配置
+     */
     private Ui ui = new Ui();
 
+    /**
+     * 会话配置
+     */
     private Session session = new Session();
 
+    /**
+     * 页面 UI 配置
+     */
     @Data
     public static class Ui {
+        /** 页面标题 */
         private String pageTitle = DEFAULT_PAGE_TITLE;
+        /** 页面 Logo 地址 */
         private String logo = "https://snailjob.opensnail.com/logo.svg";
+        /** 资源访问基础 URL，为空时按 OpenAPI 服务地址推导 */
         private String resourceBaseUrl;
+        /** 嵌入模式配置 */
         private Embed embed = new Embed();
     }
 
+    /**
+     * 嵌入模式 UI 配置
+     */
     @Data
     public static class Embed {
         /**
@@ -61,8 +77,12 @@ public class SnailAiChatProperties {
         private Boolean lockAgent;
     }
 
+    /**
+     * 会话配置
+     */
     @Data
     public static class Session {
+        /** 会话令牌有效期（秒） */
         private Integer tokenTtlSeconds = 3600;
     }
 }
