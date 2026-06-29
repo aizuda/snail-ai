@@ -50,6 +50,9 @@ public class OpenApiChatService {
                 ? request.getSid()
                 : UUID.randomUUID().toString();
 
+        log.debug("OpenAPI 流式对话开始 agentId={} conversationId={} openId={} sid={}",
+                request.getAgentId(), request.getConversationId(), request.getOpenId(), sid);
+
         return Flux.create(sink -> {
             ChatStreamState state = new ChatStreamState(request.getConversationId());
 
@@ -92,6 +95,9 @@ public class OpenApiChatService {
                 ? request.getSid()
                 : UUID.randomUUID().toString();
 
+        log.debug("OpenAPI 同步对话开始 agentId={} conversationId={} openId={} sid={}",
+                request.getAgentId(), request.getConversationId(), request.getOpenId(), sid);
+
         agentChatService.chat(AgentChatCommand.builder()
                 .agentId(request.getAgentId())
                 .conversationId(request.getConversationId())
@@ -106,6 +112,9 @@ public class OpenApiChatService {
 
         try {
             String fullText = collector.awaitAndGetFullText(SYNC_CHAT_TIMEOUT_MS);
+            log.info("OpenAPI 同步对话完成 conversationId={} 字数={} 耗时={}ms",
+                    request.getConversationId(), fullText != null ? fullText.length() : 0,
+                    System.currentTimeMillis() - start);
             return OpenApiChatSyncResponse.builder()
                     .conversationId(request.getConversationId())
                     .content(fullText)
@@ -115,6 +124,7 @@ public class OpenApiChatService {
             Thread.currentThread().interrupt();
             throw new SnailAiException("对话被中断", e);
         } catch (TimeoutException e) {
+            log.warn("OpenAPI 同步对话超时 conversationId={} 阈值={}ms", request.getConversationId(), SYNC_CHAT_TIMEOUT_MS);
             throw new SnailAiException("对话响应超时", e);
         }
     }

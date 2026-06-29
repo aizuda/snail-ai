@@ -147,6 +147,7 @@ public class OpenApiAgentService {
                 .agentId(agentId)
                 .createDt(LocalDateTime.now())
                 .build());
+        log.info("OpenAPI 用户订阅智能体 openId={} agentId={}", openId, agentId);
     }
 
     /**
@@ -162,6 +163,7 @@ public class OpenApiAgentService {
                 new LambdaQueryWrapper<UserAgentPO>()
                         .eq(UserAgentPO::getUserId, user.getPlatformUserId())
                         .eq(UserAgentPO::getAgentId, agentId));
+        log.info("OpenAPI 用户取消订阅智能体 openId={} agentId={}", openId, agentId);
     }
 
     private OpenApiUserPO getOpenApiUser(String openId) {
