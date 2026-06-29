@@ -95,6 +95,7 @@ public class ElasticsearchSnailAiVectorStore extends AbstractSnailAiVectorStore 
             throw new VectorStoreException("indexName 不能为空");
         }
         getStore(indexName).delete(ids);
+        log.info("ES 向量库删除 {} 个文档 index={}", ids.size(), indexName);
     }
 
     @Override

@@ -68,6 +68,7 @@ public class PgSnailAiVectorStore extends AbstractSnailAiVectorStore {
 
         jdbcTemplate.execute("DROP TABLE IF EXISTS " + indexName);
         storeCache.remove(indexName);
+        log.info("PgVector 删除集合(DROP TABLE) index={}", indexName);
     }
 
     @Override

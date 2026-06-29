@@ -2,6 +2,7 @@ package com.aizuda.snail.ai.vector.storage.vector.core;
 
 import com.aizuda.snail.ai.vector.storage.exception.VectorStoreException;
 import com.aizuda.snail.ai.vector.storage.vector.api.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.document.Document;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.vectorstore.SearchRequest;
@@ -16,6 +17,7 @@ import java.util.*;
  * @author opensnail
  * @since 2026-06-14
  */
+@Slf4j
 public abstract class AbstractSnailAiVectorStore implements SnailAiVectorStore {
 
     protected final EmbeddingModel springAiEmbeddingModel;
@@ -38,11 +40,13 @@ public abstract class AbstractSnailAiVectorStore implements SnailAiVectorStore {
 
         List<Document> documents = toDocuments(request.getDocuments());
         getVectorStore(request.getIndexName()).add(documents);
+        log.info("向量库写入 {} 个文档 index={}", documents.size(), request.getIndexName());
     }
 
     @Override
     public void delete(String indexName, List<String> ids) {
         getVectorStore(indexName).delete(ids);
+        log.info("向量库删除 {} 个文档 index={}", ids == null ? 0 : ids.size(), indexName);
     }
 
     @Override
@@ -73,6 +77,8 @@ public abstract class AbstractSnailAiVectorStore implements SnailAiVectorStore {
                     .metadata(meta)
                     .build());
         }
+        log.debug("向量库检索完成 index={} topK={} 命中 {} 条",
+                request.getIndexName(), request.getTopK(), results.size());
         return results;
     }
 

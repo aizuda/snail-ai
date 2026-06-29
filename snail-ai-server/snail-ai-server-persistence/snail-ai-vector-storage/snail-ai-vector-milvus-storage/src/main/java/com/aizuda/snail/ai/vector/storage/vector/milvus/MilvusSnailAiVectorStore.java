@@ -102,6 +102,7 @@ public class MilvusSnailAiVectorStore extends AbstractSnailAiVectorStore {
             throw new VectorStoreException("indexName 不能为空");
         }
         getStore(indexName).delete(ids);
+        log.info("Milvus 向量库删除 {} 个文档 index={}", ids.size(), indexName);
     }
 
     @Override
@@ -122,7 +123,11 @@ public class MilvusSnailAiVectorStore extends AbstractSnailAiVectorStore {
     @Override
     public boolean test() {
         R<CheckHealthResponse> checkHealthResponseR = milvusClient.checkHealth();
-        return Integer.valueOf(R.Status.Success.getCode()).equals(checkHealthResponseR.getStatus());
+        boolean healthy = Integer.valueOf(R.Status.Success.getCode()).equals(checkHealthResponseR.getStatus());
+        if (!healthy) {
+            log.warn("Milvus 连接健康检查未通过: status={}", checkHealthResponseR.getStatus());
+        }
+        return healthy;
     }
 
 
