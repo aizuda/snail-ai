@@ -3,7 +3,7 @@ package com.aizuda.snail.ai.model.common;
 import java.util.List;
 
 /**
- * ModelAdapterDefaults
+ * 模型适配默认值与解析工具，提供默认适配器键、模型类型常量及按模型类型解析适配器键。
  *
  * @author opensnail
  * @since 2026-06-14

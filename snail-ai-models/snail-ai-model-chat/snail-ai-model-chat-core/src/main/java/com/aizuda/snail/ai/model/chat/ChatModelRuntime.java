@@ -9,7 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * ChatModelRuntime
+ * 对话模型运行时，按规格的 adapterKey 选择适配器并构建 {@link ChatModel}（含规格校验与异常归一化）。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -24,6 +24,12 @@ public class ChatModelRuntime {
                 .toList();
     }
 
+    /**
+     * 按规格构建对话模型
+     *
+     * @param spec 对话模型构建规格
+     * @return 对话模型实例
+     */
     public ChatModel build(ChatModelSpec spec) {
         validate(spec);
         ChatModelAdapter adapter = adapters.stream()

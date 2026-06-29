@@ -9,7 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * EmbeddingModelRuntime
+ * 向量化模型运行时，按规格的 adapterKey 选择适配器并构建 {@link EmbeddingModel}（含规格校验与异常归一化）。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -24,6 +24,12 @@ public class EmbeddingModelRuntime {
                 .toList();
     }
 
+    /**
+     * 按规格构建向量化模型
+     *
+     * @param spec 向量化模型构建规格
+     * @return 向量化模型实例
+     */
     public EmbeddingModel build(EmbeddingModelSpec spec) {
         validate(spec);
         EmbeddingModelAdapter adapter = adapters.stream()

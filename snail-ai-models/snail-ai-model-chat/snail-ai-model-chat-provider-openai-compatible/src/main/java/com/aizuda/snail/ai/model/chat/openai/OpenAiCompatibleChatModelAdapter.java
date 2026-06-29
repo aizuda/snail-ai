@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * OpenAiCompatibleChatModelAdapter
+ * OpenAI 兼容对话模型适配器，基于 Spring AI {@code OpenAiChatModel} 按规格与扩展参数构建对话模型。
  *
  * @author opensnail
  * @since 2026-06-14

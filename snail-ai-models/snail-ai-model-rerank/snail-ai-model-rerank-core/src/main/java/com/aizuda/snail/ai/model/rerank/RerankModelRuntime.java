@@ -9,7 +9,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * RerankModelRuntime
+ * 重排模型运行时，按规格的 adapterKey 选择适配器并构建 {@link RerankApiClient}（含规格校验与异常归一化）。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -24,6 +24,12 @@ public class RerankModelRuntime {
                 .toList();
     }
 
+    /**
+     * 按规格构建重排客户端
+     *
+     * @param spec 重排模型构建规格
+     * @return 重排客户端实例
+     */
     public RerankApiClient build(RerankModelSpec spec) {
         validate(spec);
         RerankModelAdapter adapter = adapters.stream()

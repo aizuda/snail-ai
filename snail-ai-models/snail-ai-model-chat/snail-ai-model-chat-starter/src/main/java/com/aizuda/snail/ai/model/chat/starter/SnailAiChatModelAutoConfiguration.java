@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Bean;
 import java.util.List;
 
 /**
- * SnailAiChatModelAutoConfiguration
+ * 对话模型自动配置，装配对话模型运行时、OpenAI 兼容适配器及其描述符。
  *
  * @author opensnail
  * @since 2026-06-14

@@ -14,7 +14,7 @@ import java.time.Duration;
 import java.util.Locale;
 
 /**
- * OpenAiCompatibleEmbeddingModelAdapter
+ * OpenAI 兼容向量化模型适配器，基于 Spring AI {@code OpenAiEmbeddingModel} 按规格与扩展参数构建向量化模型。
  *
  * @author opensnail
  * @since 2026-06-14
