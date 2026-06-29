@@ -19,6 +19,12 @@ public final class RagResultReorderUtil {
     private RagResultReorderUtil() {
     }
 
+    /**
+     * 按 Lost in the Middle 策略重排：高相关性结果分布到首尾，低相关性置于中间
+     *
+     * @param ranked 已按相关性降序排列的结果列表
+     * @return 重排后的结果列表；元素数不超过 2 时原样返回
+     */
     public static List<SearchResult> reorderForLostInTheMiddle(List<SearchResult> ranked) {
         if (ranked == null || ranked.size() <= 2) {
             return ranked;
