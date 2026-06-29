@@ -18,6 +18,12 @@ public class ClientChatModelSpecFactory {
         this.validator = validator;
     }
 
+    /**
+     * 将客户端模型输入校验并适配为 {@link ChatModelSpec}。
+     *
+     * @param input 客户端 Chat 模型输入
+     * @return 适配后的 ChatModelSpec
+     */
     public ChatModelSpec create(ClientChatModelInput input) {
         if (input == null) {
             throw new IllegalArgumentException("ClientChatModelInput is required");

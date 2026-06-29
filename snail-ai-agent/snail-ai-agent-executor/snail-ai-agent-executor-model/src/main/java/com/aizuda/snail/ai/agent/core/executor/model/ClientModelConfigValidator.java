@@ -10,6 +10,11 @@ import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
  */
 public class ClientModelConfigValidator {
 
+    /**
+     * 校验模型配置必填项（apiEndpoint/apiKey/modelKey），不合法时抛出异常。
+     *
+     * @param modelConfig 待校验的对话模型配置
+     */
     public void validate(ChatDispatchRequest.ModelConfig modelConfig) {
         if (modelConfig == null) {
             throw new IllegalArgumentException("Model config is required");
