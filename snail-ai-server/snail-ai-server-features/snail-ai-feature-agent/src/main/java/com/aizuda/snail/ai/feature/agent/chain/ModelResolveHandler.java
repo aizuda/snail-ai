@@ -36,6 +36,7 @@ public class ModelResolveHandler implements AgentChatHandler {
         if (modelId == null) {
             ModelConfigInfoDTO model = modelConfigHandler.getDefaultModelByType(ModelTypeEnum.CHAT.getValue());
             if (model == null) {
+                log.warn("Agent 未配置对话模型且系统无默认对话模型, agentId={}", ctx.getAgentId());
                 ctx.getStreamWriter().send("Error: 未配置对话模型");
                 ctx.getStreamWriter().complete();
                 ctx.setTerminated(true);
@@ -49,7 +50,8 @@ public class ModelResolveHandler implements AgentChatHandler {
         try {
             ChatDispatchRequest.ModelConfig dispatchModel = dispatchModelConfigAssembler.assembleChatModelConfig(modelId);
             ctx.setModelConfig(dispatchModel);
-            log.debug("Model config prepared for dispatch: modelId={}", modelId);
+            log.debug("Model config prepared for dispatch: modelId={}, costMs={}",
+                    modelId, System.currentTimeMillis() - startTime);
         } catch (Exception e) {
             log.error("Failed to prepare model config for remote dispatch, modelId={}", modelId, e);
             ctx.getStreamWriter().send("Error: 模型配置加载失败");

@@ -54,6 +54,9 @@ public class McpHandler implements AgentChatHandler {
         }
 
         ctx.setMcpServerDescriptors(descriptors);
+        log.debug("MCP 加载完成 启用={} 服务器 {} 个 耗时 {}ms agentId={}",
+                ctx.getAgent().getMcpEnabled(), descriptors.size(),
+                System.currentTimeMillis() - startTime, ctx.getAgentId());
     }
 
     private static ChatDispatchRequest.McpServerDescriptor toDescriptor(McpServerRef s) {

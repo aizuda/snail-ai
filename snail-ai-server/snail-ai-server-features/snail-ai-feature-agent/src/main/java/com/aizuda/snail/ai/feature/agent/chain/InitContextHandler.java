@@ -28,6 +28,7 @@ public class InitContextHandler implements AgentChatHandler {
         UserPO user = ctx.getRequestUser() != null ? ctx.getRequestUser() : UserSessionUtils.currentUserSession();
         AgentPO agent = agentMapper.selectById(ctx.getAgentId());
         if (agent == null) {
+            log.warn("Agent 不存在, agentId={}", ctx.getAgentId());
             ctx.getStreamWriter().send("Error: Agent not found: " + ctx.getAgentId());
             ctx.getStreamWriter().complete();
             ctx.setTerminated(true);

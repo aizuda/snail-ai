@@ -42,12 +42,14 @@ public class LlmCallHandler implements AgentChatHandler {
         }
 
         if (ctx.getTargetClient() == null) {
+            log.warn("聊天分发失败：未找到可用的客户端实例, conversationId={}", ctx.getConversationId());
             sendError(ctx.getStreamWriter(), "未找到可用的客户端实例");
             ctx.setTerminated(true);
             return;
         }
 
         if (ctx.getModelConfig() == null) {
+            log.warn("聊天分发失败：模型配置缺失, conversationId={}", ctx.getConversationId());
             sendError(ctx.getStreamWriter(), "模型配置缺失");
             ctx.setTerminated(true);
             return;
@@ -76,6 +78,7 @@ public class LlmCallHandler implements AgentChatHandler {
             ctx.setStreamDispatchStarted(true);
         } catch (Exception e) {
             ctx.setStreamDispatchStarted(false);
+            log.error("聊天 gRPC 分发失败, conversationId={}", ctx.getConversationId(), e);
             throw e;
         }
     }

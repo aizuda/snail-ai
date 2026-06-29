@@ -61,6 +61,8 @@ public class SkillAgentChatHandler implements AgentChatHandler {
                         .build())
                 .collect(Collectors.toList());
         ctx.setSkillDescriptors(descriptors);
+        log.debug("Skill 加载完成 技能 {} 个 耗时 {}ms agentId={}",
+                descriptors.size(), System.currentTimeMillis() - startTime, ctx.getAgentId());
     }
 
 
