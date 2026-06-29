@@ -62,6 +62,9 @@ public class SkillService {
 
     /**
      * 上传 Skill zip 包
+     *
+     * @param file 待上传的 .zip 技能包（须含 SKILL.md）
+     * @return 创建成功的技能响应 VO
      */
     public SkillResponseVO upload(MultipartFile file) {
         String originalFilename = file.getOriginalFilename();
@@ -153,6 +156,11 @@ public class SkillService {
 
     /**
      * 分页查询
+     *
+     * @param page    页码（从 1 开始）
+     * @param size    每页条数
+     * @param keyword 名称模糊匹配关键字，可为空
+     * @return 技能分页结果
      */
     public PageResult<List<SkillResponseVO>> page(int page, int size, String keyword) {
         LambdaQueryWrapper<SkillPO> wrapper = new LambdaQueryWrapper<SkillPO>()
@@ -171,6 +179,8 @@ public class SkillService {
 
     /**
      * 删除 Skill
+     *
+     * @param id 技能 ID
      */
     @Transactional
     public void delete(Long id) {
@@ -200,6 +210,8 @@ public class SkillService {
 
     /**
      * 全量列表（给智能体选择下拉用）
+     *
+     * @return 全部技能响应 VO 列表
      */
     public List<SkillResponseVO> listAll() {
         List<SkillPO> list = skillMapper.selectList(
@@ -207,6 +219,12 @@ public class SkillService {
         return list.stream().map(this::toResponseVO).collect(Collectors.toList());
     }
 
+    /**
+     * 按 ID 获取技能详情
+     *
+     * @param id 技能 ID
+     * @return 技能响应 VO；不存在时抛出异常
+     */
     public SkillResponseVO getById(Long id) {
         SkillPO po = skillMapper.selectById(id);
         if (po == null) {
@@ -217,6 +235,9 @@ public class SkillService {
 
     /**
      * 在线创建 Skill（无 zip，仅 DB）
+     *
+     * @param request 技能创建请求参数（名称、描述）
+     * @return 创建成功的技能响应 VO
      */
     @Transactional
     public SkillResponseVO createOnline(SkillCreateRequestVO request) {
@@ -242,6 +263,10 @@ public class SkillService {
 
     /**
      * 更新 Skill 元数据（名称/描述）
+     *
+     * @param id      技能 ID
+     * @param request 技能更新请求参数（名称、描述，仅非空字段生效）
+     * @return 更新后的技能响应 VO
      */
     @Transactional
     public SkillResponseVO update(Long id, SkillUpdateRequestVO request) {
@@ -280,6 +305,9 @@ public class SkillService {
 
     /**
      * 获取智能体关联的 Skill 列表
+     *
+     * @param agentId 智能体 ID
+     * @return 该智能体关联的技能响应 VO 列表
      */
     public List<SkillResponseVO> getByAgentId(Long agentId) {
         List<AgentSkillPO> relations = agentSkillMapper.selectList(
@@ -298,6 +326,9 @@ public class SkillService {
 
     /**
      * 更新智能体的 Skill 关联
+     *
+     * @param agentId  智能体 ID
+     * @param skillIds 目标技能 ID 列表（覆盖原关联，可为空表示清空）
      */
     @Transactional
     public void updateAgentSkills(Long agentId, List<Long> skillIds) {
@@ -337,6 +368,9 @@ public class SkillService {
 
     /**
      * 构建文件树（SKILL.md + skill_file）
+     *
+     * @param skillId 技能 ID
+     * @return 技能文件树根节点
      */
     public SkillFileTreeNodeVO buildFileTree(Long skillId) {
         SkillPO po = skillMapper.selectById(skillId);
@@ -451,6 +485,10 @@ public class SkillService {
 
     /**
      * 读取文件内容（SKILL.md 为完整 Markdown；其它路径来自 skill_file）
+     *
+     * @param skillId 技能 ID
+     * @param path    技能内相对路径
+     * @return 文件内容 VO（内容、编码、大小）
      */
     public SkillFileContentRequestVO getFileContent(Long skillId, String path) {
         path = normalizeRelativePath(path);
@@ -484,6 +522,10 @@ public class SkillService {
 
     /**
      * 保存文件内容；若为 SKILL.md 则解析 frontmatter 更新 DB；写存储并失效缓存；自增版本号
+     *
+     * @param skillId 技能 ID
+     * @param path    技能内相对路径
+     * @param content 文件内容
      */
     @Transactional
     public void saveFileContent(Long skillId, String path, String content) {
@@ -534,6 +576,9 @@ public class SkillService {
 
     /**
      * 新建文件或目录（写存储并失效树缓存；标记 hasFiles、自增版本号）
+     *
+     * @param skillId 技能 ID
+     * @param dto     新建文件/目录请求参数（路径、类型）
      */
     @Transactional
     public void createFile(Long skillId, SkillCreateFileRequestVO dto) {
@@ -590,6 +635,9 @@ public class SkillService {
 
     /**
      * 删除文件；禁止删除 SKILL.md（写存储并失效缓存；重新判断 hasFiles、自增版本号）
+     *
+     * @param skillId 技能 ID
+     * @param path    技能内相对路径
      */
     @Transactional
     public void deleteFile(Long skillId, String path) {
@@ -620,6 +668,9 @@ public class SkillService {
 
     /**
      * 重命名文件或目录（写存储并失效缓存；自增版本号）
+     *
+     * @param skillId 技能 ID
+     * @param dto     重命名请求参数（旧路径、新路径）
      */
     @Transactional
     public void renameFile(Long skillId, SkillRenameFileRequestVO dto) {
@@ -659,6 +710,9 @@ public class SkillService {
 
     /**
      * 将技能目录打包为 zip 写入输出流（用于下载；基于 DB 内容）
+     *
+     * @param skillId 技能 ID
+     * @param out     目标输出流（写入 zip 字节）
      */
     public void writeZipToStream(Long skillId, OutputStream out) {
         SkillPO po = skillMapper.selectById(skillId);
