@@ -54,6 +54,12 @@ public class StoreInstanceService {
     private final RagMapper knowledgeMapper;
     private final VectorDimensionConstraintService vectorDimensionConstraintService;
 
+    /**
+     * 按分类查询存储实例列表（默认实例优先）
+     *
+     * @param category 存储分类（向量库/搜索引擎），为空则查全部
+     * @return 存储实例列表
+     */
     public List<StoreInstanceVO> listByCategory(Integer category) {
         LambdaQueryWrapper<StoreInstancePO> qw = new LambdaQueryWrapper<>();
         if (category != null) {
@@ -63,6 +69,12 @@ public class StoreInstanceService {
         return mapper.selectList(qw).stream().map(this::toVo).collect(Collectors.toList());
     }
 
+    /**
+     * 分页查询存储实例
+     *
+     * @param query 分页查询条件
+     * @return 存储实例分页结果
+     */
     public PageResult<List<StoreInstanceVO>> page(StoreInstanceQueryVO query) {
         LambdaQueryWrapper<StoreInstancePO> wrapper = new LambdaQueryWrapper<>();
         wrapper.between(ObjUtil.isNotNull(query.getStartDt()) && ObjUtil.isNotNull(query.getEndDt()),
@@ -86,6 +98,12 @@ public class StoreInstanceService {
         return result;
     }
 
+    /**
+     * 获取存储实例详情
+     *
+     * @param id 存储实例 ID
+     * @return 存储实例详情，不存在时返回 null
+     */
     public StoreInstanceVO getById(Long id) {
         StoreInstancePO po = mapper.selectById(id);
         if (po == null) {
@@ -94,10 +112,23 @@ public class StoreInstanceService {
         return toVo(po);
     }
 
+    /**
+     * 获取指定存储实例与嵌入模型的向量维度约束
+     *
+     * @param id               存储实例 ID
+     * @param embeddingModelId 嵌入模型 ID
+     * @return 向量维度约束信息
+     */
     public VectorDimensionConstraintVO getDimensionConstraint(Long id, Long embeddingModelId) {
         return vectorDimensionConstraintService.resolveConstraint(embeddingModelId, id);
     }
 
+    /**
+     * 创建存储实例
+     *
+     * @param vo 存储实例信息
+     * @return 创建后的存储实例详情
+     */
     @Transactional
     public StoreInstanceVO create(StoreInstanceVO vo) {
         validateCategoryType(vo.getCategory(), vo.getType());
@@ -117,6 +148,13 @@ public class StoreInstanceService {
         return toVo(mapper.selectById(po.getId()));
     }
 
+    /**
+     * 更新存储实例
+     *
+     * @param id 存储实例 ID
+     * @param vo 存储实例更新信息
+     * @return 更新后的存储实例详情
+     */
     @Transactional
     public StoreInstanceVO update(Long id, StoreInstanceVO vo) {
         StoreInstancePO existing = mapper.selectById(id);
@@ -155,6 +193,11 @@ public class StoreInstanceService {
         return toVo(mapper.selectById(id));
     }
 
+    /**
+     * 删除存储实例（仍被知识库引用时拒绝删除）
+     *
+     * @param id 存储实例 ID
+     */
     @Transactional
     public void delete(Long id) {
         StoreInstancePO instance = mapper.selectById(id);
@@ -175,6 +218,12 @@ public class StoreInstanceService {
         mapper.deleteById(id);
     }
 
+    /**
+     * 测试存储实例连通性
+     *
+     * @param req 连通性测试请求（类型与连接配置）
+     * @return 连通成功返回 true
+     */
     public boolean testConnection(StoreInstanceTestRequestVO req) {
         SnailAiVectorStore apply = VectorStoreFactory.REGISTER.get(VectorStoreType.valueOf(req.getType()))
                 .apply(VectorStoreConfigDTO

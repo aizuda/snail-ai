@@ -46,7 +46,10 @@ public class AgentCreateService {
     private record AgentInfo(String name, String description, String greeting, List<String> presetQuestions, String instruction) {}
 
     /**
-     * 流式创建智能体（单次LLM调用 + 阶段性推送）
+     * 流式创建智能体（单次 LLM 调用 + 阶段性推送）
+     *
+     * @param description 用户对智能体的需求描述
+     * @return 智能体创建过程的流式事件（开始/字段完成/结束/错误）
      */
     public Flux<AgentCreateStreamEvent> createByDescriptionStream(String description) {
         Long userId = UserSessionUtils.currentUserSession().getId();

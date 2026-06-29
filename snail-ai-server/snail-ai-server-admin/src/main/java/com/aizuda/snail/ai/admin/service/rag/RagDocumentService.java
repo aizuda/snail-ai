@@ -81,7 +81,11 @@ public class RagDocumentService {
     private final DocumentDedupChecker dedupChecker;
 
     /**
-     * Upload file via MultipartFile (sourceType = UPLOAD).
+     * 通过 MultipartFile 上传文档（sourceType = UPLOAD）
+     *
+     * @param file    上传的文件
+     * @param request 上传请求（知识库 ID、来源类型、去重策略等）
+     * @return 文档响应（含去重决策结果）
      */
     public RagDocumentResponseVO upload(MultipartFile file, RagDocumentUploadRequestVO request) {
         RagPO knowledge = requireKnowledge(request.getRagId());
@@ -100,7 +104,10 @@ public class RagDocumentService {
     }
 
     /**
-     * Import from URL (sourceType = URL).
+     * 从 URL 导入文档（sourceType = URL）
+     *
+     * @param request 上传请求（知识库 ID、URL、名称等）
+     * @return 文档响应（含去重决策结果）
      */
     public RagDocumentResponseVO importFromUrl(RagDocumentUploadRequestVO request) {
         RagPO knowledge = requireKnowledge(request.getRagId());
@@ -117,6 +124,11 @@ public class RagDocumentService {
     }
 
 
+    /**
+     * 删除文档，同时清理其向量、资源文件与切片
+     *
+     * @param documentId 文档 ID
+     */
     @Transactional
     public void delete(Long documentId) {
         cleanupDocumentInternal(documentId);
@@ -177,6 +189,11 @@ public class RagDocumentService {
         ragDocumentMapper.deleteById(documentId);
     }
 
+    /**
+     * 重新处理文档：状态重置为待处理并清空错误信息，触发重新解析/向量化
+     *
+     * @param documentId 文档 ID
+     */
     public void reprocess(Long documentId) {
         RagDocumentPO doc = ragDocumentMapper.selectById(documentId);
         if (doc == null) {
@@ -187,10 +204,22 @@ public class RagDocumentService {
         ragDocumentMapper.updateById(doc);
     }
 
+    /**
+     * 获取文档持久化对象
+     *
+     * @param documentId 文档 ID
+     * @return 文档 PO，不存在时返回 null
+     */
     public RagDocumentPO getDocumentPO(Long documentId) {
         return ragDocumentMapper.selectById(documentId);
     }
 
+    /**
+     * 分页查询文档
+     *
+     * @param query 分页查询条件（知识库 ID、名称、状态等）
+     * @return 文档分页结果
+     */
     public PageResult<List<RagDocumentResponseVO>> page(RagDocumentQueryVO query) {
         LambdaQueryWrapper<RagDocumentPO> wrapper = new LambdaQueryWrapper<>();
         if (query.getRagId() != null) {
@@ -211,6 +240,12 @@ public class RagDocumentService {
         return new PageResult<>(pageDTO, convert.getRecords());
     }
 
+    /**
+     * 分页查询文档切片
+     *
+     * @param query 分页查询条件（文档 ID、知识库 ID 等）
+     * @return 切片分页结果（含所属文档名）
+     */
     public PageResult<List<RagChunkResponseVO>> chunkPage(RagChunkQueryVO query) {
         LambdaQueryWrapper<RagChunkPO> wrapper = new LambdaQueryWrapper<>();
         if (query.getDocumentId() != null) {
@@ -240,6 +275,12 @@ public class RagDocumentService {
         return new PageResult<>(pageDTO, list);
     }
 
+    /**
+     * 获取切片详情
+     *
+     * @param chunkId 切片 ID
+     * @return 切片详情（含所属文档名）
+     */
     public RagChunkResponseVO getChunkDetail(Long chunkId) {
         RagChunkPO chunk = ragChunkMapper.selectById(chunkId);
         if (chunk == null) {
@@ -253,6 +294,12 @@ public class RagDocumentService {
         return toChunkResponseVO(chunk, documentName);
     }
 
+    /**
+     * 新增文档切片并执行向量化
+     *
+     * @param request 切片创建请求（知识库 ID、文档 ID、内容）
+     * @return 新增的切片详情
+     */
     public RagChunkResponseVO createChunk(RagChunkCreateRequestVO request) {
         RagPO knowledge = requireKnowledge(request.getRagId());
         if (request.getDocumentId() == null) {
@@ -291,6 +338,13 @@ public class RagDocumentService {
         return toChunkResponseVO(inserted, documentName);
     }
 
+    /**
+     * 编辑文档切片内容并重新向量化
+     *
+     * @param chunkId 切片 ID
+     * @param request 切片更新请求（新内容）
+     * @return 更新后的切片详情
+     */
     public RagChunkResponseVO updateChunk(Long chunkId, RagChunkUpdateRequestVO request) {
         RagChunkPO chunk = ragChunkMapper.selectById(chunkId);
         if (chunk == null) {
@@ -331,6 +385,11 @@ public class RagDocumentService {
         }
     }
 
+    /**
+     * 删除文档切片，同时清理其向量并刷新文档切片数
+     *
+     * @param chunkId 切片 ID
+     */
     public void deleteChunk(Long chunkId) {
         RagChunkPO chunk = ragChunkMapper.selectById(chunkId);
         if (chunk == null) {
@@ -399,6 +458,15 @@ public class RagDocumentService {
     /**
      * 直接落一行 RagDocument 并返回响应 VO。
      * 供常规 upload 与 preview-commit 两条链路复用，调用方自行准备好资源 ID。
+     *
+     * @param knowledge   所属知识库
+     * @param fileName    文件名
+     * @param fileType    文件类型
+     * @param sourceType  来源类型
+     * @param contentHash 内容哈希
+     * @param resourceId  资源 ID（可为空）
+     * @param decision    去重决策
+     * @return 文档响应（含决策信息）
      */
     public RagDocumentResponseVO persistDocumentRow(RagPO knowledge, String fileName,
                                                     String fileType, String sourceType,
@@ -420,6 +488,8 @@ public class RagDocumentService {
 
     /**
      * 清理文档（公开版本）。preview-commit 流程的 OVERWRITE 直接调用，不再走 @Transactional 包装。
+     *
+     * @param documentId 文档 ID
      */
     public void cleanupDocument(Long documentId) {
         cleanupDocumentInternal(documentId);
@@ -427,27 +497,60 @@ public class RagDocumentService {
 
     /**
      * 暴露给 PreviewService 的去重判定器。
+     *
+     * @return 文档去重判定器
      */
     public DocumentDedupChecker getDedupChecker() {
         return dedupChecker;
     }
 
+    /**
+     * 解析生效的去重策略（请求优先，回退知识库配置）
+     *
+     * @param request   上传请求
+     * @param knowledge 所属知识库
+     * @return 生效的去重策略
+     */
     public DedupStrategy resolveStrategy(RagDocumentUploadRequestVO request, RagPO knowledge) {
         return effectiveStrategy(request, knowledge);
     }
 
+    /**
+     * 解析生效的去重动作（请求优先，回退知识库配置）
+     *
+     * @param request   上传请求
+     * @param knowledge 所属知识库
+     * @return 生效的去重动作
+     */
     public DedupAction resolveAction(RagDocumentUploadRequestVO request, RagPO knowledge) {
         return effectiveAction(request, knowledge);
     }
 
+    /**
+     * 获取知识库，不存在时抛出异常
+     *
+     * @param ragId 知识库 ID
+     * @return 知识库 PO
+     */
     public RagPO requireKnowledgeOrThrow(Long ragId) {
         return requireKnowledge(ragId);
     }
 
+    /**
+     * 构建知识库上传分布式锁 key
+     *
+     * @param ragId 知识库 ID
+     * @return 上传锁 key
+     */
     public String uploadLockKey(Long ragId) {
         return UPLOAD_LOCK_KEY_PREFIX + ragId;
     }
 
+    /**
+     * 获取上传锁超时时间（秒）
+     *
+     * @return 上传锁超时秒数
+     */
     public long uploadLockTimeoutSeconds() {
         return UPLOAD_LOCK_TIMEOUT_SECONDS;
     }

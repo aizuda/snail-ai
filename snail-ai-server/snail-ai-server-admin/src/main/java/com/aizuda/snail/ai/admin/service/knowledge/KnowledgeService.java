@@ -60,6 +60,12 @@ public class KnowledgeService {
     private final VectorDimensionConstraintService vectorDimensionConstraintService;
     private final VectorStoreFactory vectorStoreFactory;
 
+    /**
+     * 创建知识库
+     *
+     * @param request 知识库创建请求参数
+     * @return 创建后的知识库详情
+     */
     public KnowledgeResponseVO create(KnowledgeRequestVO request) {
         validateKnowledgeStorage(request);
         validateDimension(request);
@@ -89,6 +95,13 @@ public class KnowledgeService {
         return toResponseVO(po);
     }
 
+    /**
+     * 更新知识库
+     *
+     * @param id      知识库 ID
+     * @param request 知识库更新请求参数
+     * @return 更新后的知识库详情
+     */
     public KnowledgeResponseVO update(Long id, KnowledgeRequestVO request) {
         RagPO po = knowledgeMapper.selectById(id);
         if (po == null) {
@@ -129,6 +142,12 @@ public class KnowledgeService {
         return vo;
     }
 
+    /**
+     * 更新知识库的切片/检索配置
+     *
+     * @param id     知识库 ID
+     * @param config 知识库配置请求参数
+     */
     public void updateConfig(Long id, KnowledgeConfigRequestVO config) {
         RagPO po = knowledgeMapper.selectById(id);
         if (po == null) {
@@ -149,6 +168,11 @@ public class KnowledgeService {
         knowledgeMapper.updateById(po);
     }
 
+    /**
+     * 删除知识库，同时清理其向量库数据、文档与分片
+     *
+     * @param id 知识库 ID
+     */
     @Transactional
     public void delete(Long id) {
         RagPO po = knowledgeMapper.selectById(id);
@@ -168,6 +192,12 @@ public class KnowledgeService {
         knowledgeMapper.deleteById(id);
     }
 
+    /**
+     * 获取知识库详情
+     *
+     * @param id 知识库 ID
+     * @return 知识库详情（含文档/分片统计与嵌入模型名）
+     */
     public KnowledgeResponseVO getById(Long id) {
         RagPO po = knowledgeMapper.selectById(id);
         if (po == null) {
@@ -179,6 +209,12 @@ public class KnowledgeService {
         return vo;
     }
 
+    /**
+     * 分页查询知识库
+     *
+     * @param query 分页查询条件
+     * @return 知识库分页结果
+     */
     public PageResult<List<KnowledgeResponseVO>> page(KnowledgeQueryVO query) {
         LambdaQueryWrapper<RagPO> wrapper = new LambdaQueryWrapper<>();
         if (StrUtil.isNotBlank(query.getName())) {

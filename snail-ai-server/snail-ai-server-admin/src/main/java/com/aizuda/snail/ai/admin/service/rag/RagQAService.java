@@ -43,6 +43,9 @@ public class RagQAService {
 
     /**
      * 流式问答：从 DB 读取知识库配置 → 检索 → 组装 prompt → 调用 LLM 流式输出
+     *
+     * @param request 知识库问答请求（知识库 ID 与用户问题）
+     * @return 问答过程的流式事件（文本块/结束/错误）
      */
     public Flux<RagQaStreamEvent> qaStream(RagQARequestVO request) {
         return Flux.create(sink -> doQaStream(request, sink), FluxSink.OverflowStrategy.BUFFER);

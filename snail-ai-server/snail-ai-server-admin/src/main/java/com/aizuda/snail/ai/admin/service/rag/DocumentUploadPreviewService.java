@@ -80,6 +80,13 @@ public class DocumentUploadPreviewService {
 
     // ──────────────────────────────────── preview ────────────────────────────────────
 
+    /**
+     * 上传预览：落临时资源、按去重策略生成每文件决策，并返回带 token 的预览结果
+     *
+     * @param files   待上传的文件数组
+     * @param request 上传请求（知识库 ID、去重策略/动作等）
+     * @return 预览结果（含预览 token 与每文件决策）
+     */
     public UploadPreviewResultVO preview(MultipartFile[] files, RagDocumentUploadRequestVO request) {
         if (files == null || files.length == 0) {
             throw new SnailAiCommonException("请选择要上传的文件");
@@ -169,6 +176,12 @@ public class DocumentUploadPreviewService {
 
     // ──────────────────────────────────── commit ────────────────────────────────────
 
+    /**
+     * 上传提交：在知识库锁内重新校验决策（TOCTOU）并按用户最终选择执行入库
+     *
+     * @param request 提交请求（预览 token 与每文件最终决策）
+     * @return 提交结果（含冲突是否变化与已入库文档）
+     */
     public UploadCommitResultVO commit(UploadCommitRequestVO request) {
         UploadPreviewState state = loadState(request.getPreviewToken());
         RagPO knowledge = ragDocumentService.requireKnowledgeOrThrow(state.getRagId());
@@ -288,6 +301,11 @@ public class DocumentUploadPreviewService {
 
     // ──────────────────────────────────── cancel ────────────────────────────────────
 
+    /**
+     * 取消上传预览：删除临时资源并失效预览 token
+     *
+     * @param token 预览 token
+     */
     public void cancel(String token) {
         if (token == null || token.isBlank()) {
             return;
@@ -306,6 +324,9 @@ public class DocumentUploadPreviewService {
 
     // ──────────────────────────────────── 定时清理过期 Token ────────────────────────────────────
 
+    /**
+     * 定时清理过期的预览 token（每分钟执行一次）
+     */
     @Scheduled(fixedDelay = 60_000) // 每 1 分钟检查一次
     public void cleanupExpiredTokens() {
         Iterator<Map.Entry<String, TokenEntry>> iter = tokenCache.entrySet().iterator();

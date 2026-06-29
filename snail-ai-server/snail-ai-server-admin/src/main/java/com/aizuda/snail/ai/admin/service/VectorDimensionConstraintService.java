@@ -32,6 +32,13 @@ public class VectorDimensionConstraintService {
     private final EmbeddingModelDimensionService embeddingModelDimensionService;
     private final StoreInstanceMapper storeInstanceMapper;
 
+    /**
+     * 计算嵌入模型与向量库实例共同决定的向量维度约束
+     *
+     * @param embeddingModelId      嵌入模型 ID
+     * @param vectorStoreInstanceId 向量库实例 ID
+     * @return 向量维度约束（模型上限/向量库上限/有效上限）
+     */
     public VectorDimensionConstraintVO resolveConstraint(Long embeddingModelId, Long vectorStoreInstanceId) {
         if (embeddingModelId == null) {
             throw new SnailAiCommonException("embeddingModelId 不能为空");
@@ -49,10 +56,23 @@ public class VectorDimensionConstraintService {
                 .build();
     }
 
+    /**
+     * 获取嵌入模型支持的最大向量维度
+     *
+     * @param embeddingModelId 嵌入模型 ID
+     * @return 模型最大向量维度
+     */
     public int getModelMaxDimension(Long embeddingModelId) {
         return embeddingModelDimensionService.getEmbeddingDimension(embeddingModelId);
     }
 
+    /**
+     * 校验用户请求的向量维度是否落在模型与向量库共同允许的范围内
+     *
+     * @param dimension             请求的向量维度
+     * @param embeddingModelId      嵌入模型 ID
+     * @param vectorStoreInstanceId 向量库实例 ID
+     */
     public void validateRequestedDimension(Integer dimension,
                                            Long embeddingModelId,
                                            Long vectorStoreInstanceId) {
