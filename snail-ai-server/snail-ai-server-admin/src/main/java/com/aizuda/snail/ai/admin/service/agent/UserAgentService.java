@@ -32,6 +32,11 @@ public class UserAgentService {
     private final AgentMapper agentMapper;
     private final AgentService agentService;
 
+    /**
+     * 获取当前用户已订阅的智能体列表
+     *
+     * @return 已订阅智能体视图列表
+     */
     public List<AgentResponseVO> getMyAgents() {
         Long userId = UserSessionUtils.currentUserSession().getId();
         List<UserAgentPO> relations = userAgentMapper.selectList(
@@ -48,6 +53,11 @@ public class UserAgentService {
         return agents.stream().map(agentService::toResponseVO).collect(Collectors.toList());
     }
 
+    /**
+     * 获取智能体市场列表（全部已激活智能体，并标记当前用户是否已订阅）
+     *
+     * @return 智能体视图列表（含 subscribed 标记）
+     */
     public List<AgentResponseVO> getMarket() {
         Long userId = UserSessionUtils.currentUserSession().getId();
         Set<Long> subscribedIds = userAgentMapper.selectList(
@@ -66,6 +76,11 @@ public class UserAgentService {
         }).collect(Collectors.toList());
     }
 
+    /**
+     * 当前用户订阅指定智能体（已订阅则忽略）
+     *
+     * @param agentId 智能体 ID
+     */
     public void subscribe(Long agentId) {
         Long userId = UserSessionUtils.currentUserSession().getId();
         Long count = userAgentMapper.selectCount(
@@ -81,6 +96,11 @@ public class UserAgentService {
                 .build());
     }
 
+    /**
+     * 当前用户取消订阅指定智能体
+     *
+     * @param agentId 智能体 ID
+     */
     public void unsubscribe(Long agentId) {
         Long userId = UserSessionUtils.currentUserSession().getId();
         userAgentMapper.delete(

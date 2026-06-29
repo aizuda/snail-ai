@@ -37,6 +37,13 @@ public class ResourceAdminService {
     private final ResourceService resourceService;
     private final ResourceMapper resourceMapper;
 
+    /**
+     * 上传资源文件，关联当前用户与业务类型并入库
+     *
+     * @param file    上传的文件
+     * @param request 上传请求（业务类型、业务主键等）
+     * @return 资源响应视图
+     */
     public ResourceResponseVO upload(MultipartFile file, ResourceUploadRequestVO request) {
         Long userId = UserSessionUtils.currentUserSession().getId();
         String bizType = StrUtil.isNotBlank(request.getBizType())
@@ -58,11 +65,22 @@ public class ResourceAdminService {
         }
     }
 
+    /**
+     * 删除资源（非管理员仅可删除本人创建的资源）
+     *
+     * @param id 资源 ID
+     */
     public void delete(Long id) {
         requireAuthorizedResource(id);
         resourceService.delete(id);
     }
 
+    /**
+     * 分页查询资源（非管理员仅返回本人创建的资源）
+     *
+     * @param query 查询条件（业务类型、名称、时间范围等）
+     * @return 资源分页结果
+     */
     public PageResult<List<ResourceResponseVO>> page(ResourceQueryVO query) {
         LambdaQueryWrapper<ResourcePO> wrapper = new LambdaQueryWrapper<>();
         UserPO currentUser = UserSessionUtils.currentUserSession();
