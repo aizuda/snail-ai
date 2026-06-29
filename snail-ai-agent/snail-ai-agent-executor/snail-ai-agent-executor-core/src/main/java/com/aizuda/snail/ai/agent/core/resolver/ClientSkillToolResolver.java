@@ -43,7 +43,10 @@ public class ClientSkillToolResolver {
     }
 
     /**
-     * 从 Skill 描述符列表构建工具回调
+     * 从 Skill 描述符列表构建工具回调，并向系统提示追加技能清单。
+     *
+     * @param request 对话分发请求
+     * @return 技能工具回调列表；无技能时返回空列表
      */
     public List<ToolCallback> resolve(ChatDispatchRequest request) {
         List<ChatDispatchRequest.SkillDescriptor> skills = request.getSkills();
@@ -69,7 +72,10 @@ public class ClientSkillToolResolver {
     }
 
     /**
-     * 构建轻量级技能列表（仅 name + description + filePath），不含完整 skillContent
+     * 构建轻量级技能列表（仅 name + description + filePath），不含完整 skillContent。
+     *
+     * @param skills 技能描述符列表
+     * @return Markdown 格式的技能清单文本
      */
     public String buildSkillsList(List<ChatDispatchRequest.SkillDescriptor> skills) {
         StringBuilder sb = new StringBuilder();
@@ -84,6 +90,12 @@ public class ClientSkillToolResolver {
         return sb.toString();
     }
 
+    /**
+     * 计算技能支撑文件的临时目录路径。
+     *
+     * @param po 技能描述符
+     * @return 技能临时目录路径
+     */
     public Path getSkillTempDir(ChatDispatchRequest.SkillDescriptor po) {
         return Path.of(skillTempDir + File.separator + po.getId() + File.separator + po.getVersion());
     }

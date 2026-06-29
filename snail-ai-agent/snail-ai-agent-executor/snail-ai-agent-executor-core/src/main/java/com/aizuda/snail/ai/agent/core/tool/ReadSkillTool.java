@@ -51,6 +51,12 @@ public class ReadSkillTool {
         }
     }
 
+    /**
+     * 读取指定技能的完整说明内容（SKILL.md）：首次调用同步回源并缓存，支撑文件异步落盘。
+     *
+     * @param skillName 技能名称，必须与可用技能列表中的名称完全一致
+     * @return 技能说明内容；技能不存在或获取失败时以 "Error:" 开头
+     */
     @Tool(name = "read_skill",
           description = "Read the full instruction content (SKILL.md) of a specified skill. "
                   + "Call this tool first to get detailed execution steps and parameter descriptions before using a skill. "
@@ -105,7 +111,11 @@ public class ReadSkillTool {
     }
 
     /**
-     * 获取 skill 临时目录路径（供 ShellTool 使用）
+     * 获取 skill 临时目录路径（供 ShellTool 使用）。
+     *
+     * @param skillId 技能 ID
+     * @param version 技能版本，为空时默认 "1"
+     * @return 技能临时目录的绝对路径字符串
      */
     public String getSkillDir(Long skillId, String version) {
         return Path.of(tempDir, String.valueOf(skillId), version != null ? version : "1").toString();

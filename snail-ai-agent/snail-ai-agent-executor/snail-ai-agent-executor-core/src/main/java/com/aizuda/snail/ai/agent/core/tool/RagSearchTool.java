@@ -31,6 +31,13 @@ public class RagSearchTool {
         this.rpcClient = rpcClient;
     }
 
+    /**
+     * 按 ragId 检索指定知识库，通过 gRPC 回调服务端执行检索。
+     *
+     * @param ragId         待检索的知识库 ID
+     * @param queryQuestion 用户问题或相关查询
+     * @return 拼接后的参考资料文本；无结果或失败时返回提示信息
+     */
     @Tool(name = "rag_search",
             description = "Search a specific knowledge base by ragId. "
                     + "Use the ragId parameter to specify which knowledge base to search. "

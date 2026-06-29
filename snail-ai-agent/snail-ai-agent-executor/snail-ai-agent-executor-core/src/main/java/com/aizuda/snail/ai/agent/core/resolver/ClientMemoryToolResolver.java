@@ -20,6 +20,12 @@ public class ClientMemoryToolResolver {
     public ClientMemoryToolResolver() {
     }
 
+    /**
+     * 解析记忆相关工具。当前记忆检索由后台处理，不再注册独立工具。
+     *
+     * @param request 对话分发请求
+     * @return 始终返回空列表
+     */
     public List<ToolCallback> resolve(ChatDispatchRequest request) {
         // Memory tools are now handled by the backend without independent tool registration
         return List.of();

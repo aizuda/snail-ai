@@ -33,7 +33,10 @@ public class ClientMcpToolResolver {
     private final List<McpSyncClient> connectedClients = new ArrayList<>();
 
     /**
-     * 解析 MCP 描述符列表，连接 MCP 服务并返回工具回调
+     * 解析 MCP 描述符列表，连接 MCP 服务并返回工具回调。
+     *
+     * @param mcpServers MCP 服务描述符列表
+     * @return 已连接 MCP 服务的工具回调列表（连接失败的服务将被跳过）
      */
     public List<ToolCallback> resolve(List<ChatDispatchRequest.McpServerDescriptor> mcpServers) {
         List<ToolCallback> callbacks = new ArrayList<>();

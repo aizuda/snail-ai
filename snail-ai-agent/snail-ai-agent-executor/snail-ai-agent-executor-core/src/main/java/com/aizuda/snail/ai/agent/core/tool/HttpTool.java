@@ -42,6 +42,16 @@ public class HttpTool {
                 .build();
     }
 
+    /**
+     * 发起 HTTP 请求（支持 GET/POST），用于调用外部 API、抓取远程数据或发送 Webhook。
+     *
+     * @param url         请求 URL，必须以 http:// 或 https:// 开头
+     * @param method      HTTP 方法：GET 或 POST（可选，默认 GET）
+     * @param body        请求体（仅 POST，通常为 JSON 字符串，可选）
+     * @param contentType Content-Type 请求头（可选，默认 application/json）
+     * @param headers     附加请求头，多个以换行分隔，格式 Header:Value（可选）
+     * @return 响应文本（含状态码与响应体，超长会截断）；失败时以 "Error:" 开头
+     */
     @Tool(name = "http_request", description = "Make an HTTP request to a remote API. Supports GET and POST methods. "
             + "Can be used to call external APIs, fetch remote data, send webhook notifications, etc.")
     public String request(
