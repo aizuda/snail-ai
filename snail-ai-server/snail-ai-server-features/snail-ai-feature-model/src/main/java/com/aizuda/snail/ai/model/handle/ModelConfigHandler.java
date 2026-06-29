@@ -32,6 +32,9 @@ public class ModelConfigHandler {
     /**
      * 获取模型配置信息 (用于DynamicModelCaller，返回ModelConfigInfo)
      * 返回脱敏的配置信息，不暴露完整API Key
+     *
+     * @param modelId 模型配置 ID
+     * @return 模型配置信息（API Key 为加密态）；不存在时返回 null
      */
     public ModelConfigInfoDTO getConfigInfo(Long modelId) {
         return buildConfigInfoDTO(configMapper.selectById(modelId));
@@ -39,6 +42,9 @@ public class ModelConfigHandler {
 
     /**
      * 解密API Key
+     *
+     * @param encryptedApiKey 加密的 API Key
+     * @return 解密后的明文 API Key
      */
     public String decryptApiKey(String encryptedApiKey) {
         return cryptoHelper.decrypt(encryptedApiKey);
@@ -46,6 +52,9 @@ public class ModelConfigHandler {
 
     /**
      * 按类型获取默认模型
+     *
+     * @param modelType 模型类型（chat / embedding / reranker 等）
+     * @return 该类型下默认且启用的模型配置；无则返回 null
      */
     public ModelConfigInfoDTO getDefaultModelByType(String modelType) {
 

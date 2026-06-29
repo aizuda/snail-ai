@@ -57,6 +57,9 @@ public class McpToolService {
 
     /**
      * 获取智能体关联的 MCP 服务器列表
+     *
+     * @param agentId 智能体 ID
+     * @return 关联的 MCP 服务器列表
      */
     public List<McpServerPO> getMcpServersForAgent(Long agentId) {
         List<AgentMcpServerPO> relations = agentMcpServerMapper.selectList(
@@ -74,6 +77,9 @@ public class McpToolService {
 
     /**
      * 根据 MCP 服务器列表获取所有可用的 ToolCallback。
+     *
+     * @param mcpServers MCP 服务器引用列表
+     * @return 可用的工具回调列表；无可用连接时返回空列表
      */
     public List<ToolCallback> getToolCallbacks(List<? extends McpServerRef> mcpServers) {
         List<McpSyncClient> clients = new ArrayList<>();
@@ -198,6 +204,8 @@ public class McpToolService {
 
     /**
      * 清除某个服务器的缓存连接
+     *
+     * @param serverId MCP 服务器 ID
      */
     public void clearClientCache(Long serverId) {
         McpSyncClient client = clientCache.remove(serverId);

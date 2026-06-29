@@ -19,6 +19,12 @@ public class CryptoHelper {
 
     private final SM4 sm4;
 
+    /**
+     * 基于配置的密钥与 IV 初始化 SM4 加解密器
+     *
+     * @param secretKey 十六进制编码的 SM4 密钥
+     * @param iv        十六进制编码的初始化向量
+     */
     public CryptoHelper(@Value("${snail-ai.crypto.secret-key}") String secretKey,
                         @Value("${snail-ai.crypto.iv}") String iv) {
         byte[] keyBytes = HexUtil.decodeHex(secretKey);
