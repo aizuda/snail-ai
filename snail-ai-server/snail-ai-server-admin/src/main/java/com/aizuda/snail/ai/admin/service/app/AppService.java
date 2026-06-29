@@ -47,6 +47,12 @@ public class AppService {
     private final AppMapper appMapper;
     private final ClientNodeMapper clientNodeMapper;
 
+    /**
+     * 创建应用（appId 重复则报错，自动生成 Token 并默认启用）
+     *
+     * @param request 应用创建请求
+     * @return 应用响应视图
+     */
     public AppResponseVO create(AppRequestVO request) {
         Long count = appMapper.selectCount(new LambdaQueryWrapper<AppPO>().eq(AppPO::getAppId, request.getAppId()));
         if (count > 0) {
@@ -64,6 +70,13 @@ public class AppService {
         return toResponseVO(po);
     }
 
+    /**
+     * 更新应用基本信息
+     *
+     * @param id      应用主键
+     * @param request 应用更新请求
+     * @return 应用响应视图
+     */
     public AppResponseVO update(Long id, AppRequestVO request) {
         AppPO po = findAppById(id);
         updateAppFields(po, request);
@@ -71,6 +84,11 @@ public class AppService {
         return toResponseVO(po);
     }
 
+    /**
+     * 删除应用及其关联的接入节点
+     *
+     * @param id 应用主键
+     */
     public void delete(Long id) {
         AppPO po = appMapper.selectById(id);
         if (po == null) {
@@ -81,12 +99,23 @@ public class AppService {
         appMapper.deleteById(id);
     }
 
+    /**
+     * 切换应用启用/停用状态
+     *
+     * @param id 应用主键
+     */
     public void toggleStatus(Long id) {
         AppPO po = findAppById(id);
         po.setStatus(isEnabled(po) ? APP_STATUS_DISABLED : APP_STATUS_ENABLED);
         appMapper.updateById(po);
     }
 
+    /**
+     * 分页查询应用列表
+     *
+     * @param query 查询条件（关键字、状态、时间范围）
+     * @return 应用分页结果
+     */
     public PageResult<List<AppResponseVO>> page(AppQueryVO query) {
         IPage<AppPO> page = appMapper.selectPage(
                 PageDTO.of(query.getPage(), query.getSize()), buildQueryWrapper(query));
@@ -94,6 +123,11 @@ public class AppService {
         return buildPageResult(page);
     }
 
+    /**
+     * 查询全部已启用的应用
+     *
+     * @return 已启用应用列表
+     */
     public List<AppResponseVO> listEnabled() {
         List<AppPO> list = appMapper.selectList(
                 new LambdaQueryWrapper<AppPO>()
@@ -102,6 +136,12 @@ public class AppService {
         return list.stream().map(this::toResponseVO).toList();
     }
 
+    /**
+     * 查询指定应用下的接入节点（含在线状态）
+     *
+     * @param appId 应用 ID
+     * @return 接入节点列表
+     */
     public List<ClientNodeVO> getNodes(String appId) {
         List<ClientNodePO> nodes = clientNodeMapper.selectList(
                 new LambdaQueryWrapper<ClientNodePO>()
@@ -117,6 +157,8 @@ public class AppService {
 
     /**
      * 获取所有应用下的客户端节点（全局视图）
+     *
+     * @return 全部接入节点列表
      */
     public List<ClientNodeVO> getAllNodes() {
         List<ClientNodePO> nodes = clientNodeMapper.selectList(
@@ -130,6 +172,12 @@ public class AppService {
                 .toList();
     }
 
+    /**
+     * 踢除指定应用的指定接入节点
+     *
+     * @param appId  应用 ID
+     * @param hostId 节点主机 ID
+     */
     public void kickNode(String appId, String hostId) {
         clientNodeMapper.delete(new LambdaQueryWrapper<ClientNodePO>()
                 .eq(ClientNodePO::getAppId, appId)
