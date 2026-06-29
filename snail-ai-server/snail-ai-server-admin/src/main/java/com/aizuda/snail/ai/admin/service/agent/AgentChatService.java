@@ -40,6 +40,8 @@ public class AgentChatService {
         context.setDisabledSkillIds(command.getDisabledSkillIds());
         context.setSid(command.getSid());
 
+        log.debug("智能体对话开始 agentId={} conversationId={} sid={}",
+                command.getAgentId(), command.getConversationId(), command.getSid());
         agentChatChainService.proceed(context);
     }
 }

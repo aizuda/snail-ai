@@ -94,6 +94,7 @@ public class UserAgentService {
                 .userId(userId)
                 .agentId(agentId)
                 .build());
+        log.info("用户订阅智能体 userId={} agentId={}", userId, agentId);
     }
 
     /**
@@ -107,5 +108,6 @@ public class UserAgentService {
                 new LambdaQueryWrapper<UserAgentPO>()
                         .eq(UserAgentPO::getUserId, userId)
                         .eq(UserAgentPO::getAgentId, agentId));
+        log.info("用户取消订阅智能体 userId={} agentId={}", userId, agentId);
     }
 }

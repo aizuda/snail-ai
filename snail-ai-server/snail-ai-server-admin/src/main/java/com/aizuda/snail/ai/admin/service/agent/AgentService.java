@@ -159,7 +159,8 @@ public class AgentService {
         if (savedAgent == null) {
             throw new SnailAiCommonException("创建智能体失败：保存后无法查询到数据");
         }
-        
+
+        log.info("创建智能体成功 id={} name={} chatModelId={}", agentId, agent.getName(), defaultModel.getId());
         return toResponseVO(savedAgent);
     }
 
@@ -271,6 +272,7 @@ public class AgentService {
             skillService.updateAgentSkills(id, request.getSkillIds());
         }
 
+        log.info("更新智能体成功 id={}", id);
         return toResponseVO(po);
     }
 
@@ -294,6 +296,7 @@ public class AgentService {
         agentUsageStatMapper.delete(
                 new LambdaQueryWrapper<AgentUsageStatPO>().eq(AgentUsageStatPO::getAgentId, id));
         agentMapper.deleteById(id);
+        log.info("删除智能体成功 id={} name={}", id, po.getName());
     }
 
     /**

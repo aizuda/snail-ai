@@ -2,6 +2,7 @@ package com.aizuda.snail.ai.admin.service.agent;
 
 import com.aizuda.snail.ai.feature.agent.chain.AgentChatContext;
 import com.aizuda.snail.ai.feature.agent.chain.AgentChatHandler;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -12,6 +13,7 @@ import java.util.List;
  * @author opensnail
  * @since 2026-06-14
  */
+@Slf4j
 @Component
 public class AgentChatChainService {
     private final List<AgentChatHandler> handlers;
@@ -31,6 +33,7 @@ public class AgentChatChainService {
      * @param ctx 智能体对话上下文
      */
     public void proceed(AgentChatContext ctx) {
+        log.debug("对话责任链执行 handler数={}", handlers.size());
         for (AgentChatHandler handler : handlers) {
             handler.handle(ctx);
         }
