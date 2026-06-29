@@ -8,6 +8,7 @@ import com.aizuda.snail.ai.persistence.agent.po.AgentConversationPO;
 import com.aizuda.snail.ai.persistence.agent.po.AgentConversationRecordPO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
  * @author opensnail
  * @since 2026-06-14
  */
+@Slf4j
 @Component
 @Order(20)
 @RequiredArgsConstructor
@@ -45,6 +47,7 @@ public class ConversationHandler implements AgentChatHandler {
                     .conversationId(conversationId)
                     .title(content.substring(0, Math.min(content.length(), 16)))
                     .build());
+            log.debug("创建新对话 conversationId={} agentId={} userId={}", conversationId, agentId, userId);
         }
 
         recordMapper.insert(AgentConversationRecordPO.builder()
@@ -55,6 +58,6 @@ public class ConversationHandler implements AgentChatHandler {
                 .content(content)
                 .status(StatusEnum.RUNNING.getValue())
                 .build());
-
+        log.debug("持久化用户消息 conversationId={} agentId={}", conversationId, agentId);
     }
 }

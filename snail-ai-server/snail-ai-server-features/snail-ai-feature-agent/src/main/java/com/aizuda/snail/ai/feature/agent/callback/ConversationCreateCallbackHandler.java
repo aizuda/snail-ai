@@ -53,6 +53,7 @@ public class ConversationCreateCallbackHandler implements GrpcRequestHandler {
                         .agentId(req.getAgentId()).userId(req.getUserId())
                         .conversationId(req.getConversationId()).title(title)
                         .build());
+                log.debug("回调创建新对话 conversationId={} agentId={}", req.getConversationId(), req.getAgentId());
             }
 
             // 保存用户消息
@@ -63,6 +64,7 @@ public class ConversationCreateCallbackHandler implements GrpcRequestHandler {
                     .status(StatusEnum.RUNNING.getValue())
                     .build());
 
+            log.debug("回调保存用户消息 conversationId={} agentId={}", req.getConversationId(), req.getAgentId());
             return buildSuccess();
         } catch (Exception e) {
             log.error("Callback conversation create failed", e);

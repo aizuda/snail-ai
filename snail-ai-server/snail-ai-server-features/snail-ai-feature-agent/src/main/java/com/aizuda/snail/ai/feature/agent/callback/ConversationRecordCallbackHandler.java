@@ -43,6 +43,7 @@ public class ConversationRecordCallbackHandler implements GrpcRequestHandler {
                     .content(req.getContent())
                     .build());
 
+            log.debug("回调保存对话消息 conversationId={} role={}", req.getConversationId(), req.getRole());
             return GrpcSnailAiResult.newBuilder().setStatus(1).setMessage("OK").build();
         } catch (Exception e) {
             log.error("Callback conversation record failed", e);
