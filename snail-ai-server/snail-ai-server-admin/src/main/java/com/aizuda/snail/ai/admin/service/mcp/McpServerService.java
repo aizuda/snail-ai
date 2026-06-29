@@ -58,6 +58,9 @@ public class McpServerService {
 
     /**
      * 分页查询 MCP 服务
+     *
+     * @param query 分页与过滤条件（关键字、传输类型、时间区间）
+     * @return MCP 服务分页结果
      */
     public PageResult<List<McpServerResponseVO>> page(McpServerQueryVO query) {
         LambdaQueryWrapper<McpServerPO> wrapper = new LambdaQueryWrapper<>();
@@ -80,6 +83,9 @@ public class McpServerService {
 
     /**
      * 获取 MCP 服务详情
+     *
+     * @param id MCP 服务 ID
+     * @return MCP 服务详情 VO；不存在时抛出异常
      */
     public McpServerResponseVO getById(Long id) {
         McpServerPO po = mcpServerMapper.selectById(id);
@@ -91,6 +97,9 @@ public class McpServerService {
 
     /**
      * 创建 MCP 服务
+     *
+     * @param request MCP 服务创建请求参数
+     * @return 创建成功的 MCP 服务 VO
      */
     public McpServerResponseVO create(McpServerRequestVO request) {
         McpServerPO po = McpServerPO.builder()
@@ -115,6 +124,10 @@ public class McpServerService {
 
     /**
      * 更新 MCP 服务
+     *
+     * @param id      MCP 服务 ID
+     * @param request MCP 服务更新请求参数（仅非空字段生效）
+     * @return 更新后的 MCP 服务 VO
      */
     public McpServerResponseVO update(Long id, McpServerRequestVO request) {
         McpServerPO po = mcpServerMapper.selectById(id);
@@ -167,6 +180,8 @@ public class McpServerService {
 
     /**
      * 删除 MCP 服务
+     *
+     * @param id MCP 服务 ID
      */
     @Transactional
     public void delete(Long id) {
@@ -178,6 +193,9 @@ public class McpServerService {
 
     /**
      * 测试连接
+     *
+     * @param id MCP 服务 ID
+     * @return 连接是否成功
      */
     public boolean testConnection(Long id) {
         McpServerPO po = mcpServerMapper.selectById(id);
@@ -204,6 +222,8 @@ public class McpServerService {
 
     /**
      * 获取所有 MCP 服务（给智能体选择下拉使用）
+     *
+     * @return 全部 MCP 服务 VO 列表
      */
     public List<McpServerResponseVO> listAll() {
         List<McpServerPO> list = mcpServerMapper.selectList(
@@ -213,6 +233,9 @@ public class McpServerService {
 
     /**
      * 获取智能体关联的 MCP 服务列表
+     *
+     * @param agentId 智能体 ID
+     * @return 该智能体关联的 MCP 服务 VO 列表
      */
     public List<McpServerResponseVO> getByAgentId(Long agentId) {
         List<AgentMcpServerPO> relations = agentMcpServerMapper.selectList(
@@ -231,6 +254,9 @@ public class McpServerService {
 
     /**
      * 更新智能体的 MCP 服务关联
+     *
+     * @param agentId      智能体 ID
+     * @param mcpServerIds 目标 MCP 服务 ID 列表（覆盖原关联，可为空表示清空）
      */
     @Transactional
     public void updateAgentMcpServers(Long agentId, List<Long> mcpServerIds) {
