@@ -19,7 +19,9 @@ import java.util.List;
 @Builder
 public class SearchAddRequest {
 
+    /** 目标索引名 */
     private String indexName;
 
+    /** 待写入的文档列表 */
     private List<SearchDocument> documents;
 }

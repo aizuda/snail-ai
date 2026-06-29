@@ -7,6 +7,7 @@ import com.aizuda.snail.ai.search.storage.search.api.SearchEngine;
 import com.aizuda.snail.ai.search.storage.search.enums.SearchEngineEnum;
 import com.aizuda.snail.ai.search.storage.search.exception.SearchEngineException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -20,6 +21,7 @@ import java.util.function.Function;
  * @author opensnail
  * @since 2026-06-14
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class SearchEngineFactory {
@@ -32,6 +34,12 @@ public class SearchEngineFactory {
 
     private final StoreInstanceMapper storeInstanceMapper;
 
+    /**
+     * 按存储实例 ID 解析配置并构建对应的全文检索引擎。
+     *
+     * @param instanceId 存储实例 ID
+     * @return 对应的检索引擎实现
+     */
     public SearchEngine forStoreInstance(Long instanceId) {
         if (instanceId == null) {
             throw new SearchEngineException("搜索引擎实例 ID 不能为空");
@@ -52,6 +60,7 @@ public class SearchEngineFactory {
         if (constructor == null) {
             throw new SearchEngineException("搜索引擎类型未注册 type:" + type);
         }
+        log.debug("构建全文检索引擎 instanceId={} type={}", instanceId, type);
         return constructor.apply(SearchEngineConfigDTO.builder()
                 .storeInstance(inst)
                 .config(inst.getConfig())
