@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.util.List;
 
 /**
- * SearchDeleteRequest
+ * 全文检索删除请求，指定索引下按文档 ID 批量删除。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -19,7 +19,13 @@ import java.util.List;
 @Builder
 public class SearchDeleteRequest {
 
+    /**
+     * 目标索引名
+     */
     private String indexName;
 
+    /**
+     * 待删除的文档 ID 列表
+     */
     private List<String> ids;
 }

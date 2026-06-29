@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * ElasticsearchSearchEngine
+ * 基于 Elasticsearch 的全文检索引擎实现，负责索引自动创建、文档批量写入、全文检索与删除。
  *
  * @author opensnail
  * @since 2026-06-14

@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * SearchEngineConfigDTO
+ * 全文检索引擎构建配置，携带存储实例及其原始配置 JSON，供工厂创建引擎实例使用。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -18,7 +18,13 @@ import lombok.NoArgsConstructor;
 @Builder
 public class SearchEngineConfigDTO {
 
+    /**
+     * 存储实例信息
+     */
     private StoreInstancePO storeInstance;
 
+    /**
+     * 原始配置 JSON 字符串
+     */
     private String config;
 }

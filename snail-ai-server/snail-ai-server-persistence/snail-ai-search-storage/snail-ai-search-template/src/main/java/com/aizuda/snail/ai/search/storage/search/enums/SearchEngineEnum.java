@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * SearchEngineEnum
+ * 全文检索引擎类型枚举，标识当前启用的搜索引擎实现。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -13,8 +13,14 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum SearchEngineEnum {
 
+    /**
+     * Elasticsearch 全文检索引擎
+     */
     ELASTICSEARCH("ELASTICSEARCH");
 
+    /**
+     * 类型标识，用于配置匹配与实例选择
+     */
     private final String type;
 
     public static SearchEngineEnum fromType(String type) {

@@ -14,7 +14,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 /**
- * SearchEngineFactory
+ * 全文检索引擎工厂，按存储实例配置选择并构建对应的 {@link SearchEngine} 实现，
+ * 各引擎通过 {@link #REGISTER} 在启动时注册自身的构造逻辑。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -23,6 +24,9 @@ import java.util.function.Function;
 @RequiredArgsConstructor
 public class SearchEngineFactory {
 
+    /**
+     * 引擎类型 → 构造函数注册表，由各引擎实现在启动时注册
+     */
     public static final Map<SearchEngineEnum, Function<SearchEngineConfigDTO, SearchEngine>> REGISTER
             = new ConcurrentHashMap<>();
 
