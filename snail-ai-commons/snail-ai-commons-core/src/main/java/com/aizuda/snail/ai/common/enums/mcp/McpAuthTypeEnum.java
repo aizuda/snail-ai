@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * McpAuthTypeEnum
+ * MCP 服务认证类型枚举，标识连接 MCP Server 时采用的鉴权方式。
  *
  * @author opensnail
  * @since 2026-05-05
@@ -19,8 +19,14 @@ public enum McpAuthTypeEnum {
     OAUTH(2, "OAuth"),
     BASIC(3, "Basic Auth");
 
+    /**
+     * 持久化存储值（@EnumValue 映射数据库字段）
+     */
     @EnumValue
     private final Integer type;
+    /**
+     * 枚举描述（中文）
+     */
     private final String description;
 
     public static McpAuthTypeEnum fromType(Integer type) {

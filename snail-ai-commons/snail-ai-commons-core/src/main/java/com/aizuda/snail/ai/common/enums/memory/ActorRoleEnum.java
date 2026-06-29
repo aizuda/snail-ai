@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * ActorRoleEnum
+ * 记忆参与者角色枚举，标识一条记忆/消息的来源方。
  *
  * @author opensnail
  * @since 2026-05-05
@@ -18,8 +18,14 @@ public enum ActorRoleEnum {
     AGENT(2, "智能体"),
     SYSTEM(3, "系统");
 
+    /**
+     * 持久化存储值（@EnumValue 映射数据库字段）
+     */
     @EnumValue
     private final Integer role;
+    /**
+     * 枚举描述（中文）
+     */
     private final String description;
 
     public static ActorRoleEnum fromRole(Integer role) {

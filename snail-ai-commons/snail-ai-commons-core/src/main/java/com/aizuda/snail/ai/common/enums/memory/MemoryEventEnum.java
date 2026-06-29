@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * MemoryEventEnum
+ * 记忆事件类型枚举，标识记忆抽取后对存量记忆执行的操作。
  *
  * @author opensnail
  * @since 2026-05-05
@@ -19,8 +19,14 @@ public enum MemoryEventEnum {
     DELETE(3, "删除"),
     NOOP(4, "无操作");
 
+    /**
+     * 持久化存储值（@EnumValue 映射数据库字段）
+     */
     @EnumValue
     private final Integer event;
+    /**
+     * 枚举描述（中文）
+     */
     private final String description;
 
     public static MemoryEventEnum fromEvent(Integer event) {

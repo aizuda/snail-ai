@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 /**
- * Result
+ * 通用 API 响应包装，统一返回状态码、提示消息与业务数据。
  *
  * @author opensnail
  * @since 2026-05-05
@@ -14,10 +14,19 @@ import lombok.experimental.Accessors;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Result<T> {
 
+    /**
+     * 状态码（1 成功，0 失败）
+     */
     protected int status = 1;
 
+    /**
+     * 提示消息
+     */
     protected String message;
 
+    /**
+     * 业务数据
+     */
     protected T data;
 
     public Result() {
