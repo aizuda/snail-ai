@@ -25,15 +25,19 @@ public class RagSearchPipeline {
      */
     public RagSearchContext execute(RagSearchContext ctx) {
         long startTime = System.currentTimeMillis();
+        log.debug("RAG 检索链路开始 ragId={} 节点数={}", ctx.getRagId(), handlers.size());
         for (RagSearchHandler handler : handlers) {
             if (ctx.isTerminated()) {
+                log.debug("RAG 检索链路已终止，跳出剩余节点 ragId={}", ctx.getRagId());
                 break;
             }
             handler.handle(ctx);
         }
+        long totalMs = System.currentTimeMillis() - startTime;
         if (ctx.getMetrics() != null) {
-            ctx.getMetrics().setTotalMs(System.currentTimeMillis() - startTime);
+            ctx.getMetrics().setTotalMs(totalMs);
         }
+        log.debug("RAG 检索链路结束 ragId={} 总耗时 {}ms", ctx.getRagId(), totalMs);
         return ctx;
     }
 }

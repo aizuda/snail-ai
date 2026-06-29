@@ -8,6 +8,7 @@ import com.aizuda.snail.ai.features.rag.strategy.fusion.RRFFusion;
 import com.aizuda.snail.ai.features.rag.strategy.fusion.WeightedSumFusion;
 import com.aizuda.snail.ai.persistence.rag.dataobject.RagConfigDO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Component;
  * @author opensnail
  * @since 2026-06-14
  */
+@Slf4j
 @Component
 @Order(50)
 @RequiredArgsConstructor
@@ -37,9 +39,12 @@ public class HybridFusionHandler implements RagSearchHandler {
         HybridFusion fusion = createFusion(sp.getFusionStrategy(), sp.getDenseWeight(), sp.getRrfK());
         ctx.setResults(fusion.fuse(ctx.getVectorResults(), ctx.getBm25Results(), sp.getResultCount()));
 
+        long cost = System.currentTimeMillis() - start;
         if (ctx.getMetrics() != null) {
-            ctx.getMetrics().setFusionMs(System.currentTimeMillis() - start);
+            ctx.getMetrics().setFusionMs(cost);
         }
+        log.debug("RAG 混合融合完成 策略={} 结果 {} 条 耗时 {}ms",
+                sp.getFusionStrategy(), ctx.getResults().size(), cost);
     }
 
     /**

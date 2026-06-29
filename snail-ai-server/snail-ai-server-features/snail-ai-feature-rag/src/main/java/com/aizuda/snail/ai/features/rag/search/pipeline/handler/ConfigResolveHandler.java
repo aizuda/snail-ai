@@ -50,5 +50,8 @@ public class ConfigResolveHandler implements RagSearchHandler {
                 ? configDO.getSearchParams() : new RagConfigDO.SearchParams());
         ctx.setModelParams(configDO.getModelParams());
         ctx.setQuery(ctx.getOriginalQuery());
+
+        log.debug("RAG 配置解析完成 ragId={} 搜索引擎启用={}",
+                ctx.getRagId(), knowledge.getSearchEngineEnable());
     }
 }

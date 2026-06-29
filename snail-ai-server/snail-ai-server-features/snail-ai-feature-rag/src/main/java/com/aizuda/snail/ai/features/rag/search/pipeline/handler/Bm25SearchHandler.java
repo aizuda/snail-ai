@@ -12,6 +12,7 @@ import com.aizuda.snail.ai.features.rag.search.pipeline.RagSearchContext;
 import com.aizuda.snail.ai.features.rag.search.pipeline.RagSearchHandler;
 import cn.hutool.core.util.NumberUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +25,7 @@ import java.util.Map;
  * @author opensnail
  * @since 2026-06-14
  */
+@Slf4j
 @Component
 @Order(40)
 @RequiredArgsConstructor
@@ -33,6 +35,7 @@ public class Bm25SearchHandler implements RagSearchHandler {
     @Override
     public void handle(RagSearchContext ctx) {
         if (!Boolean.TRUE.equals(ctx.getKnowledge().getSearchEngineEnable())) {
+            log.debug("RAG BM25 检索未启用，跳过 ragId={}", ctx.getKnowledge().getId());
             return;
         }
 
@@ -53,10 +56,13 @@ public class Bm25SearchHandler implements RagSearchHandler {
         bm25Results = VectorSearchHandler.filterByThreshold(ctx.getSearchParams(), bm25Results);
         ctx.setBm25Results(bm25Results);
 
+        long cost = System.currentTimeMillis() - start;
         if (ctx.getMetrics() != null) {
-            ctx.getMetrics().setBm25SearchMs(System.currentTimeMillis() - start);
+            ctx.getMetrics().setBm25SearchMs(cost);
             ctx.getMetrics().setBm25HitCount(bm25Results.size());
         }
+        log.debug("RAG BM25 检索命中 {} 条 耗时 {}ms ragId={}",
+                bm25Results.size(), cost, ctx.getKnowledge().getId());
     }
 
     private SearchResult toDTO(SearchResult r, Map<String, Object> meta) {

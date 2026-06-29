@@ -11,6 +11,7 @@ import com.aizuda.snail.ai.vector.storage.vector.api.VectorSearchRequest;
 import com.aizuda.snail.ai.vector.storage.vector.api.VectorSearchResult;
 import cn.hutool.core.util.NumberUtil;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
@@ -23,6 +24,7 @@ import java.util.Map;
  * @author opensnail
  * @since 2026-06-14
  */
+@Slf4j
 @Component
 @Order(30)
 @RequiredArgsConstructor
@@ -50,10 +52,13 @@ public class VectorSearchHandler implements RagSearchHandler {
         ctx.setVectorResults(vectorResults);
         ctx.setResults(vectorResults);
 
+        long cost = System.currentTimeMillis() - start;
         if (ctx.getMetrics() != null) {
-            ctx.getMetrics().setVectorSearchMs(System.currentTimeMillis() - start);
+            ctx.getMetrics().setVectorSearchMs(cost);
             ctx.getMetrics().setVectorHitCount(vectorResults.size());
         }
+        log.debug("RAG 向量检索命中 {} 条 耗时 {}ms ragId={}",
+                vectorResults.size(), cost, ctx.getKnowledge().getId());
     }
 
     private SearchResult toDTO(VectorSearchResult r, Map<String, Object> meta) {
