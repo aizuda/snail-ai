@@ -21,6 +21,13 @@ public class RerankClientBuilder {
 
     private final ServerModelFacade serverModelFacade;
 
+    /**
+     * 构建重排客户端
+     *
+     * @param decryptedApiKey 解密后的 API Key
+     * @param config          模型配置信息
+     * @return 重排客户端
+     */
     public RerankApiClient buildRerankClient(String decryptedApiKey, ModelConfigInfoDTO config) {
         try {
             RerankApiClient client = serverModelFacade.buildRerankClient(config, decryptedApiKey);

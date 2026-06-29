@@ -19,6 +19,13 @@ import org.springframework.stereotype.Component;
 @Component
 public class ServerModelSpecFactory {
 
+    /**
+     * 将模型配置适配为聊天模型构建规格
+     *
+     * @param config          模型配置信息（modelType 须为 CHAT）
+     * @param decryptedApiKey 解密后的 API Key
+     * @return 聊天模型构建规格
+     */
     public ChatModelSpec chatSpec(ModelConfigInfoDTO config, String decryptedApiKey) {
         requireConfig(config, ModelTypeEnum.CHAT);
         return new ChatModelSpec(
@@ -30,6 +37,13 @@ public class ServerModelSpecFactory {
                 config.getConfigJson());
     }
 
+    /**
+     * 将模型配置适配为向量化模型构建规格
+     *
+     * @param config          模型配置信息（modelType 须为 EMBEDDING）
+     * @param decryptedApiKey 解密后的 API Key
+     * @return 向量化模型构建规格
+     */
     public EmbeddingModelSpec embeddingSpec(ModelConfigInfoDTO config, String decryptedApiKey) {
         requireConfig(config, ModelTypeEnum.EMBEDDING);
         return new EmbeddingModelSpec(
@@ -41,6 +55,13 @@ public class ServerModelSpecFactory {
                 config.getConfigJson());
     }
 
+    /**
+     * 将模型配置适配为重排模型构建规格
+     *
+     * @param config          模型配置信息（modelType 须为 RERANKER）
+     * @param decryptedApiKey 解密后的 API Key
+     * @return 重排模型构建规格
+     */
     public RerankModelSpec rerankSpec(ModelConfigInfoDTO config, String decryptedApiKey) {
         requireConfig(config, ModelTypeEnum.RERANKER);
         return new RerankModelSpec(
@@ -52,6 +73,13 @@ public class ServerModelSpecFactory {
                 config.getConfigJson());
     }
 
+    /**
+     * 解析模型配置使用的协议适配器标识，未显式配置时回退到类型默认值
+     *
+     * @param config    模型配置信息
+     * @param modelType 模型类型
+     * @return 协议适配器标识
+     */
     public String resolveAdapterKey(ModelConfigInfoDTO config, ModelTypeEnum modelType) {
         requireConfig(config, modelType);
         return ModelAdapterDefaults.resolve(config.getAdapterKey(), modelType.getValue());

@@ -21,6 +21,13 @@ public class EmbeddingClientBuilder {
 
     private final ServerModelFacade serverModelFacade;
 
+    /**
+     * 获取向量化模型（当前每次新建，异常归一化为模型调用异常）
+     *
+     * @param decryptedApiKey 解密后的 API Key
+     * @param config          模型配置信息
+     * @return 向量化模型实例
+     */
     public EmbeddingModel getOrBuildEmbeddingModel(String decryptedApiKey, ModelConfigInfoDTO config) {
         try {
             log.debug("Building EmbeddingModel for config: {}, provider: {}",
@@ -39,6 +46,13 @@ public class EmbeddingClientBuilder {
         }
     }
 
+    /**
+     * 通过门面构建向量化模型
+     *
+     * @param config          模型配置信息
+     * @param decryptedApiKey 解密后的 API Key
+     * @return 向量化模型实例
+     */
     public EmbeddingModel buildEmbeddingModel(ModelConfigInfoDTO config, String decryptedApiKey) {
         try {
             EmbeddingModel embeddingModel = serverModelFacade.buildEmbeddingModel(config, decryptedApiKey);
