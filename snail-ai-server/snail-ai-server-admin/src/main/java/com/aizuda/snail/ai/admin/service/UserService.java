@@ -273,11 +273,13 @@ public class UserService {
         );
 
         if (Objects.isNull(userPO)) {
+            log.warn("登录失败: 账号不存在 username={}", requestVO.getUsername());
             throw new SnailAiCommonException("账号或密码错误");
         }
 
         // 验证密码
         if (!verifyPassword(requestVO.getPassword(), userPO.getPassword())) {
+            log.warn("登录失败: 密码错误 username={}", requestVO.getUsername());
             throw new SnailAiCommonException("账号或密码错误");
         }
 
@@ -500,6 +502,7 @@ public class UserService {
     public void changePassword(ChangePasswordRequestVO request) {
         UserPO currentUser = UserSessionUtils.currentUserSession();
         if (!verifyPassword(request.getOldPassword(), currentUser.getPassword())) {
+            log.warn("修改密码失败: 旧密码不正确 userId={} username={}", currentUser.getId(), currentUser.getUsername());
             throw new SnailAiCommonException("旧密码不正确");
         }
         if (request.getOldPassword().equals(request.getNewPassword())) {
