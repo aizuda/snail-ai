@@ -39,6 +39,9 @@ public class SkillHandler {
 
     /**
      * 获取智能体关联的 Skill（含 skillContent），用于对话注入
+     *
+     * @param agentId 智能体 ID
+     * @return 该智能体关联的技能 PO 列表（含技能内容）
      */
     public List<SkillPO> getSkillsWithContentForAgent(Long agentId) {
         List<AgentSkillPO> relations = agentSkillMapper.selectList(

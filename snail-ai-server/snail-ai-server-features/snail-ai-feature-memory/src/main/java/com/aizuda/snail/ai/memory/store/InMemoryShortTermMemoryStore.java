@@ -24,9 +24,6 @@ import java.util.stream.Collectors;
  *
  * 激活方式：snail.ai.memory.short-term.store-type: memory
  *
- * author: opensnail
- * date: 2026-03-26
- *
  * @author opensnail
  * @since 2026-06-14
  */
