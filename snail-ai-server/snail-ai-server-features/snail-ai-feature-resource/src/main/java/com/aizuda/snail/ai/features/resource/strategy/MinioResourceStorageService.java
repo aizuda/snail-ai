@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 import java.io.InputStream;
 
 /**
- * MinioResourceStorageService
+ * MinIO 对象存储资源策略，懒加载（双重检查）{@link MinioClient} 并在首次使用时确保存储桶存在。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -100,6 +100,11 @@ public class MinioResourceStorageService implements ResourceStorageService {
         return resourceConfig.getMinio().getBucket();
     }
 
+    /**
+     * 懒加载并返回 MinIO 客户端（双重检查锁），首次创建时校验配置并确保存储桶存在
+     *
+     * @return 已初始化的 MinIO 客户端
+     */
     private MinioClient getClient() {
         if (minioClient == null) {
             synchronized (this) {

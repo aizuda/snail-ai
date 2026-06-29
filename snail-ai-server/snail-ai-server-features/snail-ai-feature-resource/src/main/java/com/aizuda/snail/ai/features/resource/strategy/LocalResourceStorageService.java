@@ -16,7 +16,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 /**
- * LocalResourceStorageService
+ * 本地文件系统资源存储策略，将资源写入配置的上传根目录，并对存储键做路径穿越校验。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -81,6 +81,12 @@ public class LocalResourceStorageService implements ResourceStorageService {
         return Files.exists(resolveAbsolute(storageKey));
     }
 
+    /**
+     * 将存储键解析为根目录下的绝对路径，并校验未越出根目录（防止路径穿越攻击）
+     *
+     * @param storageKey 资源存储键
+     * @return 规范化后的绝对路径
+     */
     private Path resolveAbsolute(String storageKey) {
         Path root = Paths.get(resourceConfig.getUploadDir()).toAbsolutePath().normalize();
         Path resolved = root.resolve(storageKey).normalize();

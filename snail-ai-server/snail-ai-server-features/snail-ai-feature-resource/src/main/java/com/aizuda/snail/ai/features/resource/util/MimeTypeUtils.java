@@ -4,7 +4,7 @@ import java.net.URLConnection;
 import java.util.Map;
 
 /**
- * MimeTypeUtils
+ * MIME 类型工具，按文件扩展名映射常见 Content-Type，未命中时回退到系统猜测或八位字节流。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -41,6 +41,12 @@ public final class MimeTypeUtils {
 
     private MimeTypeUtils() {}
 
+    /**
+     * 按文件名后缀推断 MIME 类型
+     *
+     * @param fileName 文件名（含扩展名）
+     * @return 对应的 Content-Type，无法识别时返回 {@code application/octet-stream}
+     */
     public static String detect(String fileName) {
         if (fileName == null) {
             return "application/octet-stream";

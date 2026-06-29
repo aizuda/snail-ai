@@ -9,7 +9,7 @@ import java.util.UUID;
 import java.util.regex.Pattern;
 
 /**
- * StorageKeyGenerator
+ * 存储键生成器，按 {@code {业务类型}/{yyyy}/{MM}/{dd}/{uuid}.{ext}} 规则生成安全、去重的资源存储路径。
  *
  * @author opensnail
  * @since 2026-06-14
