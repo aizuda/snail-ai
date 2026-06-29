@@ -32,6 +32,12 @@ public class AiModelProviderService {
 
     /**
      * 新增提供商 (Admin权限)
+     *
+     * @param providerName 提供商名称
+     * @param providerKey  提供商唯一标识
+     * @param description  提供商描述
+     * @param iconUrl      提供商图标地址
+     * @return 新建提供商的主键 ID
      */
     @Transactional
     public Long addProvider(String providerName, String providerKey, String description, String iconUrl) {
@@ -63,6 +69,9 @@ public class AiModelProviderService {
 
     /**
      * 新增提供商 (接收VO对象)
+     *
+     * @param vo 提供商信息
+     * @return 新建提供商的主键 ID
      */
     @Transactional
     public Long addProvider(AiModelProviderVO vo) {
@@ -71,6 +80,8 @@ public class AiModelProviderService {
 
     /**
      * 获取所有启用的提供商列表 (带缓存)
+     *
+     * @return 启用状态的提供商列表
      */
     public List<AiModelProviderVO> getProviderList() {
         log.debug("查询所有启用的提供商");
@@ -87,6 +98,9 @@ public class AiModelProviderService {
 
     /**
      * 获取所有提供商（包括禁用的，用于后台管理）
+     *
+     * @param queryVO 分页查询条件
+     * @return 提供商分页结果
      */
     public PageResult<List<AiModelProviderVO>> getAllProviders(AiModelProviderQueryVO queryVO) {
         PageDTO<AiModelProviderPO> pageDTO = new PageDTO<>(queryVO.getPage(), queryVO.getSize());
@@ -101,6 +115,9 @@ public class AiModelProviderService {
 
     /**
      * 按ID获取提供商
+     *
+     * @param providerId 提供商 ID
+     * @return 提供商 PO；不存在或参数非法时返回 null
      */
     public AiModelProviderPO getProviderById(Long providerId) {
         if (providerId == null || providerId <= 0) {
@@ -111,6 +128,9 @@ public class AiModelProviderService {
 
     /**
      * 按ID获取提供商VO
+     *
+     * @param providerId 提供商 ID
+     * @return 提供商 VO；不存在时返回 null
      */
     public AiModelProviderVO getProvider(Long providerId) {
         AiModelProviderPO po = getProviderById(providerId);
@@ -123,6 +143,9 @@ public class AiModelProviderService {
 
     /**
      * 按提供商标识符获取提供商
+     *
+     * @param providerKey 提供商唯一标识
+     * @return 启用状态的提供商 PO；不存在或参数为空时返回 null
      */
     public AiModelProviderPO getProviderByKey(String providerKey) {
         if (providerKey == null || providerKey.isEmpty()) {
@@ -137,6 +160,10 @@ public class AiModelProviderService {
 
     /**
      * 更新提供商启用状态
+     *
+     * @param providerId 提供商 ID
+     * @param enabled    是否启用
+     * @return 更新是否成功
      */
     @Transactional
     public boolean updateProviderStatus(Long providerId, Boolean enabled) {
@@ -153,6 +180,10 @@ public class AiModelProviderService {
 
     /**
      * 更新提供商 (接收VO对象)
+     *
+     * @param providerId 提供商 ID
+     * @param vo         提供商更新信息
+     * @return 更新是否成功
      */
     @Transactional
     public boolean updateProvider(Long providerId, AiModelProviderVO vo) {
@@ -171,6 +202,9 @@ public class AiModelProviderService {
 
     /**
      * 删除提供商
+     *
+     * @param providerId 提供商 ID
+     * @return 删除是否成功；参数非法时返回 false
      */
     @Transactional
     public boolean deleteProvider(Long providerId) {
@@ -185,6 +219,9 @@ public class AiModelProviderService {
 
     /**
      * 启用提供商
+     *
+     * @param providerId 提供商 ID
+     * @return 更新是否成功
      */
     @Transactional
     public boolean enableProvider(Long providerId) {
@@ -194,6 +231,9 @@ public class AiModelProviderService {
 
     /**
      * 禁用提供商
+     *
+     * @param providerId 提供商 ID
+     * @return 更新是否成功
      */
     @Transactional
     public boolean disableProvider(Long providerId) {

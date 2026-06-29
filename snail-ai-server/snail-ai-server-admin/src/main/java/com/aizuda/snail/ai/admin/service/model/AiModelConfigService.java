@@ -62,6 +62,9 @@ public class AiModelConfigService {
 
     /**
      * 新增模型配置 (Admin权限)
+     *
+     * @param requestVO 模型配置请求参数
+     * @return 新建模型配置的主键 ID
      */
     @Transactional
     public Long addModelConfig(AiModelConfigRequestVO requestVO) {
@@ -113,6 +116,10 @@ public class AiModelConfigService {
 
     /**
      * 更新模型配置
+     *
+     * @param modelId   模型配置 ID
+     * @param requestVO 模型配置更新参数（仅非空字段生效）
+     * @return 更新是否成功
      */
     @Transactional
     public boolean updateModelConfig(Long modelId, AiModelConfigRequestVO requestVO) {
@@ -152,6 +159,9 @@ public class AiModelConfigService {
 
     /**
      * 删除模型配置
+     *
+     * @param modelId 模型配置 ID
+     * @return 删除是否成功；不存在时返回 false
      */
     @Transactional
     public boolean deleteModelConfig(Long modelId) {
@@ -171,6 +181,9 @@ public class AiModelConfigService {
 
     /**
      * 获取单个模型配置
+     *
+     * @param modelId 模型配置 ID
+     * @return 模型配置 VO；不存在时返回 null
      */
     public AiModelConfigVO getModelConfig(Long modelId) {
         AiModelConfigPO po = configMapper.selectById(modelId);
@@ -183,6 +196,9 @@ public class AiModelConfigService {
     /**
      * 分页查询模型配置
      * 支持按providerKey、modelType、scope过滤
+     *
+     * @param queryVO 分页与过滤条件
+     * @return 模型配置分页结果（含提供商名称回填）
      */
     public PageResult<List<AiModelConfigVO>> listModelConfigs(AiModelConfigQueryVO queryVO) {
         PageDTO<AiModelConfigPO> pageDTO = new PageDTO<>(queryVO.getPage(), queryVO.getSize());
@@ -228,6 +244,9 @@ public class AiModelConfigService {
 
     /**
      * 按模型类型查询启用的模型
+     *
+     * @param modelType 模型类型（chat/embedding/reranker 等）
+     * @return 该类型下启用的模型列表
      */
     public List<AiModelConfigVO> getModelsByType(String modelType) {
         log.debug("按类型查询模型: modelType={}", modelType);
@@ -251,6 +270,10 @@ public class AiModelConfigService {
 
     /**
      * 按提供商和模型类型查询
+     *
+     * @param provider  提供商唯一标识
+     * @param modelType 模型类型
+     * @return 匹配的启用模型列表
      */
     public List<AiModelConfigVO> getModelsByProviderAndType(String provider, String modelType) {
         log.debug("按提供商和类型查询模型: provider={}, modelType={}", provider, modelType);
@@ -277,6 +300,8 @@ public class AiModelConfigService {
 
     /**
      * 获取全局默认模型
+     *
+     * @return 全局默认且启用的模型 VO；无则返回 null
      */
     public AiModelConfigVO getDefaultModel() {
         log.debug("获取全局默认模型");
@@ -299,6 +324,9 @@ public class AiModelConfigService {
 
     /**
      * 按类型获取默认模型
+     *
+     * @param modelType 模型类型
+     * @return 该类型默认且启用的模型 VO；无则返回 null
      */
     public AiModelConfigVO getDefaultModelByType(String modelType) {
         log.debug("按类型获取默认模型: modelType={}", modelType);
@@ -321,6 +349,9 @@ public class AiModelConfigService {
 
     /**
      * 切换默认模型
+     *
+     * @param modelId 目标模型配置 ID（需存在且启用）
+     * @return 切换是否成功
      */
     @Transactional
     public boolean switchDefaultModel(Long modelId) {
@@ -352,6 +383,9 @@ public class AiModelConfigService {
 
     /**
      * 获取用户的个人模型配置
+     *
+     * @param userId 用户 ID（模型 ownerId）
+     * @return 该用户启用的个人范围模型列表
      */
     public List<AiModelConfigVO> getPersonalModels(Long userId) {
         log.debug("获取用户的个人模型配置: userId={}", userId);
@@ -370,6 +404,9 @@ public class AiModelConfigService {
 
     /**
      * 获取模型类型支持的适配器列表
+     *
+     * @param modelType 模型类型
+     * @return 该类型可用的适配器选项列表（含默认标记）
      */
     public List<ModelAdapterOptionVO> listModelAdapters(String modelType) {
         ModelCapability capability = resolveCapability(modelType);
@@ -506,6 +543,9 @@ public class AiModelConfigService {
 
     /**
      * 仅更新模型扩展配置（如自动写入 embedding 维度）
+     *
+     * @param modelId    模型配置 ID
+     * @param configJson 扩展配置内容
      */
     @Transactional
     public void updateConfigJson(Long modelId, ConfigExtAttrsDTO configJson) {
@@ -521,6 +561,9 @@ public class AiModelConfigService {
 
     /**
      * 启用模型配置 (Admin)
+     *
+     * @param modelId 模型配置 ID
+     * @return 启用是否成功；已启用时返回 true
      */
     @Transactional
     public boolean enableModelConfig(Long modelId) {
@@ -552,6 +595,9 @@ public class AiModelConfigService {
 
     /**
      * 禁用模型配置 (Admin)
+     *
+     * @param modelId 模型配置 ID
+     * @return 禁用是否成功；已禁用时返回 true
      */
     @Transactional
     public boolean disableModelConfig(Long modelId) {
