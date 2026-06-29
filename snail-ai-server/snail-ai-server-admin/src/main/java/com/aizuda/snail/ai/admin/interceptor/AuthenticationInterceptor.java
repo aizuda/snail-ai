@@ -34,7 +34,7 @@ import java.util.Objects;
  * 系统登录认证拦截器
  *
  * @author: byteblogs
- * @date:2023-04-26 12:52
+ * @since 2023-04-26 12:52
  */
 @Slf4j
 @Configuration

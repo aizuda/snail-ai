@@ -33,7 +33,7 @@ import java.util.Set;
 /**
  * @description: 400 统一异常处理
  * @author: byteblogs
- * @date: 2019/09/30 17:02
+ * @since 2019/09/30 17:02
  */
 @ControllerAdvice(basePackages = {"com.aizuda.snail.ai.admin"})
 @Slf4j
