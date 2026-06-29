@@ -50,6 +50,7 @@ public class UrlImportStrategy implements DocumentImportStrategy {
         try {
             URI uri = URI.create(url);
             validatePublicHttpTarget(uri);
+            log.info("RAG URL 文档下载开始 url={}", url);
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .uri(uri)
                     .timeout(Duration.ofSeconds(60))
@@ -74,6 +75,8 @@ public class UrlImportStrategy implements DocumentImportStrategy {
 
             String contentHash = ContentHashUtil.sha256Hex(fileBytes);
 
+            log.info("RAG URL 文档下载完成 name={} type={} size={}B url={}",
+                    fileName, fileType, fileBytes.length, url);
             return ImportResult.builder()
                     .fileName(fileName)
                     .fileType(fileType)
@@ -148,10 +151,12 @@ public class UrlImportStrategy implements DocumentImportStrategy {
         }
         String normalizedHost = host.toLowerCase(Locale.ROOT);
         if ("localhost".equals(normalizedHost) || normalizedHost.endsWith(".localhost")) {
+            log.warn("RAG URL 导入被拒绝（localhost）host={}", host);
             throw new IllegalArgumentException("Localhost URL import is not allowed");
         }
         for (InetAddress address : InetAddress.getAllByName(host)) {
             if (isBlockedAddress(address)) {
+                log.warn("RAG URL 导入被拒绝（内网/受限地址）host={}", host);
                 throw new IllegalArgumentException("Private network URL import is not allowed: " + host);
             }
         }

@@ -47,7 +47,9 @@ public class DocumentChunkingService {
                 .build();
 
         ChunkStrategy strategy = chunkStrategyFactory.getStrategy(mode);
-        return strategy.chunk(context);
+        List<ChunkDTO> chunks = strategy.chunk(context);
+        log.debug("RAG 文档分块完成 模式={} 切片数={}", mode, chunks.size());
+        return chunks;
     }
 
     private RagConfigDO parseKnowledgeConfig(RagPO k) {

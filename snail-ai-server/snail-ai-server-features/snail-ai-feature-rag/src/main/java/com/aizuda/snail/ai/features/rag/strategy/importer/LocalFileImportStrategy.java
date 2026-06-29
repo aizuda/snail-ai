@@ -43,6 +43,7 @@ public class LocalFileImportStrategy implements DocumentImportStrategy {
 
         String contentHash = ContentHashUtil.sha256Hex(fileBytes);
 
+        log.info("RAG 本地文件导入完成 name={} type={} size={}B", originalName, fileType, fileBytes.length);
         return ImportResult.builder()
                 .fileName(originalName)
                 .fileType(fileType)

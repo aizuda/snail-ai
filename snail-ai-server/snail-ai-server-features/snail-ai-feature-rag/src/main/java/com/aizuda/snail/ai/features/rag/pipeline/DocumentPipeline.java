@@ -187,6 +187,7 @@ public class DocumentPipeline {
             SnailAiVectorStore snailAiVectorStore = vectorStoreFactory.create(knowledge);
             String idx = IndexNameBuilder.KNOWLEDGE.build(Map.of("ragId", knowledge.getId()));
             snailAiVectorStore.delete(idx, List.of(chunk.getVectorId()));
+            log.debug("RAG 删除切片向量 chunkId={} vectorId={}", chunk.getId(), chunk.getVectorId());
         } catch (Exception e) {
             log.warn("Delete vector failed for chunk: {}", chunk.getId(), e);
         }
@@ -196,6 +197,8 @@ public class DocumentPipeline {
      * Dual-write: embed chunks → write to VectorStore, and insert into SearchEngine.
      */
     private void dualWrite(List<RagChunkPO> chunkPOs, RagPO knowledge) {
+        log.debug("RAG 双写开始 chunks={} ragId={} searchEngine={}",
+                chunkPOs.size(), knowledge.getId(), knowledge.getSearchEngineEnable());
         SnailAiVectorStore snailAiVectorStore = vectorStoreFactory.create(knowledge);
 
         List<List<RagChunkPO>> batches = Lists.partition(chunkPOs, 10);
@@ -223,6 +226,7 @@ public class DocumentPipeline {
                         .indexName(searchIndexName)
                         .documents(searchDocs)
                         .build());
+                log.debug("RAG 搜索引擎写入 {} 个文档 ragId={}", searchDocs.size(), knowledge.getId());
             } catch (Exception e) {
                 log.warn("SearchEngine insert failed (non-fatal): {}", e.getMessage());
             }
@@ -231,6 +235,7 @@ public class DocumentPipeline {
 
     private void processVectorBatch(List<RagChunkPO> batch, SnailAiVectorStore snailAiVectorStore, RagPO knowledge) {
         List<VectorDocument> toEmbed = new ArrayList<>();
+        int reusedCount = 0;
 
         for (RagChunkPO chunk : batch) {
             // Chunk 级去重：查找同一 RAG 下已有相同内容且已向量化的 chunk
@@ -246,6 +251,7 @@ public class DocumentPipeline {
                     // 复用已有向量，不重复 embedding
                     chunk.setVectorId(existing.getVectorId());
                     ragChunkMapper.updateById(chunk);
+                    reusedCount++;
                     continue;
                 }
             }
@@ -265,6 +271,8 @@ public class DocumentPipeline {
         }
 
         if (toEmbed.isEmpty()) {
+            log.debug("RAG 向量批写入：本批 {} 个切片全部命中去重复用，跳过 embedding ragId={}",
+                    reusedCount, knowledge.getId());
             return;
         }
         String indexName = IndexNameBuilder.KNOWLEDGE.build(Map.of("ragId", knowledge.getId()));
@@ -278,6 +286,8 @@ public class DocumentPipeline {
             }
             ragChunkMapper.updateById(chunk);
         }
+        log.debug("RAG 向量批写入完成 新增 embedding {} 个，复用 {} 个 ragId={}",
+                toEmbed.size(), reusedCount, knowledge.getId());
     }
 
     private String parseContent(RagDocumentPO document) {
@@ -321,6 +331,7 @@ public class DocumentPipeline {
                 }
                 if (!vectorIdsToDelete.isEmpty()) {
                     snailAiVectorStore.delete(indexName, vectorIdsToDelete);
+                    log.debug("RAG 清理文档旧向量 {} 个 documentId={}", vectorIdsToDelete.size(), documentId);
                 }
             }
         } catch (Exception e) {
