@@ -15,6 +15,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -27,6 +28,7 @@ import java.util.Date;
  * @author opensnail
  * @since 2026-06-14
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OpenApiEmbedTokenService {
@@ -50,6 +52,7 @@ public class OpenApiEmbedTokenService {
         int ttlSeconds = request.getTtlSeconds() == null ? DEFAULT_TOKEN_TTL_SECONDS : request.getTtlSeconds();
         LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(ttlSeconds);
         String token = createUserAuthToken(requestUser, session, request, expiresAt);
+        log.info("OpenAPI 签发嵌入式对话 token appId={} openId={} ttl={}s", session.getAppId(), request.getOpenId(), ttlSeconds);
 
         return OpenApiEmbedTokenResponse.builder()
                 .token(token)

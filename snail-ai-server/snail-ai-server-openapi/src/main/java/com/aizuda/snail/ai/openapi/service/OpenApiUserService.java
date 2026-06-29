@@ -59,6 +59,7 @@ public class OpenApiUserService {
                             .eq(OpenApiUserPO::getExternalId, request.getExternalId()));
             if (existing != null) {
                 UserPO existingUser = userMapper.selectById(existing.getPlatformUserId());
+                log.info("OpenAPI 用户已存在(幂等返回) appId={} externalId={}", appId, request.getExternalId());
                 return buildVO(existing, false, resolveAvatarUrl(existing.getPlatformUserId()),
                         existingUser != null ? existingUser.getNickname() : null);
             }
@@ -88,6 +89,7 @@ public class OpenApiUserService {
                 .updateDt(LocalDateTime.now())
                 .build();
         openApiUserMapper.insert(openApiUser);
+        log.info("OpenAPI 注册新用户 appId={} openId={} platformUserId={}", appId, openId, platformUser.getId());
 
         return buildVO(openApiUser, true, request.getAvatarUrl(), request.getNickname());
     }

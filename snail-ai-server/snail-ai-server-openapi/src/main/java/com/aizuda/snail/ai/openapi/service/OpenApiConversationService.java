@@ -16,6 +16,7 @@ import com.aizuda.snail.ai.persistence.agent.po.AgentConversationRecordPO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
  * @author opensnail
  * @since 2026-04-24
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OpenApiConversationService {
@@ -77,6 +79,7 @@ public class OpenApiConversationService {
                 .updateDt(LocalDateTime.now())
                 .build();
         conversationMapper.insert(po);
+        log.info("OpenAPI 创建会话 agentId={} conversationId={} userId={}", request.getAgentId(), po.getConversationId(), userId);
         return toVO(po);
     }
 
@@ -100,6 +103,7 @@ public class OpenApiConversationService {
                         .eq(AgentConversationRecordPO::getAgentId, request.getAgentId())
                         .eq(AgentConversationRecordPO::getConversationId, request.getConversationId())
                         .eq(AgentConversationRecordPO::getUserId, userId));
+        log.info("OpenAPI 删除会话 agentId={} conversationId={} userId={}", request.getAgentId(), request.getConversationId(), userId);
     }
 
     /**
@@ -120,6 +124,7 @@ public class OpenApiConversationService {
                 new LambdaQueryWrapper<AgentConversationPO>()
                         .eq(AgentConversationPO::getAgentId, request.getAgentId())
                         .eq(AgentConversationPO::getUserId, userId));
+        log.info("OpenAPI 清空会话 agentId={} userId={}", request.getAgentId(), userId);
     }
 
     /**
