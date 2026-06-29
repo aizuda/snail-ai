@@ -29,18 +29,36 @@ public class OpenApiConversationController {
 
     private final OpenApiConversationService openApiConversationService;
 
+    /**
+     * 分页查询会话列表
+     *
+     * @param request 会话分页查询请求（智能体ID、openId、分页参数）
+     * @return 会话分页结果
+     */
     @GetMapping(OpenApiPathConstants.OPEN_API_AGENT_CONVERSATIONS)
     public PageResult<List<OpenApiConversationVO>> listConversations(
             @Validated OpenApiConversationQueryRequest request) {
         return openApiConversationService.listConversations(request);
     }
 
+    /**
+     * 创建会话
+     *
+     * @param request 创建会话请求（智能体ID、openId、标题）
+     * @return 新建的会话
+     */
     @PostMapping(OpenApiPathConstants.OPEN_API_AGENT_CONVERSATIONS)
     public Result<OpenApiConversationVO> createConversation(
             @RequestBody @Validated OpenApiCreateConversationRequest request) {
         return Result.ok(openApiConversationService.createConversation(request));
     }
 
+    /**
+     * 删除指定会话
+     *
+     * @param request 会话标识请求（智能体ID、会话ID、openId）
+     * @return 统一成功响应
+     */
     @DeleteMapping(value = OpenApiPathConstants.OPEN_API_AGENT_CONVERSATIONS, params = "conversationId")
     public Result<Void> deleteConversation(
             @Validated OpenApiConversationIdentityRequest request) {
@@ -48,6 +66,12 @@ public class OpenApiConversationController {
         return Result.ok(null);
     }
 
+    /**
+     * 清空指定智能体下当前用户的全部会话
+     *
+     * @param request 清空会话请求（智能体ID、openId）
+     * @return 统一成功响应
+     */
     @DeleteMapping(value = OpenApiPathConstants.OPEN_API_AGENT_CONVERSATIONS, params = "!conversationId")
     public Result<Void> clearConversations(
             @Validated OpenApiConversationClearRequest request) {
@@ -55,6 +79,12 @@ public class OpenApiConversationController {
         return Result.ok(null);
     }
 
+    /**
+     * 获取会话内消息列表
+     *
+     * @param request 会话标识请求（智能体ID、会话ID、openId）
+     * @return 消息列表
+     */
     @GetMapping(OpenApiPathConstants.OPEN_API_AGENT_CONVERSATION_MESSAGES)
     public Result<List<OpenApiMessageVO>> getMessages(
             @Validated OpenApiConversationIdentityRequest request) {

@@ -41,6 +41,11 @@ public class OpenApiAuthInterceptor implements HandlerInterceptor {
      */
     private final LoadingCache<String, AppPO> appCache;
 
+    /**
+     * 构造拦截器并初始化应用信息本地缓存
+     *
+     * @param appMapper 应用数据访问 Mapper（缓存未命中时回源查询）
+     */
     public OpenApiAuthInterceptor(AppMapper appMapper) {
         this.appCache = CacheBuilder.newBuilder()
                 .maximumSize(500)
