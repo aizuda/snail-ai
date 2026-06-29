@@ -128,6 +128,7 @@ public class ResourceService {
         }
         resource.setBizType(bizType);
         resourceMapper.updateById(resource);
+        log.info("资源 bizType 变更 resourceId={} -> bizType={}", resourceId, bizType);
     }
 
     /**

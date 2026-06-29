@@ -66,6 +66,7 @@ public class LocalResourceStorageService implements ResourceStorageService {
     public void delete(String storageKey) {
         try {
             Files.deleteIfExists(resolveAbsolute(storageKey));
+            log.debug("本地资源删除完成 storageKey={}", storageKey);
         } catch (IOException e) {
             log.warn("Failed to delete resource: {}", storageKey, e);
         }

@@ -71,6 +71,7 @@ public class MinioResourceStorageService implements ResourceStorageService {
                     .bucket(bucket())
                     .object(storageKey)
                     .build());
+            log.debug("MinIO 资源删除完成 bucket={} storageKey={}", bucket(), storageKey);
         } catch (Exception e) {
             log.warn("Failed to delete resource from MinIO: {}", storageKey, e);
         }
@@ -118,6 +119,7 @@ public class MinioResourceStorageService implements ResourceStorageService {
                             .credentials(cfg.getAccessKey(), cfg.getSecretKey())
                             .build();
                     ensureBucketExists();
+                    log.info("MinIO 客户端初始化完成 endpoint={} bucket={}", cfg.getEndpoint(), bucket());
                 }
             }
         }
