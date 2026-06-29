@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import java.util.Map;
 
 /**
- * VectorSearchRequest
+ * 向量检索请求，封装目标索引、查询文本/向量、返回数量及过滤条件。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -24,12 +24,24 @@ public class VectorSearchRequest {
      */
     private String indexName;
 
+    /**
+     * 查询文本；与 queryVector 二选一，提供文本时由嵌入模型现场向量化后检索
+     */
     private String queryText;
 
+    /**
+     * 查询向量；已预先计算好的嵌入，提供时优先于 queryText
+     */
     private float[] queryVector;
 
+    /**
+     * 返回的最相似结果数量上限（TopK）
+     */
     private int topK;
 
+    /**
+     * 元数据过滤条件（键值对），用于按 agentId、来源等字段缩小检索范围
+     */
     private Map<String, Object> filter;
 
     /**

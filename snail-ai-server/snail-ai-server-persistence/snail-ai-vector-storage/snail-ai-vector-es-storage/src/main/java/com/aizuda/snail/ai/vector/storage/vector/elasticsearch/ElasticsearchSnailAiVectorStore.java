@@ -24,7 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static org.springframework.ai.vectorstore.filter.Filter.ExpressionType.*;
 
 /**
- * ElasticsearchSnailAiVectorStore
+ * Elasticsearch 向量库存储实现，基于 Spring AI {@link ElasticsearchVectorStore}，按索引名缓存并复用 store 实例与底层连接。
  *
  * @author opensnail
  * @since 2026-06-14

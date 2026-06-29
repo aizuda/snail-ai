@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * MilvusSnailAiVectorStore
+ * Milvus 向量库存储实现，基于 Spring AI {@link MilvusVectorStore}，按集合名缓存并复用 store 实例与底层连接。
  *
  * @author opensnail
  * @since 2026-06-14
