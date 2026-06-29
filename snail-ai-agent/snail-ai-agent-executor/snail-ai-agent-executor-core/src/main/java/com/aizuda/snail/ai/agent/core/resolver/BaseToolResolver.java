@@ -34,6 +34,12 @@ public class BaseToolResolver {
         this.tempDir = tempDir;
     }
 
+    /**
+     * 解析基础工具集合（Shell / HTTP），并为本次对话准备隔离工作目录。
+     *
+     * @param request 对话分发请求
+     * @return 基础工具回调列表
+     */
     public List<ToolCallback> resolve(ChatDispatchRequest request) {
         String workingDirectory = buildIsolatedDir(request);
         log.info("ShellTool + HttpTool registered, workingDirectory={}", workingDirectory);
@@ -44,7 +50,10 @@ public class BaseToolResolver {
     }
 
     /**
-     * 构建按 agentId/conversationId 隔离的工作目录，并自动创建
+     * 构建按 agentId/conversationId 隔离的工作目录，并自动创建。
+     *
+     * @param request 对话分发请求
+     * @return 隔离工作目录路径
      */
     public String buildIsolatedDir(ChatDispatchRequest request) {
         Long agentId = request.getAgentConfig() != null ? request.getAgentConfig().getAgentId() : null;
