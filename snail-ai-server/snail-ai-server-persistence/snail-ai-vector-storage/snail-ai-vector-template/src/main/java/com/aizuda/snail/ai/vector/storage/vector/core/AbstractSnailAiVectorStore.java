@@ -76,7 +76,13 @@ public abstract class AbstractSnailAiVectorStore implements SnailAiVectorStore {
         return results;
     }
 
-    protected abstract VectorStore getVectorStore(String indexName) ;
+    /**
+     * 获取指定索引/集合对应的 Spring AI {@link VectorStore}（由子类按 indexName 缓存复用）。
+     *
+     * @param indexName 索引/集合名
+     * @return 对应的 Spring AI 向量存储实例
+     */
+    protected abstract VectorStore getVectorStore(String indexName);
 
     private static List<Document> toDocuments(List<VectorDocument> documents) {
         List<Document> out = new ArrayList<>(documents.size());

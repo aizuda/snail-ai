@@ -29,6 +29,9 @@ public final class PgDataSourceFactory {
 
     /**
      * 获取或创建 JdbcTemplate（复用连接池）
+     *
+     * @param config PostgreSQL 向量库连接配置（来自存储实例 config JSON）
+     * @return 缓存复用或新建的 JdbcTemplate（内含 HikariCP 连接池）
      */
     public static JdbcTemplate getOrCreateJdbcTemplate(PgVectorSettings config) {
         if (!config.isEnabled()) {
