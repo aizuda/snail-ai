@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import java.io.InputStream;
 
 /**
- * PdfParser
+ * PDF 文档解析器，基于 Apache PDFBox 提取纯文本内容。
  *
  * @author opensnail
  * @since 2026-06-14

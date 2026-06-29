@@ -5,7 +5,7 @@ import com.aizuda.snail.ai.common.dto.rag.SearchResult;
 import java.util.List;
 
 /**
- * RerankService
+ * 重排服务接口，对初步检索结果按查询相关性重新排序，提升 Top 结果质量。
  *
  * @author opensnail
  * @since 2026-06-14

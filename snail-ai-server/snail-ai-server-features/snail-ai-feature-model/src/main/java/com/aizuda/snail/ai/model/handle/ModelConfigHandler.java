@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * ModelConfigHandler
+ * 模型配置处理器，提供模型配置信息的查询（脱敏）、API Key 解密与按类型获取默认模型。
  *
  * @author opensnail
  * @since 2026-06-14

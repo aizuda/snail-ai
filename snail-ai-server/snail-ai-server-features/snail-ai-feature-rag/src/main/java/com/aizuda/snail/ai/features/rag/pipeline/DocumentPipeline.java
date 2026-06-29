@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.UUID;
 
 /**
- * DocumentPipeline
+ * 文档处理流水线，负责 RAG 文档的解析、分块、内容去重、双写（向量库 + 搜索引擎）与处理状态流转。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -57,6 +57,11 @@ public class DocumentPipeline {
     private final SearchEngineFactory searchEngineFactory;
     private final ResourceService resourceService;
 
+    /**
+     * 处理指定文档：抢占 PENDING 状态后解析、分块、双写并更新为最终状态（失败时记录错误）
+     *
+     * @param documentId 文档 ID
+     */
     public void processDocument(Long documentId) {
         RagDocumentPO document = ragDocumentMapper.selectById(documentId);
         if (document == null) {
@@ -309,9 +314,10 @@ public class DocumentPipeline {
                                     .eq(RagChunkPO::getRagId, knowledge.getId())
                                     .eq(RagChunkPO::getVectorId, chunk.getVectorId())
                                     .ne(RagChunkPO::getDocumentId, documentId));
-                    if (refCount == 0) {
-                        vectorIdsToDelete.add(chunk.getVectorId());
+                    if (refCount != 0) {
+                        continue;
                     }
+                    vectorIdsToDelete.add(chunk.getVectorId());
                 }
                 if (!vectorIdsToDelete.isEmpty()) {
                     snailAiVectorStore.delete(indexName, vectorIdsToDelete);

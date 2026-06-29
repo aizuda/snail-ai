@@ -32,7 +32,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * ModelRuntimeHandler
+ * 模型运行时处理器，统一封装聊天（同步/流式）、向量化（单条/批量）与重排的模型调用，
+ * 内部处理配置解析、API Key 解密、客户端构建与异常归一化。
  *
  * @author opensnail
  * @since 2026-06-14
@@ -47,6 +48,12 @@ public class ModelRuntimeHandler {
     private final EmbeddingClientBuilder embeddingClientBuilder;
     private final RerankClientBuilder rerankClientBuilder;
 
+    /**
+     * 同步聊天调用，返回完整文本响应
+     *
+     * @param request 聊天请求（模型配置 ID 与用户/系统上下文）
+     * @return 模型生成的完整文本
+     */
     public String chat(ChatRequest request) {
         if (request == null) {
             throw invalid("ChatRequest 不能为空");
@@ -71,6 +78,12 @@ public class ModelRuntimeHandler {
         }
     }
 
+    /**
+     * 流式聊天调用，按片回调文本并在完成/出错时触发对应回调
+     *
+     * @param request 流式聊天请求（含消息、完成、错误回调）
+     * @return 可取消的订阅句柄
+     */
     public Disposable chatStream(ChatStreamRequest request) {
         if (request == null) {
             throw invalid("ChatStreamRequest 不能为空");
@@ -110,6 +123,12 @@ public class ModelRuntimeHandler {
         }
     }
 
+    /**
+     * 单条文本向量化
+     *
+     * @param request 向量化请求（模型配置 ID、文本、可选维度）
+     * @return 向量化响应
+     */
     public SnailEmbeddingResponse embed(EmbeddingRequestDTO request) {
         if (request == null || StrUtil.isBlank(request.text())) {
             throw invalid("文本不能为空");
@@ -117,6 +136,12 @@ public class ModelRuntimeHandler {
         return embedBatch(new EmbeddingBatchRequest(request.modelConfigId(), List.of(request.text()), request.dimensions()));
     }
 
+    /**
+     * 批量文本向量化
+     *
+     * @param request 批量向量化请求（模型配置 ID、文本列表、可选维度）
+     * @return 向量化响应（含各文本向量与耗时）
+     */
     public SnailEmbeddingResponse embedBatch(EmbeddingBatchRequest request) {
         if (request == null || CollUtil.isEmpty(request.texts())) {
             throw invalid("文本列表不能为空");
@@ -141,10 +166,22 @@ public class ModelRuntimeHandler {
         }
     }
 
+    /**
+     * 按模型配置 ID 构建向量化模型
+     *
+     * @param modelConfigId 模型配置 ID
+     * @return 向量化模型实例
+     */
     public EmbeddingModel buildEmbeddingModel(Long modelConfigId) {
         return buildEmbeddingModel(requireConfig(modelConfigId));
     }
 
+    /**
+     * 对候选文档按查询相关性重排
+     *
+     * @param request 重排请求（模型配置 ID、查询、文档列表、可选 topN）
+     * @return 重排结果项列表，文档为空时返回空列表
+     */
     public List<RerankApiClient.RerankResultItem> rerank(RerankRequest request) {
         if (request == null || CollUtil.isEmpty(request.documents())) {
             return List.of();
@@ -167,6 +204,12 @@ public class ModelRuntimeHandler {
         return chatClientBuilder.getOrBuildChatClient(decryptApiKey(config), config);
     }
 
+    /**
+     * 按模型配置信息构建向量化模型
+     *
+     * @param config 模型配置信息
+     * @return 向量化模型实例
+     */
     public EmbeddingModel buildEmbeddingModel(ModelConfigInfoDTO config) {
         if (config == null) {
             throw invalid("模型配置不存在");
@@ -277,9 +320,15 @@ public class ModelRuntimeHandler {
         return new ModelCallException(ModelCallException.ErrorCode.MODEL_CALL_FAILED, message, cause);
     }
 
+    /**
+     * 同步聊天请求
+     */
     public record ChatRequest(Long modelConfigId, String userContext, String systemContext) {
     }
 
+    /**
+     * 流式聊天请求（含文本、完成、错误回调）
+     */
     public record ChatStreamRequest(Long modelConfigId,
                                     String userContext,
                                     String systemContext,
@@ -288,12 +337,21 @@ public class ModelRuntimeHandler {
                                     java.util.function.Consumer<Throwable> onError) {
     }
 
+    /**
+     * 单条向量化请求
+     */
     public record EmbeddingRequestDTO(Long modelConfigId, String text, Integer dimensions) {
     }
 
+    /**
+     * 批量向量化请求
+     */
     public record EmbeddingBatchRequest(Long modelConfigId, List<String> texts, Integer dimensions) {
     }
 
+    /**
+     * 重排请求
+     */
     public record RerankRequest(Long modelConfigId, String query, List<String> documents, Integer topN) {
     }
 }

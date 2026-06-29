@@ -14,7 +14,7 @@ import java.io.InputStream;
 import java.util.StringJoiner;
 
 /**
- * ExcelParser
+ * Excel（.xlsx/.xls）文档解析器，基于 Apache POI 将各工作表的行列转为「表头: 值」的文本。
  *
  * @author opensnail
  * @since 2026-06-14

@@ -10,15 +10,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-/**
- * 联网搜索：若智能体启用了 webSearch，将 WebSearchTool 注入工具回调列表，
- * 由 LLM 在需要时自主决策是否调用。
- */
 @Slf4j
 //@Component
 //@Order(65)
 /**
- * WebSearchHandler
+ * 联网搜索处理器：若智能体启用了 webSearch，将 WebSearchTool 注入工具回调列表，
+ * 由 LLM 在需要时自主决策是否调用。
  *
  * @author opensnail
  * @since 2026-06-14
