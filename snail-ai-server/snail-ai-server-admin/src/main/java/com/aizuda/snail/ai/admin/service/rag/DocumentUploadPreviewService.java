@@ -167,6 +167,7 @@ public class DocumentUploadPreviewService {
                 .build();
         tokenCache.put(token, new TokenEntry(state));
 
+        log.info("上传预览生成 ragId={} 文件数={}", knowledge.getId(), stateItems.size());
         return UploadPreviewResultVO.builder()
                 .previewToken(token)
                 .ragId(knowledge.getId())
@@ -190,7 +191,9 @@ public class DocumentUploadPreviewService {
         Object lock = uploadLocks.computeIfAbsent(knowledge.getId(), ignored -> new Object());
         synchronized (lock) {
             UploadCommitResultVO result = doCommit(knowledge, state, request);
-            
+            log.info("上传提交完成 ragId={} 提交数={} 冲突变化={}", knowledge.getId(),
+                    result.getItems() != null ? result.getItems().size() : 0, result.getConflictChanged());
+
             // 整批 commit 完成才删除 token，避免部分失败时用户无法重试
             if (Boolean.FALSE.equals(result.getConflictChanged())) {
                 tokenCache.remove(request.getPreviewToken());

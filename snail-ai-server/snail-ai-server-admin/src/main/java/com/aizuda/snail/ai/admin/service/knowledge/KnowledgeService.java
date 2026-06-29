@@ -92,6 +92,7 @@ public class KnowledgeService {
                 .uploadConfirm(request.getUploadConfirm() == null ? Boolean.TRUE : request.getUploadConfirm())
                 .build();
         knowledgeMapper.insert(po);
+        log.info("创建知识库成功 id={} name={}", po.getId(), po.getName());
         return toResponseVO(po);
     }
 
@@ -136,6 +137,7 @@ public class KnowledgeService {
         po.setDelimiter(resolveDelimiterFromChunkConfig(merged));
 
         knowledgeMapper.updateById(po);
+        log.info("更新知识库成功 id={} name={}", id, po.getName());
 
         KnowledgeResponseVO vo = toResponseVO(po);
         enrichEmbeddingModelName(vo);
@@ -166,6 +168,7 @@ public class KnowledgeService {
         }
         po.setConfig(JsonUtil.toJsonString(incoming));
         knowledgeMapper.updateById(po);
+        log.info("更新知识库配置 id={}", id);
     }
 
     /**
@@ -190,6 +193,7 @@ public class KnowledgeService {
         ragChunkMapper.delete(new LambdaQueryWrapper<RagChunkPO>().eq(RagChunkPO::getRagId, id));
         ragDocumentMapper.delete(new LambdaQueryWrapper<RagDocumentPO>().eq(RagDocumentPO::getRagId, id));
         knowledgeMapper.deleteById(id);
+        log.info("删除知识库成功 id={} name={}", id, po.getName());
     }
 
     /**

@@ -145,6 +145,7 @@ public class StoreInstanceService {
             clearDefaultInCategory(po.getCategory(), null);
         }
         mapper.insert(po);
+        log.info("创建存储实例成功 id={} name={} category={} type={}", po.getId(), po.getName(), po.getCategory(), po.getType());
         return toVo(mapper.selectById(po.getId()));
     }
 
@@ -190,6 +191,7 @@ public class StoreInstanceService {
             uw.set(StoreInstancePO::getIsDefault, vo.getIsDefault());
         }
         mapper.update(null, uw);
+        log.info("更新存储实例成功 id={}", id);
         return toVo(mapper.selectById(id));
     }
 
@@ -216,6 +218,7 @@ public class StoreInstanceService {
             throw new IllegalArgumentException("该实例仍被 " + cnt + " 个知识库引用，无法删除");
         }
         mapper.deleteById(id);
+        log.info("删除存储实例成功 id={}", id);
     }
 
     /**
@@ -230,7 +233,9 @@ public class StoreInstanceService {
                         .builder()
                         .config(JsonUtil.toJsonString(req.getConfig()))
                         .build());
-        return apply.test();
+        boolean ok = apply.test();
+        log.info("存储实例连通性测试 type={} result={}", req.getType(), ok);
+        return ok;
     }
 
     private void clearDefaultInCategory(Integer category, Long excludeId) {

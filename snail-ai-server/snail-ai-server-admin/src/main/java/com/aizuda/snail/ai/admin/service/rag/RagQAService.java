@@ -52,6 +52,7 @@ public class RagQAService {
     }
 
     private void doQaStream(RagQARequestVO request, FluxSink<RagQaStreamEvent> sink) {
+        log.debug("知识库问答开始 ragId={} query={}", request.getRagId(), request.getQuery());
         try {
             RagPO knowledge = knowledgeMapper.selectById(request.getRagId());
             if (knowledge == null) {
@@ -84,6 +85,7 @@ public class RagQAService {
             searchRequest.setQuery(request.getQuery());
             List<SearchResult> searchResults = new ArrayList<>(
                     ragSearchService.search(searchRequest, searchConfigDO).getResults());
+            log.debug("知识库问答检索完成 ragId={} 命中={} 条", request.getRagId(), searchResults.size());
 
             // 2. 组装 prompt
             String documentsText = buildDocumentsText(searchResults);

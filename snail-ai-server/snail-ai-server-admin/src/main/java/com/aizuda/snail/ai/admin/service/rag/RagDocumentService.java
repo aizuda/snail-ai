@@ -187,6 +187,7 @@ public class RagDocumentService {
 
         ragChunkMapper.delete(new LambdaQueryWrapper<RagChunkPO>().eq(RagChunkPO::getDocumentId, documentId));
         ragDocumentMapper.deleteById(documentId);
+        log.info("清理文档完成 documentId={} ragId={}", documentId, doc.getRagId());
     }
 
     /**
@@ -202,6 +203,7 @@ public class RagDocumentService {
         doc.setStatus(RagDocumentStatus.PENDING.getStatus());
         doc.setErrorMsg(null);
         ragDocumentMapper.updateById(doc);
+        log.info("文档重新处理 documentId={} ragId={}", documentId, doc.getRagId());
     }
 
     /**
@@ -328,6 +330,7 @@ public class RagDocumentService {
         }
 
         updateDocumentChunkCount(request.getDocumentId());
+        log.info("新增切片 chunkId={} documentId={} ragId={}", chunk.getId(), request.getDocumentId(), request.getRagId());
 
         RagChunkPO inserted = ragChunkMapper.selectById(chunk.getId());
         String documentName = null;
@@ -366,6 +369,7 @@ public class RagDocumentService {
             }
         }
 
+        log.info("更新切片 chunkId={}", chunkId);
         RagChunkPO updated = ragChunkMapper.selectById(chunkId);
         String documentName = null;
         RagDocumentPO doc = ragDocumentMapper.selectById(updated.getDocumentId());
@@ -405,6 +409,7 @@ public class RagDocumentService {
         }
         ragChunkMapper.deleteById(chunkId);
         updateDocumentChunkCount(documentId);
+        log.info("删除切片 chunkId={} documentId={}", chunkId, documentId);
     }
 
     // ──────────────────────────────────── private ────────────────────────────────────
@@ -483,6 +488,7 @@ public class RagDocumentService {
                 .chunkCount(0)
                 .build();
         ragDocumentMapper.insert(doc);
+        log.info("新增文档 documentId={} ragId={} name={}", doc.getId(), knowledge.getId(), fileName);
         return toResponseVOWithDecision(doc, decision);
     }
 
