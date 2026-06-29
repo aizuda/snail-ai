@@ -67,6 +67,7 @@ public class AppService {
                 .status(APP_STATUS_ENABLED)
                 .build();
         appMapper.insert(po);
+        log.info("创建应用成功 id={} appId={} appName={}", po.getId(), po.getAppId(), po.getAppName());
         return toResponseVO(po);
     }
 
@@ -81,6 +82,7 @@ public class AppService {
         AppPO po = findAppById(id);
         updateAppFields(po, request);
         appMapper.updateById(po);
+        log.info("更新应用成功 id={} appId={}", id, po.getAppId());
         return toResponseVO(po);
     }
 
@@ -97,6 +99,7 @@ public class AppService {
 
         deleteRelatedNodes(po.getAppId());
         appMapper.deleteById(id);
+        log.info("删除应用成功 id={} appId={}", id, po.getAppId());
     }
 
     /**
@@ -108,6 +111,7 @@ public class AppService {
         AppPO po = findAppById(id);
         po.setStatus(isEnabled(po) ? APP_STATUS_DISABLED : APP_STATUS_ENABLED);
         appMapper.updateById(po);
+        log.info("切换应用状态 id={} appId={} status={}", id, po.getAppId(), po.getStatus());
     }
 
     /**
@@ -182,6 +186,7 @@ public class AppService {
         clientNodeMapper.delete(new LambdaQueryWrapper<ClientNodePO>()
                 .eq(ClientNodePO::getAppId, appId)
                 .eq(ClientNodePO::getHostId, hostId));
+        log.info("踢除接入节点 appId={} hostId={}", appId, hostId);
     }
 
     // ==================== 私有辅助方法 ====================
