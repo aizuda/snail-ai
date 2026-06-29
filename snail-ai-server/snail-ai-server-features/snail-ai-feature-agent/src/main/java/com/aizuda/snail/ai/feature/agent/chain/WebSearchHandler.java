@@ -10,9 +10,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@Slf4j
-//@Component
-//@Order(65)
 /**
  * 联网搜索处理器：若智能体启用了 webSearch，将 WebSearchTool 注入工具回调列表，
  * 由 LLM 在需要时自主决策是否调用。
@@ -20,6 +17,9 @@ import java.util.List;
  * @author opensnail
  * @since 2026-06-14
  */
+@Slf4j
+//@Component
+//@Order(65)
 public class WebSearchHandler implements AgentChatHandler {
 
     @Value("${snail-ai.web-search.tavily.api-key:}")

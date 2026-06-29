@@ -10,5 +10,11 @@ package com.aizuda.snail.ai.feature.agent.chain;
  */
 public interface AgentChatHandler {
 
+    /**
+     * 处理对话上下文：完成自身职责后由责任链驱动下一个 Handler；
+     * 若需短路（校验失败 / 提前结束），将 {@link AgentChatContext#setTerminated(boolean)} 置真并直接返回
+     *
+     * @param ctx 智能体对话责任链上下文
+     */
     void handle(AgentChatContext ctx);
 }
