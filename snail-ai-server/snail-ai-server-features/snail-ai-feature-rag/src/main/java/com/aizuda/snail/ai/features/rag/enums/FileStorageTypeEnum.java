@@ -13,6 +13,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum FileStorageTypeEnum {
 
+    /** 本地磁盘存储 */
     LOCAL("LOCAL");
 
     private final String value;

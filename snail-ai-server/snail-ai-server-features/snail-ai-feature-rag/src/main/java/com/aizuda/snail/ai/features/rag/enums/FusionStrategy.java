@@ -13,7 +13,9 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum FusionStrategy {
 
+    /** 倒数排名融合（Reciprocal Rank Fusion） */
     RRF("RRF"),
+    /** 加权求和融合 */
     WEIGHTED_SUM("WEIGHTED_SUM");
 
     private final String strategy;

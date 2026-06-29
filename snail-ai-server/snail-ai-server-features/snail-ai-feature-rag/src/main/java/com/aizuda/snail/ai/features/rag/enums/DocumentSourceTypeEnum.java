@@ -13,7 +13,9 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum DocumentSourceTypeEnum {
 
+    /** 本地上传文件 */
     UPLOAD("UPLOAD"),
+    /** 远程 URL 导入 */
     URL("URL");
 
     private final String value;

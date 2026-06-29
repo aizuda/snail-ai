@@ -14,12 +14,21 @@ import lombok.Data;
 @Data
 public class RagSearchRequestDTO {
 
+    /**
+     * 知识库 ID（兼容别名 knowledgeId）
+     */
     @JsonAlias("knowledgeId")
     @NotNull(message = "ragId is required")
     private Long ragId;
 
+    /**
+     * 查询语句
+     */
     @NotBlank(message = "query is required")
     private String query;
 
+    /**
+     * 是否返回各阶段调试指标
+     */
     private Boolean debug;
 }
