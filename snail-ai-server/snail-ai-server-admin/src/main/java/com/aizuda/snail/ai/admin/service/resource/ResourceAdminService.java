@@ -18,6 +18,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,6 +31,7 @@ import java.util.List;
  * @author opensnail
  * @since 2026-06-14
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ResourceAdminService {
@@ -59,6 +61,8 @@ public class ResourceAdminService {
                     request.getBizId(),
                     userId
             );
+            log.info("上传资源成功 id={} name={} size={} bizType={} userId={}",
+                    po.getId(), po.getOriginalName(), po.getFileSize(), bizType, userId);
             return toResponseVO(po);
         } catch (IOException e) {
             throw new SnailAiException("Failed to read uploaded file", e);
@@ -73,6 +77,7 @@ public class ResourceAdminService {
     public void delete(Long id) {
         requireAuthorizedResource(id);
         resourceService.delete(id);
+        log.info("删除资源成功 id={}", id);
     }
 
     /**

@@ -119,6 +119,7 @@ public class McpServerService {
                 .creatorId(UserSessionUtils.currentUserSession().getId())
                 .build();
         mcpServerMapper.insert(po);
+        log.info("创建 MCP 服务成功 id={} name={} transportType={}", po.getId(), po.getName(), po.getTransportType());
         return toResponseVO(po);
     }
 
@@ -175,6 +176,7 @@ public class McpServerService {
         }
 
         mcpServerMapper.updateById(po);
+        log.info("更新 MCP 服务成功 id={} name={}", id, po.getName());
         return toResponseVO(po);
     }
 
@@ -189,6 +191,7 @@ public class McpServerService {
         agentMcpServerMapper.delete(
                 new LambdaQueryWrapper<AgentMcpServerPO>().eq(AgentMcpServerPO::getMcpServerId, id));
         mcpServerMapper.deleteById(id);
+        log.info("删除 MCP 服务成功 id={}", id);
     }
 
     /**
@@ -211,6 +214,7 @@ public class McpServerService {
             verifyServerCapabilities(client);
             connected = true;
             po.setLastConnectDt(LocalDateTime.now());
+            log.info("MCP 连接测试成功 id={} name={}", id, po.getName());
         } catch (Exception e) {
             log.warn("MCP 连接测试失败, id={}, name={}, error={}", id, po.getName(), e.getMessage(), e);
         } finally {
@@ -274,6 +278,7 @@ public class McpServerService {
                 agentMcpServerMapper.insert(relation);
             }
         }
+        log.info("更新智能体 MCP 关联 agentId={} 关联数={}", agentId, mcpServerIds == null ? 0 : mcpServerIds.size());
     }
 
     // ==================== 私有方法 ====================
