@@ -37,6 +37,12 @@ public class OpenApiEmbedTokenService {
     private final OpenApiUserResolver openApiUserResolver;
     private final ResourceMapper resourceMapper;
 
+    /**
+     * 创建嵌入式对话授权 token
+     *
+     * @param request 嵌入式 token 请求（openId、有效期、可信凭据等）
+     * @return 嵌入式对话 token 响应（token、有效期、用户信息）
+     */
     public OpenApiEmbedTokenResponse createEmbedToken(OpenApiEmbedTokenRequest request) {
         OpenApiSessionUtils.OpenApiSession session = OpenApiSessionUtils.current();
         OpenApiResolvedUser resolvedUser = openApiUserResolver.resolveUser(session.getAppId(), request.getOpenId());

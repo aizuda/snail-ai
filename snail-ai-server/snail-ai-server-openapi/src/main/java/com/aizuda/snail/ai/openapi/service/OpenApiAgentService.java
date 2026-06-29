@@ -56,6 +56,12 @@ public class OpenApiAgentService {
     private final UserAgentMapper userAgentMapper;
     private final OpenApiUserMapper openApiUserMapper;
 
+    /**
+     * 分页查询已上架的智能体
+     *
+     * @param request 智能体分页查询请求
+     * @return 已上架智能体分页结果
+     */
     public PageResult<List<OpenApiAgentVO>> listAgents(OpenApiAgentQueryRequest request) {
         Page<AgentPO> pageParam = new Page<>(request.getPage(), request.getSize());
         Page<AgentPO> page = agentMapper.selectPage(pageParam,
@@ -69,6 +75,12 @@ public class OpenApiAgentService {
         return pageResult(page, agents);
     }
 
+    /**
+     * 获取智能体详情
+     *
+     * @param agentId 智能体 ID
+     * @return 智能体详情 VO；不存在时抛出异常
+     */
     public OpenApiAgentVO getAgent(Long agentId) {
         AgentPO agent = agentMapper.selectById(agentId);
         if (agent == null) {
@@ -77,6 +89,12 @@ public class OpenApiAgentService {
         return toVO(agent, null);
     }
 
+    /**
+     * 查询某用户已订阅且上架的智能体列表
+     *
+     * @param openId 开放平台用户标识
+     * @return 该用户已订阅的智能体列表
+     */
     public List<OpenApiAgentVO> listUserAgents(String openId) {
         OpenApiUserPO user = getOpenApiUser(openId);
         List<UserAgentPO> relations = userAgentMapper.selectList(
@@ -99,6 +117,12 @@ public class OpenApiAgentService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 订阅智能体（已订阅时幂等返回）
+     *
+     * @param openId  开放平台用户标识
+     * @param agentId 目标智能体 ID
+     */
     @Transactional(rollbackFor = Exception.class)
     public void subscribeAgent(String openId, Long agentId) {
         OpenApiUserPO user = getOpenApiUser(openId);
@@ -125,6 +149,12 @@ public class OpenApiAgentService {
                 .build());
     }
 
+    /**
+     * 取消订阅智能体
+     *
+     * @param openId  开放平台用户标识
+     * @param agentId 目标智能体 ID
+     */
     @Transactional(rollbackFor = Exception.class)
     public void unsubscribeAgent(String openId, Long agentId) {
         OpenApiUserPO user = getOpenApiUser(openId);

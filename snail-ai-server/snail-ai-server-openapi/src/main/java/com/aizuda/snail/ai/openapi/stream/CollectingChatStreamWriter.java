@@ -55,6 +55,14 @@ public class CollectingChatStreamWriter implements ChatStreamWriter {
         latch.countDown();
     }
 
+    /**
+     * 阻塞等待对话完成并返回累积的完整文本
+     *
+     * @param timeoutMs 最大等待毫秒数
+     * @return 累积的完整文本
+     * @throws InterruptedException 等待期间线程被中断
+     * @throws TimeoutException     超时仍未完成
+     */
     public String awaitAndGetFullText(long timeoutMs) throws InterruptedException, TimeoutException {
         if (!latch.await(timeoutMs, TimeUnit.MILLISECONDS)) {
             throw new TimeoutException("对话响应超时");

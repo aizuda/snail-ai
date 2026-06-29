@@ -39,6 +39,9 @@ public class OpenApiChatService {
 
     /**
      * 流式对话 — 返回 OpenAPI 事件流
+     *
+     * @param request 对话请求（智能体ID、会话ID、内容、openId、禁用的 MCP/Skill 等）
+     * @return OpenAPI 对话事件流（文本 / 思考 / 完成 / 错误）
      */
     public Flux<OpenApiChatStreamEvent> chatStream(OpenApiChatRequest request) {
         UserPO requestUser = resolveRequestUser(request.getOpenId());
@@ -76,6 +79,9 @@ public class OpenApiChatService {
 
     /**
      * 同步对话 — 阻塞等待完整响应
+     *
+     * @param request 对话请求（智能体ID、会话ID、内容、openId 等）
+     * @return 同步对话响应（完整文本与耗时）
      */
     public OpenApiChatSyncResponse chatSync(OpenApiChatRequest request) {
         long start = System.currentTimeMillis();

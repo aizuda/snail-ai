@@ -25,10 +25,24 @@ public class OpenApiUserResolver {
     private final OpenApiUserMapper openApiUserMapper;
     private final UserMapper userMapper;
 
+    /**
+     * 解析平台用户
+     *
+     * @param appId  应用 ID
+     * @param openId 开放平台用户标识
+     * @return 关联的平台用户
+     */
     public UserPO resolvePlatformUser(String appId, String openId) {
         return resolveUser(appId, openId).getPlatformUser();
     }
 
+    /**
+     * 解析开放用户与平台用户的组合
+     *
+     * @param appId  应用 ID
+     * @param openId 开放平台用户标识
+     * @return 开放用户与平台用户的组合；openId 缺失或无效时抛出认证异常
+     */
     public OpenApiResolvedUser resolveUser(String appId, String openId) {
         if (StrUtil.isBlank(openId)) {
             throw new SnailAiAuthenticationException("缺少 openId 参数");

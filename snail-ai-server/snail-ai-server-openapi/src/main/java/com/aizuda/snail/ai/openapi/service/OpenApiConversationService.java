@@ -38,6 +38,12 @@ public class OpenApiConversationService {
     private final AgentConversationRecordMapper conversationRecordMapper;
     private final OpenApiUserResolver openApiUserResolver;
 
+    /**
+     * 分页查询指定智能体下当前用户的会话列表
+     *
+     * @param request 会话分页查询请求（智能体ID、openId、分页参数）
+     * @return 会话分页结果
+     */
     public PageResult<List<OpenApiConversationVO>> listConversations(OpenApiConversationQueryRequest request) {
         Long userId = resolveUserId(request.getOpenId());
 
@@ -53,6 +59,12 @@ public class OpenApiConversationService {
         return pageResult(result, conversations);
     }
 
+    /**
+     * 创建会话
+     *
+     * @param request 创建会话请求（智能体ID、openId、标题）
+     * @return 新建的会话 VO
+     */
     public OpenApiConversationVO createConversation(OpenApiCreateConversationRequest request) {
         Long userId = resolveUserId(request.getOpenId());
 
@@ -68,6 +80,11 @@ public class OpenApiConversationService {
         return toVO(po);
     }
 
+    /**
+     * 删除会话及其消息记录
+     *
+     * @param request 会话标识请求（智能体ID、会话ID、openId）
+     */
     @Transactional
     public void deleteConversation(OpenApiConversationIdentityRequest request) {
         Long userId = resolveUserId(request.getOpenId());
@@ -85,6 +102,11 @@ public class OpenApiConversationService {
                         .eq(AgentConversationRecordPO::getUserId, userId));
     }
 
+    /**
+     * 清空指定智能体下当前用户的全部会话与消息记录
+     *
+     * @param request 清空会话请求（智能体ID、openId）
+     */
     @Transactional
     public void clearConversations(OpenApiConversationClearRequest request) {
         Long userId = resolveUserId(request.getOpenId());
@@ -100,6 +122,12 @@ public class OpenApiConversationService {
                         .eq(AgentConversationPO::getUserId, userId));
     }
 
+    /**
+     * 获取会话内的消息列表（按创建时间升序）
+     *
+     * @param request 会话标识请求（智能体ID、会话ID、openId）
+     * @return 消息 VO 列表
+     */
     public List<OpenApiMessageVO> getMessages(OpenApiConversationIdentityRequest request) {
         Long userId = resolveUserId(request.getOpenId());
 
