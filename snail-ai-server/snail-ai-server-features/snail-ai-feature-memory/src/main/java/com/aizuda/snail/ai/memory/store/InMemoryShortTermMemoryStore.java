@@ -77,6 +77,7 @@ public class InMemoryShortTermMemoryStore implements ShortTermMemoryStore {
     @Override
     public void evict(String conversationId) {
         store.remove(conversationId);
+        log.debug("短期记忆内存清理 conversationId={}", conversationId);
     }
 
     @Override
