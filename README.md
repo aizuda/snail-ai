@@ -23,6 +23,7 @@
 - [snail-job-admin](https://gitee.com/opensnail/snail-job-admin.git)(基于[soybean-admin](https://github.com/soybeanjs/soybean-admin)开源项目搭建)
 - [snail-job](https://gitee.com/aizuda/snail-job.git)
 - [snail-ai-admin](https://gitee.com/opensnail/snail-ai-admin.git)
+- [snail-ai-chat](https://gitee.com/opensnail/snail-ai-chat.git)
 
 # 核心特性
 

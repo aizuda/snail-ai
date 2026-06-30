@@ -58,6 +58,98 @@ http://localhost:8081/snail-chat
 http://localhost:8081/snail-chat?openId=46ed53c6a20044c7bbd870848e80f92f
 ```
 
+## 注册 openId
+
+智能体对话页面通过 `openId` 识别外部用户。`openId` 不是前端自行生成的参数，而是外部系统先调用 OpenAPI 用户注册接口后，由 Snail AI 返回的用户标识。
+
+项目提供了一个注册示例，可参考 `com.aizuda.snail.ai.agent.example.controller.OpenApiDemoController#registerUser`：
+
+```java
+@PostMapping("/user/register")
+public Result<OpenApiUserVO> registerUser(@RequestBody OpenApiUserRegisterRequest request) {
+    return userClient.register(request);
+}
+```
+
+这个示例接口位于 `snail-ai-agent-example`，完整路径为：
+
+```text
+POST /demo/user/register
+```
+
+示例应用启动前，需要先在 Server 端「应用管理」页面创建应用，获取 `app-id` 和 `token`，并配置到 `snail-ai-agent-example/src/main/resources/application.yml`：
+
+```yaml
+snail-ai:
+  app-id: snail-ai-agent-demo
+  token: SAI_xxx
+  open-api:
+    enabled: true
+    web-port: 8900
+    prefix: snail-ai
+```
+
+启动 `snail-ai-agent-example` 后，可以调用示例注册接口：
+
+```bash
+curl -X POST 'http://localhost:8081/demo/user/register' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "externalId": "user-001",
+    "nickname": "张三",
+    "avatarUrl": "https://example.com/avatar.png"
+  }'
+```
+
+`OpenApiDemoController#registerUser` 会把请求转给 `OpenApiUserClient#register`，再由 OpenAPI Client 携带应用凭证调用 Snail AI Server 的用户注册接口。
+
+响应中的 `data.openId` 就是智能体对话页面需要使用的 `openId`：
+
+```json
+{
+  "code": 1,
+  "msg": "success",
+  "data": {
+    "openId": "46ed53c6a20044c7bbd870848e80f92f",
+    "externalId": "user-001",
+    "nickname": "张三",
+    "avatarUrl": "https://example.com/avatar.png",
+    "created": true
+  }
+}
+```
+
+拿到 `openId` 后，可以把它带到智能体对话页面：
+
+```text
+http://localhost:8081/snail-chat?openId=46ed53c6a20044c7bbd870848e80f92f
+```
+
+`externalId` 建议传入业务系统自己的用户 ID。同一个应用下重复使用相同 `externalId` 注册时，接口会幂等返回已有用户的 `openId`，不会重复创建用户。
+
+如果不通过示例工程中转，也可以直接调用 Snail AI Server 的 OpenAPI 用户注册接口。直接调用时需要携带应用 Header：
+
+```http
+Snail-Ai-App-Id: <your-app-id>
+Snail-Ai-Token: <your-app-token>
+```
+
+```bash
+curl -X POST 'http://localhost:8900/snail-ai/openapi/v1/user/register' \
+  -H 'Content-Type: application/json' \
+  -H 'Snail-Ai-App-Id: <your-app-id>' \
+  -H 'Snail-Ai-Token: <your-app-token>' \
+  -d '{
+    "externalId": "user-001",
+    "nickname": "张三",
+    "avatarUrl": "https://example.com/avatar.png"
+  }'
+```
+
+::: tip
+应用 `token` 属于服务端凭证，不建议暴露在公开前端代码中。生产环境通常由业务后端按 `OpenApiDemoController#registerUser` 的方式调用 OpenAPI Client 完成注册，再把返回的 `openId` 或会话入口下发给前端。
+:::
+
 ## 界面预览
 
 首次进入页面时，输入 `openId` 后即可创建智能体对话会话。
