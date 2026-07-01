@@ -181,7 +181,7 @@ public class DoclingClient {
     }
 
     private String normalizeBaseUrl() {
-        String baseUrl = StrUtil.blankToDefault(properties.getUrl(), "http://127.0.0.1:5001").trim();
+        String baseUrl = StrUtil.blankToDefault(properties.getUrl(), "http://127.0.0.1:5100").trim();
         return StrUtil.removeSuffix(baseUrl, "/");
     }
 

@@ -55,6 +55,11 @@ nbdist/
 /upload/
 /temp/
 
+# Docling 运行时文件
+tools/docling-api/.pid
+tools/docling-api/docling.log
+tools/docling-api/server/__pycache__/
+
 # Claude 智能体目录（关键修正顺序）
 # 先反向保留skills目录，再忽略其他claude内容
 !.claude/

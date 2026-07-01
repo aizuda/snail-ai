@@ -29,7 +29,7 @@ public class DoclingProperties {
     /**
      * Docling Serve 基础地址。
      */
-    private String url = "http://127.0.0.1:5001";
+    private String url = "http://127.0.0.1:5100";
 
     /**
      * 单个解析任务的整体超时时间，单位秒。

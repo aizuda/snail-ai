@@ -67,7 +67,7 @@ snail-ai:
   rag:
     docling:
       enabled: false
-      url: http://127.0.0.1:5001
+      url: http://127.0.0.1:5100
       timeout-seconds: 300
       concurrency: 3
       health-timeout-millis: 3000
