@@ -39,6 +39,7 @@ nbdist/
 
 ######################################################################
 # Others
+.DS_Store
 *.log
 *.xml.versionsBackup
 *.swp
@@ -55,3 +56,7 @@ nbdist/
 !.claude/skills/**
 .vscode
 .gitnexus
+/.agents/
+/.cursor/mcp.json
+/.cursor/rules/qingtian-mcp.mdc
+/.playwright-cli/
