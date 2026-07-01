@@ -34,9 +34,16 @@
 ## 项目结构
 
 - 后端：Spring Boot + MyBatis-Plus，模块化 Maven 项目
-- 前端：Vue 3 + TypeScript + Ant Design Vue，位于 `snail-ai-web/`
+- 前端：Vue 3 + TypeScript + Naive UI，独立仓库（路径通过 `.env` 中 `SNAIL_AI_FRONTEND_PATH` 配置）
 - 前端页面使用 `useTable` + `useTableOperate` + TSX `customRender` 标准模式
 - API 服务层按功能模块拆分（`model.ts`、`provider.ts` 等）
+
+## 环境配置
+
+- 本地环境变量在项目根目录 `.env` 文件中配置（不提交到 Git）
+- `.env.example` 为模板文件，列出所有可用变量及默认值
+- 如需新增环境变量，同时更新 `.env.example`（模板）和 `.env`（本地值）
+- 智能体/Skill 读取 `.env` 失败时应使用 `env-config` skill 引导用户配置
 
 ## 通用规则
 
@@ -49,6 +56,8 @@
 - 每次编写或修改代码前，必须先阅读 `.claude/skills/dev-guide/SKILL.md`。
 - 按任务类型继续阅读对应细则：架构调整读 `architecture.md`，Java/编码风格读 `coding-standards.md`，数据库/Mapper/PO 调整读 `database-guide.md`，接口调整读 `api-design.md`，命名不确定时读 `naming-conventions.md`。
 - `.claude/skills/dev-guide/` 中的规范与本文件同时生效；如与当前开源版实际模块结构冲突，以当前代码结构和本文件的开源版约束为准。
+- **前端开发**：涉及前端变更时使用 `frontend-dev` skill，遵循 `agents/frontend-dev.md` 中的 Vue 3/Naive UI 编码规范。
+- **环境配置**：`.env` 配置缺失时使用 `env-config` skill 引导用户完成配置。
 
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence

@@ -47,6 +47,7 @@ nbdist/
 !*/build/*.html
 !*/build/*.xml
 
+.env
 .flattened-pom.xml
 /upload
 /temp
