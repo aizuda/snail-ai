@@ -47,9 +47,10 @@
 
 ## 通用规则
 
-- 提交信息格式：`feat/fix/refactor(scope): 中文描述`
+- 提交信息格式：`<type>(<version>): <中文描述>`，如 `feat(1.1.0): 新增用户管理`
 - 不要修改不相关的代码，保持变更最小化
 - 新增 API 端点时同步更新前端 service 层类型定义
+- 提交代码时使用 `git-submit` skill 自动生成 commit message 和更新 changelog
 
 ## 开发规范 Skill
 
@@ -57,6 +58,7 @@
 - 按任务类型继续阅读对应细则：架构调整读 `architecture.md`，Java/编码风格读 `coding-standards.md`，数据库/Mapper/PO 调整读 `database-guide.md`，接口调整读 `api-design.md`，命名不确定时读 `naming-conventions.md`。
 - `.claude/skills/dev-guide/` 中的规范与本文件同时生效；如与当前开源版实际模块结构冲突，以当前代码结构和本文件的开源版约束为准。
 - **前端开发**：涉及前端变更时使用 `frontend-dev` skill，遵循 `agents/frontend-dev.md` 中的 Vue 3/Naive UI 编码规范。
+- **Git 提交**：提交代码时使用 `git-submit` skill，自动更新 changelog、生成规范 commit message、创建 Gitee PR。
 - **环境配置**：`.env` 配置缺失时使用 `env-config` skill 引导用户完成配置。
 
 <!-- gitnexus:start -->
