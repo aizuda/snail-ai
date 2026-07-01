@@ -19,6 +19,19 @@ Snail AI 支持以下 10 种常见文档格式：
 
 > **提示：** 上传文件时系统会自动根据文件扩展名和 MIME 类型判断格式，并选择对应的解析器。
 
+### 解析引擎
+
+Snail AI 支持两种文档解析引擎：
+
+| 引擎 | 标识 | 说明 |
+|------|------|------|
+| **内置解析器** | `default` | 基于 PDFBox / POI 的项目内置解析链路，默认启用，无外部依赖 |
+| **Docling 解析引擎** | `docling` | 外部 Docling Serve 服务，提供更精准的结构化解析、表格识别、图片提取和 OCR |
+
+Docling 是**可选增强引擎**——开启后在知识库配置中选择 `engine=docling` 即可使用；Docling 服务不可用时系统会自动降级回内置解析器，不影响文档导入流程。
+
+参见 [Docling 解析引擎设计文档](../../architecture/docling-engine.md)。
+
 ## 文档导入
 
 进入知识库详情页的「文档」标签页，点击「导入文档」按钮即可打开导入窗口。
@@ -193,6 +206,18 @@ stateDiagram-v2
 | TXT / CSV | 等宽字体纯文本展示 |
 | PPTX 等 | 提供下载按钮 |
 
+> **提示：** 使用 Docling 引擎解析的文档，系统会额外保存清理后的 Markdown 内容（`mdContent`），前端优先使用 Markdown 渲染器展示，保留标题层级和表格格式。
+
+### 查看解析图片
+
+使用 Docling 引擎解析文档后，系统会自动提取文档中的图片并保存到资源库。在文档操作菜单中点击「查看图片」即可浏览所有解析出的图片及其图注和页码信息。
+
+```
+GET /document/{id}/images
+```
+
+返回结果包含每张图片的访问地址、图注（caption）、来源页码（sourcePage）和 OCR 文本（ocrText）。
+
 ### 重新解析
 
 对于解析失败（`failed`）的文档，可在操作菜单中点击「重新解析」触发再次处理：
@@ -232,5 +257,6 @@ DELETE /document/{id}
 | `/document/import/url` | POST | URL 导入文档 |
 | `/document/{id}/reprocess` | POST | 重新解析文档 |
 | `/document/{id}` | DELETE | 删除文档 |
+| `/document/{id}/images` | GET | 查看 Docling 解析提取的图片列表 |
 | `/resource/{resourceId}/preview` | GET | 文档预览（二进制流） |
 | `/resource/{resourceId}/download` | GET | 文档下载（二进制流） |

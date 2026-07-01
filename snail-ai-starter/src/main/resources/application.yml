@@ -22,12 +22,12 @@ spring:
   datasource:
     name: snail_ai
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/snail_ai?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&useUnicode=true
+    url: jdbc:mysql://192.168.242.120:3306/snail_ai?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&useUnicode=true
     username: root
     password: 123456
 # 支持pgsql配置
 #    driver-class-name: org.postgresql.Driver
-#    url: jdbc:postgresql://localhost:5432/snail_ai?allowMultiQueries=true
+#    url: jdbc:postgresql://192.168.242.120:5432/snail_ai?allowMultiQueries=true
 #    username: root
 #    password: 123456
     # 支持dameng配置
@@ -60,10 +60,22 @@ snail-ai:
     storage-type: LOCAL
     upload-dir: ./upload/resource
     minio:
-      endpoint: http://localhost:9000
+      endpoint: http://192.168.242.120:9000
       access-key: minioadmin
       secret-key: minioadmin
       bucket: snail-ai
+  rag:
+    docling:
+      enabled: false
+      url: http://127.0.0.1:5001
+      timeout-seconds: 300
+      concurrency: 3
+      health-timeout-millis: 3000
+      poll-interval-millis: 3000
+      status-timeout-millis: 10000
+      result-timeout-millis: 30000
+      max-image-count: 100
+      max-image-bytes: 10485760
   # 短期记忆配置
   memory:
     short-term:

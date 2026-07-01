@@ -281,6 +281,13 @@ CREATE TABLE sai_rag_document
     status       TINYINT(1)  DEFAULT 0 COMMENT '状态: 0-待处理 1-解析中 2-处理中 3-处理完成 4-处理失败',
     error_msg    TEXT,
     chunk_count  INT         DEFAULT 0,
+    page_count   INT         DEFAULT 0 COMMENT 'Docling parse page count',
+    element_count INT        DEFAULT 0 COMMENT 'Docling parse element count',
+    table_count  INT         DEFAULT 0 COMMENT 'Docling parse table count',
+    image_count  INT         DEFAULT 0 COMMENT 'Docling parse image count',
+    parse_time   INT         DEFAULT 0 COMMENT 'Parse duration in milliseconds',
+    md_content   LONGTEXT    DEFAULT NULL COMMENT 'Docling markdown content',
+    doc_metadata LONGTEXT    DEFAULT NULL COMMENT 'Docling document metadata JSON',
     content_hash VARCHAR(64) DEFAULT NULL COMMENT '文件内容SHA-256哈希，用于去重',
     resource_id  BIGINT      DEFAULT NULL COMMENT '关联资源库 sai_resource.id',
     create_dt    TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
@@ -293,6 +300,26 @@ CREATE INDEX idx_rag_doc_rag ON sai_rag_document (rag_id);
 CREATE INDEX idx_rag_content_hash ON sai_rag_document (rag_id, content_hash);
 CREATE INDEX idx_rag_name ON sai_rag_document (rag_id, name);
 CREATE INDEX idx_rag_doc_resource ON sai_rag_document (resource_id);
+
+CREATE TABLE sai_rag_document_image
+(
+    id          BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    rag_id      BIGINT NOT NULL,
+    document_id BIGINT NOT NULL,
+    resource_id BIGINT DEFAULT NULL,
+    image_url   VARCHAR(1024),
+    caption     TEXT,
+    source_page INT,
+    ocr_text    TEXT,
+    create_dt   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_dt   TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
+
+CREATE INDEX idx_rag_doc_image_rag ON sai_rag_document_image (rag_id);
+CREATE INDEX idx_rag_doc_image_document ON sai_rag_document_image (document_id);
+CREATE INDEX idx_rag_doc_image_resource ON sai_rag_document_image (resource_id);
 
 -- 4.3 RAG 分块表
 CREATE TABLE sai_rag_chunk

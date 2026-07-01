@@ -88,6 +88,27 @@ public class RagDocumentPO {
      */
     private Integer chunkCount;
 
+    /** Docling 解析页数。 */
+    private Integer pageCount;
+
+    /** Docling 解析元素数量。 */
+    private Integer elementCount;
+
+    /** Docling 解析表格数量。 */
+    private Integer tableCount;
+
+    /** Docling 解析图片数量。 */
+    private Integer imageCount;
+
+    /** 文档解析耗时，单位毫秒。 */
+    private Integer parseTime;
+
+    /** Docling 清理后的 Markdown 内容。 */
+    private String mdContent;
+
+    /** Docling 文档元数据 JSON。 */
+    private String docMetadata;
+
     /**
      * 文件内容SHA-256哈希
      * 用于文档级去重: 同一 RAG 内相同哈希视为重复

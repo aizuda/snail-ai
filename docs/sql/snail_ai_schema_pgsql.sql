@@ -438,6 +438,13 @@ CREATE TABLE sai_rag_document
     status SMALLINT DEFAULT 0,
     error_msg TEXT,
     chunk_count INT DEFAULT 0,
+    page_count INT DEFAULT 0,
+    element_count INT DEFAULT 0,
+    table_count INT DEFAULT 0,
+    image_count INT DEFAULT 0,
+    parse_time INT DEFAULT 0,
+    md_content TEXT DEFAULT NULL,
+    doc_metadata TEXT DEFAULT NULL,
     content_hash VARCHAR(64) DEFAULT NULL,
     resource_id BIGINT DEFAULT NULL,
     create_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -457,6 +464,32 @@ CREATE INDEX idx_rag_doc_rag ON sai_rag_document (rag_id);
 CREATE INDEX idx_rag_content_hash ON sai_rag_document (rag_id, content_hash);
 CREATE INDEX idx_rag_name ON sai_rag_document (rag_id, name);
 CREATE INDEX idx_rag_doc_resource ON sai_rag_document (resource_id);
+
+CREATE TABLE sai_rag_document_image
+(
+    id BIGSERIAL PRIMARY KEY,
+    rag_id BIGINT NOT NULL,
+    document_id BIGINT NOT NULL,
+    resource_id BIGINT DEFAULT NULL,
+    image_url VARCHAR(1024),
+    caption TEXT,
+    source_page INT,
+    ocr_text TEXT,
+    create_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE sai_rag_document_image IS 'RAG document parsed image table';
+COMMENT ON COLUMN sai_rag_document_image.resource_id IS 'Linked resource id in sai_resource';
+
+CREATE TRIGGER trigger_sai_rag_document_image_update
+    BEFORE UPDATE ON sai_rag_document_image
+    FOR EACH ROW
+    EXECUTE FUNCTION update_timestamp();
+
+CREATE INDEX idx_rag_doc_image_rag ON sai_rag_document_image (rag_id);
+CREATE INDEX idx_rag_doc_image_document ON sai_rag_document_image (document_id);
+CREATE INDEX idx_rag_doc_image_resource ON sai_rag_document_image (resource_id);
 
 -- 4.3 RAG 分块表
 CREATE TABLE sai_rag_chunk

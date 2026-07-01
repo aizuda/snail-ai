@@ -29,6 +29,10 @@ public enum ResourceBizTypeEnum {
      * 知识库正式文档
      */
     DOCUMENT("DOCUMENT"),
+    /**
+     * 知识库文档解析提取图片
+     */
+    DOCUMENT_IMAGE("DOCUMENT_IMAGE"),
     /** 知识库上传预览阶段的临时资源；commit 时通过引用提升为 DOCUMENT，cancel/超时则清理 */
     DOCUMENT_PREVIEW("DOCUMENT_PREVIEW");
 

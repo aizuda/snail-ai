@@ -113,6 +113,23 @@ flowchart TD
 | **正则表达式** | 按自定义正则表达式进行一级切分 |
 | **智能切分** | 调用大语言模型进行语义级别的智能切分 |
 
+### 解析引擎配置
+
+Snail AI 支持两种文档解析引擎，可在此选择：
+
+| 字段 | 必填 | 说明 |
+|------|------|------|
+| 解析引擎 | 否 | 默认 `default` 内置解析器，可选 `docling` 外部 Docling Serve |
+| Docling OCR | docling 时可选 | 是否对扫描件 / 图片型 PDF 启用 OCR（默认开启） |
+| 表格结构识别 | docling 时可选 | 是否识别并导出文档中的表格结构（默认开启） |
+| 保存解析图片 | docling 时可选 | 是否将文档中的图片提取保存到资源库（默认开启） |
+
+> **注意：** Docling 解析引擎需要额外部署 [Docling Serve](https://github.com/DS4SD/docling) 服务，并在应用配置中开启 `snail-ai.rag.docling.enabled=true`。如果 Docling 服务不可用，系统会自动降级回内置解析器，不影响文档导入流程。
+
+> **提示：** OCR 语言默认为英文（`en`），如需中文识别请设置 `ocrLang: ["en", "zh"]`。
+
+详见 [Docling 解析引擎设计文档](../../architecture/docling-engine.md)。
+
 ## 编辑知识库
 
 在知识库卡片上点击编辑按钮，即可在抽屉中修改知识库配置。可编辑项与创建时一致，包括：

@@ -14,6 +14,7 @@ import com.aizuda.snail.ai.features.resource.ResourceService;
 import com.aizuda.snail.ai.features.resource.enums.ResourceBizTypeEnum;
 import com.aizuda.snail.ai.persistence.rag.mapper.RagMapper;
 import com.aizuda.snail.ai.persistence.rag.mapper.RagChunkMapper;
+import com.aizuda.snail.ai.persistence.rag.mapper.RagDocumentImageMapper;
 import com.aizuda.snail.ai.persistence.rag.mapper.RagDocumentMapper;
 import com.aizuda.snail.ai.persistence.resource.po.ResourcePO;
 import com.aizuda.snail.ai.persistence.security.UserSessionUtils;
@@ -21,11 +22,13 @@ import com.aizuda.snail.ai.admin.vo.PageResult;
 import com.aizuda.snail.ai.features.rag.enums.RagDocumentStatus;
 import com.aizuda.snail.ai.persistence.rag.po.RagPO;
 import com.aizuda.snail.ai.persistence.rag.po.RagChunkPO;
+import com.aizuda.snail.ai.persistence.rag.po.RagDocumentImagePO;
 import com.aizuda.snail.ai.persistence.rag.po.RagDocumentPO;
 import com.aizuda.snail.ai.admin.vo.rag.RagChunkCreateRequestVO;
 import com.aizuda.snail.ai.admin.vo.rag.RagChunkQueryVO;
 import com.aizuda.snail.ai.admin.vo.rag.RagChunkResponseVO;
 import com.aizuda.snail.ai.admin.vo.rag.RagChunkUpdateRequestVO;
+import com.aizuda.snail.ai.admin.vo.rag.RagDocumentImageResponseVO;
 import com.aizuda.snail.ai.admin.vo.rag.RagDocumentQueryVO;
 import com.aizuda.snail.ai.admin.vo.rag.RagDocumentResponseVO;
 import com.aizuda.snail.ai.admin.vo.rag.RagDocumentUploadRequestVO;
@@ -72,6 +75,7 @@ public class RagDocumentService {
     private static final long UPLOAD_LOCK_TIMEOUT_SECONDS = 30L;
 
     private final RagDocumentMapper ragDocumentMapper;
+    private final RagDocumentImageMapper ragDocumentImageMapper;
     private final RagChunkMapper ragChunkMapper;
     private final RagMapper knowledgeMapper;
     private final VectorStoreFactory vectorStoreFactory;
@@ -185,9 +189,29 @@ public class RagDocumentService {
             }
         }
 
+        cleanDocumentImages(documentId);
         ragChunkMapper.delete(new LambdaQueryWrapper<RagChunkPO>().eq(RagChunkPO::getDocumentId, documentId));
         ragDocumentMapper.deleteById(documentId);
         log.info("清理文档完成 documentId={} ragId={}", documentId, doc.getRagId());
+    }
+
+    private void cleanDocumentImages(Long documentId) {
+        // 文档删除或覆盖上传时同步清理 Docling 图片资源和图片关系表。
+        List<RagDocumentImagePO> images = ragDocumentImageMapper.selectList(
+                new LambdaQueryWrapper<RagDocumentImagePO>().eq(RagDocumentImagePO::getDocumentId, documentId));
+        for (RagDocumentImagePO image : images) {
+            if (image.getResourceId() == null) {
+                continue;
+            }
+            try {
+                resourceService.delete(image.getResourceId());
+            } catch (Exception e) {
+                log.warn("Failed to delete document image resource. documentId={} resourceId={}",
+                        documentId, image.getResourceId(), e);
+            }
+        }
+        ragDocumentImageMapper.delete(
+                new LambdaQueryWrapper<RagDocumentImagePO>().eq(RagDocumentImagePO::getDocumentId, documentId));
     }
 
     /**
@@ -240,6 +264,26 @@ public class RagDocumentService {
 
         IPage<RagDocumentResponseVO> convert = page.convert(this::toResponseVO);
         return new PageResult<>(pageDTO, convert.getRecords());
+    }
+
+    /**
+     * 查询文档解析图片。
+     *
+     * @param documentId 文档 ID
+     * @return Docling 解析图片列表
+     */
+    public List<RagDocumentImageResponseVO> listImages(Long documentId) {
+        RagDocumentPO document = ragDocumentMapper.selectById(documentId);
+        if (document == null) {
+            throw new SnailAiException("Document not found: " + documentId);
+        }
+        return ragDocumentImageMapper.selectList(new LambdaQueryWrapper<RagDocumentImagePO>()
+                        .eq(RagDocumentImagePO::getDocumentId, documentId)
+                        .orderByAsc(RagDocumentImagePO::getSourcePage)
+                        .orderByAsc(RagDocumentImagePO::getId))
+                .stream()
+                .map(this::toImageResponseVO)
+                .toList();
     }
 
     /**
@@ -635,10 +679,32 @@ public class RagDocumentService {
                 .status(po.getStatus())
                 .errorMsg(po.getErrorMsg())
                 .chunkCount(po.getChunkCount())
+                .pageCount(po.getPageCount())
+                .elementCount(po.getElementCount())
+                .tableCount(po.getTableCount())
+                .imageCount(po.getImageCount())
+                .parseTime(po.getParseTime())
+                .mdContent(po.getMdContent())
+                .docMetadata(po.getDocMetadata())
                 .fileSize(resource == null ? null : resource.getFileSize())
                 .resourceId(po.getResourceId())
                 .previewUrl(previewUrl)
                 .downloadUrl(buildDownloadUrl(previewUrl))
+                .createDt(po.getCreateDt())
+                .updateDt(po.getUpdateDt())
+                .build();
+    }
+
+    private RagDocumentImageResponseVO toImageResponseVO(RagDocumentImagePO po) {
+        return RagDocumentImageResponseVO.builder()
+                .id(po.getId())
+                .ragId(po.getRagId())
+                .documentId(po.getDocumentId())
+                .resourceId(po.getResourceId())
+                .imageUrl(po.getImageUrl())
+                .caption(po.getCaption())
+                .sourcePage(po.getSourcePage())
+                .ocrText(po.getOcrText())
                 .createDt(po.getCreateDt())
                 .updateDt(po.getUpdateDt())
                 .build();

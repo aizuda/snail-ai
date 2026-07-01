@@ -43,6 +43,27 @@ public class RagDocumentResponseVO {
     /** 切片数量 */
     private Integer chunkCount;
 
+    /** Docling 解析页数 */
+    private Integer pageCount;
+
+    /** Docling 解析元素数量 */
+    private Integer elementCount;
+
+    /** Docling 解析表格数量 */
+    private Integer tableCount;
+
+    /** Docling 解析图片数量 */
+    private Integer imageCount;
+
+    /** 解析耗时（毫秒） */
+    private Integer parseTime;
+
+    /** Docling Markdown 内容 */
+    private String mdContent;
+
+    /** Docling 文档元数据（JSON） */
+    private String docMetadata;
+
     /** 文件大小（字节） */
     private Long fileSize;
 

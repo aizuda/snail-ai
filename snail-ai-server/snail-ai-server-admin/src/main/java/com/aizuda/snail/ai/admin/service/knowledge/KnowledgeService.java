@@ -4,9 +4,11 @@ import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.common.execption.SnailAiCommonException;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.common.util.JsonUtil;
+import com.aizuda.snail.ai.features.resource.ResourceService;
 import com.aizuda.snail.ai.vector.storage.vector.api.SnailAiVectorStore;
 import com.aizuda.snail.ai.persistence.rag.mapper.RagMapper;
 import com.aizuda.snail.ai.persistence.rag.mapper.RagChunkMapper;
+import com.aizuda.snail.ai.persistence.rag.mapper.RagDocumentImageMapper;
 import com.aizuda.snail.ai.persistence.rag.mapper.RagDocumentMapper;
 import com.aizuda.snail.ai.persistence.admin.mapper.StoreInstanceMapper;
 import com.aizuda.snail.ai.admin.vo.PageResult;
@@ -15,6 +17,7 @@ import com.aizuda.snail.ai.persistence.rag.po.RagChunkPO;
 import com.aizuda.snail.ai.persistence.rag.po.RagDocumentPO;
 import com.aizuda.snail.ai.admin.vo.knowledge.KnowledgeConfigRequestVO;
 import com.aizuda.snail.ai.persistence.rag.dataobject.RagConfigDO;
+import com.aizuda.snail.ai.persistence.rag.po.RagDocumentImagePO;
 import com.aizuda.snail.ai.admin.vo.knowledge.KnowledgeQueryVO;
 import com.aizuda.snail.ai.admin.service.VectorDimensionConstraintService;
 import com.aizuda.snail.ai.admin.service.model.AiModelConfigService;
@@ -54,11 +57,13 @@ public class KnowledgeService {
 
     private final RagMapper knowledgeMapper;
     private final RagDocumentMapper ragDocumentMapper;
+    private final RagDocumentImageMapper ragDocumentImageMapper;
     private final RagChunkMapper ragChunkMapper;
     private final StoreInstanceMapper storeInstanceMapper;
     private final AiModelConfigService aiModelConfigService;
     private final VectorDimensionConstraintService vectorDimensionConstraintService;
     private final VectorStoreFactory vectorStoreFactory;
+    private final ResourceService resourceService;
 
     /**
      * 创建知识库
@@ -160,6 +165,9 @@ public class KnowledgeService {
         if (incoming.getChunkParams() == null) {
             incoming.setChunkParams(existing.getChunkParams());
         }
+        if (incoming.getParseParams() == null) {
+            incoming.setParseParams(existing.getParseParams());
+        }
         if (incoming.getSearchParams() == null) {
             incoming.setSearchParams(existing.getSearchParams());
         }
@@ -190,10 +198,30 @@ public class KnowledgeService {
             log.warn("Failed to clean vector store for knowledge: {}", id, e);
         }
 
+        cleanKnowledgeImages(id);
         ragChunkMapper.delete(new LambdaQueryWrapper<RagChunkPO>().eq(RagChunkPO::getRagId, id));
         ragDocumentMapper.delete(new LambdaQueryWrapper<RagDocumentPO>().eq(RagDocumentPO::getRagId, id));
         knowledgeMapper.deleteById(id);
         log.info("删除知识库成功 id={} name={}", id, po.getName());
+    }
+
+    private void cleanKnowledgeImages(Long ragId) {
+        // 知识库删除时同步清理 Docling 图片资源，避免 sai_resource 中留下孤立文件。
+        List<RagDocumentImagePO> images = ragDocumentImageMapper.selectList(
+                new LambdaQueryWrapper<RagDocumentImagePO>().eq(RagDocumentImagePO::getRagId, ragId));
+        for (RagDocumentImagePO image : images) {
+            if (image.getResourceId() == null) {
+                continue;
+            }
+            try {
+                resourceService.delete(image.getResourceId());
+            } catch (Exception e) {
+                log.warn("Failed to delete knowledge image resource. ragId={} resourceId={}",
+                        ragId, image.getResourceId(), e);
+            }
+        }
+        ragDocumentImageMapper.delete(
+                new LambdaQueryWrapper<RagDocumentImagePO>().eq(RagDocumentImagePO::getRagId, ragId));
     }
 
     /**

@@ -7,6 +7,7 @@ import com.aizuda.snail.ai.admin.vo.rag.UploadPreviewResultVO;
 import com.aizuda.snail.ai.common.model.Result;
 import com.aizuda.snail.ai.admin.security.annotation.LoginRequired;
 import com.aizuda.snail.ai.admin.vo.PageResult;
+import com.aizuda.snail.ai.admin.vo.rag.RagDocumentImageResponseVO;
 import com.aizuda.snail.ai.admin.vo.rag.RagDocumentQueryVO;
 import com.aizuda.snail.ai.admin.vo.rag.RagDocumentResponseVO;
 import com.aizuda.snail.ai.admin.service.rag.DocumentUploadPreviewService;
@@ -105,5 +106,12 @@ public class RagDocumentController {
     @LoginRequired
     public PageResult<List<RagDocumentResponseVO>> page(RagDocumentQueryVO query) {
         return ragDocumentService.page(query);
+    }
+
+    /** 查询 Docling 从文档中提取并保存的图片列表。 */
+    @GetMapping("/{id}/images")
+    @LoginRequired
+    public Result<List<RagDocumentImageResponseVO>> images(@PathVariable("id") Long id) {
+        return Result.ok(ragDocumentService.listImages(id));
     }
 }
