@@ -27,8 +27,11 @@ public class DoclingResponseParser {
     private static final String TYPE_PARAGRAPH = "paragraph";
     private static final String TYPE_TABLE = "table";
     private static final String TYPE_PICTURE = "picture";
+    private static final String TYPE_FORMULA = "formula";
     private static final String REF_PREFIX = "#/";
     private static final String IMAGE_PLACEHOLDER = "[image]";
+    private static final String IMAGE_CAPTION_PREFIX = "[图片说明: ";
+    private static final String IMAGE_CAPTION_SUFFIX = "]";
     private static final int DEFAULT_PAGE = 1;
     private static final int DEFAULT_LEVEL = 0;
 
@@ -80,6 +83,16 @@ public class DoclingResponseParser {
                 // 保留标题层级，便于后续切片仍能利用文档结构。
                 int level = element.getLevel() != null && element.getLevel() > 0 ? element.getLevel() : 1;
                 builder.append("#".repeat(Math.min(level, 6))).append(" ").append(text.trim()).append("\n\n");
+                continue;
+            }
+            if (TYPE_PICTURE.equals(element.getType())) {
+                // 图片元素不跳过——将图注和 OCR 文字注入 chunk，使其可被检索。
+                builder.append(IMAGE_CAPTION_PREFIX).append(text.trim()).append(IMAGE_CAPTION_SUFFIX).append("\n\n");
+                continue;
+            }
+            if (TYPE_FORMULA.equals(element.getType())) {
+                // 公式保留 LaTeX 文本，可直接被检索。
+                builder.append(text.trim()).append("\n\n");
                 continue;
             }
             builder.append(text.trim()).append("\n\n");
@@ -199,10 +212,22 @@ public class DoclingResponseParser {
         JSONObject pictureObj = pictures.getJSONObject(refIndex);
         int page = extractPage(pictureObj);
         String caption = extractCaption(pictureObj);
+        String ocrText = extractPictureOcrText(pictureObj);
+        // 将 caption 和 OCR 文字合并为 element.text，确保两者都能进入 chunk 被检索。
+        String pictureText;
+        if (StrUtil.isNotBlank(caption) && StrUtil.isNotBlank(ocrText)) {
+            pictureText = caption + "，" + ocrText;
+        } else if (StrUtil.isNotBlank(caption)) {
+            pictureText = caption;
+        } else if (StrUtil.isNotBlank(ocrText)) {
+            pictureText = ocrText;
+        } else {
+            pictureText = IMAGE_PLACEHOLDER;
+        }
         result.getElements().add(DoclingParseResult.DoclingElement.builder()
                 .index(state.nextIndex())
                 .type(TYPE_PICTURE)
-                .text(StrUtil.isNotBlank(caption) ? caption : IMAGE_PLACEHOLDER)
+                .text(pictureText)
                 .page(page)
                 .level(DEFAULT_LEVEL)
                 .build());
@@ -219,7 +244,7 @@ public class DoclingResponseParser {
                 .base64(base64)
                 .caption(caption)
                 .page(page)
-                .ocrText("")
+                .ocrText(ocrText)
                 .build());
     }
 
@@ -313,6 +338,7 @@ public class DoclingResponseParser {
             case "title", "section_header" -> TYPE_TITLE;
             case "list_item" -> "list";
             case "caption" -> TYPE_PARAGRAPH;
+            case "formula", "equation" -> TYPE_FORMULA;
             default -> TYPE_PARAGRAPH;
         };
     }
@@ -333,6 +359,29 @@ public class DoclingResponseParser {
         }
         JSONObject first = captions.getJSONObject(0);
         return first == null ? "" : first.getStr("text", "");
+    }
+
+    /**
+     * 从 picture 节点的 annotations 数组中提取 OCR 文本。
+     * Docling 将 OCR 结果放在 annotations[].text 中，多个 annotation 用空格拼接。
+     */
+    private String extractPictureOcrText(JSONObject pictureObj) {
+        JSONArray annotations = pictureObj.getJSONArray("annotations");
+        if (annotations == null || annotations.isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < annotations.size(); i++) {
+            JSONObject ann = annotations.getJSONObject(i);
+            String text = ann.getStr("text", "");
+            if (StrUtil.isNotBlank(text)) {
+                if (sb.length() > 0) {
+                    sb.append(" ");
+                }
+                sb.append(text.trim());
+            }
+        }
+        return sb.toString();
     }
 
     private String extractPageImage(JSONObject pages, int page) {
