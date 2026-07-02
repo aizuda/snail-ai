@@ -54,7 +54,10 @@ public class DoclingImageOcrService {
 
             // 构建多模态消息：图片 + OCR 提示词
             byte[] imageBytes = Base64.getDecoder().decode(base64Image);
-            Media media = new Media(MIME_PNG, imageBytes);
+            Media media = Media.builder()
+                    .mimeType(MIME_PNG)
+                    .data(imageBytes)
+                    .build();
 
             UserMessage userMessage = new UserMessage(OCR_SYSTEM_PROMPT, List.of(media));
 
