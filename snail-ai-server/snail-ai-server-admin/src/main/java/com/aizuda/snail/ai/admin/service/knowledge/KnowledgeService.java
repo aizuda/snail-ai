@@ -387,6 +387,7 @@ public class KnowledgeService {
                 dp.setDoOcr(request.getDoclingDoOcr());
                 dp.setDoTableStructure(request.getDoclingDoTableStructure());
                 dp.setSaveImages(request.getDoclingSaveImages());
+                dp.setMultimodalModelId(request.getDoclingMultimodalModelId());
                 pp.setDocling(dp);
             }
             cfg.setParseParams(pp);
@@ -477,6 +478,7 @@ public class KnowledgeService {
                 dp.setDoOcr(request.getDoclingDoOcr());
                 dp.setDoTableStructure(request.getDoclingDoTableStructure());
                 dp.setSaveImages(request.getDoclingSaveImages());
+                dp.setMultimodalModelId(request.getDoclingMultimodalModelId());
                 pp.setDocling(dp);
             }
             cfg.setParseParams(pp);
