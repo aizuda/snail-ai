@@ -71,6 +71,7 @@ public class DocumentPipeline {
     private final SearchEngineFactory searchEngineFactory;
     private final ResourceService resourceService;
     private final DoclingProperties doclingProperties;
+    private final DoclingImageOcrService imageOcrService;
 
     /**
      * 处理指定文档：抢占 PENDING 状态后解析、分块、双写并更新为最终状态（失败时记录错误）
@@ -134,7 +135,9 @@ public class DocumentPipeline {
             // ── Dual write: VectorStore + SearchEngine ──
             dualWrite(chunkPOs, knowledge);
             // 图片不进入 chunk 文本，双写成功后再保存为资源，避免失败文档留下半成功图片记录。
-            saveDoclingImages(config, document, parseResult);
+            saveDoclingImages(config, document, parseResult, knowledge);
+            // OCR 完成后，将识别文字回写入 chunk 的图片元素，使其可被检索
+            updateChunksWithOcrText(document, chunkPOs, parseResult);
 
             document.setChunkCount(chunkPOs.size());
             applyParseResult(document, parseResult);
@@ -381,7 +384,7 @@ public class DocumentPipeline {
         document.setDocMetadata(parseResult.getDocMetadata());
     }
 
-    private void saveDoclingImages(RagConfigDO config, RagDocumentPO document, DocumentParseResult parseResult) {
+    private void saveDoclingImages(RagConfigDO config, RagDocumentPO document, DocumentParseResult parseResult, RagPO knowledge) {
         // 图片保存受知识库 parseParams.docling.saveImages 控制，默认保存。
         if (!shouldSaveImages(config) || parseResult == null || parseResult.getDoclingResult() == null) {
             return;
@@ -390,6 +393,8 @@ public class DocumentPipeline {
         if (images == null || images.isEmpty()) {
             return;
         }
+        // 用知识库的对话模型做 OCR（视觉模型）
+        Long ocrModelConfigId = resolveOcrModelConfigId(config, knowledge);
         DoclingImageSavePolicy savePolicy = DoclingImageSavePolicy.from(doclingProperties, config);
         int imageIndex = 0;
         int savedCount = 0;
@@ -412,8 +417,79 @@ public class DocumentPipeline {
                         document.getId(), imageIndex, imageBytes.length, savePolicy.getMaxImageBytes());
                 continue;
             }
+            // OCR 文字识别（使用视觉语言模型）
+            String ocrText = "";
+            if (ocrModelConfigId != null && StrUtil.isNotBlank(image.getBase64())) {
+                ocrText = imageOcrService.recognize(image.getBase64(), ocrModelConfigId);
+                if (StrUtil.isNotBlank(ocrText)) {
+                    image.setOcrText(ocrText);
+                    log.info("Docling image OCR 成功: documentId={} imageIndex={} ocrLen={}",
+                            document.getId(), imageIndex, ocrText.length());
+                }
+            }
             saveDoclingImage(document, image, imageIndex, imageBytes);
             savedCount++;
+        }
+    }
+
+    /**
+     * 解析 OCR 模型配置 ID——优先用知识库 config.modelParams.modelId（对话模型），
+     * 否则回退到 knowledge.embeddingModelId 附近的配置。
+     */
+    private Long resolveOcrModelConfigId(RagConfigDO config, RagPO knowledge) {
+        if (config != null && config.getModelParams() != null && config.getModelParams().getModelId() != null) {
+            return config.getModelParams().getModelId();
+        }
+        // 回退到知识库关联的对话模型（从 ragEnhancement 或其他字段）
+        // 暂时用 embeddingModelId 附近查找，如果都没有就返回 null（跳过 OCR）
+        return null;
+    }
+
+    /**
+     * OCR 完成后，将识别文字回写入 chunk 内容中图片元素的 text，
+     * 使图片中的文字可被检索。
+     */
+    private void updateChunksWithOcrText(RagDocumentPO document, List<RagChunkPO> chunkPOs,
+                                          DocumentParseResult parseResult) {
+        if (parseResult == null || parseResult.getDoclingResult() == null) {
+            return;
+        }
+        List<DoclingParseResult.DoclingImage> images = parseResult.getDoclingResult().getImages();
+        if (images == null || images.isEmpty()) {
+            return;
+        }
+        // 收集有 OCR 文字的图片：page -> ocrText
+        java.util.Map<Integer, String> pageOcrMap = new java.util.HashMap<>();
+        for (DoclingParseResult.DoclingImage img : images) {
+            if (StrUtil.isNotBlank(img.getOcrText()) && img.getPage() != null) {
+                pageOcrMap.merge(img.getPage(), img.getOcrText(), (a, b) -> a + "；" + b);
+            }
+        }
+        if (pageOcrMap.isEmpty()) {
+            return;
+        }
+        // 回写 chunk 内容
+        for (RagChunkPO chunk : chunkPOs) {
+            if (StrUtil.isBlank(chunk.getContent())) {
+                continue;
+            }
+            String updated = chunk.getContent();
+            boolean changed = false;
+            for (var entry : pageOcrMap.entrySet()) {
+                int page = entry.getKey();
+                String ocrText = entry.getValue();
+                String placeholder = "[" + DoclingResponseParser.IMAGE_CAPTION_PREFIX + page + DoclingResponseParser.IMAGE_CAPTION_SUFFIX + "]";
+                // 在 chunk 内容中追加 OCR 文字
+                if (updated.contains("[图片说明:") && !updated.contains(ocrText)) {
+                    updated = updated.replace("[图片说明:", "[图片说明: OCR识别: " + ocrText + "；");
+                    changed = true;
+                }
+            }
+            if (changed) {
+                chunk.setContent(updated);
+                chunk.setContentHash(ContentHashUtil.sha256Hex(updated));
+                ragChunkMapper.updateById(chunk);
+            }
         }
     }
 

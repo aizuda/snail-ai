@@ -200,7 +200,7 @@ public class ModelRuntimeHandler {
         }
     }
 
-    private ChatClient buildChatClient(ModelConfigInfoDTO config) {
+    public ChatClient buildChatClient(ModelConfigInfoDTO config) {
         return chatClientBuilder.getOrBuildChatClient(decryptApiKey(config), config);
     }
 
