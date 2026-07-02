@@ -12,12 +12,14 @@
     <tr>
       <td align="center" valign="middle">
         <img src="/qrcode/wx.jpg" class="no-zoom" style="width:120px;margin: 10px;" />
-        <p>SnailAi微信群(添加我微信备注"SnailAi进群")</p>
+        <p>SnailAi微信群(添加我微信必须备注"SnailAi进群")</p>
+        <p><a href="https://snailai.opensnail.com/support.html">如果能赞助最好</a></p>
       </td>
       <td align="center" valign="middle">
         <img src="/qrcode/qq.jpg" alt="群号: 678571433" class="no-zoom" style="width:120px;margin: 10px;" />
         <p>Snail AI QQ群: 678571433(已满)</p>
         <p>Snail AI QQ群2: 1076802948 </p>
+ <p><a href="https://snailai.opensnail.com/support.html">如果能赞助最好</a></p>
       </td>
     </tr>
   </tbody>
