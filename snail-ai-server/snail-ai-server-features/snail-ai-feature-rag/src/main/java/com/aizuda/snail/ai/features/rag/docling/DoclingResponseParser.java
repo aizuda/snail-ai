@@ -153,7 +153,9 @@ public class DoclingResponseParser {
                 continue;
             }
             if ("pictures".equals(refParts.category)) {
-                addPictureElement(sources.pictures, sources.pages, refParts.index, result, state);
+                // v2 中 picture.captions 为空，图注在后续 text 元素中（如 "图 5 合格证列表"）
+                String lookaheadCaption = lookaheadCaption(children, i + 1, sources.texts);
+                addPictureElement(sources.pictures, sources.pages, refParts.index, result, state, lookaheadCaption);
             }
         }
     }
@@ -204,14 +206,53 @@ public class DoclingResponseParser {
         state.tableCount++;
     }
 
+    /**
+     * 前瞻查找紧跟在 picture 引用后面的 text 元素，提取图注。
+     * Docling v2 将图注放在 picture 后面的 text 中（如 "图 5 合格证列表"），
+     * 而不是 picture.captions。
+     */
+    private String lookaheadCaption(JSONArray children, int nextIndex, JSONArray texts) {
+        if (children == null || nextIndex >= children.size() || texts == null) {
+            return "";
+        }
+        JSONObject nextRef = children.getJSONObject(nextIndex);
+        RefParts nextParts = parseRef(nextRef.getStr("$ref"));
+        if (nextParts == null || !"texts".equals(nextParts.category) || nextParts.index >= texts.size()) {
+            return "";
+        }
+        JSONObject textObj = texts.getJSONObject(nextParts.index);
+        String label = textObj.getStr("label", "");
+        String text = textObj.getStr("text", "");
+        if (StrUtil.isBlank(text)) {
+            return "";
+        }
+        // 匹配图注模式："图 X ..."、"图表 X ..."、"Figure X ..."
+        if (text.startsWith("图 ") || text.startsWith("图") || text.startsWith("图表") || text.startsWith("Figure")) {
+            return text.trim();
+        }
+        // section_header / title 不是图注
+        if ("title".equals(label) || "section_header".equals(label)) {
+            return "";
+        }
+        return "";
+    }
+
     private void addPictureElement(JSONArray pictures, JSONObject pages, int refIndex,
                                    DoclingParseResult result, ResolveState state) {
+        addPictureElement(pictures, pages, refIndex, result, state, "");
+    }
+
+    private void addPictureElement(JSONArray pictures, JSONObject pages, int refIndex,
+                                   DoclingParseResult result, ResolveState state, String lookaheadCaption) {
         if (pictures == null || refIndex >= pictures.size()) {
             return;
         }
         JSONObject pictureObj = pictures.getJSONObject(refIndex);
         int page = extractPage(pictureObj);
-        String caption = extractCaption(pictureObj);
+        // v2 中 picture.captions 通常为空，优先用前瞻查到的图注
+        String caption = StrUtil.isNotBlank(lookaheadCaption)
+                ? lookaheadCaption
+                : extractCaption(pictureObj);
         String ocrText = extractPictureOcrText(pictureObj);
         // 将 caption 和 OCR 文字合并为 element.text，确保两者都能进入 chunk 被检索。
         String pictureText;
@@ -348,6 +389,17 @@ public class DoclingResponseParser {
         if (prov != null && !prov.isEmpty()) {
             JSONObject first = prov.getJSONObject(0);
             return first.getInt("page_no", DEFAULT_PAGE);
+        }
+        // v2: prov 为空时尝试从 annotations 中取页码
+        JSONArray annotations = element.getJSONArray("annotations");
+        if (annotations != null && !annotations.isEmpty()) {
+            for (int i = 0; i < annotations.size(); i++) {
+                JSONObject ann = annotations.getJSONObject(i);
+                int pageNo = ann.getInt("page_no", -1);
+                if (pageNo > 0) {
+                    return pageNo;
+                }
+            }
         }
         return DEFAULT_PAGE;
     }
