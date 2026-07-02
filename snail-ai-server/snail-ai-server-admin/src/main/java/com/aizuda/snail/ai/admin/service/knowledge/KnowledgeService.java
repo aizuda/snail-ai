@@ -378,6 +378,22 @@ public class KnowledgeService {
                 .imageOcr(request.getImageOcr() != null ? request.getImageOcr() : Boolean.FALSE)
                 .build();
         cfg.setChunkParams(cp);
+        // 解析引擎配置
+        if (StrUtil.isNotBlank(request.getParseEngine())) {
+            RagConfigDO.ParseParams pp = new RagConfigDO.ParseParams();
+            pp.setEngine(request.getParseEngine());
+            if ("docling".equalsIgnoreCase(request.getParseEngine())) {
+                RagConfigDO.DoclingParams dp = new RagConfigDO.DoclingParams();
+                dp.setDoOcr(request.getDoclingDoOcr());
+                dp.setDoTableStructure(request.getDoclingDoTableStructure());
+                dp.setSaveImages(request.getDoclingSaveImages());
+                pp.setDocling(dp);
+            }
+            cfg.setParseParams(pp);
+        } else if (request.getParseParams() != null) {
+            // 前端直接传 parseParams 对象（RagCreateRequest.parseParams）
+            cfg.setParseParams(toParseParamsDO(request.getParseParams()));
+        }
         return cfg;
     }
 
@@ -452,6 +468,19 @@ public class KnowledgeService {
                 .imageOcr(imageOcr)
                 .build();
         cfg.setChunkParams(cp);
+        // 解析引擎配置：编辑时可以修改
+        if (StrUtil.isNotBlank(request.getParseEngine())) {
+            RagConfigDO.ParseParams pp = new RagConfigDO.ParseParams();
+            pp.setEngine(request.getParseEngine());
+            if ("docling".equalsIgnoreCase(request.getParseEngine())) {
+                RagConfigDO.DoclingParams dp = new RagConfigDO.DoclingParams();
+                dp.setDoOcr(request.getDoclingDoOcr());
+                dp.setDoTableStructure(request.getDoclingDoTableStructure());
+                dp.setSaveImages(request.getDoclingSaveImages());
+                pp.setDocling(dp);
+            }
+            cfg.setParseParams(pp);
+        }
         return cfg;
     }
 
@@ -488,5 +517,12 @@ public class KnowledgeService {
             return new RagConfigDO();
         }
         return JsonUtil.parseObject(JsonUtil.toJsonString(configVO), RagConfigDO.class);
+    }
+
+    private RagConfigDO.ParseParams toParseParamsDO(KnowledgeConfigRequestVO.ParseParams pp) {
+        if (pp == null) {
+            return null;
+        }
+        return JsonUtil.parseObject(JsonUtil.toJsonString(pp), RagConfigDO.ParseParams.class);
     }
 }

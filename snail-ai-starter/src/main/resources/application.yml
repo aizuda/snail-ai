@@ -66,7 +66,7 @@ snail-ai:
       bucket: snail-ai
   rag:
     docling:
-      enabled: false
+      enabled: true
       url: http://127.0.0.1:5100
       timeout-seconds: 300
       concurrency: 3
