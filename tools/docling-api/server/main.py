@@ -26,7 +26,7 @@ from fastapi import FastAPI, File, Form, UploadFile, HTTPException, Request
 from fastapi.responses import PlainTextResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from docling.document_converter import DocumentConverter, FormatOption
+from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.base_models import InputFormat
 from docling.datamodel.pipeline_options import PdfPipelineOptions
 from docling.exceptions import ConversionError
@@ -82,7 +82,7 @@ def _get_converter(do_ocr: bool = True, do_table_structure: bool = True) -> Docu
     if _converter is None:
         logger.info("正在初始化 DocumentConverter（首次会下载模型，请耐心等待）...")
         pdf_opts = _build_pipeline_options(do_ocr, do_table_structure)
-        format_options = {InputFormat.PDF: FormatOption(pipeline_options=pdf_opts)}
+        format_options = {InputFormat.PDF: PdfFormatOption(pipeline_options=pdf_opts)}
         _converter = DocumentConverter(format_options=format_options)
         _converter_warm = True
         logger.info("DocumentConverter 初始化完成")
@@ -102,14 +102,14 @@ def _cleanup_expired_tasks():
 def _do_convert(source, to_formats: list, do_ocr: bool, do_table_structure: bool) -> dict:
     """执行一次转换，返回包含 json_content / md_content 的 dict。"""
     pdf_opts = _build_pipeline_options(do_ocr, do_table_structure)
-    format_options = {InputFormat.PDF: FormatOption(pipeline_options=pdf_opts)}
+    format_options = {InputFormat.PDF: PdfFormatOption(pipeline_options=pdf_opts)}
     converter = DocumentConverter(format_options=format_options)
 
     result = converter.convert(source)
     doc = result.document
 
-    json_content = doc.export_to_dict(image_mode=ImageRefMode.EMBEDDED)
-    md_content = doc.export_to_markdown(image_mode=ImageRefMode.EMBEDDED) if "md" in to_formats else ""
+    json_content = doc.export_to_dict()
+    md_content = doc.export_to_markdown() if "md" in to_formats else ""
 
     return {
         "document": {
