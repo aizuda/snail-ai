@@ -480,6 +480,9 @@ public class KnowledgeService {
                 pp.setDocling(dp);
             }
             cfg.setParseParams(pp);
+        } else if (request.getParseParams() != null) {
+            // 前端直接传 parseParams 对象（RagCreateRequest.parseParams）
+            cfg.setParseParams(toParseParamsDO(request.getParseParams()));
         }
         return cfg;
     }
