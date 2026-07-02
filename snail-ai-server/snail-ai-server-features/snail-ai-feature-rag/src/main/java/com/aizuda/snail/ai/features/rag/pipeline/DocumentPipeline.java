@@ -3,6 +3,7 @@ package com.aizuda.snail.ai.features.rag.pipeline;
 import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.common.util.JsonUtil;
+import com.aizuda.snail.ai.features.rag.docling.DoclingResponseParser;
 import com.aizuda.snail.ai.features.resource.ResourceService;
 import com.aizuda.snail.ai.features.resource.enums.ResourceBizTypeEnum;
 import com.aizuda.snail.ai.features.rag.dto.ChunkDTO;
@@ -437,11 +438,17 @@ public class DocumentPipeline {
      * 否则回退到 knowledge.embeddingModelId 附近的配置。
      */
     private Long resolveOcrModelConfigId(RagConfigDO config, RagPO knowledge) {
+        // 优先用知识库配置的多模态模型 ID
+        if (config != null && config.getParseParams() != null && config.getParseParams().getDocling() != null) {
+            Long multimodalId = config.getParseParams().getDocling().getMultimodalModelId();
+            if (multimodalId != null) {
+                return multimodalId;
+            }
+        }
+        // 回退到知识库的对话模型
         if (config != null && config.getModelParams() != null && config.getModelParams().getModelId() != null) {
             return config.getModelParams().getModelId();
         }
-        // 回退到知识库关联的对话模型（从 ragEnhancement 或其他字段）
-        // 暂时用 embeddingModelId 附近查找，如果都没有就返回 null（跳过 OCR）
         return null;
     }
 

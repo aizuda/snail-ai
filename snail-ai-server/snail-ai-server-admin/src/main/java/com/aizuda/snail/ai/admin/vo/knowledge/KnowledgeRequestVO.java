@@ -98,6 +98,8 @@ public class KnowledgeRequestVO {
     private Boolean doclingDoTableStructure;
     /** Docling 保存图片开关 */
     private Boolean doclingSaveImages;
+    /** Docling 多模态模型配置 ID，用于图片 OCR 文字识别 */
+    private Long doclingMultimodalModelId;
 
     /** 解析引擎配置对象（前端可能直接传 JSON 对象） */
     private KnowledgeConfigRequestVO.ParseParams parseParams;
