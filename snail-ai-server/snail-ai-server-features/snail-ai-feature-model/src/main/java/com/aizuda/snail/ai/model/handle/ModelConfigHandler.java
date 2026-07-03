@@ -24,7 +24,9 @@ import java.util.Optional;
  */
 @Component
 @RequiredArgsConstructor
-public class ModelConfigHandler {
+public class ModelConfigHandler implements VisionModelConfigResolver {
+    private static final String VISION_CAPABILITY = "vision";
+
     private final AiModelConfigMapper configMapper;
     private final CryptoHelper cryptoHelper;
     private final AiModelProviderMapper providerMapper;
@@ -73,6 +75,29 @@ public class ModelConfigHandler {
         return buildConfigInfoDTO(configMapper.selectOne(wrapper));
     }
 
+    @Override
+    public ModelConfigInfoDTO getDefaultVisionChatModel() {
+        List<Long> enabledProviderIds = getEnabledProviderIds();
+        if (enabledProviderIds.isEmpty()) {
+            return null;
+        }
+
+        LambdaQueryWrapper<AiModelConfigPO> wrapper = new LambdaQueryWrapper<AiModelConfigPO>()
+                .eq(AiModelConfigPO::getModelType, ModelAdapterDefaults.CHAT_MODEL_TYPE)
+                .eq(AiModelConfigPO::getIsEnabled, true)
+                .in(AiModelConfigPO::getProviderId, enabledProviderIds)
+                .orderByDesc(AiModelConfigPO::getIsDefault)
+                .orderByDesc(AiModelConfigPO::getUpdatedDt);
+
+        return configMapper.selectList(wrapper)
+                .stream()
+                .filter(this::isVisionChatModel)
+                .sorted((left, right) -> Boolean.compare(isDefaultVisionModel(right), isDefaultVisionModel(left)))
+                .findFirst()
+                .map(this::buildConfigInfoDTO)
+                .orElse(null);
+    }
+
     private ModelConfigInfoDTO buildConfigInfoDTO(AiModelConfigPO po) {
         if (po == null) {
             return null;
@@ -98,6 +123,23 @@ public class ModelConfigHandler {
                 .enabled(po.getIsEnabled())
                 .updatedDt(po.getUpdatedDt())
                 .build();
+    }
+
+    private boolean isVisionChatModel(AiModelConfigPO po) {
+        ConfigExtAttrsDTO attrs = parseConfigJson(po);
+        return attrs.getCapabilities() != null && attrs.getCapabilities().stream()
+                .anyMatch(capability -> VISION_CAPABILITY.equalsIgnoreCase(capability));
+    }
+
+    private boolean isDefaultVisionModel(AiModelConfigPO po) {
+        return Boolean.TRUE.equals(parseConfigJson(po).getDefaultVisionModel());
+    }
+
+    private ConfigExtAttrsDTO parseConfigJson(AiModelConfigPO po) {
+        if (po == null) {
+            return new ConfigExtAttrsDTO();
+        }
+        return JsonUtil.parseObject(Optional.ofNullable(po.getConfigJson()).orElse("{}"), ConfigExtAttrsDTO.class);
     }
 
 

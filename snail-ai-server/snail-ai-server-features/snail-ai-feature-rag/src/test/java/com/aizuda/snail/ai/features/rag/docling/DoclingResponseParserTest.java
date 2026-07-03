@@ -90,7 +90,103 @@ class DoclingResponseParserTest {
         assertEquals("| A | B |\n|---|---|\n| 1 | 2 |", result.getElements().get(2).getText());
         assertEquals("picture-image", result.getImages().get(0).getBase64());
         assertEquals("Architecture", result.getImages().get(0).getCaption());
+        assertEquals("Report", result.getImages().get(0).getSectionTitle());
+        assertEquals(result.getElements().get(3).getIndex(), result.getImages().get(0).getElementIndex());
         assertTrue(result.getDocMetadata().contains("report.pdf"));
+    }
+
+    @Test
+    void parseResultExtractsFigureNumberTitleAndSectionFromLookaheadCaption() {
+        String json = """
+                {
+                  "document": {
+                    "json_content": {
+                      "pages": {
+                        "2": {
+                          "image": {
+                            "uri": "data:image/png;base64,page-image"
+                          }
+                        }
+                      },
+                      "texts": [
+                        {
+                          "label": "section_header",
+                          "text": "2.3 证照管理",
+                          "level": 2,
+                          "prov": [{"page_no": 2}]
+                        },
+                        {
+                          "label": "caption",
+                          "text": "图 5 合格证列表",
+                          "prov": [{"page_no": 2}]
+                        }
+                      ],
+                      "pictures": [
+                        {
+                          "prov": [{"page_no": 2}],
+                          "image": {
+                            "uri": "data:image/png;base64,picture-image"
+                          }
+                        }
+                      ],
+                      "body": {
+                        "children": [
+                          {"$ref": "#/texts/0"},
+                          {"$ref": "#/pictures/0"},
+                          {"$ref": "#/texts/1"}
+                        ]
+                      }
+                    }
+                  }
+                }
+                """;
+
+        DoclingParseResult result = parser.parse(json, 10L);
+
+        assertTrue(result.isSuccess());
+        assertEquals(2, result.getElements().size());
+        assertEquals("图 5 合格证列表", result.getImages().get(0).getCaption());
+        assertEquals("图 5", result.getImages().get(0).getFigureNo());
+        assertEquals("合格证列表", result.getImages().get(0).getFigureTitle());
+        assertEquals("2.3 证照管理", result.getImages().get(0).getSectionTitle());
+    }
+
+    @Test
+    void parseResultUsesLookaheadCaptionPageWhenPicturePageIsMissing() {
+        String json = """
+                {
+                  "document": {
+                    "json_content": {
+                      "texts": [
+                        {
+                          "label": "caption",
+                          "text": "Figure 7 Approval flow",
+                          "prov": [{"page_no": 3}]
+                        }
+                      ],
+                      "pictures": [
+                        {
+                          "image": {
+                            "uri": "data:image/png;base64,picture-image"
+                          }
+                        }
+                      ],
+                      "body": {
+                        "children": [
+                          {"$ref": "#/pictures/0"},
+                          {"$ref": "#/texts/0"}
+                        ]
+                      }
+                    }
+                  }
+                }
+                """;
+
+        DoclingParseResult result = parser.parse(json, 10L);
+
+        assertTrue(result.isSuccess());
+        assertEquals(3, result.getImages().get(0).getPage());
+        assertEquals(3, result.getElements().get(0).getPage());
     }
 
     @Test
@@ -137,5 +233,40 @@ class DoclingResponseParserTest {
 
         assertTrue(result.isSuccess());
         assertEquals("Zm9vYmFy", result.getImages().get(0).getBase64());
+    }
+
+    @Test
+    void parseResultDoesNotUsePageImageAsPictureEvidence() {
+        String json = """
+                {
+                  "document": {
+                    "json_content": {
+                      "pages": {
+                        "1": {
+                          "image": {
+                            "uri": "data:image/png;base64,page-image"
+                          }
+                        }
+                      },
+                      "pictures": [
+                        {
+                          "prov": [{"page_no": 1}]
+                        }
+                      ],
+                      "body": {
+                        "children": [
+                          {"$ref": "#/pictures/0"}
+                        ]
+                      }
+                    }
+                  }
+                }
+                """;
+
+        DoclingParseResult result = parser.parse(json, 10L);
+
+        assertTrue(result.isSuccess());
+        assertEquals(0, result.getImageCount());
+        assertTrue(result.getImages().isEmpty());
     }
 }

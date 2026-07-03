@@ -76,6 +76,11 @@ snail-ai:
       result-timeout-millis: 30000
       max-image-count: 100
       max-image-bytes: 10485760
+      paddle-ocr-enabled: true
+      paddle-ocr-url: http://127.0.0.1:8866/ocr
+      paddle-ocr-timeout-millis: 180000
+      paddle-ocr-batch-size: 5
+      vision-ocr-fallback-enabled: false
   # 短期记忆配置
   memory:
     short-term:

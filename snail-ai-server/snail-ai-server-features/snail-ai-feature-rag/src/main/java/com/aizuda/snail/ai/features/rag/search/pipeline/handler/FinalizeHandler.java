@@ -32,6 +32,7 @@ public class FinalizeHandler implements RagSearchHandler {
 
     private final RagChunkMapper ragChunkMapper;
     private final RagDocumentMapper ragDocumentMapper;
+    private final SearchResultImageEnricher searchResultImageEnricher;
 
     @Override
     public void handle(RagSearchContext ctx) {
@@ -44,6 +45,7 @@ public class FinalizeHandler implements RagSearchHandler {
         if (Objects.nonNull(nearbySliceCount) && nearbySliceCount > 0) {
             results = expandNearbySlices(results, nearbySliceCount);
         }
+        searchResultImageEnricher.enrich(results, ctx.getQuery());
 
         results = RagResultReorderUtil.reorderForLostInTheMiddle(results);
         ctx.setResults(results);

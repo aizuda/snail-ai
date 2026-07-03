@@ -47,6 +47,7 @@ nbdist/
 
 # 环境文件
 .env
+.venv
 .gitignore
 .flattened-pom.xml
 
@@ -71,3 +72,4 @@ tools/docling-api/server/__pycache__/
 # IDE
 .vscode
 .gitnexus
+/docs/superpowers/

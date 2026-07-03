@@ -33,8 +33,12 @@ public class RagDocumentImagePO {
     /** 所属文档 ID。 */
     private Long documentId;
 
+    private Long chunkId;
+
     /** 资源库中的图片资源 ID。 */
     private Long resourceId;
+
+    private Integer imageIndex;
 
     /** 图片访问地址，来自资源模块回填。 */
     private String imageUrl;
@@ -42,8 +46,16 @@ public class RagDocumentImagePO {
     /** Docling 解析出的图注。 */
     private String caption;
 
+    private String figureNo;
+
+    private String figureTitle;
+
+    private String sectionTitle;
+
     /** 图片所在原文页码。 */
     private Integer sourcePage;
+
+    private String documentName;
 
     /** 图片 OCR 文本。 */
     private String ocrText;

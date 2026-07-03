@@ -97,7 +97,7 @@ public class RagQAService {
                     request.getQuery(),
                     systemPrompt,
                     chunk -> emit(sink, RagQaStreamEvent.text(chunk)),
-                    () -> complete(sink),
+                    () -> complete(sink, searchResults),
                     error -> emitError(sink, error)
             ));
             sink.onCancel(subscription);
@@ -133,11 +133,11 @@ public class RagQAService {
         sink.next(event);
     }
 
-    private void complete(FluxSink<RagQaStreamEvent> sink) {
+    private void complete(FluxSink<RagQaStreamEvent> sink, List<SearchResult> references) {
         if (sink.isCancelled()) {
             return;
         }
-        sink.next(RagQaStreamEvent.done());
+        sink.next(RagQaStreamEvent.done(references));
         sink.complete();
     }
 

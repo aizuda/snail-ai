@@ -62,8 +62,6 @@ public class RagConfigDO {
         private Integer maxImageCount;
         /** 单张 Docling 图片最大字节数；为空时使用全局 snail-ai.rag.docling.max-image-bytes。 */
         private Long maxImageBytes;
-        /** 多模态模型配置 ID，用于对 Docling 提取的图片做 OCR 文字识别。 */
-        private Long multimodalModelId;
     }
 
     @Data

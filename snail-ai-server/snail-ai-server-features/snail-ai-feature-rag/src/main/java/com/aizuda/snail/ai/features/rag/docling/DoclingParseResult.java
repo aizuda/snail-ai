@@ -124,6 +124,15 @@ public class DoclingParseResult {
          * 图片说明文字或图注。
          */
         private String caption;
+
+        private String figureNo;
+
+        private String figureTitle;
+
+        private String sectionTitle;
+
+        private Integer elementIndex;
+
         /**
          * 图片来源页码。
          */
