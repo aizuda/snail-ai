@@ -1,7 +1,10 @@
 package com.aizuda.snail.ai.admin.dto;
 
+import com.aizuda.snail.ai.common.dto.rag.SearchResult;
 import lombok.Builder;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * Structured event for RAG QA stream.
@@ -23,6 +26,8 @@ public class RagQaStreamEvent {
 
     private String message;
 
+    private List<SearchResult> references;
+
     public static RagQaStreamEvent text(String data) {
         return RagQaStreamEvent.builder()
                 .type(TYPE_TEXT)
@@ -33,6 +38,13 @@ public class RagQaStreamEvent {
     public static RagQaStreamEvent done() {
         return RagQaStreamEvent.builder()
                 .type(TYPE_DONE)
+                .build();
+    }
+
+    public static RagQaStreamEvent done(List<SearchResult> references) {
+        return RagQaStreamEvent.builder()
+                .type(TYPE_DONE)
+                .references(references)
                 .build();
     }
 

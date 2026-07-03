@@ -21,11 +21,14 @@ import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.content.Media;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.embedding.EmbeddingOptions;
 import org.springframework.ai.embedding.EmbeddingRequest;
 import org.springframework.ai.embedding.EmbeddingResponse;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MimeTypeUtils;
 import reactor.core.Disposable;
 
 import java.util.ArrayList;
@@ -73,6 +76,39 @@ public class ModelRuntimeHandler {
             throw e;
         } catch (Exception e) {
             SnailAiLog.LOCAL.error("Model call failed for config: {}, error: {}",
+                    config.getId(), e.getMessage(), e);
+            throw modelCallFailed("模型调用失败: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 同步多模态聊天调用，使用媒体消息传递图片，避免将 base64 当作文本 token 输入。
+     *
+     * @param request 多模态聊天请求
+     * @return 模型生成的完整文本
+     */
+    public String chat(ChatMediaRequest request) {
+        if (request == null) {
+            throw invalid("ChatMediaRequest 不能为空");
+        }
+        validateChatInput(request.modelConfigId(), request.userContext(), request.systemContext());
+        if (request.mediaBytes() == null || request.mediaBytes().length == 0) {
+            throw invalid("媒体内容不能为空");
+        }
+        long startTime = System.currentTimeMillis();
+        ModelConfigInfoDTO config = requireConfig(request.modelConfigId());
+        try {
+            ChatClient chatClient = buildChatClient(config);
+            String result = chatClient.prompt(buildMediaPrompt(request))
+                    .call()
+                    .content();
+            SnailAiLog.LOCAL.info("Model media call completed: {}, duration: {}ms",
+                    config.getId(), System.currentTimeMillis() - startTime);
+            return result;
+        } catch (ModelCallException e) {
+            throw e;
+        } catch (Exception e) {
+            SnailAiLog.LOCAL.error("Model media call failed for config: {}, error: {}",
                     config.getId(), e.getMessage(), e);
             throw modelCallFailed("模型调用失败: " + e.getMessage(), e);
         }
@@ -267,6 +303,27 @@ public class ModelRuntimeHandler {
         return new Prompt(messages);
     }
 
+    private Prompt buildMediaPrompt(ChatMediaRequest request) {
+        List<Message> messages = new ArrayList<>();
+        if (StrUtil.isNotBlank(request.systemContext())) {
+            messages.add(new SystemMessage(request.systemContext()));
+        }
+        Media media = Media.builder()
+                .mimeType(MimeTypeUtils.parseMimeType(request.mimeType()))
+                .data(new ByteArrayResource(request.mediaBytes()) {
+                    @Override
+                    public String getFilename() {
+                        return request.fileName();
+                    }
+                })
+                .build();
+        messages.add(UserMessage.builder()
+                .text(request.userContext())
+                .media(media)
+                .build());
+        return new Prompt(messages);
+    }
+
     private EmbeddingOptions embeddingOptions(ModelConfigInfoDTO config, Integer dimensions) {
         return new EmbeddingOptions() {
             @Override
@@ -324,6 +381,17 @@ public class ModelRuntimeHandler {
      * 同步聊天请求
      */
     public record ChatRequest(Long modelConfigId, String userContext, String systemContext) {
+    }
+
+    /**
+     * 同步多模态聊天请求。
+     */
+    public record ChatMediaRequest(Long modelConfigId,
+                                   String userContext,
+                                   String systemContext,
+                                   String mimeType,
+                                   String fileName,
+                                   byte[] mediaBytes) {
     }
 
     /**

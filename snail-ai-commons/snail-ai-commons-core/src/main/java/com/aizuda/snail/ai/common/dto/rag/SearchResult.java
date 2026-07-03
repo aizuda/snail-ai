@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -46,4 +47,6 @@ public class SearchResult {
      * 附加元数据
      */
     private Map<String, Object> metadata;
+
+    private List<SearchResultImage> images;
 }

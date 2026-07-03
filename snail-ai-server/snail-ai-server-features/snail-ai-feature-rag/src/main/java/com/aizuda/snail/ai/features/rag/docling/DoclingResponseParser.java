@@ -1,15 +1,15 @@
 package com.aizuda.snail.ai.features.rag.docling;
 
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * Docling 服务响应解析器。
@@ -32,8 +32,13 @@ public class DoclingResponseParser {
     private static final String IMAGE_PLACEHOLDER = "[image]";
     private static final String IMAGE_CAPTION_PREFIX = "[图片说明: ";
     private static final String IMAGE_CAPTION_SUFFIX = "]";
+    private static final String TEXT_SEPARATOR = "\n";
     private static final int DEFAULT_PAGE = 1;
     private static final int DEFAULT_LEVEL = 0;
+    private static final Pattern FIGURE_CAPTION_PATTERN = Pattern.compile(
+            "^((?:(?:图表|图|Figure|Fig\\.)\\s*)"
+                    + "[0-9一二三四五六七八九十百千万]+)\\s*(.*)$",
+            Pattern.CASE_INSENSITIVE);
 
     public DoclingParseResult parse(String json, long costMs) {
         // Docling Serve result 接口返回 document 包装对象，缺失时视为不可用响应。
@@ -80,13 +85,13 @@ public class DoclingResponseParser {
                 continue;
             }
             if (TYPE_TITLE.equals(element.getType())) {
-                // 保留标题层级，便于后续切片仍能利用文档结构。
+                // 保留标题层级，便于后续切片继续利用文档结构。
                 int level = element.getLevel() != null && element.getLevel() > 0 ? element.getLevel() : 1;
                 builder.append("#".repeat(Math.min(level, 6))).append(" ").append(text.trim()).append("\n\n");
                 continue;
             }
             if (TYPE_PICTURE.equals(element.getType())) {
-                // 图片元素不跳过——将图注和 OCR 文字注入 chunk，使其可被检索。
+                // 图片元素不跳过，将图注和 OCR 文字注入 chunk，使其可被检索。
                 builder.append(IMAGE_CAPTION_PREFIX).append(text.trim()).append(IMAGE_CAPTION_SUFFIX).append("\n\n");
                 continue;
             }
@@ -118,7 +123,7 @@ public class DoclingResponseParser {
         }
 
         ResolveState state = new ResolveState();
-        ResolveSources sources = new ResolveSources(texts, pictures, tables, groups, pages);
+        ResolveSources sources = new ResolveSources(texts, pictures, tables, groups);
         resolveChildren(children, sources, result, state);
 
         JSONObject origin = jsonContent.getJSONObject("origin");
@@ -153,9 +158,11 @@ public class DoclingResponseParser {
                 continue;
             }
             if ("pictures".equals(refParts.category)) {
-                // v2 中 picture.captions 为空，图注在后续 text 元素中（如 "图 5 合格证列表"）
-                String lookaheadCaption = lookaheadCaption(children, i + 1, sources.texts);
-                addPictureElement(sources.pictures, sources.pages, refParts.index, result, state, lookaheadCaption);
+                LookaheadCaption resolvedLookaheadCaption = lookaheadCaption(children, i + 1, sources.texts);
+                addPictureElement(sources.pictures, refParts.index, result, state, resolvedLookaheadCaption);
+                if (resolvedLookaheadCaption.hasText()) {
+                    i++;
+                }
             }
         }
     }
@@ -182,13 +189,19 @@ public class DoclingResponseParser {
         JSONObject textObj = texts.getJSONObject(refIndex);
         String label = textObj.getStr("label", "text");
         String type = mapLabelToType(label);
+        String text = textObj.getStr("text", "");
+        int page = extractPage(textObj);
         result.getElements().add(DoclingParseResult.DoclingElement.builder()
                 .index(state.nextIndex())
                 .type(type)
-                .text(textObj.getStr("text", ""))
-                .page(extractPage(textObj))
+                .text(text)
+                .page(page)
                 .level(textObj.getInt("level", TYPE_TITLE.equals(type) ? 1 : DEFAULT_LEVEL))
                 .build());
+        state.currentPage = page;
+        if (TYPE_TITLE.equals(type) && StrUtil.isNotBlank(text)) {
+            state.currentSectionTitle = text.trim();
+        }
     }
 
     private void addTableElement(JSONArray tables, int refIndex, DoclingParseResult result, ResolveState state) {
@@ -196,68 +209,78 @@ public class DoclingResponseParser {
             return;
         }
         JSONObject tableObj = tables.getJSONObject(refIndex);
+        int page = extractPage(tableObj);
         result.getElements().add(DoclingParseResult.DoclingElement.builder()
                 .index(state.nextIndex())
                 .type(TYPE_TABLE)
                 .text(buildTableText(tableObj))
-                .page(extractPage(tableObj))
+                .page(page)
                 .level(DEFAULT_LEVEL)
                 .build());
+        state.currentPage = page;
         state.tableCount++;
     }
 
     /**
      * 前瞻查找紧跟在 picture 引用后面的 text 元素，提取图注。
-     * Docling v2 将图注放在 picture 后面的 text 中（如 "图 5 合格证列表"），
-     * 而不是 picture.captions。
+     * Docling v2 通常将图注放在 picture 后面的 text 中，而不是 picture.captions。
      */
-    private String lookaheadCaption(JSONArray children, int nextIndex, JSONArray texts) {
+    private LookaheadCaption lookaheadCaption(JSONArray children, int nextIndex, JSONArray texts) {
         if (children == null || nextIndex >= children.size() || texts == null) {
-            return "";
+            return LookaheadCaption.empty();
         }
         JSONObject nextRef = children.getJSONObject(nextIndex);
         RefParts nextParts = parseRef(nextRef.getStr("$ref"));
         if (nextParts == null || !"texts".equals(nextParts.category) || nextParts.index >= texts.size()) {
-            return "";
+            return LookaheadCaption.empty();
         }
         JSONObject textObj = texts.getJSONObject(nextParts.index);
         String label = textObj.getStr("label", "");
         String text = textObj.getStr("text", "");
         if (StrUtil.isBlank(text)) {
-            return "";
+            return LookaheadCaption.empty();
         }
-        // 匹配图注模式："图 X ..."、"图表 X ..."、"Figure X ..."
-        if (text.startsWith("图 ") || text.startsWith("图") || text.startsWith("图表") || text.startsWith("Figure")) {
-            return text.trim();
+        // 匹配图注前缀，例如“图 X”、“图表 X”、“Figure X”、“Fig. X”。
+        String trimmedText = text.trim();
+        if (isFigureCaptionText(trimmedText)) {
+            return new LookaheadCaption(trimmedText, extractPage(textObj));
         }
-        // section_header / title 不是图注
+        // section_header / title 不是图注。
         if ("title".equals(label) || "section_header".equals(label)) {
-            return "";
+            return LookaheadCaption.empty();
         }
-        return "";
+        return LookaheadCaption.empty();
     }
 
-    private void addPictureElement(JSONArray pictures, JSONObject pages, int refIndex,
-                                   DoclingParseResult result, ResolveState state) {
-        addPictureElement(pictures, pages, refIndex, result, state, "");
+    private boolean isFigureCaptionText(String text) {
+        if (StrUtil.isBlank(text)) {
+            return false;
+        }
+        String lowerText = text.toLowerCase();
+        return text.startsWith("图") || lowerText.startsWith("figure") || lowerText.startsWith("fig.");
     }
 
-    private void addPictureElement(JSONArray pictures, JSONObject pages, int refIndex,
-                                   DoclingParseResult result, ResolveState state, String lookaheadCaption) {
+    private void addPictureElement(JSONArray pictures, int refIndex, DoclingParseResult result, ResolveState state) {
+        addPictureElement(pictures, refIndex, result, state, LookaheadCaption.empty());
+    }
+
+    private void addPictureElement(JSONArray pictures, int refIndex, DoclingParseResult result, ResolveState state,
+                                   LookaheadCaption lookaheadCaption) {
         if (pictures == null || refIndex >= pictures.size()) {
             return;
         }
         JSONObject pictureObj = pictures.getJSONObject(refIndex);
-        int page = extractPage(pictureObj);
-        // v2 中 picture.captions 通常为空，优先用前瞻查到的图注
-        String caption = StrUtil.isNotBlank(lookaheadCaption)
-                ? lookaheadCaption
+        int page = resolvePicturePage(pictureObj, lookaheadCaption, state);
+        // Docling v2 中 picture.captions 通常为空，优先使用前瞻查到的图注。
+        String caption = lookaheadCaption.hasText()
+                ? lookaheadCaption.text()
                 : extractCaption(pictureObj);
+        FigureCaption figureCaption = parseFigureCaption(caption);
         String ocrText = extractPictureOcrText(pictureObj);
         // 将 caption 和 OCR 文字合并为 element.text，确保两者都能进入 chunk 被检索。
         String pictureText;
         if (StrUtil.isNotBlank(caption) && StrUtil.isNotBlank(ocrText)) {
-            pictureText = caption + "，" + ocrText;
+            pictureText = caption + TEXT_SEPARATOR + ocrText;
         } else if (StrUtil.isNotBlank(caption)) {
             pictureText = caption;
         } else if (StrUtil.isNotBlank(ocrText)) {
@@ -265,28 +288,40 @@ public class DoclingResponseParser {
         } else {
             pictureText = IMAGE_PLACEHOLDER;
         }
+        int elementIndex = state.nextIndex();
         result.getElements().add(DoclingParseResult.DoclingElement.builder()
-                .index(state.nextIndex())
+                .index(elementIndex)
                 .type(TYPE_PICTURE)
                 .text(pictureText)
                 .page(page)
                 .level(DEFAULT_LEVEL)
                 .build());
 
-        JSONObject pictureImage = pictureObj.getJSONObject("image");
-        String base64 = extractImageBase64(pictureImage);
-        if (StrUtil.isBlank(base64) && pages != null && state.collectedPageImages.add(page)) {
-            base64 = extractPageImage(pages, page);
-        }
+        String base64 = extractImageBase64(pictureObj.getJSONObject("image"));
         if (StrUtil.isBlank(base64)) {
             return;
         }
         result.getImages().add(DoclingParseResult.DoclingImage.builder()
                 .base64(base64)
                 .caption(caption)
+                .figureNo(figureCaption.figureNo())
+                .figureTitle(figureCaption.figureTitle())
+                .sectionTitle(state.currentSectionTitle)
+                .elementIndex(elementIndex)
                 .page(page)
                 .ocrText(ocrText)
                 .build());
+    }
+
+    private FigureCaption parseFigureCaption(String caption) {
+        if (StrUtil.isBlank(caption)) {
+            return new FigureCaption("", "");
+        }
+        Matcher matcher = FIGURE_CAPTION_PATTERN.matcher(caption.trim());
+        if (!matcher.matches()) {
+            return new FigureCaption("", "");
+        }
+        return new FigureCaption(matcher.group(1).trim(), StrUtil.trimToEmpty(matcher.group(2)));
     }
 
     private String buildTableText(JSONObject tableObj) {
@@ -343,23 +378,34 @@ public class DoclingResponseParser {
             return;
         }
         int tableCount = 0;
+        String currentSectionTitle = "";
         for (int i = 0; i < elements.size(); i++) {
             JSONObject elementObj = elements.getJSONObject(i);
             String type = elementObj.getStr("type", TYPE_PARAGRAPH);
+            String text = elementObj.getStr("text", "");
             result.getElements().add(DoclingParseResult.DoclingElement.builder()
                     .index(i)
                     .type(type)
-                    .text(elementObj.getStr("text", ""))
+                    .text(text)
                     .page(elementObj.getInt("page", DEFAULT_PAGE))
                     .level(elementObj.getInt("level", DEFAULT_LEVEL))
                     .build());
+            if (TYPE_TITLE.equals(type) && StrUtil.isNotBlank(text)) {
+                currentSectionTitle = text.trim();
+            }
             if (TYPE_TABLE.equals(type)) {
                 tableCount++;
             }
             if (TYPE_PICTURE.equals(type) && StrUtil.isNotBlank(elementObj.getStr("image"))) {
+                String caption = elementObj.getStr("caption", "");
+                FigureCaption figureCaption = parseFigureCaption(caption);
                 result.getImages().add(DoclingParseResult.DoclingImage.builder()
                         .base64(stripBase64Prefix(elementObj.getStr("image")))
-                        .caption(elementObj.getStr("caption", ""))
+                        .caption(caption)
+                        .figureNo(figureCaption.figureNo())
+                        .figureTitle(figureCaption.figureTitle())
+                        .sectionTitle(currentSectionTitle)
+                        .elementIndex(i)
                         .page(elementObj.getInt("page", DEFAULT_PAGE))
                         .ocrText(elementObj.getStr("ocr_text", ""))
                         .build());
@@ -384,13 +430,38 @@ public class DoclingResponseParser {
         };
     }
 
+    private int resolvePicturePage(JSONObject pictureObj, LookaheadCaption lookaheadCaption, ResolveState state) {
+        Integer picturePage = extractPageOrNull(pictureObj);
+        if (picturePage != null) {
+            return picturePage;
+        }
+        if (lookaheadCaption.page() != null && lookaheadCaption.page() > 0) {
+            return lookaheadCaption.page();
+        }
+        if (state.currentPage != null && state.currentPage > 0) {
+            return state.currentPage;
+        }
+        return DEFAULT_PAGE;
+    }
+
     private int extractPage(JSONObject element) {
+        Integer page = extractPageOrNull(element);
+        return page == null ? DEFAULT_PAGE : page;
+    }
+
+    private Integer extractPageOrNull(JSONObject element) {
+        if (element == null) {
+            return null;
+        }
         JSONArray prov = element.getJSONArray("prov");
         if (prov != null && !prov.isEmpty()) {
             JSONObject first = prov.getJSONObject(0);
-            return first.getInt("page_no", DEFAULT_PAGE);
+            int pageNo = first.getInt("page_no", -1);
+            if (pageNo > 0) {
+                return pageNo;
+            }
         }
-        // v2: prov 为空时尝试从 annotations 中取页码
+        // Docling v2 在 prov 为空时，可能把页码放在 annotations 中。
         JSONArray annotations = element.getJSONArray("annotations");
         if (annotations != null && !annotations.isEmpty()) {
             for (int i = 0; i < annotations.size(); i++) {
@@ -401,7 +472,7 @@ public class DoclingResponseParser {
                 }
             }
         }
-        return DEFAULT_PAGE;
+        return null;
     }
 
     private String extractCaption(JSONObject element) {
@@ -414,8 +485,8 @@ public class DoclingResponseParser {
     }
 
     /**
-     * 从 picture 节点的 annotations 数组中提取 OCR 文本。
-     * Docling 将 OCR 结果放在 annotations[].text 中，多个 annotation 用空格拼接。
+     * 从 picture.annotations 数组中提取 OCR 文本。
+     * Docling 会将 OCR 结果放在 annotations[].text 中，多个 annotation 使用空格拼接。
      */
     private String extractPictureOcrText(JSONObject pictureObj) {
         JSONArray annotations = pictureObj.getJSONArray("annotations");
@@ -436,14 +507,6 @@ public class DoclingResponseParser {
         return sb.toString();
     }
 
-    private String extractPageImage(JSONObject pages, int page) {
-        JSONObject pageObj = pages.getJSONObject(String.valueOf(page));
-        if (pageObj == null) {
-            return "";
-        }
-        return extractImageBase64(pageObj.getJSONObject("image"));
-    }
-
     private String extractImageBase64(JSONObject imageObj) {
         if (imageObj == null) {
             return "";
@@ -461,16 +524,30 @@ public class DoclingResponseParser {
         return base64.replaceAll("\\s+", "");
     }
 
-    private record ResolveSources(JSONArray texts, JSONArray pictures, JSONArray tables, JSONArray groups, JSONObject pages) {
+    private record ResolveSources(JSONArray texts, JSONArray pictures, JSONArray tables, JSONArray groups) {
     }
 
     private record RefParts(String category, int index) {
     }
 
+    private record FigureCaption(String figureNo, String figureTitle) {
+    }
+
+    private record LookaheadCaption(String text, Integer page) {
+        private static LookaheadCaption empty() {
+            return new LookaheadCaption("", null);
+        }
+
+        private boolean hasText() {
+            return StrUtil.isNotBlank(text);
+        }
+    }
+
     private static class ResolveState {
         private int index;
         private int tableCount;
-        private final Set<Integer> collectedPageImages = new HashSet<>();
+        private String currentSectionTitle;
+        private Integer currentPage;
 
         private int nextIndex() {
             return index++;

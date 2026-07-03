@@ -3,7 +3,6 @@ package com.aizuda.snail.ai.features.rag.pipeline;
 import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.common.util.JsonUtil;
-import com.aizuda.snail.ai.features.rag.docling.DoclingResponseParser;
 import com.aizuda.snail.ai.features.resource.ResourceService;
 import com.aizuda.snail.ai.features.resource.enums.ResourceBizTypeEnum;
 import com.aizuda.snail.ai.features.rag.dto.ChunkDTO;
@@ -72,7 +71,8 @@ public class DocumentPipeline {
     private final SearchEngineFactory searchEngineFactory;
     private final ResourceService resourceService;
     private final DoclingProperties doclingProperties;
-    private final DoclingImageOcrService imageOcrService;
+    private final DoclingImageOcrApplier doclingImageOcrApplier;
+    private final DocumentImageChunkMatcher documentImageChunkMatcher;
 
     /**
      * 处理指定文档：抢占 PENDING 状态后解析、分块、双写并更新为最终状态（失败时记录错误）
@@ -104,6 +104,7 @@ public class DocumentPipeline {
             RagConfigDO config = parseKnowledgeConfig(knowledge);
             // 解析阶段会按知识库 parseParams 决定是否使用 Docling，并保留结构化统计信息。
             DocumentParseResult parseResult = parseDocument(document, config);
+            doclingImageOcrApplier.apply(config, document, parseResult);
             String content = parseResult.getContent();
             if (StrUtil.isBlank(content)) {
                 updateStatus(documentId, RagDocumentStatus.FAILED, "Empty content after parsing");
@@ -136,10 +137,7 @@ public class DocumentPipeline {
             // ── Dual write: VectorStore + SearchEngine ──
             dualWrite(chunkPOs, knowledge);
             // 图片不进入 chunk 文本，双写成功后再保存为资源，避免失败文档留下半成功图片记录。
-            saveDoclingImages(config, document, parseResult, knowledge);
-            // OCR 完成后，将识别文字回写入 chunk 的图片元素，使其可被检索
-            updateChunksWithOcrText(document, chunkPOs, parseResult);
-
+            saveDoclingImages(config, document, parseResult, chunkPOs);
             document.setChunkCount(chunkPOs.size());
             applyParseResult(document, parseResult);
             document.setStatus(RagDocumentStatus.SUCCESS.getStatus());
@@ -385,7 +383,8 @@ public class DocumentPipeline {
         document.setDocMetadata(parseResult.getDocMetadata());
     }
 
-    private void saveDoclingImages(RagConfigDO config, RagDocumentPO document, DocumentParseResult parseResult, RagPO knowledge) {
+    private void saveDoclingImages(RagConfigDO config, RagDocumentPO document, DocumentParseResult parseResult,
+                                   List<RagChunkPO> chunkPOs) {
         // 图片保存受知识库 parseParams.docling.saveImages 控制，默认保存。
         if (!shouldSaveImages(config) || parseResult == null || parseResult.getDoclingResult() == null) {
             return;
@@ -394,8 +393,6 @@ public class DocumentPipeline {
         if (images == null || images.isEmpty()) {
             return;
         }
-        // 用知识库的对话模型做 OCR（视觉模型）
-        Long ocrModelConfigId = resolveOcrModelConfigId(config, knowledge);
         DoclingImageSavePolicy savePolicy = DoclingImageSavePolicy.from(doclingProperties, config);
         int imageIndex = 0;
         int savedCount = 0;
@@ -418,85 +415,9 @@ public class DocumentPipeline {
                         document.getId(), imageIndex, imageBytes.length, savePolicy.getMaxImageBytes());
                 continue;
             }
-            // OCR 文字识别（使用视觉语言模型）
-            String ocrText = "";
-            if (ocrModelConfigId != null && StrUtil.isNotBlank(image.getBase64())) {
-                ocrText = imageOcrService.recognize(image.getBase64(), ocrModelConfigId);
-                if (StrUtil.isNotBlank(ocrText)) {
-                    image.setOcrText(ocrText);
-                    log.info("Docling image OCR 成功: documentId={} imageIndex={} ocrLen={}",
-                            document.getId(), imageIndex, ocrText.length());
-                }
-            }
-            saveDoclingImage(document, image, imageIndex, imageBytes);
+            Long chunkId = documentImageChunkMatcher.matchChunkId(image, chunkPOs);
+            saveDoclingImage(document, image, imageIndex, chunkId, imageBytes);
             savedCount++;
-        }
-    }
-
-    /**
-     * 解析 OCR 模型配置 ID——优先用知识库 config.modelParams.modelId（对话模型），
-     * 否则回退到 knowledge.embeddingModelId 附近的配置。
-     */
-    private Long resolveOcrModelConfigId(RagConfigDO config, RagPO knowledge) {
-        // 优先用知识库配置的多模态模型 ID
-        if (config != null && config.getParseParams() != null && config.getParseParams().getDocling() != null) {
-            Long multimodalId = config.getParseParams().getDocling().getMultimodalModelId();
-            if (multimodalId != null) {
-                return multimodalId;
-            }
-        }
-        // 回退到知识库的对话模型
-        if (config != null && config.getModelParams() != null && config.getModelParams().getModelId() != null) {
-            return config.getModelParams().getModelId();
-        }
-        return null;
-    }
-
-    /**
-     * OCR 完成后，将识别文字回写入 chunk 内容中图片元素的 text，
-     * 使图片中的文字可被检索。
-     */
-    private void updateChunksWithOcrText(RagDocumentPO document, List<RagChunkPO> chunkPOs,
-                                          DocumentParseResult parseResult) {
-        if (parseResult == null || parseResult.getDoclingResult() == null) {
-            return;
-        }
-        List<DoclingParseResult.DoclingImage> images = parseResult.getDoclingResult().getImages();
-        if (images == null || images.isEmpty()) {
-            return;
-        }
-        // 收集有 OCR 文字的图片：page -> ocrText
-        java.util.Map<Integer, String> pageOcrMap = new java.util.HashMap<>();
-        for (DoclingParseResult.DoclingImage img : images) {
-            if (StrUtil.isNotBlank(img.getOcrText()) && img.getPage() != null) {
-                pageOcrMap.merge(img.getPage(), img.getOcrText(), (a, b) -> a + "；" + b);
-            }
-        }
-        if (pageOcrMap.isEmpty()) {
-            return;
-        }
-        // 回写 chunk 内容
-        for (RagChunkPO chunk : chunkPOs) {
-            if (StrUtil.isBlank(chunk.getContent())) {
-                continue;
-            }
-            String updated = chunk.getContent();
-            boolean changed = false;
-            for (var entry : pageOcrMap.entrySet()) {
-                int page = entry.getKey();
-                String ocrText = entry.getValue();
-                String placeholder = "[" + DoclingResponseParser.IMAGE_CAPTION_PREFIX + page + DoclingResponseParser.IMAGE_CAPTION_SUFFIX + "]";
-                // 在 chunk 内容中追加 OCR 文字
-                if (updated.contains("[图片说明:") && !updated.contains(ocrText)) {
-                    updated = updated.replace("[图片说明:", "[图片说明: OCR识别: " + ocrText + "；");
-                    changed = true;
-                }
-            }
-            if (changed) {
-                chunk.setContent(updated);
-                chunk.setContentHash(ContentHashUtil.sha256Hex(updated));
-                ragChunkMapper.updateById(chunk);
-            }
         }
     }
 
@@ -510,7 +431,7 @@ public class DocumentPipeline {
     }
 
     private void saveDoclingImage(RagDocumentPO document, DoclingParseResult.DoclingImage image, int imageIndex,
-                                  byte[] bytes) {
+                                  Long chunkId, byte[] bytes) {
         try {
             // 复用资源模块，图片业务类型单独标记为 DOCUMENT_IMAGE，便于后续清理和审计。
             ResourcePO resource = resourceService.upload(
@@ -523,10 +444,16 @@ public class DocumentPipeline {
             ragDocumentImageMapper.insert(RagDocumentImagePO.builder()
                     .ragId(document.getRagId())
                     .documentId(document.getId())
+                    .chunkId(chunkId)
                     .resourceId(resource.getId())
+                    .imageIndex(imageIndex)
                     .imageUrl(resource.getAccessUrl())
                     .caption(image.getCaption())
+                    .figureNo(image.getFigureNo())
+                    .figureTitle(image.getFigureTitle())
+                    .sectionTitle(image.getSectionTitle())
                     .sourcePage(image.getPage())
+                    .documentName(document.getName())
                     .ocrText(image.getOcrText())
                     .build());
         } catch (Exception e) {

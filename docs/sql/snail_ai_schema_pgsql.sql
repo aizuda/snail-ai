@@ -470,10 +470,16 @@ CREATE TABLE sai_rag_document_image
     id BIGSERIAL PRIMARY KEY,
     rag_id BIGINT NOT NULL,
     document_id BIGINT NOT NULL,
+    chunk_id BIGINT DEFAULT NULL,
     resource_id BIGINT DEFAULT NULL,
+    image_index INT,
     image_url VARCHAR(1024),
     caption TEXT,
+    figure_no VARCHAR(64),
+    figure_title VARCHAR(512),
+    section_title VARCHAR(512),
     source_page INT,
+    document_name VARCHAR(255),
     ocr_text TEXT,
     create_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -489,6 +495,7 @@ CREATE TRIGGER trigger_sai_rag_document_image_update
 
 CREATE INDEX idx_rag_doc_image_rag ON sai_rag_document_image (rag_id);
 CREATE INDEX idx_rag_doc_image_document ON sai_rag_document_image (document_id);
+CREATE INDEX idx_rag_doc_image_chunk ON sai_rag_document_image (chunk_id);
 CREATE INDEX idx_rag_doc_image_resource ON sai_rag_document_image (resource_id);
 
 -- 4.3 RAG 分块表

@@ -63,8 +63,6 @@ public class KnowledgeConfigRequestVO {
         private Integer maxImageCount;
         /** 单张 Docling 图片最大字节数；为空时使用系统全局 Docling 配置。 */
         private Long maxImageBytes;
-        /** 多模态模型配置 ID，用于图片 OCR 文字识别。 */
-        private Long multimodalModelId;
     }
 
     @Data

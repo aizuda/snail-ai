@@ -1,6 +1,7 @@
 package com.aizuda.snail.ai.features.rag.docling;
 
 import lombok.Data;
+
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +21,8 @@ public class DoclingProperties {
     public static final int DEFAULT_RESULT_TIMEOUT_MILLIS = 30000;
     public static final int DEFAULT_MAX_IMAGE_COUNT = 100;
     public static final long DEFAULT_MAX_IMAGE_BYTES = 10L * 1024 * 1024;
+    public static final int DEFAULT_PADDLE_OCR_TIMEOUT_MILLIS = 180000;
+    public static final int DEFAULT_PADDLE_OCR_BATCH_SIZE = 5;
 
     /**
      * 是否启用 Docling 解析能力；默认关闭，关闭时始终使用项目内置解析器。
@@ -70,4 +73,29 @@ public class DoclingProperties {
      * 单张 Docling 图片最大字节数，超过时跳过保存，避免 base64 图片占用过多内存和存储。
      */
     private long maxImageBytes = DEFAULT_MAX_IMAGE_BYTES;
+
+    /**
+     * 是否启用 PaddleOCR 作为 Docling 图片 OCR 主引擎。
+     */
+    private boolean paddleOcrEnabled;
+
+    /**
+     * PaddleOCR HTTP 服务地址，接收 {"imageBase64":"..."} 并返回 OCR 文本。
+     */
+    private String paddleOcrUrl = "http://127.0.0.1:8866/ocr";
+
+    /**
+     * PaddleOCR HTTP 调用超时时间，单位毫秒。
+     */
+    private int paddleOcrTimeoutMillis = DEFAULT_PADDLE_OCR_TIMEOUT_MILLIS;
+
+    /**
+     * PaddleOCR 单次批量请求的最大图片数。PaddleOCR CPU 推理较慢，大批次会导致整批 HTTP 读超时。
+     */
+    private int paddleOcrBatchSize = DEFAULT_PADDLE_OCR_BATCH_SIZE;
+
+    /**
+     * PaddleOCR 无结果时是否启用多模态模型兜底。
+     */
+    private boolean visionOcrFallbackEnabled;
 }

@@ -27,6 +27,9 @@ snail-ai-feature-rag/src/main/java/.../features/rag/
 │   └── DoclingException.java            异常类
 ├── pipeline/
 │   ├── DocumentPipeline.java             文档处理流水线（总调度，含降级保护）
+│   ├── DoclingImageOcrApplier.java       图片 OCR 文本合并（切片前执行）
+│   ├── PaddleImageOcrHandler.java        PaddleOCR HTTP 调用
+│   ├── DoclingImageOcrService.java       视觉模型 OCR 兜底（可选）
 │   └── DoclingImageSavePolicy.java       图片保存策略（数量 / 大小限制）
 ├── strategy/parser/
 │   ├── DoclingParser.java                DocumentParser 策略实现
@@ -53,6 +56,8 @@ graph TB
     Serve -->|"JSON 响应"| ResponseParser["DoclingResponseParser<br/>parse() / toCleanMarkdown()"]
     ResponseParser --> Result["DoclingParseResult<br/>elements + images + markdown"]
 
+    Pipeline -->|"切片前 OCR"| OcrApplier["DoclingImageOcrApplier<br/>PaddleOCR primary"]
+    OcrApplier --> ResponseParser
     Pipeline -->|"图片保存"| ImagePolicy["DoclingImageSavePolicy<br/>数量 / 大小限制"]
     ImagePolicy --> Resource["ResourceService<br/>资源库存储"]
 
@@ -126,6 +131,7 @@ sequenceDiagram
         Pipeline->>Pipeline: log.warn + 降级到内置解析器
     end
 
+    Pipeline->>Pipeline: DoclingImageOcrApplier.apply() 图片 OCR 合并到 content
     Pipeline->>Pipeline: cleanExistingData() 清理旧 chunks
     Pipeline->>Pipeline: chunk() 文本切片
     Pipeline->>Pipeline: dualWrite() 向量库 + 搜索引擎
@@ -237,10 +243,12 @@ flowchart TD
 
     Picture --> Extract{"图片来源"}
     Extract -->|"picture.image.uri"| Direct["直接提取 base64"]
-    Extract -->|"无直接图片"| PageImg["回退到 pages[page].image"]
+    Extract -->|"无直接图片"| SkipImage["不保存图片资源<br/>避免整页截图误作图片证据"]
 
     Group --> Check
 ```
+
+> 注意：`pages[page].image` 是整页图，不再作为 `picture` 的图片证据保存。否则问答和检索会把整页截图当成命中图片，出现低清晰度、位置不准确的问题。没有 `picture.image.uri` 的图片元素仍会保留图注/OCR 文本进入分片，但不会生成图片资源。
 
 ### 标签类型映射
 
@@ -324,6 +332,33 @@ try {
 }
 ```
 
+## 图片 OCR 流程
+
+Docling 负责抽取文档中的图片和结构化元素。图片中的文字识别由 `DoclingImageOcrApplier` 在切片、向量化、全文搜索写入之前完成：
+
+```mermaid
+flowchart TD
+    Parse["parseDocument()"] --> Apply["DoclingImageOcrApplier.apply()"]
+    Apply --> Enabled{"chunkParams.imageOcr=true?"}
+    Enabled -->|"否"| Chunk["chunk(content)"]
+    Enabled -->|"是"| HasImage{"doclingResult.images 有图片?"}
+    HasImage -->|"否"| Chunk["chunk(content)"]
+    HasImage -->|"是"| Existing{"picture element 已有有效文字?"}
+    Existing -->|"是"| Merge["合并到 picture element / 追加图片元素"]
+    Existing -->|"否"| Paddle["PaddleImageOcrHandler<br/>POST imageBase64"]
+    Paddle --> HasText{"识别到文本?"}
+    HasText -->|"是"| Merge
+    HasText -->|"否"| Fallback{"vision-ocr-fallback-enabled?"}
+    Fallback -->|"否"| Merge
+    Fallback -->|"是"| Vision["DoclingImageOcrService<br/>视觉模型兜底"]
+    Vision --> Merge
+    Merge --> Rebuild["responseParser.toCleanMarkdown()"]
+    Rebuild --> Chunk
+    Chunk --> DualWrite["dualWrite()<br/>向量库 + 搜索引擎"]
+```
+
+当前 Starter 配置默认允许调用本地 PaddleOCR，但仍需要在知识库配置中开启 `chunkParams.imageOcr` 才会执行图片 OCR。流程会先复用 Docling 已抽取出的图片文字；只有 Docling 图片没有有效文字时才调用 PaddleOCR。`vision-ocr-fallback-enabled` 仅用于确实需要视觉模型兜底的场景，默认关闭以避免配额耗尽。
+
 ## 图片保存流程
 
 Docling 从文档中提取的图片，由 `DocumentPipeline.saveDoclingImages()` 统一保存到资源库：
@@ -390,6 +425,10 @@ snail-ai:
       result-timeout-millis: 30000 # 结果拉取 HTTP 超时（毫秒）
       max-image-count: 100         # 全局最大图片保存数
       max-image-bytes: 10485760    # 全局单张最大图片字节数（10MB）
+      paddle-ocr-enabled: true     # 是否启用本地 PaddleOCR 图片识别
+      paddle-ocr-url: "http://127.0.0.1:8866/ocr" # PaddleOCR HTTP 地址
+      paddle-ocr-timeout-millis: 180000 # PaddleOCR HTTP 超时（毫秒）
+      vision-ocr-fallback-enabled: false # PaddleOCR 无结果时是否启用视觉模型兜底
 ```
 
 ### 知识库级配置
@@ -398,6 +437,9 @@ snail-ai:
 
 ```json
 {
+  "chunkParams": {
+    "imageOcr": true
+  },
   "parseParams": {
     "engine": "docling",
     "docling": {
@@ -462,10 +504,18 @@ snail-ai:
 | `rag_id` | bigint | 所属知识库 ID |
 | `document_id` | bigint | 所属文档 ID |
 | `resource_id` | bigint | 资源库中的图片资源 ID |
+| `chunk_id` | bigint | 图片 OCR/图注关联到的切片 ID |
+| `image_index` | int | 图片在文档中的保存序号 |
 | `image_url` | varchar | 图片访问地址 |
 | `caption` | varchar | Docling 解析出的图注 |
+| `figure_no` | varchar | 从图注拆出的图号，如 `图 5` |
+| `figure_title` | varchar | 从图注拆出的图标题 |
+| `section_title` | varchar | 图片所属最近章节标题 |
 | `source_page` | int | 图片所在原文页码 |
+| `document_name` | varchar | 图片所属文件名快照 |
 | `ocr_text` | text | 图片 OCR 文本 |
+
+检索最终阶段会按 `chunk_id` 批量回填图片证据到 `SearchResult.images`，问答流结束事件会返回同一批引用，前端可据此展示命中图片、页码、章节和文件名。
 | `create_dt` | datetime | 创建时间 |
 | `update_dt` | datetime | 更新时间 |
 

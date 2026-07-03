@@ -216,7 +216,7 @@ stateDiagram-v2
 GET /document/{id}/images
 ```
 
-返回结果包含每张图片的访问地址、图注（caption）、来源页码（sourcePage）和 OCR 文本（ocrText）。
+返回结果包含每张图片的访问地址、图注（caption）、图号（figureNo）、图标题（figureTitle）、所属章节（sectionTitle）、来源页码（sourcePage）、所属文件名（documentName）和 OCR 文本（ocrText）。图片会按命中的 chunkId 回填到检索结果 images 字段，问答引用也会携带同一批图片证据。
 
 ### 重新解析
 
