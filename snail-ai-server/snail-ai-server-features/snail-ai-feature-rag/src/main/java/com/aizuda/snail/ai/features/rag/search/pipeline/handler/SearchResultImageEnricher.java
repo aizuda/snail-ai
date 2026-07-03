@@ -36,7 +36,7 @@ public class SearchResultImageEnricher {
     private static final int STRONG_MATCH_WEIGHT = 3;
     private static final String MATCH_TYPE_DIRECT = "DIRECT_MATCH";
     private static final String MATCH_TYPE_CONTEXT = "CONTEXT_MATCH";
-    private static final String CONTEXT_MATCH_REASON = "关联到命中的文本片段";
+    private static final String CONTEXT_MATCH_REASON = "\u5173\u8054\u5230\u547d\u4e2d\u7684\u6587\u672c\u7247\u6bb5";
     private static final String FIELD_FIGURE_NO = "figureNo";
     private static final String FIELD_FIGURE_TITLE = "figureTitle";
     private static final String FIELD_CAPTION = "caption";
@@ -140,21 +140,21 @@ public class SearchResultImageEnricher {
 
     private String buildDirectMatchReason(ImageEvidence evidence) {
         String fieldLabel = evidence.fields().isEmpty()
-                ? "图片内容"
+                ? "\u56fe\u7247\u5185\u5bb9"
                 : fieldLabel(evidence.fields().get(0));
         if (CollUtil.isEmpty(evidence.terms())) {
-            return fieldLabel + "命中";
+            return fieldLabel + "\u547d\u4e2d";
         }
-        return fieldLabel + "命中：" + evidence.terms().get(0);
+        return fieldLabel + "\u547d\u4e2d\uff1a" + evidence.terms().get(0);
     }
 
     private String fieldLabel(String field) {
         return switch (field) {
-            case FIELD_FIGURE_NO -> "图号";
-            case FIELD_FIGURE_TITLE -> "图标题";
-            case FIELD_CAPTION -> "图注";
+            case FIELD_FIGURE_NO -> "\u56fe\u53f7";
+            case FIELD_FIGURE_TITLE -> "\u56fe\u6807\u9898";
+            case FIELD_CAPTION -> "\u56fe\u6ce8";
             case FIELD_OCR_TEXT -> "OCR";
-            default -> "图片内容";
+            default -> "\u56fe\u7247\u5185\u5bb9";
         };
     }
 
