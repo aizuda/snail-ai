@@ -37,6 +37,8 @@ public class ConfigExtAttrsDTO {
     private Long seed;
     private String responseFormat;
     private Boolean stream;
+    private List<String> capabilities;
+    private Boolean defaultVisionModel;
     private Map<String, Object> extraBody;
 
     // ==================== EMBEDDING 向量模型 ====================

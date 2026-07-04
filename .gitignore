@@ -1,6 +1,5 @@
 ######################################################################
 # Build Tools
-
 .gradle
 /build/
 !gradle/wrapper/gradle-wrapper.jar
@@ -12,7 +11,6 @@ target/
 
 ######################################################################
 # IDE
-
 ### STS ###
 .apt_generated
 .classpath
@@ -48,15 +46,36 @@ nbdist/
 !*/build/*.html
 !*/build/*.xml
 
+# 环境文件
+.env
+.venv
+.gitignore
 .flattened-pom.xml
-/upload
-/temp
-.claude/*
+
+# 临时目录
+/upload/
+/temp/
+
+# Docling 运行时文件
+tools/docling-api/.pid
+tools/docling-api/docling.log
+tools/docling-api/server/__pycache__/
+
+# Claude 智能体目录（关键修正顺序）
+# 先反向保留skills目录，再忽略其他claude内容
+!.claude/
 !.claude/skills/
 !.claude/skills/**
+.claude/*
+# 排除临时PR json文件（你的Agent生成的 .claude/tmp_pr_body.json）
+.claude/tmp_pr_body.json
+
+# IDE
 .vscode
 .gitnexus
 /.agents/
 /.cursor/mcp.json
 /.cursor/rules/qingtian-mcp.mdc
 /.playwright-cli/
+
+/docs/superpowers/

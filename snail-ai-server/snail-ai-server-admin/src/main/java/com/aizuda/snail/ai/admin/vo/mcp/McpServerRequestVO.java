@@ -46,12 +46,9 @@ public class McpServerRequestVO {
      */
     private Map<String, String> envVars;
 
-    /** 鉴权类型 */
-    private Integer authType;
+    /** 超时时间（毫秒） */
+    private Long timeoutMs;
 
-    /** 鉴权配置 */
-    private Map<String, Object> authConfig;
-
-    /** 能力列表 */
-    private List<String> capabilities;
+    /** Streamable HTTP 请求头 */
+    private Map<String, String> headers;
 }

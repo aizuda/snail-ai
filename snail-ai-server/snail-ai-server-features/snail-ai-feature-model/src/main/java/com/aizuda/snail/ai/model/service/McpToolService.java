@@ -1,6 +1,7 @@
 package com.aizuda.snail.ai.model.service;
 
 import cn.hutool.core.util.StrUtil;
+import com.aizuda.snail.ai.common.constants.McpDefaults;
 import com.aizuda.snail.ai.common.enums.mcp.McpTransportTypeEnum;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.common.util.JsonUtil;
@@ -17,6 +18,7 @@ import io.modelcontextprotocol.client.transport.ServerParameters;
 import io.modelcontextprotocol.client.transport.StdioClientTransport;
 import io.modelcontextprotocol.json.McpJsonMapper;
 import io.modelcontextprotocol.json.jackson3.JacksonMcpJsonMapperSupplier;
+import io.modelcontextprotocol.spec.McpClientTransport;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
@@ -24,6 +26,8 @@ import org.springframework.ai.tool.ToolCallback;
 import org.springframework.stereotype.Service;
 import tools.jackson.core.type.TypeReference;
 
+import java.net.http.HttpRequest;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -163,7 +167,7 @@ public class McpToolService {
         JacksonMcpJsonMapperSupplier supplier = new JacksonMcpJsonMapperSupplier();
         McpJsonMapper jsonMapper = supplier.get();
         StdioClientTransport transport = new StdioClientTransport(params, jsonMapper);
-        McpSyncClient client = McpClient.sync(transport).build();
+        McpSyncClient client = buildClient(transport, server.getTimeoutMs());
         client.initialize();
         log.info("MCP client connected via Stdio to: {} (command: {})", server.getName(), command);
         return client;
@@ -178,10 +182,11 @@ public class McpToolService {
 
         if (StrUtil.isNotBlank(baseUri)) {
             HttpClientStreamableHttpTransport.Builder builder = HttpClientStreamableHttpTransport.builder(baseUri);
+            configureStreamableHttp(builder, server);
             if (StrUtil.isNotBlank(endpoint)) {
                 builder.endpoint(endpoint);
             }
-            McpSyncClient client = McpClient.sync(builder.build()).build();
+            McpSyncClient client = buildClient(builder.build(), server.getTimeoutMs());
             client.initialize();
             log.info("MCP client connected via Streamable HTTP to: {}{}", baseUri, endpoint);
             return client;
@@ -191,11 +196,46 @@ public class McpToolService {
             throw new SnailAiException("Streamable HTTP transport requires baseUri or endpoint for MCP server: " + server.getName());
         }
 
-        HttpClientStreamableHttpTransport transport = HttpClientStreamableHttpTransport.builder(endpoint).build();
-        McpSyncClient client = McpClient.sync(transport).build();
+        HttpClientStreamableHttpTransport.Builder builder = HttpClientStreamableHttpTransport.builder(endpoint);
+        configureStreamableHttp(builder, server);
+        McpSyncClient client = buildClient(builder.build(), server.getTimeoutMs());
         client.initialize();
         log.info("MCP client connected via Streamable HTTP to: {}", endpoint);
         return client;
+    }
+
+    private void configureStreamableHttp(HttpClientStreamableHttpTransport.Builder builder, McpServerRef server) {
+        Map<String, String> headers = parseJsonMap(server.getHeaders());
+        Duration timeout = toTimeoutDuration(server.getTimeoutMs());
+        builder.connectTimeout(timeout)
+                .httpRequestCustomizer((requestBuilder, method, uri, body, context) ->
+                        applyHeaders(requestBuilder, headers));
+    }
+
+    private McpSyncClient buildClient(McpClientTransport transport, Long timeoutMs) {
+        Duration timeout = toTimeoutDuration(timeoutMs);
+        return McpClient.sync(transport)
+                .requestTimeout(timeout)
+                .initializationTimeout(timeout)
+                .build();
+    }
+
+    private Duration toTimeoutDuration(Long timeoutMs) {
+        return Duration.ofMillis(timeoutMs == null ? McpDefaults.DEFAULT_TIMEOUT_MS : timeoutMs);
+    }
+
+    private Map<String, String> parseJsonMap(String json) {
+        if (StrUtil.isBlank(json)) {
+            return null;
+        }
+        return JsonUtil.parseObject(json, new TypeReference<Map<String, String>>() {});
+    }
+
+    private void applyHeaders(HttpRequest.Builder requestBuilder, Map<String, String> headers) {
+        if (headers == null || headers.isEmpty()) {
+            return;
+        }
+        headers.forEach(requestBuilder::header);
     }
 
     private McpSyncClient throwDeprecatedSseTransport(String serverName) {

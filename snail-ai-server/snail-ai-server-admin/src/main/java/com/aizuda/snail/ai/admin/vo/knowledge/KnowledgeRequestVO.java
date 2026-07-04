@@ -87,4 +87,17 @@ public class KnowledgeRequestVO {
 
     /** 上传前是否需要二次确认 */
     private Boolean uploadConfirm;
+
+    // ---------- 解析引擎 ----------
+
+    /** 解析引擎配置：default | docling */
+    private String parseEngine;
+    /** Docling OCR 开关 */
+    private Boolean doclingDoOcr;
+    /** Docling 表格识别开关 */
+    private Boolean doclingDoTableStructure;
+    /** Docling 保存图片开关 */
+    private Boolean doclingSaveImages;
+    /** 解析引擎配置对象（前端可能直接传 JSON 对象） */
+    private KnowledgeConfigRequestVO.ParseParams parseParams;
 }

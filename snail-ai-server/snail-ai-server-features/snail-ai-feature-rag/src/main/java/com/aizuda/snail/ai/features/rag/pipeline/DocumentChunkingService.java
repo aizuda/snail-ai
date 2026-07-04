@@ -53,10 +53,16 @@ public class DocumentChunkingService {
     }
 
     private RagConfigDO parseKnowledgeConfig(RagPO k) {
-        if (StrUtil.isBlank(k.getConfig())) {
+        if (k == null || StrUtil.isBlank(k.getConfig())) {
             return null;
         }
-        return JsonUtil.parseObject(k.getConfig(), RagConfigDO.class);
+        try {
+            return JsonUtil.parseObject(k.getConfig(), RagConfigDO.class);
+        } catch (Exception e) {
+            log.warn("Failed to parse knowledge chunk config, fallback to defaults. ragId={}, reason={}",
+                    k.getId(), e.getMessage());
+            return null;
+        }
     }
 
     private String resolveDelimiterForChunk(RagPO k, RagConfigDO.ChunkParams cp) {
