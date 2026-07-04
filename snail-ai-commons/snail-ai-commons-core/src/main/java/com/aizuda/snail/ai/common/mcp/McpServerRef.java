@@ -24,7 +24,7 @@ public interface McpServerRef {
 
     String getEnvVars();
 
-    Integer getAuthType();
+    Long getTimeoutMs();
 
-    String getAuthConfig();
+    String getHeaders();
 }

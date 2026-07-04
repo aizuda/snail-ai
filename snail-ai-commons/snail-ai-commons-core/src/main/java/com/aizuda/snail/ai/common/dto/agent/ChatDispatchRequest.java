@@ -113,8 +113,8 @@ public class ChatDispatchRequest {
         private String command;
         private List<String> args;
         private Map<String, String> envVars;
-        private Integer authType;
-        private Map<String, String> authConfig;
+        private Long timeoutMs;
+        private Map<String, String> headers;
     }
 
     /**

@@ -13,7 +13,6 @@ import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * MCP 加载：若智能体启用了 MCP，加载绑定的 MCP 服务器列表，并准备远程分发用的 {@link ChatDispatchRequest.McpServerDescriptor}
@@ -69,8 +68,8 @@ public class McpHandler implements AgentChatHandler {
                 .command(s.getCommand())
                 .args(parseJsonList(s.getArgs()))
                 .envVars(parseJsonMap(s.getEnvVars()))
-                .authType(s.getAuthType())
-                .authConfig(parseJsonMap(s.getAuthConfig()))
+                .timeoutMs(s.getTimeoutMs())
+                .headers(parseJsonMap(s.getHeaders()))
                 .build();
     }
 

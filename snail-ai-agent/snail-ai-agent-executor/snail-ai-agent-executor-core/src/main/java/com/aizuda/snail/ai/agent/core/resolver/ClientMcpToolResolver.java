@@ -1,6 +1,7 @@
 package com.aizuda.snail.ai.agent.core.resolver;
 
 import cn.hutool.core.util.StrUtil;
+import com.aizuda.snail.ai.common.constants.McpDefaults;
 import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
 import com.aizuda.snail.ai.common.enums.mcp.McpTransportTypeEnum;
 import io.modelcontextprotocol.client.McpClient;
@@ -10,10 +11,13 @@ import io.modelcontextprotocol.client.transport.ServerParameters;
 import io.modelcontextprotocol.client.transport.StdioClientTransport;
 import io.modelcontextprotocol.json.jackson3.JacksonMcpJsonMapperSupplier;
 import io.modelcontextprotocol.json.McpJsonMapper;
+import io.modelcontextprotocol.spec.McpClientTransport;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.ai.tool.ToolCallback;
 
+import java.net.http.HttpRequest;
+import java.time.Duration;
 import java.util.*;
 
 /**
@@ -114,9 +118,12 @@ public class ClientMcpToolResolver {
         String endpoint = desc.getEndpoint();
 
         if (StrUtil.isNotBlank(baseUri)) {
-            HttpClientStreamableHttpTransport transport = HttpClientStreamableHttpTransport.builder(baseUri)
-                    .endpoint(endpoint).build();
-            McpSyncClient client = McpClient.sync(transport).build();
+            HttpClientStreamableHttpTransport.Builder builder = HttpClientStreamableHttpTransport.builder(baseUri);
+            configureStreamableHttp(builder, desc);
+            if (StrUtil.isNotBlank(endpoint)) {
+                builder.endpoint(endpoint);
+            }
+            McpSyncClient client = buildClient(builder.build(), desc.getTimeoutMs());
             client.initialize();
             return client;
         }
@@ -126,10 +133,20 @@ public class ClientMcpToolResolver {
             return null;
         }
 
-        HttpClientStreamableHttpTransport transport = HttpClientStreamableHttpTransport.builder(endpoint).build();
-        McpSyncClient client = McpClient.sync(transport).build();
+        HttpClientStreamableHttpTransport.Builder builder = HttpClientStreamableHttpTransport.builder(endpoint);
+        configureStreamableHttp(builder, desc);
+        McpSyncClient client = buildClient(builder.build(), desc.getTimeoutMs());
         client.initialize();
         return client;
+    }
+
+    private void configureStreamableHttp(HttpClientStreamableHttpTransport.Builder builder,
+                                         ChatDispatchRequest.McpServerDescriptor desc) {
+        Map<String, String> headers = desc.getHeaders();
+        Duration timeout = toTimeoutDuration(desc.getTimeoutMs());
+        builder.connectTimeout(timeout)
+                .httpRequestCustomizer((requestBuilder, method, uri, body, context) ->
+                        applyHeaders(requestBuilder, headers));
     }
 
     private McpSyncClient connectStdioClient(ChatDispatchRequest.McpServerDescriptor desc) {
@@ -141,9 +158,31 @@ public class ClientMcpToolResolver {
 
         ServerParameters params = buildServerParameters(desc, command);
         StdioClientTransport transport = createStdioTransport(params);
-        McpSyncClient client = McpClient.sync(transport).build();
+        McpSyncClient client = buildClient(transport, desc.getTimeoutMs());
         client.initialize();
         return client;
+    }
+
+    private McpSyncClient buildClient(McpClientTransport transport, Long timeoutMs) {
+        Duration timeout = toTimeoutDuration(timeoutMs);
+        return McpClient.sync(transport)
+                .requestTimeout(timeout)
+                .initializationTimeout(timeout)
+                .build();
+    }
+
+    private Duration toTimeoutDuration(Long timeoutMs) {
+        if (timeoutMs == null || timeoutMs <= 0) {
+            return Duration.ofMillis(McpDefaults.DEFAULT_TIMEOUT_MS);
+        }
+        return Duration.ofMillis(timeoutMs);
+    }
+
+    private void applyHeaders(HttpRequest.Builder requestBuilder, Map<String, String> headers) {
+        if (headers == null || headers.isEmpty()) {
+            return;
+        }
+        headers.forEach(requestBuilder::header);
     }
 
     private ServerParameters buildServerParameters(ChatDispatchRequest.McpServerDescriptor desc, String command) {

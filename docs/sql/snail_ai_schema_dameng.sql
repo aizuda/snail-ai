@@ -477,10 +477,8 @@ CREATE TABLE IF NOT EXISTS sai_mcp_server
     command          VARCHAR(1024),
     args             TEXT,
     env_vars         TEXT,
-    version          VARCHAR(32)   DEFAULT '1.0.0',
-    auth_type        TINYINT       DEFAULT 0,
-    auth_config      TEXT,
-    capabilities     TEXT,
+    timeout         BIGINT        DEFAULT 60000,
+    headers          TEXT,
     last_connect_dt  TIMESTAMP     DEFAULT NULL,
     creator_id       BIGINT,
     create_dt        TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
@@ -496,10 +494,8 @@ COMMENT ON COLUMN sai_mcp_server.endpoint IS '�˵�·��SSE/Streamable HTT
 COMMENT ON COLUMN sai_mcp_server.command IS 'Stdio����Stdioʱ����';
 COMMENT ON COLUMN sai_mcp_server.args IS 'Stdio�������JSON����';
 COMMENT ON COLUMN sai_mcp_server.env_vars IS 'Stdio��������JSON����';
-COMMENT ON COLUMN sai_mcp_server.version IS '�汾';
-COMMENT ON COLUMN sai_mcp_server.auth_type IS '��֤��ʽ: 0-������֤ 1-API Key 2-OAuth 3-Basic Auth';
-COMMENT ON COLUMN sai_mcp_server.auth_config IS '��֤����JSON';
-COMMENT ON COLUMN sai_mcp_server.capabilities IS '�����б�JSON����';
+COMMENT ON COLUMN sai_mcp_server.timeout IS 'MCP timeout milliseconds';
+COMMENT ON COLUMN sai_mcp_server.headers IS 'MCP HTTP headers JSON object';
 COMMENT ON COLUMN sai_mcp_server.last_connect_dt IS '�������ʱ��';
 COMMENT ON COLUMN sai_mcp_server.creator_id IS '�������û�ID';
 

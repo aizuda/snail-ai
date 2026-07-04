@@ -48,14 +48,11 @@ public class McpServerResponseVO {
     /** Stdio 环境变量 */
     private Map<String, String> envVars;
 
-    /** 版本号 */
-    private String version;
+    /** 超时时间（毫秒） */
+    private Long timeoutMs;
 
-    /** 鉴权类型 */
-    private Integer authType;
-
-    /** 能力列表 */
-    private List<String> capabilities;
+    /** Streamable HTTP 请求头 */
+    private Map<String, String> headers;
 
     /** 最近连接时间 */
     private LocalDateTime lastConnectDt;

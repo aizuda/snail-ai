@@ -541,10 +541,8 @@ CREATE TABLE IF NOT EXISTS sai_mcp_server
     command VARCHAR(1024),
     args TEXT,
     env_vars TEXT,
-    version VARCHAR(32) DEFAULT '1.0.0',
-    auth_type SMALLINT DEFAULT 0,
-    auth_config TEXT,
-    capabilities TEXT,
+    timeout BIGINT DEFAULT 60000,
+    headers TEXT,
     last_connect_dt TIMESTAMP NULL,
     creator_id BIGINT,
     create_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -560,10 +558,8 @@ COMMENT ON COLUMN sai_mcp_server.endpoint IS '端点路径(SSE/Streamable HTTP�
 COMMENT ON COLUMN sai_mcp_server.command IS 'Stdio命令(Stdio时必填)';
 COMMENT ON COLUMN sai_mcp_server.args IS 'Stdio命令参数(JSON数组)';
 COMMENT ON COLUMN sai_mcp_server.env_vars IS 'Stdio环境变量(JSON对象)';
-COMMENT ON COLUMN sai_mcp_server.version IS '版本';
-COMMENT ON COLUMN sai_mcp_server.auth_type IS '认证方式: 0-无需认证 1-API Key 2-OAuth 3-Basic Auth';
-COMMENT ON COLUMN sai_mcp_server.auth_config IS '认证配置(JSON)';
-COMMENT ON COLUMN sai_mcp_server.capabilities IS '能力列表(JSON数组)';
+COMMENT ON COLUMN sai_mcp_server.timeout IS '超时时间(毫秒)';
+COMMENT ON COLUMN sai_mcp_server.headers IS '请求头(JSON对象)';
 COMMENT ON COLUMN sai_mcp_server.last_connect_dt IS '最后连接时间';
 COMMENT ON COLUMN sai_mcp_server.creator_id IS '创建者用户ID';
 
