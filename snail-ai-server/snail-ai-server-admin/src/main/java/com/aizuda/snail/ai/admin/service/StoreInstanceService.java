@@ -215,7 +215,7 @@ public class StoreInstanceService {
         }
         long cnt = knowledgeMapper.selectCount(qw);
         if (cnt > 0) {
-            throw new IllegalArgumentException("该实例仍被 " + cnt + " 个知识库引用，无法删除");
+            throw new IllegalArgumentException("该实例仍被" + cnt + "个知识库使用，无法删除");
         }
         mapper.deleteById(id);
         log.info("删除存储实例成功 id={}", id);

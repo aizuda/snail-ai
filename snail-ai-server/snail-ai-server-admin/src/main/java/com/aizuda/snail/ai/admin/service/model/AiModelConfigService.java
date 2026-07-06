@@ -186,7 +186,7 @@ public class AiModelConfigService {
                         .or()
                         .eq(RagPO::getRerankModelId, modelId));
         if (agentCnt > 0 || ragCnt > 0) {
-            StringBuilder sb = new StringBuilder("该模型仍被 ");
+            StringBuilder sb = new StringBuilder("该模型仍被");
             if (agentCnt > 0) {
                 sb.append(agentCnt).append(" 个智能体");
             }
@@ -196,7 +196,7 @@ public class AiModelConfigService {
                 }
                 sb.append(ragCnt).append(" 个知识库");
             }
-            sb.append("引用，无法删除");
+            sb.append("使用，无法删除");
             throw new SnailAiException(sb.toString());
         }
 

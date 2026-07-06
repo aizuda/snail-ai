@@ -196,7 +196,7 @@ public class McpServerService {
         long cnt = agentMcpServerMapper.selectCount(
                 new LambdaQueryWrapper<AgentMcpServerPO>().eq(AgentMcpServerPO::getMcpServerId, id));
         if (cnt > 0) {
-            throw new SnailAiException("该MCP服务仍被 " + cnt + " 个智能体引用，无法删除");
+            throw new SnailAiException("该MCP服务仍被" + cnt + "个智能体使用，无法删除");
         }
         mcpServerMapper.deleteById(id);
         log.info("删除 MCP 服务成功 id={}", id);

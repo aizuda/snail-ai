@@ -220,7 +220,7 @@ public class AiModelProviderService {
         long cnt = configMapper.selectCount(
                 new LambdaQueryWrapper<AiModelConfigPO>().eq(AiModelConfigPO::getProviderId, providerId));
         if (cnt > 0) {
-            throw new SnailAiException("该提供商仍被 " + cnt + " 个模型配置引用，无法删除");
+            throw new SnailAiException("该提供商下存在" + cnt + "个模型配置，无法删除");
         }
 
         return providerMapper.deleteById(providerId) > 0;
