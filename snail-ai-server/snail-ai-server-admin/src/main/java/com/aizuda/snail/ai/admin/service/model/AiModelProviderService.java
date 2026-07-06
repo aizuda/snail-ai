@@ -1,7 +1,9 @@
 package com.aizuda.snail.ai.admin.service.model;
 
 import com.aizuda.snail.ai.common.execption.SnailAiException;
+import com.aizuda.snail.ai.persistence.model.mapper.AiModelConfigMapper;
 import com.aizuda.snail.ai.persistence.model.mapper.AiModelProviderMapper;
+import com.aizuda.snail.ai.persistence.model.po.AiModelConfigPO;
 import com.aizuda.snail.ai.persistence.model.po.AiModelProviderPO;
 import com.aizuda.snail.ai.admin.vo.model.AiModelProviderQueryVO;
 import com.aizuda.snail.ai.admin.vo.model.AiModelProviderVO;
@@ -29,6 +31,7 @@ import java.util.stream.Collectors;
 public class AiModelProviderService {
 
     private final AiModelProviderMapper providerMapper;
+    private final AiModelConfigMapper configMapper;
 
     /**
      * 新增提供商 (Admin权限)
@@ -201,7 +204,7 @@ public class AiModelProviderService {
     }
 
     /**
-     * 删除提供商
+     * 删除提供商（仍被模型配置引用时拒绝删除）
      *
      * @param providerId 提供商 ID
      * @return 删除是否成功；参数非法时返回 false
@@ -212,6 +215,12 @@ public class AiModelProviderService {
 
         if (providerId == null || providerId <= 0) {
             return false;
+        }
+
+        long cnt = configMapper.selectCount(
+                new LambdaQueryWrapper<AiModelConfigPO>().eq(AiModelConfigPO::getProviderId, providerId));
+        if (cnt > 0) {
+            throw new SnailAiException("该提供商仍被 " + cnt + " 个模型配置引用，无法删除");
         }
 
         return providerMapper.deleteById(providerId) > 0;

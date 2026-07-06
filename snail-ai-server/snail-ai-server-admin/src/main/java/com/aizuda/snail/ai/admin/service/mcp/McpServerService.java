@@ -187,15 +187,17 @@ public class McpServerService {
     }
 
     /**
-     * 删除 MCP 服务
+     * 删除 MCP 服务（仍被智能体引用时拒绝删除）
      *
      * @param id MCP 服务 ID
      */
     @Transactional
     public void delete(Long id) {
-        // 删除关联关系
-        agentMcpServerMapper.delete(
+        long cnt = agentMcpServerMapper.selectCount(
                 new LambdaQueryWrapper<AgentMcpServerPO>().eq(AgentMcpServerPO::getMcpServerId, id));
+        if (cnt > 0) {
+            throw new SnailAiException("该MCP服务仍被 " + cnt + " 个智能体引用，无法删除");
+        }
         mcpServerMapper.deleteById(id);
         log.info("删除 MCP 服务成功 id={}", id);
     }

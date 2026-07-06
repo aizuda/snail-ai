@@ -17,6 +17,10 @@ import com.aizuda.snail.ai.common.model.ConfigExtAttrsDTO;
 import com.aizuda.snail.ai.model.enums.ModelScopeEnum;
 import com.aizuda.snail.ai.persistence.model.po.AiModelConfigPO;
 import com.aizuda.snail.ai.persistence.model.po.AiModelProviderPO;
+import com.aizuda.snail.ai.persistence.agent.mapper.AgentMapper;
+import com.aizuda.snail.ai.persistence.agent.po.AgentPO;
+import com.aizuda.snail.ai.persistence.rag.mapper.RagMapper;
+import com.aizuda.snail.ai.persistence.rag.po.RagPO;
 import com.aizuda.snail.ai.admin.vo.model.AiModelConfigRequestVO;
 import com.aizuda.snail.ai.admin.vo.model.AiModelConfigQueryVO;
 import com.aizuda.snail.ai.admin.vo.model.AiModelConfigVO;
@@ -57,6 +61,8 @@ public class AiModelConfigService {
 
     private final AiModelConfigMapper configMapper;
     private final AiModelProviderMapper providerMapper;
+    private final AgentMapper agentMapper;
+    private final RagMapper ragMapper;
     private final CryptoHelper cryptoHelper;
     private final List<ModelAdapterDescriptor> modelAdapterDescriptors;
 
@@ -158,7 +164,7 @@ public class AiModelConfigService {
     }
 
     /**
-     * 删除模型配置
+     * 删除模型配置（仍被智能体或知识库引用时拒绝删除）
      *
      * @param modelId 模型配置 ID
      * @return 删除是否成功；不存在时返回 false
@@ -170,6 +176,28 @@ public class AiModelConfigService {
         AiModelConfigPO config = configMapper.selectById(modelId);
         if (config == null) {
             return false;
+        }
+
+        long agentCnt = agentMapper.selectCount(
+                new LambdaQueryWrapper<AgentPO>().eq(AgentPO::getChatModelId, modelId));
+        long ragCnt = ragMapper.selectCount(
+                new LambdaQueryWrapper<RagPO>()
+                        .eq(RagPO::getEmbeddingModelId, modelId)
+                        .or()
+                        .eq(RagPO::getRerankModelId, modelId));
+        if (agentCnt > 0 || ragCnt > 0) {
+            StringBuilder sb = new StringBuilder("该模型仍被 ");
+            if (agentCnt > 0) {
+                sb.append(agentCnt).append(" 个智能体");
+            }
+            if (ragCnt > 0) {
+                if (agentCnt > 0) {
+                    sb.append("和 ");
+                }
+                sb.append(ragCnt).append(" 个知识库");
+            }
+            sb.append("引用，无法删除");
+            throw new SnailAiException(sb.toString());
         }
 
         boolean success = configMapper.deleteById(modelId) > 0;
