@@ -6,6 +6,7 @@ import com.aizuda.snail.ai.common.model.Result;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationClearRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationIdentityRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationQueryRequest;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationUpdateTitleRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationVO;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiCreateConversationRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiMessageVO;
@@ -76,6 +77,19 @@ public class OpenApiConversationController {
     public Result<Void> clearConversations(
             @Validated OpenApiConversationClearRequest request) {
         openApiConversationService.clearConversations(request);
+        return Result.ok(null);
+    }
+
+    /**
+     * 更新会话标题
+     *
+     * @param request 更新标题请求（智能体ID、会话ID、openId、标题）
+     * @return 统一成功响应
+     */
+    @PutMapping(OpenApiPathConstants.OPEN_API_AGENT_CONVERSATIONS)
+    public Result<Void> updateConversationTitle(
+            @RequestBody @Validated OpenApiConversationUpdateTitleRequest request) {
+        openApiConversationService.updateConversationTitle(request);
         return Result.ok(null);
     }
 

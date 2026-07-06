@@ -7,6 +7,7 @@ import com.aizuda.snail.ai.common.model.Result;
 import com.aizuda.snail.ai.admin.enums.RoleEnum;
 import com.aizuda.snail.ai.admin.security.annotation.LoginRequired;
 import com.aizuda.snail.ai.admin.vo.PageResult;
+import com.aizuda.snail.ai.admin.vo.UpdateConversationTitleRequestVO;
 import com.aizuda.snail.ai.admin.vo.agent.*;
 import com.aizuda.snail.ai.admin.service.mcp.McpServerService;
 import com.aizuda.snail.ai.admin.vo.mcp.McpServerResponseVO;
@@ -207,6 +208,17 @@ public class AgentController {
     @LoginRequired(role = RoleEnum.USER)
     public Result<Void> clearConversations(@PathVariable("id") Long agentId) {
         agentService.clearConversations(agentId);
+        return Result.ok(null);
+    }
+
+    /** 更新会话标题（登录用户）。 */
+    @PutMapping("/{id}/conversation/{conversationId}/title")
+    @LoginRequired(role = RoleEnum.USER)
+    public Result<Void> updateConversationTitle(
+            @PathVariable("id") Long agentId,
+            @PathVariable("conversationId") String conversationId,
+            @RequestBody @Validated UpdateConversationTitleRequestVO requestVO) {
+        agentService.updateConversationTitle(agentId, conversationId, requestVO.getTitle());
         return Result.ok(null);
     }
 

@@ -346,6 +346,29 @@ public class AgentService {
     }
 
     /**
+     * 更新会话标题
+     *
+     * @param agentId        智能体 ID
+     * @param conversationId 会话 ID
+     * @param title          新标题
+     */
+    public void updateConversationTitle(Long agentId, String conversationId, String title) {
+        Long userId = UserSessionUtils.currentUserSession().getId();
+        AgentConversationPO conversation = agentConversationMapper.selectOne(
+                new LambdaQueryWrapper<AgentConversationPO>()
+                        .eq(AgentConversationPO::getConversationId, conversationId)
+                        .eq(AgentConversationPO::getAgentId, agentId)
+                        .eq(AgentConversationPO::getUserId, userId));
+        if (conversation == null) {
+            throw new SnailAiCommonException("对话不存在或无权限修改");
+        }
+        conversation.setTitle(title);
+        conversation.setUpdateDt(LocalDateTime.now());
+        agentConversationMapper.updateById(conversation);
+        log.info("更新对话标题成功: agentId={}, conversationId={}, title={}", agentId, conversationId, title);
+    }
+
+    /**
      * 批量删除指定会话（逐个调用 {@link #deleteConversation}，受本人权限约束）
      *
      * @param agentId         智能体 ID

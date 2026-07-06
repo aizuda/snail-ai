@@ -18,6 +18,7 @@ import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationClearRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationIdentityRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationQueryRequest;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationUpdateTitleRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationVO;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiCreateConversationRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiEmbedTokenRequest;
@@ -38,6 +39,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -172,6 +174,13 @@ public class SnailAiChatGatewayController {
     public Result<OpenApiConversationVO> createConversation(@RequestBody OpenApiCreateConversationRequest request) {
         request.setOpenId(currentOpenId());
         return openApiConversationClient.createConversation(request);
+    }
+
+    @SnailAiChatAuthorize
+    @PutMapping("/conversations")
+    public Result<Void> updateConversationTitle(@RequestBody @Valid OpenApiConversationUpdateTitleRequest request) {
+        request.setOpenId(currentOpenId());
+        return openApiConversationClient.updateConversationTitle(request);
     }
 
     @SnailAiChatAuthorize

@@ -4,6 +4,7 @@ import com.aizuda.snail.ai.common.model.PageResult;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationClearRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationIdentityRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationQueryRequest;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationUpdateTitleRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationVO;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiCreateConversationRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiMessageVO;
@@ -125,6 +126,30 @@ public class OpenApiConversationService {
                         .eq(AgentConversationPO::getAgentId, request.getAgentId())
                         .eq(AgentConversationPO::getUserId, userId));
         log.info("OpenAPI 清空会话 agentId={} userId={}", request.getAgentId(), userId);
+    }
+
+    /**
+     * 更新会话标题
+     *
+     * @param request 更新标题请求（智能体ID、会话ID、openId、标题）
+     */
+    public void updateConversationTitle(OpenApiConversationUpdateTitleRequest request) {
+        Long userId = resolveUserId(request.getOpenId());
+        AgentConversationPO po = conversationMapper.selectOne(
+                new LambdaQueryWrapper<AgentConversationPO>()
+                        .eq(AgentConversationPO::getAgentId, request.getAgentId())
+                        .eq(AgentConversationPO::getConversationId, request.getConversationId())
+                        .eq(AgentConversationPO::getUserId, userId));
+        if (po == null) {
+            log.warn("OpenAPI 更新会话标题失败，会话不存在 agentId={} conversationId={}",
+                    request.getAgentId(), request.getConversationId());
+            return;
+        }
+        po.setTitle(request.getTitle());
+        po.setUpdateDt(LocalDateTime.now());
+        conversationMapper.updateById(po);
+        log.info("OpenAPI 更新会话标题 agentId={} conversationId={} title={}",
+                request.getAgentId(), request.getConversationId(), request.getTitle());
     }
 
     /**
