@@ -22,6 +22,9 @@ public class AgentChatRequestVO {
     @NotBlank(message = "content is required")
     private String content;
 
+    /** 本次对话携带的附件列表 */
+    private List<AgentChatAttachmentVO> attachments;
+
     /** 本次对话临时禁用的 MCP 服务 ID 列表 */
     private List<Long> disabledMcpServerIds;
 

@@ -1,7 +1,8 @@
 package com.aizuda.snail.ai.admin.dto;
 
-import com.aizuda.snail.ai.persistence.admin.po.UserPO;
+import com.aizuda.snail.ai.admin.vo.agent.AgentChatAttachmentVO;
 import com.aizuda.snail.ai.feature.agent.stream.ChatStreamWriter;
+import com.aizuda.snail.ai.persistence.admin.po.UserPO;
 import lombok.Builder;
 import lombok.Data;
 
@@ -20,6 +21,7 @@ public class AgentChatCommand {
     private Long agentId;
     private String conversationId;
     private String content;
+    private List<AgentChatAttachmentVO> attachments;
     private List<Long> disabledMcpServerIds;
     private List<Long> disabledSkillIds;
     private ChatStreamWriter streamWriter;

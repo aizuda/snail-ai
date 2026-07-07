@@ -318,6 +318,7 @@ CREATE TABLE IF NOT EXISTS sai_agent_conversation_record
     role VARCHAR(16) DEFAULT 'user',
     content TEXT,
     thinking TEXT,
+    metadata TEXT DEFAULT NULL,
     status INT DEFAULT 1,
     input_tokens INT DEFAULT 0,
     output_tokens INT DEFAULT 0,
@@ -332,6 +333,7 @@ COMMENT ON COLUMN sai_agent_conversation_record.user_id IS '用户ID';
 COMMENT ON COLUMN sai_agent_conversation_record.role IS 'user/assistant';
 COMMENT ON COLUMN sai_agent_conversation_record.content IS '消息内容';
 COMMENT ON COLUMN sai_agent_conversation_record.thinking IS '思考过程（仅assistant）';
+COMMENT ON COLUMN sai_agent_conversation_record.metadata IS '消息扩展元数据JSON';
 COMMENT ON COLUMN sai_agent_conversation_record.status IS '1=成功,2=失败,3=进行中';
 COMMENT ON COLUMN sai_agent_conversation_record.input_tokens IS '输入Token数（prompt）';
 COMMENT ON COLUMN sai_agent_conversation_record.output_tokens IS '输出Token数（completion）';

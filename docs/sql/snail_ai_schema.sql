@@ -191,6 +191,7 @@ CREATE TABLE IF NOT EXISTS sai_agent_conversation_record
     role            VARCHAR(16) DEFAULT 'user' COMMENT 'user/assistant',
     content         TEXT COMMENT '消息内容',
     thinking        TEXT COMMENT '思考过程（仅assistant）',
+    metadata        LONGTEXT    DEFAULT NULL COMMENT '消息扩展元数据JSON',
     status          INT         DEFAULT 1 COMMENT '1=成功,2=失败,3=进行中',
     input_tokens    INT         DEFAULT 0 COMMENT '输入Token数（prompt）',
     output_tokens   INT         DEFAULT 0 COMMENT '输出Token数（completion）',

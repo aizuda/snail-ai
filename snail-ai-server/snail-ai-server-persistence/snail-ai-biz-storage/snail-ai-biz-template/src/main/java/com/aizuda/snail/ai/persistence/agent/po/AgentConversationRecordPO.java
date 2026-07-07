@@ -78,6 +78,11 @@ public class AgentConversationRecordPO {
     private String thinking;
 
     /**
+     * 消息扩展元数据 JSON，例如图片附件列表
+     */
+    private String metadata;
+
+    /**
      * 消息状态
      * 0: 草稿/未发送
      * 1: 已发送
