@@ -26,6 +26,10 @@ public enum ResourceBizTypeEnum {
      */
     ATTACHMENT("ATTACHMENT"),
     /**
+     * 对话图片附件
+     */
+    CHAT_IMAGE("CHAT_IMAGE"),
+    /**
      * 知识库正式文档
      */
     DOCUMENT("DOCUMENT"),

@@ -46,6 +46,10 @@
             <artifactId>snail-ai-feature-rag</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.aizuda</groupId>
+            <artifactId>snail-ai-feature-resource</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.baomidou</groupId>
             <artifactId>mybatis-plus-spring-boot4-starter</artifactId>
         </dependency>
