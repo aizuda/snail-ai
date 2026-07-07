@@ -493,6 +493,9 @@ public class AgentService {
             map.put("value", m.getModelKey());
             map.put("label", m.getModelName());
             map.put("id", m.getId());
+            map.put("capabilities", m.getConfigJson() == null || m.getConfigJson().getCapabilities() == null
+                    ? List.of()
+                    : m.getConfigJson().getCapabilities());
             return map;
         }).collect(Collectors.toList());
     }
