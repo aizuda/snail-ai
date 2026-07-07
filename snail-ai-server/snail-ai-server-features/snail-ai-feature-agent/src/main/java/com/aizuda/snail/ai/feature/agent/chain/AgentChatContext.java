@@ -77,6 +77,7 @@ public class AgentChatContext {
      * 校验通过并补齐资源元数据后的附件列表。
      */
     private List<AgentChatAttachmentDTO> attachments = Lists.newArrayList();
+    private Long userRecordId;
     
     // ── 远程分发传输数据（由对应 Handler 填充，LlmCallHandler 统一组装）──
 

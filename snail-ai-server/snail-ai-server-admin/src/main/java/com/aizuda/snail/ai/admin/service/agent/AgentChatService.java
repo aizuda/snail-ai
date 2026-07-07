@@ -1,11 +1,15 @@
 package com.aizuda.snail.ai.admin.service.agent;
 
 import com.aizuda.snail.ai.admin.dto.AgentChatCommand;
+import com.aizuda.snail.ai.admin.vo.agent.AgentChatAttachmentVO;
 import com.aizuda.snail.ai.feature.agent.chain.AgentChatContext;
+import com.aizuda.snail.ai.feature.agent.dto.AgentChatAttachmentDTO;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * 智能体对话服务，构建对话上下文并委托对话责任链完成流式对话。
@@ -38,10 +42,23 @@ public class AgentChatService {
                 command.getOpenId());
         context.setDisabledMcpServerIds(command.getDisabledMcpServerIds());
         context.setDisabledSkillIds(command.getDisabledSkillIds());
+        context.setRequestedAttachments(toAttachmentDTOs(command.getAttachments()));
         context.setSid(command.getSid());
 
         log.debug("智能体对话开始 agentId={} conversationId={} sid={}",
                 command.getAgentId(), command.getConversationId(), command.getSid());
         agentChatChainService.proceed(context);
+    }
+
+    private List<AgentChatAttachmentDTO> toAttachmentDTOs(List<AgentChatAttachmentVO> attachments) {
+        if (attachments == null || attachments.isEmpty()) {
+            return List.of();
+        }
+        return attachments.stream()
+                .map(attachment -> AgentChatAttachmentDTO.builder()
+                        .resourceId(attachment.getResourceId())
+                        .type(attachment.getType())
+                        .build())
+                .toList();
     }
 }

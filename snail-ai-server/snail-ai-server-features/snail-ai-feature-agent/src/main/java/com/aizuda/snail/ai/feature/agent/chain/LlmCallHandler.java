@@ -5,6 +5,7 @@ import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
 import com.aizuda.snail.ai.common.grpc.client.GrpcChannelUtil;
 import com.aizuda.snail.ai.common.grpc.constant.UriConstants;
 import com.aizuda.snail.ai.common.util.JsonUtil;
+import com.aizuda.snail.ai.feature.agent.dto.AgentChatAttachmentDTO;
 import com.aizuda.snail.ai.persistence.agent.po.AgentPO;
 import com.aizuda.snail.ai.feature.agent.stream.ChatStreamWriter;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -83,7 +85,7 @@ public class LlmCallHandler implements AgentChatHandler {
         }
     }
 
-    private ChatDispatchRequest buildDispatchRequest(AgentChatContext ctx) {
+    ChatDispatchRequest buildDispatchRequest(AgentChatContext ctx) {
         AgentPO agent = ctx.getAgent();
 
         ChatDispatchRequest.AgentConfig agentConfig = ChatDispatchRequest.AgentConfig.builder()
@@ -111,8 +113,26 @@ public class LlmCallHandler implements AgentChatHandler {
                 .historyMessages(ctx.getHistoryMessages())
                 .memoryContext(ctx.getMemoryContext())
                 .systemPrompt(ctx.getSystemPrompt())
+                .mediaAttachments(toMediaAttachments(ctx.getAttachments()))
                 .serverHttpPort(serverHttpPort)
                 .build();
+    }
+
+    private List<ChatDispatchRequest.MediaAttachment> toMediaAttachments(List<AgentChatAttachmentDTO> attachments) {
+        if (attachments == null || attachments.isEmpty()) {
+            return List.of();
+        }
+        return attachments.stream()
+                .map(attachment -> ChatDispatchRequest.MediaAttachment.builder()
+                        .resourceId(attachment.getResourceId())
+                        .type(attachment.getType())
+                        .fileName(attachment.getFileName())
+                        .mimeType(attachment.getMimeType())
+                        .size(attachment.getSize())
+                        .accessUrl(attachment.getAccessUrl())
+                        .base64(attachment.getBase64())
+                        .build())
+                .toList();
     }
 
     private static void sendError(ChatStreamWriter streamWriter, String message) {

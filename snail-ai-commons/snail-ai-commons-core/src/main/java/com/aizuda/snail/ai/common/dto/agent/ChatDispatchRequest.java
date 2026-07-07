@@ -54,6 +54,8 @@ public class ChatDispatchRequest {
     /** 系统提示词 */
     private String systemPrompt;
 
+    private List<MediaAttachment> mediaAttachments;
+
     /**
      * 服务端web端口
      */
@@ -143,5 +145,22 @@ public class ChatDispatchRequest {
     public static class HistoryMessage {
         private String role;
         private String content;
+    }
+
+    /**
+     * 当前用户消息携带的媒体附件。
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MediaAttachment {
+        private Long resourceId;
+        private String type;
+        private String fileName;
+        private String mimeType;
+        private Long size;
+        private String accessUrl;
+        private String base64;
     }
 }

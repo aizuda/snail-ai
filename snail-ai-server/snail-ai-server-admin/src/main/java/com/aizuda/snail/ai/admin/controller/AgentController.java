@@ -118,6 +118,7 @@ public class AgentController {
                     .agentId(id)
                     .conversationId(request.getConversationId())
                     .content(request.getContent())
+                    .attachments(request.getAttachments())
                     .disabledMcpServerIds(request.getDisabledMcpServerIds())
                     .disabledSkillIds(request.getDisabledSkillIds())
                     .streamWriter(new FluxBridgeChatStreamWriter(sink))
@@ -258,6 +259,7 @@ public class AgentController {
                 .role(r.getRole())
                 .content(r.getContent())
                 .thinking(r.getThinking())
+                .metadata(r.getMetadata())
                 .status(r.getStatus())
                 .createDt(r.getCreateDt())
                 .build()).collect(Collectors.toList());

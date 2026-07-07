@@ -6,8 +6,11 @@ import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.messages.SystemMessage;
 import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.content.Media;
+import org.springframework.util.MimeTypeUtils;
 
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 
 /**
@@ -34,9 +37,36 @@ public class DefaultPromptFactory implements PromptFactory {
                     .forEach(messages::add);
         }
         if (request.getUserMessage() != null && !request.getUserMessage().isEmpty()) {
-            messages.add(new UserMessage(request.getUserMessage()));
+            messages.add(buildUserMessage(request));
         }
         return new Prompt(messages);
+    }
+
+    private UserMessage buildUserMessage(ChatDispatchRequest request) {
+        List<Media> media = toMedia(request.getMediaAttachments());
+        if (media.isEmpty()) {
+            return new UserMessage(request.getUserMessage());
+        }
+        return UserMessage.builder()
+                .text(request.getUserMessage())
+                .media(media)
+                .build();
+    }
+
+    private List<Media> toMedia(List<ChatDispatchRequest.MediaAttachment> attachments) {
+        if (attachments == null || attachments.isEmpty()) {
+            return List.of();
+        }
+        return attachments.stream()
+                .filter(attachment -> attachment.getMimeType() != null
+                        && attachment.getBase64() != null
+                        && !attachment.getBase64().isEmpty())
+                .map(attachment -> Media.builder()
+                        .mimeType(MimeTypeUtils.parseMimeType(attachment.getMimeType()))
+                        .data(Base64.getDecoder().decode(attachment.getBase64()))
+                        .name(attachment.getFileName())
+                        .build())
+                .toList();
     }
 
     private Message toMessage(ChatDispatchRequest.HistoryMessage history) {

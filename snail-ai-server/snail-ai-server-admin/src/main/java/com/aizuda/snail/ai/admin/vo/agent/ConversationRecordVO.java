@@ -28,6 +28,8 @@ public class ConversationRecordVO {
     /** 模型思考过程 */
     private String thinking;
 
+    private String metadata;
+
     /** 消息状态 */
     private Integer status;
 

@@ -50,14 +50,16 @@ public class ConversationHandler implements AgentChatHandler {
             log.debug("创建新对话 conversationId={} agentId={} userId={}", conversationId, agentId, userId);
         }
 
-        recordMapper.insert(AgentConversationRecordPO.builder()
+        AgentConversationRecordPO record = AgentConversationRecordPO.builder()
                 .agentId(agentId)
                 .conversationId(conversationId)
                 .userId(userId)
                 .role(ConversationRoleEnum.USER.getValue())
                 .content(content)
                 .status(StatusEnum.RUNNING.getValue())
-                .build());
+                .build();
+        recordMapper.insert(record);
+        ctx.setUserRecordId(record.getId());
         log.debug("持久化用户消息 conversationId={} agentId={}", conversationId, agentId);
     }
 }
