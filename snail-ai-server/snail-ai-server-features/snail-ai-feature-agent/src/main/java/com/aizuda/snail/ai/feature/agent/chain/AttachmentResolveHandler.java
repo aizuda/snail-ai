@@ -26,11 +26,6 @@ public class AttachmentResolveHandler implements AgentChatHandler {
     private final AgentChatAttachmentService attachmentService;
     private final AgentConversationRecordMapper recordMapper;
 
-    AttachmentResolveHandler(AgentChatAttachmentService attachmentService) {
-        this.attachmentService = attachmentService;
-        this.recordMapper = null;
-    }
-
     @Override
     public void handle(AgentChatContext ctx) {
         if (ctx.isTerminated() || ctx.getRequestedAttachments() == null || ctx.getRequestedAttachments().isEmpty()) {

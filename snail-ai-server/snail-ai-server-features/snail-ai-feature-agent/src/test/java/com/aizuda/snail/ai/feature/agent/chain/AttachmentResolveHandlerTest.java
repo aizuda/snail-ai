@@ -6,13 +6,27 @@ import com.aizuda.snail.ai.feature.agent.enums.AgentChatAttachmentTypeEnum;
 import com.aizuda.snail.ai.feature.agent.service.AgentChatAttachmentService;
 import com.aizuda.snail.ai.persistence.admin.po.UserPO;
 
+import java.lang.reflect.Constructor;
 import java.util.List;
 
 public class AttachmentResolveHandlerTest {
 
+    public static void main(String[] args) {
+        AttachmentResolveHandlerTest test = new AttachmentResolveHandlerTest();
+        test.testShouldExposeSingleConstructorForSpringInjection();
+        test.testShouldResolveRequestedAttachmentsAfterModelConfigReady();
+    }
+
+    public void testShouldExposeSingleConstructorForSpringInjection() {
+        Constructor<?>[] constructors = AttachmentResolveHandler.class.getDeclaredConstructors();
+
+        assertEquals(1, constructors.length);
+        assertEquals(2, constructors[0].getParameterCount());
+    }
+
     public void testShouldResolveRequestedAttachmentsAfterModelConfigReady() {
         FakeAgentChatAttachmentService service = new FakeAgentChatAttachmentService();
-        AttachmentResolveHandler handler = new AttachmentResolveHandler(service);
+        AttachmentResolveHandler handler = new AttachmentResolveHandler(service, null);
         AgentChatContext context = new AgentChatContext(1L, "conversation-1", "看图说明", null, null, null);
         UserPO user = new UserPO();
         user.setId(7L);

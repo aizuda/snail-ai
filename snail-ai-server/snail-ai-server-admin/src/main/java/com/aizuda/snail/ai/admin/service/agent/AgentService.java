@@ -98,7 +98,7 @@ public class AgentService {
      */
     public AgentResponseVO create(AgentRequestVO request) {
         Long userId = UserSessionUtils.currentUserSession().getId();
-        
+
         // 获取默认 CHAT 模型
         AiModelConfigVO defaultModel = null;
         if (request.getChatModelId() != null) {
@@ -106,14 +106,14 @@ public class AgentService {
         } else {
             defaultModel = aiModelConfigService.getDefaultModelByType(ModelTypeEnum.CHAT.getValue());
         }
-        
+
         if (defaultModel == null) {
             throw new SnailAiCommonException("未找到可用的 CHAT 模型");
         }
-        
+
         // 构建 AgentPO
         List<String> normalizedQuestions = normalizePresetQuestions(request.getPresetQuestions());
-        
+
         AgentPO agent = AgentPO.builder()
                 .name(request.getName())
                 .description(request.getDescription())
@@ -136,24 +136,24 @@ public class AgentService {
                 .isFeatured(false)
                 .appId(request.getAppId())
                 .build();
-        
+
         agentMapper.insert(agent);
         Long agentId = agent.getId();
-        
+
         if (agentId == null) {
             throw new SnailAiCommonException("创建智能体失败：无法获取生成的ID");
         }
-        
+
         // 关联 MCP 服务
         if (request.getMcpServerIds() != null && !request.getMcpServerIds().isEmpty()) {
             mcpServerService.updateAgentMcpServers(agentId, request.getMcpServerIds());
         }
-        
+
         // 关联 Skill
         if (request.getSkillIds() != null && !request.getSkillIds().isEmpty()) {
             skillService.updateAgentSkills(agentId, request.getSkillIds());
         }
-        
+
         // 重新查询以确保返回最新的数据
         AgentPO savedAgent = agentMapper.selectById(agentId);
         if (savedAgent == null) {
@@ -209,12 +209,12 @@ public class AgentService {
         if (request.getInstruction() != null) {
             po.setInstruction(request.getInstruction());
         }
-        
+
         // greeting 和 presetQuestions 独立处理，不再同步
         if (request.getGreeting() != null) {
             po.setGreeting(request.getGreeting().trim());
         }
-        
+
         if (request.getPresetQuestions() != null) {
             List<String> normalizedPresetQuestions = normalizePresetQuestions(request.getPresetQuestions());
             if (normalizedPresetQuestions.isEmpty()) {

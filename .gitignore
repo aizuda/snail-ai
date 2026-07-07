@@ -79,3 +79,4 @@ tools/docling-api/server/__pycache__/
 /.playwright-cli/
 
 /docs/superpowers/
+/.claude/
