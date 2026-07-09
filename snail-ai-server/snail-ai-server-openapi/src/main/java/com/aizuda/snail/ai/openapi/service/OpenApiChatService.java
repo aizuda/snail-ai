@@ -3,8 +3,10 @@ package com.aizuda.snail.ai.openapi.service;
 import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.admin.dto.AgentChatCommand;
 import com.aizuda.snail.ai.admin.service.agent.AgentChatService;
+import com.aizuda.snail.ai.admin.vo.agent.AgentChatAttachmentVO;
 import com.aizuda.snail.ai.common.dto.agent.ChatStreamResponse;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatAttachmentRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatStreamEvent;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatSyncResponse;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeoutException;
 
@@ -62,6 +65,7 @@ public class OpenApiChatService {
                             .agentId(request.getAgentId())
                             .conversationId(request.getConversationId())
                             .content(request.getContent())
+                            .attachments(toAttachmentVOs(request.getAttachments()))
                             .disabledMcpServerIds(request.getDisabledMcpServerIds())
                             .disabledSkillIds(request.getDisabledSkillIds())
                             .streamWriter(new FluxBridgeChatStreamWriter(sink, state))
@@ -102,6 +106,7 @@ public class OpenApiChatService {
                 .agentId(request.getAgentId())
                 .conversationId(request.getConversationId())
                 .content(request.getContent())
+                .attachments(toAttachmentVOs(request.getAttachments()))
                 .disabledMcpServerIds(request.getDisabledMcpServerIds())
                 .disabledSkillIds(request.getDisabledSkillIds())
                 .streamWriter(collector)
@@ -127,6 +132,20 @@ public class OpenApiChatService {
             log.warn("OpenAPI 同步对话超时 conversationId={} 阈值={}ms", request.getConversationId(), SYNC_CHAT_TIMEOUT_MS);
             throw new SnailAiException("对话响应超时", e);
         }
+    }
+
+    private List<AgentChatAttachmentVO> toAttachmentVOs(List<OpenApiChatAttachmentRequest> attachments) {
+        if (attachments == null || attachments.isEmpty()) {
+            return List.of();
+        }
+        return attachments.stream()
+                .map(attachment -> {
+                    AgentChatAttachmentVO vo = new AgentChatAttachmentVO();
+                    vo.setResourceId(attachment.getResourceId());
+                    vo.setType(attachment.getType());
+                    return vo;
+                })
+                .toList();
     }
 
     private UserPO resolveRequestUser(String openId) {

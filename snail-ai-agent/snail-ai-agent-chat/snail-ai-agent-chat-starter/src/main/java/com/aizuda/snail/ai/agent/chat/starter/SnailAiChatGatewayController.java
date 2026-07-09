@@ -24,6 +24,8 @@ import com.aizuda.snail.ai.common.openapi.dto.OpenApiCreateConversationRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiEmbedTokenRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiEmbedTokenResponse;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiMessageVO;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiResourceResponse;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiResourceUploadRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiUserAgentRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiUserQueryRequest;
 import com.aizuda.snail.ai.openapi.client.core.api.OpenApiAgentClient;
@@ -44,8 +46,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 
+import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -222,6 +226,25 @@ public class SnailAiChatGatewayController {
                 .map(event -> ServerSentEvent.<String>builder(event.getData())
                         .event(event.getType())
                         .build());
+    }
+
+    @SnailAiChatAuthorize
+    @PostMapping(value = "/resource/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Result<OpenApiResourceResponse> uploadResource(@RequestParam("file") MultipartFile file,
+                                                          @RequestParam(value = "bizType", required = false) String bizType,
+                                                          @RequestParam(value = "bizId", required = false) Long bizId) {
+        OpenApiResourceUploadRequest request = new OpenApiResourceUploadRequest();
+        request.setOpenId(currentOpenId());
+        request.setOriginalName(file.getOriginalFilename());
+        request.setFileSize(file.getSize());
+        request.setBizType(bizType);
+        request.setBizId(bizId);
+        try {
+            request.setContent(file.getBytes());
+        } catch (IOException e) {
+            throw new SnailAiException("Failed to read uploaded file", e);
+        }
+        return openApiChatClient.uploadResource(request);
     }
 
     private String currentOpenId() {

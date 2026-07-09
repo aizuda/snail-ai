@@ -18,6 +18,8 @@ public interface OpenApiPathConstants {
     String OPEN_API_AGENT_CHAT = OPEN_API_V1_PREFIX + "/agent/chat";
     String OPEN_API_AGENT_CHAT_SYNC = OPEN_API_V1_PREFIX + "/agent/chat/sync";
 
+    String OPEN_API_RESOURCE_UPLOAD = OPEN_API_V1_PREFIX + "/resource/upload";
+
     String OPEN_API_EMBED_TOKEN = OPEN_API_V1_PREFIX + "/embed-token";
 
     String OPEN_API_AGENT_CONVERSATIONS = OPEN_API_V1_PREFIX + "/agent/conversations";

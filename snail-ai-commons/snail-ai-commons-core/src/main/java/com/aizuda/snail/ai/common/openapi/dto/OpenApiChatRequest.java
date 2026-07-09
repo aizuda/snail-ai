@@ -27,6 +27,8 @@ public class OpenApiChatRequest {
     @NotBlank(message = "content is required")
     private String content;
 
+    private List<OpenApiChatAttachmentRequest> attachments;
+
     private List<Long> disabledMcpServerIds;
 
     private List<Long> disabledSkillIds;

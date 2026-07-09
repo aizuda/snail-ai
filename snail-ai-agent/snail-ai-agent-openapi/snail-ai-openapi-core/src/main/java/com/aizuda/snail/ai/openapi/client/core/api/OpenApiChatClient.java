@@ -6,6 +6,8 @@ import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatStreamEvent;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatSyncResponse;
 import com.aizuda.snail.ai.common.model.Result;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiResourceResponse;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiResourceUploadRequest;
 import reactor.core.publisher.Flux;
 
 /**
@@ -21,4 +23,7 @@ public interface OpenApiChatClient {
 
     @OpenApiMapping(path = OpenApiPathConstants.OPEN_API_AGENT_CHAT_SYNC, method = OpenApiMapping.HttpMethod.POST)
     Result<OpenApiChatSyncResponse> chatSync(OpenApiChatRequest request);
+
+    @OpenApiMapping(path = OpenApiPathConstants.OPEN_API_RESOURCE_UPLOAD, method = OpenApiMapping.HttpMethod.POST)
+    Result<OpenApiResourceResponse> uploadResource(OpenApiResourceUploadRequest request);
 }
