@@ -201,8 +201,16 @@ public class ClientMcpToolResolver {
     }
 
     private void addEnvVarsIfPresent(ServerParameters.Builder paramsBuilder, Map<String, String> envVars) {
+        Map<String, String> merged = new java.util.LinkedHashMap<>();
+        String systemPath = System.getenv("PATH");
+        if (systemPath != null && !systemPath.isBlank()) {
+            merged.put("PATH", systemPath);
+        }
         if (envVars != null && !envVars.isEmpty()) {
-            paramsBuilder.env(envVars);
+            merged.putAll(envVars);
+        }
+        if (!merged.isEmpty()) {
+            paramsBuilder.env(merged);
         }
     }
 
