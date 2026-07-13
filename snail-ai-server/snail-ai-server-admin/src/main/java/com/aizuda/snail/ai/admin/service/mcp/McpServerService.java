@@ -482,12 +482,19 @@ public class McpServerService {
     }
 
     private void addEnvVars(ServerParameters.Builder paramsBuilder, String envVarsJson) {
-        if (StrUtil.isBlank(envVarsJson)) {
-            return;
+        Map<String, String> envVars = new java.util.LinkedHashMap<>();
+        // 自动注入系统 PATH，避免 Windows 下 ProcessBuilder 找不到 npx/node 等命令
+        String systemPath = System.getenv("PATH");
+        if (systemPath != null && !systemPath.isBlank()) {
+            envVars.put("PATH", systemPath);
         }
-        Map<String, String> envVars = JsonUtil.parseObject(envVarsJson, new TypeReference<Map<String, String>>() {
-        });
-        if (envVars != null && !envVars.isEmpty()) {
+        if (StrUtil.isNotBlank(envVarsJson)) {
+            Map<String, String> parsed = JsonUtil.parseObject(envVarsJson, new TypeReference<Map<String, String>>() {});
+            if (parsed != null) {
+                envVars.putAll(parsed);
+            }
+        }
+        if (!envVars.isEmpty()) {
             paramsBuilder.env(envVars);
         }
     }
