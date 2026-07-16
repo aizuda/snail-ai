@@ -8,6 +8,8 @@ import com.aizuda.snail.ai.persistence.agent.mapper.AgentUsageStatMapper;
 import com.aizuda.snail.ai.persistence.agent.po.AgentConversationRecordPO;
 import com.aizuda.snail.ai.persistence.agent.po.AgentUsageStatPO;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
+import com.aizuda.snail.ai.persistence.model.mapper.AiModelUsageStatMapper;
+import com.aizuda.snail.ai.persistence.model.po.AiModelUsageStatPO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
@@ -29,6 +31,7 @@ public class ChatResultPersistService {
 
     private final AgentConversationRecordMapper recordMapper;
     private final AgentUsageStatMapper usageStatMapper;
+    private final AiModelUsageStatMapper modelUsageStatMapper;
     private final ShortTermMemoryStore shortTermMemoryStore;
 
     /**
@@ -82,12 +85,24 @@ public class ChatResultPersistService {
             throw e;
         }
 
-        // 3. 用量统计
+        // 3. 用量统计（Agent 维度 + 模型维度）
         try {
-            updateUsageStat(cmd.getAgentId(), cmd.getUserId());
-            log.debug("persistAll usageStat done: conversationId={}", cmd.getConversationId());
+            updateAgentUsageStat(cmd.getAgentId(), cmd.getUserId());
+            log.debug("persistAll agentUsageStat done: conversationId={}", cmd.getConversationId());
         } catch (Exception e) {
-            log.error("persistAll usageStat FAILED: conversationId={}, error={}", cmd.getConversationId(), e.getMessage(), e);
+            log.error("persistAll agentUsageStat FAILED: conversationId={}, error={}", cmd.getConversationId(), e.getMessage(), e);
+            throw e;
+        }
+
+        // 4. 模型用量统计
+        try {
+            Long modelId = cmd.getAgentModelId();
+            if (modelId != null) {
+                updateModelUsageStat(modelId, cmd.getUserId(), cmd.getInputTokens(), cmd.getOutputTokens());
+                log.debug("persistAll modelUsageStat done: conversationId={}, modelId={}", cmd.getConversationId(), modelId);
+            }
+        } catch (Exception e) {
+            log.error("persistAll modelUsageStat FAILED: conversationId={}, error={}", cmd.getConversationId(), e.getMessage(), e);
             throw e;
         }
 
@@ -95,13 +110,13 @@ public class ChatResultPersistService {
     }
 
     /**
-     * 更新当日用量统计：优先自增已有记录，无记录则插入；并发插入冲突时回退为自增。
+     * 更新当日 Agent 用量统计：优先自增已有记录，无记录则插入；并发插入冲突时回退为自增。
      */
-    private void updateUsageStat(Long agentId, Long userId) {
+    private void updateAgentUsageStat(Long agentId, Long userId) {
         try {
             LocalDate today = LocalDate.now();
             LocalDateTime now = LocalDateTime.now();
-            int updated = incrementUsageStat(agentId, userId, today, now);
+            int updated = incrementAgentUsageStat(agentId, userId, today, now);
             if (updated != 0) {
                 return;
             }
@@ -112,23 +127,63 @@ public class ChatResultPersistService {
                         .createDt(now).updateDt(now)
                         .build());
             } catch (DuplicateKeyException e) {
-                incrementUsageStat(agentId, userId, today, now);
+                incrementAgentUsageStat(agentId, userId, today, now);
             }
         } catch (Exception e) {
-            log.warn("Failed to update usage stat", e);
+            log.warn("Failed to update agent usage stat", e);
         }
     }
 
     /**
      * 自增指定 Agent / 用户 / 当日的消息计数，返回受影响行数（0 表示当日记录尚不存在）。
      */
-    private int incrementUsageStat(Long agentId, Long userId, LocalDate today, LocalDateTime now) {
+    private int incrementAgentUsageStat(Long agentId, Long userId, LocalDate today, LocalDateTime now) {
         return usageStatMapper.update(null, new LambdaUpdateWrapper<AgentUsageStatPO>()
                 .eq(AgentUsageStatPO::getAgentId, agentId)
                 .eq(AgentUsageStatPO::getUserId, userId)
                 .eq(AgentUsageStatPO::getStatDate, today)
                 .setSql("message_count = message_count + 1")
                 .set(AgentUsageStatPO::getUpdateDt, now));
+    }
+
+    /**
+     * 更新当日模型用量统计：对已有记录自增调用次数与 Token，无记录则插入。
+     * 与 {@link #updateAgentUsageStat} 同样的 upsert 模式。
+     */
+    private void updateModelUsageStat(Long modelId, Long userId, int inputTokens, int outputTokens) {
+        try {
+            LocalDateTime now = LocalDateTime.now();
+            int totalTokens = inputTokens + outputTokens;
+            int updated = incrementModelUsageStat(modelId, userId, totalTokens, now);
+            if (updated != 0) {
+                return;
+            }
+            try {
+                modelUsageStatMapper.insert(AiModelUsageStatPO.builder()
+                        .modelId(modelId).userId(userId)
+                        .totalCalls(1L).successCalls(1L).failedCalls(0L)
+                        .totalTokensUsed((long) totalTokens)
+                        .lastUsedDt(now)
+                        .createdDt(now).updatedDt(now)
+                        .build());
+            } catch (DuplicateKeyException e) {
+                incrementModelUsageStat(modelId, userId, totalTokens, now);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to update model usage stat: modelId={}, userId={}", modelId, userId, e);
+        }
+    }
+
+    /**
+     * 自增指定模型 / 用户的调用次数与 Token，返回受影响行数（0 表示记录尚不存在）。
+     */
+    private int incrementModelUsageStat(Long modelId, Long userId, int totalTokens, LocalDateTime now) {
+        return modelUsageStatMapper.update(null, new LambdaUpdateWrapper<AiModelUsageStatPO>()
+                .eq(AiModelUsageStatPO::getModelId, modelId)
+                .eq(AiModelUsageStatPO::getUserId, userId)
+                .setSql("total_calls = total_calls + 1, success_calls = success_calls + 1, total_tokens_used = total_tokens_used + " + totalTokens)
+                .set(AiModelUsageStatPO::getLastUsedDt, now)
+                .set(AiModelUsageStatPO::getUpdatedDt, now));
     }
 
 }
