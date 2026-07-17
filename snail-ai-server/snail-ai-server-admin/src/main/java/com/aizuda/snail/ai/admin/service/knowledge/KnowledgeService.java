@@ -29,6 +29,9 @@ import com.aizuda.snail.ai.features.rag.enums.DedupAction;
 import com.aizuda.snail.ai.features.rag.enums.DedupStrategy;
 import com.aizuda.snail.ai.common.enums.store.StoreCategoryEnum;
 import com.aizuda.snail.ai.persistence.admin.po.StoreInstancePO;
+import com.aizuda.snail.ai.search.storage.search.SearchEngineFactory;
+import com.aizuda.snail.ai.search.storage.search.api.SearchDeleteRequest;
+import com.aizuda.snail.ai.search.storage.search.api.SearchEngine;
 import com.aizuda.snail.ai.vector.storage.vector.VectorStoreFactory;
 import com.aizuda.snail.ai.vector.storage.vector.api.IndexNameBuilder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -63,6 +66,7 @@ public class KnowledgeService {
     private final AiModelConfigService aiModelConfigService;
     private final VectorDimensionConstraintService vectorDimensionConstraintService;
     private final VectorStoreFactory vectorStoreFactory;
+    private final SearchEngineFactory searchEngineFactory;
     private final ResourceService resourceService;
 
     /**
@@ -196,6 +200,28 @@ public class KnowledgeService {
             snailAiVectorStore.deleteByIndexName(IndexNameBuilder.KNOWLEDGE.build(Map.of("ragId", id)));
         } catch (Exception e) {
             log.warn("Failed to clean vector store for knowledge: {}", id, e);
+        }
+
+        // 清理搜索引擎索引：先查所有 chunk ID 再按 ID 列表批量删除
+        if (Boolean.TRUE.equals(po.getSearchEngineEnable()) && po.getSearchEngineInstanceId() != null) {
+            try {
+                List<RagChunkPO> chunks = ragChunkMapper.selectList(
+                        new LambdaQueryWrapper<RagChunkPO>().eq(RagChunkPO::getRagId, id));
+                if (!chunks.isEmpty()) {
+                    SearchEngine searchEngine = searchEngineFactory.forStoreInstance(po.getSearchEngineInstanceId());
+                    String indexName = IndexNameBuilder.KNOWLEDGE.build(Map.of("ragId", id));
+                    List<String> chunkIds = chunks.stream()
+                            .map(c -> String.valueOf(c.getId()))
+                            .toList();
+                    searchEngine.delete(SearchDeleteRequest.builder()
+                            .indexName(indexName)
+                            .ids(chunkIds)
+                            .build());
+                    log.info("清理知识库搜索引擎索引 {} 条 ragId={}", chunkIds.size(), id);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to clean search engine for knowledge: {}", id, e);
+            }
         }
 
         cleanKnowledgeImages(id);

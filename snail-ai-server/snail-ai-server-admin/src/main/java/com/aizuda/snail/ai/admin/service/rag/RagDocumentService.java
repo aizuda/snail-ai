@@ -150,6 +150,12 @@ public class RagDocumentService {
 
         RagPO knowledge = knowledgeMapper.selectById(doc.getRagId());
         if (knowledge != null) {
+            // 搜索引擎索引清理（在删 chunks 之前，因为需要 chunk ID 列表）
+            try {
+                documentPipeline.deleteDocumentFromSearchEngine(documentId);
+            } catch (Exception e) {
+                log.warn("Failed to clean search engine for document: {}", documentId, e);
+            }
             try {
                 SnailAiVectorStore snailAiVectorStore = vectorStoreFactory.create(knowledge);
                 String indexName = IndexNameBuilder.KNOWLEDGE.build(Map.of("ragId", knowledge.getId()));

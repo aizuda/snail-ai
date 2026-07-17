@@ -27,6 +27,7 @@ import com.aizuda.snail.ai.persistence.rag.po.RagDocumentPO;
 import com.aizuda.snail.ai.persistence.resource.po.ResourcePO;
 import com.aizuda.snail.ai.search.storage.search.SearchEngineFactory;
 import com.aizuda.snail.ai.search.storage.search.api.SearchAddRequest;
+import com.aizuda.snail.ai.search.storage.search.api.SearchDeleteRequest;
 import com.aizuda.snail.ai.search.storage.search.api.SearchDocument;
 import com.aizuda.snail.ai.search.storage.search.api.SearchEngine;
 import com.aizuda.snail.ai.search.storage.search.constant.SearchMetadataKeys;
@@ -182,6 +183,7 @@ public class DocumentPipeline {
             }
             chunk.setVectorId(null);
         }
+        deleteSingleFromSearchEngine(chunk);
         dualWrite(List.of(chunk), knowledge);
     }
 
@@ -213,6 +215,80 @@ public class DocumentPipeline {
             log.debug("RAG 删除切片向量 chunkId={} vectorId={}", chunk.getId(), chunk.getVectorId());
         } catch (Exception e) {
             log.warn("Delete vector failed for chunk: {}", chunk.getId(), e);
+        }
+        deleteSingleFromSearchEngine(chunk);
+    }
+
+    /**
+     * 清理文档在搜索引擎中的所有索引记录（供外部调用）。
+     *
+     * @param documentId 文档 ID
+     */
+    public void deleteDocumentFromSearchEngine(Long documentId) {
+        RagDocumentPO doc = ragDocumentMapper.selectById(documentId);
+        if (doc == null) {
+            return;
+        }
+        RagPO knowledge = knowledgeMapper.selectById(doc.getRagId());
+        if (knowledge == null) {
+            return;
+        }
+        deleteFromSearchEngine(knowledge, documentId);
+    }
+
+    // ─────────────────────────────────── private ────────────────────────────────────
+
+    /**
+     * 删除文档在搜索引擎中的所有索引记录（按 documentId 过滤后批量删除）。
+     */
+    private void deleteFromSearchEngine(RagPO knowledge, Long documentId) {
+        if (!Boolean.TRUE.equals(knowledge.getSearchEngineEnable())) {
+            return;
+        }
+        try {
+            // 查该文档所有 chunk 的 ID，搜索引擎中 ID = String.valueOf(chunkId)
+            List<RagChunkPO> chunks = ragChunkMapper.selectList(
+                    new LambdaQueryWrapper<RagChunkPO>()
+                            .eq(RagChunkPO::getDocumentId, documentId)
+                            .eq(RagChunkPO::getRagId, knowledge.getId()));
+            if (chunks.isEmpty()) {
+                return;
+            }
+            List<String> ids = chunks.stream()
+                    .map(c -> String.valueOf(c.getId()))
+                    .toList();
+            SearchEngine searchEngine = searchEngineFactory.forStoreInstance(
+                    knowledge.getSearchEngineInstanceId());
+            String indexName = IndexNameBuilder.KNOWLEDGE.build(Map.of("ragId", knowledge.getId()));
+            searchEngine.delete(SearchDeleteRequest.builder()
+                    .indexName(indexName)
+                    .ids(ids)
+                    .build());
+            log.debug("RAG 搜索引擎删除 {} 个文档 documentId={} ragId={}", ids.size(), documentId, knowledge.getId());
+        } catch (Exception e) {
+            log.warn("Failed to clean search engine for document: {}", documentId, e);
+        }
+    }
+
+    /**
+     * 删除单个 chunk 在搜索引擎中的索引记录。
+     */
+    private void deleteSingleFromSearchEngine(RagChunkPO chunk) {
+        RagPO knowledge = knowledgeMapper.selectById(chunk.getRagId());
+        if (knowledge == null || !Boolean.TRUE.equals(knowledge.getSearchEngineEnable())) {
+            return;
+        }
+        try {
+            SearchEngine searchEngine = searchEngineFactory.forStoreInstance(
+                    knowledge.getSearchEngineInstanceId());
+            String indexName = IndexNameBuilder.KNOWLEDGE.build(Map.of("ragId", knowledge.getId()));
+            searchEngine.delete(SearchDeleteRequest.builder()
+                    .indexName(indexName)
+                    .ids(List.of(String.valueOf(chunk.getId())))
+                    .build());
+            log.debug("RAG 搜索引擎删除单个 chunk chunkId={}", chunk.getId());
+        } catch (Exception e) {
+            log.warn("Failed to clean search engine for chunk: {}", chunk.getId(), e);
         }
     }
 
@@ -503,6 +579,7 @@ public class DocumentPipeline {
         } catch (Exception e) {
             log.warn("Failed to clean vector store for document: {}", documentId, e);
         }
+        deleteFromSearchEngine(knowledge, documentId);
         ragChunkMapper.delete(new LambdaQueryWrapper<RagChunkPO>()
                 .eq(RagChunkPO::getDocumentId, documentId)
                 .eq(RagChunkPO::getRagId, knowledge.getId()));
