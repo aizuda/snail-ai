@@ -4,6 +4,7 @@ import com.aizuda.snail.ai.common.model.ConfigExtAttrsDTO;
 import com.aizuda.snail.ai.model.chat.ChatModelAdapter;
 import com.aizuda.snail.ai.model.chat.ChatModelSpec;
 import com.aizuda.snail.ai.model.common.ModelAdapterDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
@@ -19,7 +20,11 @@ import java.util.Map;
  * @author opensnail
  * @since 2026-06-14
  */
+@Slf4j
 public class OpenAiCompatibleChatModelAdapter implements ChatModelAdapter, Ordered {
+
+    /** 对话调用默认超时（毫秒），大模型长输出场景需要比普通 HTTP 更宽裕的读超时 */
+    private static final long DEFAULT_TIMEOUT_MS = 300_000L;
 
     @Override
     public String adapterKey() {
@@ -28,6 +33,8 @@ public class OpenAiCompatibleChatModelAdapter implements ChatModelAdapter, Order
 
     @Override
     public ChatModel create(ChatModelSpec spec) {
+        log.debug("Creating OpenAI-compatible ChatModel, provider={}, model={}",
+                spec.providerKey(), spec.modelKey());
         return OpenAiChatModel.builder()
                 .options(buildOptions(spec))
                 .build();
@@ -38,6 +45,12 @@ public class OpenAiCompatibleChatModelAdapter implements ChatModelAdapter, Order
         return Ordered.LOWEST_PRECEDENCE;
     }
 
+    /**
+     * 由规格与扩展配置组装对话选项，扩展配置中未设置的参数不下发（保留供应商默认值）
+     *
+     * @param spec 对话模型构建规格
+     * @return 对话选项
+     */
     private OpenAiChatOptions buildOptions(ChatModelSpec spec) {
         ConfigExtAttrsDTO config = spec.configJson();
         OpenAiChatOptions.Builder builder = OpenAiChatOptions.builder()
@@ -80,6 +93,6 @@ public class OpenAiCompatibleChatModelAdapter implements ChatModelAdapter, Order
 
     private long readTimeoutMs(ConfigExtAttrsDTO config) {
         Long timeoutMs = config != null ? config.getTimeoutMs() : null;
-        return timeoutMs != null && timeoutMs > 0 ? timeoutMs : 300_000L;
+        return timeoutMs != null && timeoutMs > 0 ? timeoutMs : DEFAULT_TIMEOUT_MS;
     }
 }

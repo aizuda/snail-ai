@@ -40,7 +40,7 @@ public class EmbeddingClientBuilder {
         } catch (Exception e) {
             log.error("Failed to build EmbeddingModel for config: {}", config.getId(), e);
             throw new ModelCallException(
-                    ModelCallException.ErrorCode.CHAT_MODEL_BUILD_FAILED,
+                    ModelCallException.ErrorCode.EMBEDDING_MODEL_BUILD_FAILED,
                     "EmbeddingModel 构建失败: " + e.getMessage(),
                     e);
         }
@@ -64,7 +64,7 @@ public class EmbeddingClientBuilder {
         } catch (Exception e) {
             log.error("Failed to build EmbeddingModel for config: {}", config.getId(), e);
             throw new ModelCallException(
-                    ModelCallException.ErrorCode.CHAT_MODEL_BUILD_FAILED,
+                    ModelCallException.ErrorCode.EMBEDDING_MODEL_BUILD_FAILED,
                     "EmbeddingModel 构建失败: " + e.getMessage(),
                     e);
         }

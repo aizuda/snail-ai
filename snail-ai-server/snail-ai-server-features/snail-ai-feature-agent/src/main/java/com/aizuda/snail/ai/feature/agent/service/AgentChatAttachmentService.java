@@ -11,6 +11,7 @@ import com.aizuda.snail.ai.persistence.resource.po.ResourcePO;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -20,11 +21,13 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * 解析智能体对话图片附件。
+ * 解析智能体对话图片附件：校验数量、类型、归属、格式与大小，并将资源内容读取为 base64 供多模态模型使用。
+ * 任一校验不通过即抛出 {@link SnailAiException} 终止本次对话请求。
  *
  * @author opensnail
  * @since 2026-07-07
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AgentChatAttachmentService {
@@ -40,6 +43,12 @@ public class AgentChatAttachmentService {
 
     private final ResourceService resourceService;
 
+    /**
+     * 解析并校验本次对话携带的全部附件
+     *
+     * @param request 解析请求（附件列表、当前用户、目标模型配置）
+     * @return 解析完成（含 base64 内容）的附件列表；无附件时返回空列表
+     */
     public List<AgentChatAttachmentDTO> resolve(ResolveRequest request) {
         List<AgentChatAttachmentDTO> attachments = request == null ? List.of() : request.getAttachments();
         if (attachments == null || attachments.isEmpty()) {
@@ -49,9 +58,13 @@ public class AgentChatAttachmentService {
         validateAttachmentCount(attachments);
         validateVisionModel(request.getModelConfig());
 
-        return attachments.stream()
+        List<AgentChatAttachmentDTO> resolved = attachments.stream()
                 .map(attachment -> resolveAttachment(attachment, request.getUser()))
                 .toList();
+        log.debug("对话附件解析完成, count={}, totalBytes={}",
+                resolved.size(),
+                resolved.stream().mapToLong(a -> a.getSize() != null ? a.getSize() : 0L).sum());
+        return resolved;
     }
 
     private void validateAttachmentCount(List<AgentChatAttachmentDTO> attachments) {
@@ -60,8 +73,11 @@ public class AgentChatAttachmentService {
         }
     }
 
+    /** 校验目标模型具备 vision 能力，否则图片将被模型当作无效输入 */
     private void validateVisionModel(ChatDispatchRequest.ModelConfig modelConfig) {
         if (modelConfig == null || !hasVisionCapability(modelConfig.getConfigJson())) {
+            log.warn("图片对话被拒绝：模型不具备 vision 能力, modelKey={}",
+                    modelConfig != null ? modelConfig.getModelKey() : null);
             throw new SnailAiException("当前模型不支持图片对话，请切换视觉模型");
         }
     }

@@ -711,7 +711,10 @@ public final class OpenAiChatModel implements ChatModel {
 			builder.topLogprobs(requestOptions.getTopLogprobs());
 		}
 		if (requestOptions.getMaxTokens() != null) {
-			builder.maxTokens(requestOptions.getMaxTokens());
+			// max_tokens 已被 OpenAI 官方弃用（由 max_completion_tokens 取代），SDK 各重载均标记 @Deprecated；
+			// 但多数 OpenAI 兼容供应商仍只识别 max_tokens，与 seed / user 一致改走 additional body property，
+			// 生成的请求 JSON 不变且不再依赖弃用 API
+			builder.putAdditionalBodyProperty("max_tokens", JsonValue.from(requestOptions.getMaxTokens()));
 		}
 		if (requestOptions.getMaxCompletionTokens() != null) {
 			builder.maxCompletionTokens(requestOptions.getMaxCompletionTokens());
@@ -733,13 +736,14 @@ public final class OpenAiChatModel implements ChatModel {
 		}
 		if (requestOptions.getResponseFormat() != null) {
 			ResponseFormat responseFormat = requestOptions.getResponseFormat();
-			if (responseFormat.getType().equals(ResponseFormat.Type.TEXT)) {
+			// 枚举用 == 比较：getType() 可能为 null，equals 调用存在 NPE 风险（对应 Ali-Check 告警）
+			if (responseFormat.getType() == ResponseFormat.Type.TEXT) {
 				builder.responseFormat(ResponseFormatText.builder().build());
 			}
-			else if (responseFormat.getType().equals(ResponseFormat.Type.JSON_OBJECT)) {
+			else if (responseFormat.getType() == ResponseFormat.Type.JSON_OBJECT) {
 				builder.responseFormat(ResponseFormatJsonObject.builder().build());
 			}
-			else if (responseFormat.getType().equals(ResponseFormat.Type.JSON_SCHEMA)) {
+			else if (responseFormat.getType() == ResponseFormat.Type.JSON_SCHEMA) {
 				String jsonSchemaString = responseFormat.getJsonSchema() != null ? responseFormat.getJsonSchema() : "";
 				try {
 
@@ -765,7 +769,9 @@ public final class OpenAiChatModel implements ChatModel {
 			}
 		}
 		if (requestOptions.getSeed() != null) {
-			builder.seed(requestOptions.getSeed());
+			// seed 参数在 openai-java SDK 中已整体弃用（OpenAI 官方 API 弃用该字段），
+			// 但 OpenAI 兼容供应商仍依赖它，改走 additional body property 生成相同的请求 JSON
+			builder.putAdditionalBodyProperty("seed", JsonValue.from(requestOptions.getSeed()));
 		}
 		if (requestOptions.getStop() != null && !requestOptions.getStop().isEmpty()) {
 			if (requestOptions.getStop().size() == 1) {
@@ -782,7 +788,9 @@ public final class OpenAiChatModel implements ChatModel {
 			builder.topP(requestOptions.getTopP());
 		}
 		if (requestOptions.getUser() != null) {
-			builder.user(requestOptions.getUser());
+			// user 参数已被 OpenAI 官方替换为 safety_identifier / prompt_cache_key 并在 SDK 中弃用，
+			// 为保持对 OpenAI 兼容供应商的行为不变，改走 additional body property 传递
+			builder.putAdditionalBodyProperty("user", JsonValue.from(requestOptions.getUser()));
 		}
 		if (requestOptions.getParallelToolCalls() != null) {
 			builder.parallelToolCalls(requestOptions.getParallelToolCalls());
@@ -855,13 +863,13 @@ public final class OpenAiChatModel implements ChatModel {
 				builder.toolChoice(toolChoiceOption);
 			}
 			else if (requestOptions.getToolChoice() instanceof String json) {
-				if (json.equals("auto")) {
+				if ("auto".equals(json)) {
 					builder.toolChoice(ChatCompletionToolChoiceOption.ofAuto(ChatCompletionToolChoiceOption.Auto.AUTO));
 				}
-				else if (json.equals("none")) {
+				else if ("none".equals(json)) {
 					builder.toolChoice(ChatCompletionToolChoiceOption.ofAuto(ChatCompletionToolChoiceOption.Auto.NONE));
 				}
-				else if (json.equals("required")) {
+				else if ("required".equals(json)) {
 					builder.toolChoice(
 							ChatCompletionToolChoiceOption.ofAuto(ChatCompletionToolChoiceOption.Auto.REQUIRED));
 				}
@@ -885,7 +893,9 @@ public final class OpenAiChatModel implements ChatModel {
 				.stream()
 				.collect(java.util.stream.Collectors.toMap(Map.Entry::getKey,
 						entry -> com.openai.core.JsonValue.from(entry.getValue())));
-			builder.additionalBodyProperties(extraParams);
+			// putAll 合并而非 additionalBodyProperties 整体替换：后者会清空前面
+			// 通过 additional body property 设置的 max_tokens / seed / user；同名 key 仍以 extraBody 为准
+			builder.putAllAdditionalBodyProperties(extraParams);
 		}
 
 		return builder.build();

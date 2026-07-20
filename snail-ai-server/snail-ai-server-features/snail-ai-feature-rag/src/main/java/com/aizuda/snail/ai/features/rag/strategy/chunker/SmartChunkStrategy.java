@@ -49,6 +49,8 @@ public class SmartChunkStrategy extends AbstractChunkStrategy {
     private static final int MAX_CONCURRENT_LLM_CALLS = 3;
     // 获取信号量许可的超时（秒），防止死等
     private static final long SEMAPHORE_ACQUIRE_TIMEOUT_SEC = 120L;
+    // 正则提取片段的最小字符数，过滤 JSON 数组中的短噪声字符串（如键名、标点）
+    private static final int MIN_EXTRACTED_SEGMENT_CHARS = 20;
 
     private static final String SYSTEM = """
             你是文档切片助手。请将用户提供的文本按语义切分为完整片段。
@@ -294,7 +296,8 @@ public class SmartChunkStrategy extends AbstractChunkStrategy {
             if (jsonNode != null && jsonNode.isArray()) {
                 List<String> result = new ArrayList<>();
                 for (var node : jsonNode) {
-                    String text = node.asText();
+                    // asString("") 对非字符串元素返回默认值而不抛异常，容忍 LLM 输出的混杂数组
+                    String text = node.asString("");
                     if (StrUtil.isNotBlank(text)) {
                         result.add(text.trim());
                     }
@@ -342,11 +345,12 @@ public class SmartChunkStrategy extends AbstractChunkStrategy {
                         .replace("\\\"", "\"")
                         .replace("\\\\", "\\");
 
-                if (StrUtil.isNotBlank(text) && text.length() > 20) {
+                if (StrUtil.isNotBlank(text) && text.length() > MIN_EXTRACTED_SEGMENT_CHARS) {
                     result.add(text.trim());
                 }
             } catch (Exception e) {
-                // 忽略单个解析错误
+                // 单个片段解析失败不影响其余片段，仅记录便于排障
+                log.debug("正则提取片段失败，跳过该片段: {}", e.getMessage());
             }
         }
 

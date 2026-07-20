@@ -2,6 +2,7 @@ package com.aizuda.snail.ai.model.embedding;
 
 import com.aizuda.snail.ai.model.common.ModelAdapterException;
 import com.aizuda.snail.ai.model.common.ModelErrorCode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.core.Ordered;
 
@@ -14,6 +15,7 @@ import java.util.List;
  * @author opensnail
  * @since 2026-06-14
  */
+@Slf4j
 public class EmbeddingModelRuntime {
 
     private final List<EmbeddingModelAdapter> adapters;
@@ -38,11 +40,15 @@ public class EmbeddingModelRuntime {
                 .orElseThrow(() -> new ModelAdapterException(
                         ModelErrorCode.ADAPTER_NOT_FOUND,
                         "No EmbeddingModelAdapter for adapterKey=" + spec.adapterKey()));
+        log.debug("EmbeddingModel building via adapter={}, provider={}, model={}",
+                adapter.adapterKey(), spec.providerKey(), spec.modelKey());
         try {
             return adapter.create(spec);
         } catch (ModelAdapterException e) {
             throw e;
         } catch (Exception e) {
+            log.error("EmbeddingModel build failed, adapter={}, provider={}, model={}",
+                    adapter.adapterKey(), spec.providerKey(), spec.modelKey(), e);
             throw new ModelAdapterException(
                     ModelErrorCode.MODEL_BUILD_FAILED,
                     "EmbeddingModel build failed: " + e.getMessage(), e);

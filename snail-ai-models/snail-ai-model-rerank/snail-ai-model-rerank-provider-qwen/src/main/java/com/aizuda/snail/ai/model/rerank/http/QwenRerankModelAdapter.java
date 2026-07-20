@@ -37,6 +37,7 @@ public class QwenRerankModelAdapter implements RerankModelAdapter, Ordered {
     public RerankApiClient create(RerankModelSpec spec) {
         ConfigExtAttrsDTO config = spec.configJson();
         String fullUrl = spec.baseUrl().replaceAll("/+$", "") + rerankPath(config);
+        log.debug("Creating Qwen RerankApiClient, url={}, model={}", fullUrl, spec.modelKey());
         return new HttpRerankApiClient(fullUrl, spec.apiKey(), spec.modelKey(), readTimeoutMs(config));
     }
 

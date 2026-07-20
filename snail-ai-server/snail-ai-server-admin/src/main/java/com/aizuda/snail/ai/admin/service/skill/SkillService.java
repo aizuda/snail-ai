@@ -762,7 +762,7 @@ public class SkillService {
     private void saveSkillFilesFromZip(Long skillId, Path unzipPath) {
         try (var stream = Files.walk(unzipPath)) {
             stream.filter(Files::isRegularFile)
-                    .filter(p -> !p.getFileName().toString().equals(SKILL_MD))
+                    .filter(p -> !SKILL_MD.equals(p.getFileName().toString()))
                     .forEach(filePath -> {
                         try {
                             String relativePath = unzipPath.relativize(filePath).toString()
@@ -954,7 +954,7 @@ public class SkillService {
     private boolean hasExtraFiles(Path skillRootDir) {
         try (var stream = Files.walk(skillRootDir)) {
             return stream.filter(Files::isRegularFile)
-                    .anyMatch(p -> !p.getFileName().toString().equals(SKILL_MD));
+                    .anyMatch(p -> !SKILL_MD.equals(p.getFileName().toString()));
         } catch (IOException e) {
             log.warn("检查支撑文件失败: {}", skillRootDir, e);
             return false;

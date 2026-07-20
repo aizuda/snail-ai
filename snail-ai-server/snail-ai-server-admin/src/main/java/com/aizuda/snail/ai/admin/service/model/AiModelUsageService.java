@@ -15,11 +15,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -103,14 +100,14 @@ public class AiModelUsageService implements com.aizuda.snail.ai.model.service.Ai
             .filter(Objects::nonNull)
             .collect(Collectors.toSet());
         Map<Long, AiModelConfigPO> configById = modelIds.isEmpty() ? Map.of()
-            : configMapper.selectBatchIds(modelIds).stream()
+            : configMapper.selectByIds(modelIds).stream()
                 .collect(Collectors.toMap(AiModelConfigPO::getId, c -> c, (a, b) -> a));
         Set<Long> providerIds = configById.values().stream()
             .map(AiModelConfigPO::getProviderId)
             .filter(Objects::nonNull)
             .collect(Collectors.toSet());
         Map<Long, AiModelProviderPO> providerById = providerIds.isEmpty() ? Map.of()
-            : providerMapper.selectBatchIds(providerIds).stream()
+            : providerMapper.selectByIds(providerIds).stream()
                 .collect(Collectors.toMap(AiModelProviderPO::getId, p -> p, (a, b) -> a));
 
         List<AiModelUsageStatVO> all = aggregated.stream()
@@ -249,52 +246,6 @@ public class AiModelUsageService implements com.aizuda.snail.ai.model.service.Ai
             .updatedDt(po.getUpdatedDt() != null ?
                 po.getUpdatedDt().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() : null)
             .build();
-    }
-
-    // ========== 内部类 ==========
-
-    /**
-     * 模型-用户 组合键
-     */
-    private static class ModelUserKey {
-        final String modelKey;
-        final Long userId;
-
-        ModelUserKey(String modelKey, Long userId) {
-            this.modelKey = modelKey;
-            this.userId = userId;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            ModelUserKey that = (ModelUserKey) o;
-            return Objects.equals(modelKey, that.modelKey) && Objects.equals(userId, that.userId);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(modelKey, userId);
-        }
-    }
-
-    /**
-     * 使用量聚合
-     */
-    private static class UsageAggregation {
-        long totalCalls = 0;
-        long successCalls = 0;
-        long failedCalls = 0;
-        long totalInputTokens = 0;
-        long totalOutputTokens = 0;
-        BigDecimal totalCost = BigDecimal.ZERO;
-        long totalResponseTime = 0;
-        LocalDateTime lastUsedTime = null;
     }
 
     // ========== 废弃的方法（保留接口签名用于兼容） ==========

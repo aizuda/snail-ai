@@ -53,6 +53,8 @@ public class ModelCallException extends RuntimeException {
         PROVIDER_NOT_SUPPORTED("提供商暂不支持"),
         CHAT_MODEL_BUILD_FAILED("ChatModel构建失败"),
         CHAT_CLIENT_BUILD_FAILED("ChatClient构建失败"),
+        EMBEDDING_MODEL_BUILD_FAILED("EmbeddingModel构建失败"),
+        RERANK_CLIENT_BUILD_FAILED("RerankClient构建失败"),
         API_KEY_DECRYPT_FAILED("APIKey解密失败"),
         MODEL_CALL_FAILED("模型调用失败"),
         INVALID_PARAMETER("参数非法"),

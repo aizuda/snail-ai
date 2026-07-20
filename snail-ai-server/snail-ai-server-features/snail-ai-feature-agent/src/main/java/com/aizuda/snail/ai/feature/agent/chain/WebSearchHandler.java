@@ -6,7 +6,6 @@ import org.springframework.ai.support.ToolCallbacks;
 import org.springframework.ai.tool.ToolCallback;
 import org.springframework.beans.factory.annotation.Value;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -38,8 +37,10 @@ public class WebSearchHandler implements AgentChatHandler {
             return;
         }
 
-        List<ToolCallback> callbacks = new ArrayList<>(ctx.getToolCallbacks());
-        callbacks.addAll(Arrays.asList(ToolCallbacks.from(new WebSearchTool(tavilyApiKey, maxResults))));
-        ctx.getToolCallbacks().addAll(callbacks);
+        // 仅追加新工具回调；不能把已有回调整体再加回去，否则 ctx 中的回调会重复注册
+        List<ToolCallback> webSearchCallbacks =
+                Arrays.asList(ToolCallbacks.from(new WebSearchTool(tavilyApiKey, maxResults)));
+        ctx.getToolCallbacks().addAll(webSearchCallbacks);
+        log.debug("联网搜索工具已注入, agentId={}, maxResults={}", ctx.getAgentId(), maxResults);
     }
 }

@@ -58,6 +58,7 @@ public class McpHandler implements AgentChatHandler {
                 System.currentTimeMillis() - startTime, ctx.getAgentId());
     }
 
+    /** 将 MCP 服务器引用转换为远程分发描述符（args/envVars/headers 由 JSON 字符串反序列化） */
     private static ChatDispatchRequest.McpServerDescriptor toDescriptor(McpServerRef s) {
         return ChatDispatchRequest.McpServerDescriptor.builder()
                 .id(s.getId())
@@ -73,6 +74,7 @@ public class McpHandler implements AgentChatHandler {
                 .build();
     }
 
+    /** 解析 JSON 数组配置；解析失败降级为空列表并告警，避免脏配置阻断整个对话链路 */
     @SuppressWarnings("unchecked")
     private static List<String> parseJsonList(String json) {
         if (json == null || json.isBlank()) {
@@ -81,10 +83,12 @@ public class McpHandler implements AgentChatHandler {
         try {
             return JsonUtil.parseObject(json, List.class);
         } catch (Exception e) {
+            log.warn("MCP 配置 JSON 数组解析失败，忽略该配置项: {}", json, e);
             return List.of();
         }
     }
 
+    /** 解析 JSON 对象配置；解析失败降级为空 Map 并告警，避免脏配置阻断整个对话链路 */
     private static Map<String, String> parseJsonMap(String json) {
         if (json == null || json.isBlank()) {
             return Map.of();
@@ -92,6 +96,7 @@ public class McpHandler implements AgentChatHandler {
         try {
             return JsonUtil.parseHashMap(json);
         } catch (Exception e) {
+            log.warn("MCP 配置 JSON 对象解析失败，忽略该配置项: {}", json, e);
             return Map.of();
         }
     }

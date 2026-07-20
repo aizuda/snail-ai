@@ -2,6 +2,7 @@ package com.aizuda.snail.ai.model.chat;
 
 import com.aizuda.snail.ai.model.common.ModelAdapterException;
 import com.aizuda.snail.ai.model.common.ModelErrorCode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.core.Ordered;
 
@@ -14,6 +15,7 @@ import java.util.List;
  * @author opensnail
  * @since 2026-06-14
  */
+@Slf4j
 public class ChatModelRuntime {
 
     private final List<ChatModelAdapter> adapters;
@@ -38,11 +40,15 @@ public class ChatModelRuntime {
                 .orElseThrow(() -> new ModelAdapterException(
                         ModelErrorCode.ADAPTER_NOT_FOUND,
                         "No ChatModelAdapter for adapterKey=" + spec.adapterKey()));
+        log.debug("ChatModel building via adapter={}, provider={}, model={}",
+                adapter.adapterKey(), spec.providerKey(), spec.modelKey());
         try {
             return adapter.create(spec);
         } catch (ModelAdapterException e) {
             throw e;
         } catch (Exception e) {
+            log.error("ChatModel build failed, adapter={}, provider={}, model={}",
+                    adapter.adapterKey(), spec.providerKey(), spec.modelKey(), e);
             throw new ModelAdapterException(
                     ModelErrorCode.MODEL_BUILD_FAILED,
                     "ChatModel build failed: " + e.getMessage(), e);

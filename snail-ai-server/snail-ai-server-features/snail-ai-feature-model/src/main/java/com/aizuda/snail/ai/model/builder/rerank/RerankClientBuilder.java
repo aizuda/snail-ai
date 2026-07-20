@@ -39,7 +39,7 @@ public class RerankClientBuilder {
         } catch (Exception e) {
             log.error("Failed to build RerankApiClient for config: {}", config.getId(), e);
             throw new ModelCallException(
-                    ModelCallException.ErrorCode.CHAT_MODEL_BUILD_FAILED,
+                    ModelCallException.ErrorCode.RERANK_CLIENT_BUILD_FAILED,
                     "RerankClient 构建失败: " + e.getMessage(),
                     e);
         }

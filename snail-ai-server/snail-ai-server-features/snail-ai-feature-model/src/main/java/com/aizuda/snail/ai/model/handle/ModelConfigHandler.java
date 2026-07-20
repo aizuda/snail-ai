@@ -11,6 +11,7 @@ import com.aizuda.snail.ai.persistence.model.po.AiModelConfigPO;
 import com.aizuda.snail.ai.persistence.model.po.AiModelProviderPO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.Optional;
  * @author opensnail
  * @since 2026-06-14
  */
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ModelConfigHandler implements VisionModelConfigResolver {
@@ -62,6 +64,7 @@ public class ModelConfigHandler implements VisionModelConfigResolver {
 
         List<Long> enabledProviderIds = getEnabledProviderIds();
         if (enabledProviderIds.isEmpty()) {
+            log.warn("获取默认模型失败：无启用的模型提供商, modelType={}", modelType);
             return null;
         }
 
@@ -72,13 +75,24 @@ public class ModelConfigHandler implements VisionModelConfigResolver {
                 .in(AiModelConfigPO::getProviderId, enabledProviderIds)
                 .last("LIMIT 1");
 
-        return buildConfigInfoDTO(configMapper.selectOne(wrapper));
+        ModelConfigInfoDTO config = buildConfigInfoDTO(configMapper.selectOne(wrapper));
+        if (config == null) {
+            log.warn("该类型下无「默认且启用」的模型配置, modelType={}", modelType);
+        }
+        return config;
     }
 
+    /**
+     * 获取默认视觉对话模型：在启用的 chat 模型中筛选具备 vision 能力的配置，
+     * 优先取标记为默认视觉模型的，其次按「是否默认对话模型、更新时间」排序取第一个
+     *
+     * @return 视觉对话模型配置；无可用视觉模型时返回 null
+     */
     @Override
     public ModelConfigInfoDTO getDefaultVisionChatModel() {
         List<Long> enabledProviderIds = getEnabledProviderIds();
         if (enabledProviderIds.isEmpty()) {
+            log.warn("获取默认视觉模型失败：无启用的模型提供商");
             return null;
         }
 
@@ -98,6 +112,7 @@ public class ModelConfigHandler implements VisionModelConfigResolver {
                 .orElse(null);
     }
 
+    /** 将配置 PO 组装为业务 DTO：补充提供商信息、解析扩展 JSON，API Key 保持加密态不解密 */
     private ModelConfigInfoDTO buildConfigInfoDTO(AiModelConfigPO po) {
         if (po == null) {
             return null;
@@ -146,8 +161,7 @@ public class ModelConfigHandler implements VisionModelConfigResolver {
     private List<Long> getEnabledProviderIds() {
         return providerMapper.selectList(new LambdaQueryWrapper<AiModelProviderPO>()
                         .select(AiModelProviderPO::getId)
-                        .eq(AiModelProviderPO::getIsEnabled, true)
-                        .select(AiModelProviderPO::getId))
+                        .eq(AiModelProviderPO::getIsEnabled, true))
                 .stream()
                 .map(AiModelProviderPO::getId)
                 .toList();

@@ -9,14 +9,17 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 /**
- * Docling 服务响应解析器。
+ * Docling 服务响应解析器：将 Docling Serve 返回的 JSON 解析为结构化元素（标题/段落/表格/图片/公式），
+ * 同时提取图片 base64、图注与 OCR 文本。兼容 v2 的 {@code json_content} 结构与旧版 {@code elements} 结构。
  *
  * @author opensnail
  * @since 2026-06-30
  */
+@Slf4j
 @Component
 public class DoclingResponseParser {
 
@@ -40,16 +43,25 @@ public class DoclingResponseParser {
                     + "[0-9一二三四五六七八九十百千万]+)\\s*(.*)$",
             Pattern.CASE_INSENSITIVE);
 
+    /**
+     * 解析 Docling 响应 JSON
+     *
+     * @param json   Docling Serve result 接口返回的原始 JSON
+     * @param costMs 本次远程解析耗时（毫秒），回填到结果中
+     * @return 解析结果；JSON 非法或缺少 document 字段时返回 fail 结果，不抛异常
+     */
     public DoclingParseResult parse(String json, long costMs) {
         // Docling Serve result 接口返回 document 包装对象，缺失时视为不可用响应。
         JSONObject root;
         try {
             root = JSONUtil.parseObj(json);
         } catch (Exception e) {
+            log.warn("Docling 响应 JSON 解析失败: {}", e.getMessage());
             return DoclingParseResult.fail("Docling response json is invalid");
         }
         JSONObject document = root.getJSONObject(DOCUMENT_FIELD);
         if (document == null) {
+            log.warn("Docling 响应缺少 document 字段, keys={}", root.keySet());
             return DoclingParseResult.fail("Docling response missing document field");
         }
 
@@ -64,12 +76,23 @@ public class DoclingResponseParser {
         JSONObject jsonContent = document.getJSONObject(JSON_CONTENT_FIELD);
         if (jsonContent != null) {
             parseJsonContent(jsonContent, result);
-            return result;
+        } else {
+            // 无 json_content 时走旧版 elements 结构，保证对老版本 Docling 服务的兼容
+            parseLegacyElements(document, result);
         }
-        parseLegacyElements(document, result);
+        log.debug("Docling 解析完成, elements={}, tables={}, images={}, pages={}, costMs={}",
+                result.getElementCount(), result.getTableCount(), result.getImageCount(),
+                result.getPageCount(), costMs);
         return result;
     }
 
+    /**
+     * 将解析结果重组为干净的 Markdown：保留标题层级与公式，图片以「图片说明」文本占位，
+     * 并清理 base64 内联图片，供后续切片与向量化使用
+     *
+     * @param result 解析结果
+     * @return 重组后的 Markdown 文本；解析失败时返回空串
+     */
     public String toCleanMarkdown(DoclingParseResult result) {
         if (result == null || !result.isSuccess()) {
             return "";
