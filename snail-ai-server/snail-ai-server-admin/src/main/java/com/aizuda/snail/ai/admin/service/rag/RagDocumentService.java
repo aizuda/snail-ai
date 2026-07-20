@@ -170,6 +170,18 @@ public class RagDocumentService {
         if (query.getRagId() != null) {
             wrapper.eq(RagChunkPO::getRagId, query.getRagId());
         }
+        // 按关键词模糊搜索：支持按 ID 或内容匹配
+        if (StrUtil.isNotBlank(query.getKeyword())) {
+            String keyword = query.getKeyword().trim();
+            if (StrUtil.isNumeric(keyword)) {
+                wrapper.and(w -> w
+                        .eq(RagChunkPO::getId, Long.parseLong(keyword))
+                        .or()
+                        .like(RagChunkPO::getContent, keyword));
+            } else {
+                wrapper.like(RagChunkPO::getContent, keyword);
+            }
+        }
         wrapper.orderByAsc(RagChunkPO::getParagraphIndex)
                 .orderByAsc(RagChunkPO::getChunkIndex)
                 .orderByDesc(RagChunkPO::getCreateDt);

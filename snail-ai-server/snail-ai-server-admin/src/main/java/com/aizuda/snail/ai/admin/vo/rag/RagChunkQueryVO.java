@@ -21,4 +21,7 @@ public class RagChunkQueryVO extends BaseQueryVO {
     /** 知识库 ID */
     @JsonAlias("knowledgeId")
     private Long ragId;
+
+    /** 搜索关键词（按 ID 或内容模糊匹配） */
+    private String keyword;
 }
