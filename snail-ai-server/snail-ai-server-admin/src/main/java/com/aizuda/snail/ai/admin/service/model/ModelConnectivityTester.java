@@ -12,20 +12,24 @@ import com.aizuda.snail.ai.persistence.model.mapper.AiModelConfigMapper;
 import com.aizuda.snail.ai.persistence.model.po.AiModelConfigPO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 /**
- * 模型连通性验证服务，支持 Chat / Embedding / Reranker 三种模型类型的最小化测试调用。
+ * 模型连通性测试器（由 ModelTestService 更名而来），支持 Chat / Embedding / Reranker
+ * 三种模型类型的最小化一键测试调用：各类型只发一次最小载荷请求，验证 endpoint、API Key、模型名是否可用。
+ *
+ * <p>测试结果以 {@link ModelTestResultVO}（成功标记 + 消息 + 耗时）返回而非抛异常，
+ * 因为"连不通"对管理端是常态化的诊断结果，不是系统错误。
  *
  * @author opensnail
- * @since 2026-07-01
+ * @since 2026-07-20
  */
 @Slf4j
-@Service
+@Component
 @RequiredArgsConstructor
-public class ModelTestService {
+public class ModelConnectivityTester {
 
     private final AiModelConfigMapper configMapper;
     private final ModelConfigHandler modelConfigHandler;
@@ -89,21 +93,28 @@ public class ModelTestService {
         }
     }
 
+    /** 对话模型探活：发送最短单轮消息，能拿到响应即视为连通 */
     private void testChat(ModelConfigInfoDTO config, String decryptedApiKey) {
         var chatClient = chatClientBuilder.buildChatClient(config, decryptedApiKey);
         chatClient.prompt().user("Hi").call().chatResponse();
     }
 
+    /** 向量模型探活：对最短文本做一次 embedding，成本最低 */
     private void testEmbedding(ModelConfigInfoDTO config, String decryptedApiKey) {
         var embeddingModel = embeddingClientBuilder.buildEmbeddingModel(config, decryptedApiKey);
         embeddingModel.embed("test");
     }
 
+    /** 重排模型探活：单 query 单文档取 top1，构造最小重排请求 */
     private void testRerank(ModelConfigInfoDTO config, String decryptedApiKey) {
         var rerankClient = rerankClientBuilder.buildRerankClient(decryptedApiKey, config);
         rerankClient.rerank("test", List.of("test"), 1);
     }
 
+    /**
+     * 提取最底层异常消息：HTTP 客户端往往把真实原因（如 401、DNS 解析失败）包在多层包装异常里，
+     * 直接展示外层消息对管理员没有诊断价值。
+     */
     private static String extractRootCause(Exception e) {
         Throwable cause = e;
         while (cause.getCause() != null && cause.getCause() != cause) {

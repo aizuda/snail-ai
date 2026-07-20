@@ -35,6 +35,7 @@ import com.aizuda.snail.ai.openapi.client.core.api.OpenApiEmbedClient;
 import com.aizuda.snail.ai.openapi.client.core.config.SnailAiOpenApiProperties;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.validation.annotation.Validated;
@@ -62,6 +63,7 @@ import java.util.stream.Collectors;
  * @author opensnail
  * @since 2026-06-14
  */
+@Slf4j
 @Validated
 @RestController
 @RequiredArgsConstructor
@@ -94,6 +96,7 @@ public class SnailAiChatGatewayController {
     private final SnailAiOpenApiProperties openApiProperties;
     private final List<SnailAiChatCredentialValidator> credentialValidators;
 
+    /** 返回聊天页前端初始化配置（网关路径、标题、Logo、资源地址与嵌入选项），无需登录态 */
     @GetMapping("/config")
     public Result<Map<String, Object>> config() {
         Map<String, Object> config = new LinkedHashMap<>();
@@ -107,15 +110,18 @@ public class SnailAiChatGatewayController {
         return Result.ok(config);
     }
 
+    /** 换取嵌入会话 Token：先经过可插拔的凭证校验器链，再向 OpenAPI 申请带 TTL 的会话令牌 */
     @PostMapping("/session")
     public Result<OpenApiEmbedTokenResponse> session(@RequestBody @Valid OpenApiEmbedTokenRequest request) {
         request.setOpenId(StrUtil.trim(request.getOpenId()));
         request.setTrustedCredential(trimToNull(request.getTrustedCredential()));
         request.setTtlSeconds(chatProperties.getSession().getTokenTtlSeconds());
         validateSessionRequest(request);
+        log.info("嵌入会话 Token 签发, openId={}, ttlSeconds={}", request.getOpenId(), request.getTtlSeconds());
         return openApiEmbedClient.embedToken(request);
     }
 
+    /** 分页查询智能体市场列表，并按当前用户订阅关系回填 subscribed 标记 */
     @SnailAiChatAuthorize
     @GetMapping("/agents")
     public PageResult<List<OpenApiAgentVO>> listAgents(@Valid OpenApiAgentQueryRequest request) {
@@ -218,16 +224,22 @@ public class SnailAiChatGatewayController {
         return openApiConversationClient.getMessages(request);
     }
 
+    /** 流式对话入口：将 OpenAPI 的流事件桥接为 SSE 下发前端，流异常会记录日志并透传给订阅方 */
     @SnailAiChatAuthorize
     @PostMapping(value = "/completions", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<String>> completions(@RequestBody OpenApiChatRequest request) {
         request.setOpenId(currentOpenId());
+        log.info("流式对话开始, agentId={}, conversationId={}, openId={}",
+                request.getAgentId(), request.getConversationId(), request.getOpenId());
         return openApiChatClient.chatStream(request)
                 .map(event -> ServerSentEvent.<String>builder(event.getData())
                         .event(event.getType())
-                        .build());
+                        .build())
+                .doOnError(e -> log.error("流式对话异常, agentId={}, conversationId={}",
+                        request.getAgentId(), request.getConversationId(), e));
     }
 
+    /** 上传对话资源（如图片附件），文件内容读入内存后转发 OpenAPI 落库 */
     @SnailAiChatAuthorize
     @PostMapping(value = "/resource/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public Result<OpenApiResourceResponse> uploadResource(@RequestParam("file") MultipartFile file,
@@ -242,14 +254,18 @@ public class SnailAiChatGatewayController {
         try {
             request.setContent(file.getBytes());
         } catch (IOException e) {
+            log.error("读取上传文件失败, fileName={}, size={}", file.getOriginalFilename(), file.getSize(), e);
             throw new SnailAiException("Failed to read uploaded file", e);
         }
+        log.info("对话资源上传, fileName={}, size={}, bizType={}", file.getOriginalFilename(), file.getSize(), bizType);
         return openApiChatClient.uploadResource(request);
     }
 
+    /** 从会话上下文取当前用户 openId；Token 中缺失说明会话不合法，直接拒绝 */
     private String currentOpenId() {
         String openId = SnailAiChatSessionContext.current().getOpenId();
         if (StrUtil.isBlank(openId)) {
+            log.warn("会话 Token 缺少 openId，拒绝请求");
             throw new SnailAiException("Token 缺少 openId");
         }
         return openId;
@@ -259,6 +275,7 @@ public class SnailAiChatGatewayController {
         return StrUtil.isBlank(value) ? null : value.trim();
     }
 
+    /** 组装 iframe 嵌入模式配置，仅下发显式配置过的开关项，未配置的交由前端默认值 */
     private void putEmbedConfig(Map<String, Object> config, SnailAiChatProperties.Embed embedProperties) {
         if (embedProperties == null) {
             return;
@@ -282,6 +299,7 @@ public class SnailAiChatGatewayController {
         }
     }
 
+    /** 解析资源访问基础地址：优先取显式配置，否则按 OpenAPI 服务端信息推导 */
     private String resolveResourceBaseUrl() {
         String configured = chatProperties.getUi().getResourceBaseUrl();
         if (StrUtil.isNotBlank(configured)) {
@@ -290,6 +308,7 @@ public class SnailAiChatGatewayController {
         return buildOpenApiBaseUrl();
     }
 
+    /** 由 OpenAPI 配置推导基础 URL（协议 + 主机 + 非默认端口 + 前缀） */
     private String buildOpenApiBaseUrl() {
         String host = openApiProperties.getServerHost();
         if (StrUtil.isBlank(host)) {
@@ -325,6 +344,7 @@ public class SnailAiChatGatewayController {
         url.append(prefix);
     }
 
+    /** 依次执行宿主应用注册的凭证校验器；任一校验器抛异常即拒绝签发会话 Token */
     private void validateSessionRequest(OpenApiEmbedTokenRequest request) {
         if (credentialValidators == null || credentialValidators.isEmpty()) {
             return;
@@ -365,6 +385,7 @@ public class SnailAiChatGatewayController {
         return request;
     }
 
+    /** 查询当前用户已订阅的智能体 ID 集合；失败只影响 subscribed 标记展示，降级为空集不阻断列表 */
     private Set<Long> subscribedAgentIds() {
         try {
             List<OpenApiAgentVO> userAgents = requireData(openApiAgentClient.listUserAgents(userQuery()));
@@ -374,7 +395,8 @@ public class SnailAiChatGatewayController {
             return userAgents.stream()
                     .map(OpenApiAgentVO::getId)
                     .collect(Collectors.toSet());
-        } catch (RuntimeException ignored) {
+        } catch (RuntimeException e) {
+            log.warn("查询用户订阅智能体失败，订阅标记降级为空: {}", e.getMessage());
             return Set.of();
         }
     }

@@ -13,12 +13,12 @@
 
 | 文件 | 行数 | 问题 | 建议 |
 |------|------|------|------|
-| `SkillService.java` | 905 | 集 CRUD + zip 解压 / 打包 + 文件入库 + frontmatter 解析 + 重建于一身 | 拆分：`SkillCrudService` / `SkillPackageService`(zip 解压打包) / `SkillFileService`(文件落库) / `SkillMarkdownParser` |
-| `AiModelConfigService.java` | 586 | 模型配置 + 校验 + 加解密 + 连通性测试混杂 | 抽 `ModelConfigValidator` / `ModelCredentialCipher` / `ModelConnectivityTester` |
-| `RagDocumentService.java` | 556 | 文档 CRUD + 上传 + 切块 + 向量化编排 | 抽 pipeline 编排到独立类 |
-| `UserService.java` | 556 | 见 task.md 安全项；同时口令加解密 / JWT / 用户 CRUD 混杂 | 抽 `PasswordEncoder` / `TokenService` 与用户 CRUD 解耦（与 task.md A1 一并做） |
+| ~~`SkillService.java`~~ | ~~965~~ | ✅ 已拆分（2026-07-20）：门面 537 行 + `SkillPackageService`(207) + `SkillFileService`(398) + `SkillMarkdownParser`(114)，public 签名与事务边界不变 | 完成 |
+| ~~`AiModelConfigService.java`~~ | ~~663~~ | ✅ 已拆分（2026-07-20）：门面 367 行 + `ModelConfigValidator`(186) + `ModelCredentialCipher`(76) + `ModelConnectivityTester`(129，由 ModelTestService 更名归并) + `ModelConfigQueryService`(310) | 完成 |
+| ~~`RagDocumentService.java`~~ | ~~752~~ | ✅ 已拆分（2026-07-20）：门面 393 行 + `RagDocumentUploadService`(306) + `RagDocumentProcessOrchestrator`(195) + `RagDocumentAssembler`(125) | 完成 |
+| `UserService.java` | 586 | 见 task.md 安全项；同时口令加解密 / JWT / 用户 CRUD 混杂 | 抽 `PasswordEncoder` / `TokenService` 与用户 CRUD 解耦（**与 task.md A1 安全整改一并做**，避免两次动认证逻辑） |
 | `ClientInstanceManager.java` | 526 | 客户端实例状态管理 | 评估状态机抽取 |
-| `AgentService.java` | 478 | Agent CRUD + 校验 + 装配 | 抽校验 / 装配器 |
+| ~~`AgentService.java`~~ | ~~590~~ | ✅ 已拆分（2026-07-20）：门面 342 行 + `AgentValidator`(88) + `AgentAssembler`(319)，调用方零改动 | 完成 |
 
 > 阈值建议：**单类 > 400 行**、**单方法 > 80 行**触发拆分评审。
 

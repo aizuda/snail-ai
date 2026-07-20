@@ -16,7 +16,7 @@ import com.aizuda.snail.ai.admin.vo.model.ModelTestResultVO;
 import com.aizuda.snail.ai.admin.service.model.AiModelConfigService;
 import com.aizuda.snail.ai.admin.service.model.AiModelProviderService;
 import com.aizuda.snail.ai.admin.service.model.AiModelUsageService;
-import com.aizuda.snail.ai.admin.service.model.ModelTestService;
+import com.aizuda.snail.ai.admin.service.model.ModelConnectivityTester;
 import com.aizuda.snail.ai.persistence.security.UserSessionUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -39,7 +39,7 @@ public class AiModelController {
     private final AiModelConfigService modelConfigService;
     private final AiModelProviderService modelProviderService;
     private final AiModelUsageService modelUsageService;
-    private final ModelTestService modelTestService;
+    private final ModelConnectivityTester modelConnectivityTester;
 
     /**
      * 获取提供商列表（仅启用的）
@@ -294,6 +294,6 @@ public class AiModelController {
     @PostMapping("/config/{id}/test")
     @LoginRequired
     public ModelTestResultVO testModelConfig(@PathVariable("id") Long id) {
-        return modelTestService.testConnection(id);
+        return modelConnectivityTester.testConnection(id);
     }
 }

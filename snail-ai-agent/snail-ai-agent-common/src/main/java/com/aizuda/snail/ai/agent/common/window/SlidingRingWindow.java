@@ -35,10 +35,26 @@ public class SlidingRingWindow<T> {
 
     private static final int DEFAULT_RING_SIZE = 4;
 
+    /**
+     * 以默认环大小（{@value DEFAULT_RING_SIZE}）与独立调度线程池构建窗口
+     *
+     * @param duration       窗口时长，到期自动 flush
+     * @param totalThreshold 数量阈值，窗口内数据量达到后立即 flush
+     * @param listener       flush 回调监听器列表
+     */
     public SlidingRingWindow(Duration duration, Integer totalThreshold, List<Listener<T>> listener) {
         this(DEFAULT_RING_SIZE, duration, totalThreshold, listener, new ScheduledThreadPoolExecutor(3));
     }
 
+    /**
+     * 完整构造：JVM 退出钩子会兜底 flush 所有槽位，避免停机丢数据
+     *
+     * @param ringSize       环形数组大小（可同时存活的窗口数）
+     * @param duration       窗口时长，到期自动 flush
+     * @param totalThreshold 数量阈值，窗口内数据量达到后立即 flush
+     * @param listener       flush 回调监听器列表
+     * @param scheduler      窗口到期调度器（由调用方管理生命周期）
+     */
     public SlidingRingWindow(int ringSize, Duration duration, Integer totalThreshold,
                              List<Listener<T>> listener, ScheduledExecutorService scheduler) {
         this.duration = duration;
@@ -55,6 +71,7 @@ public class SlidingRingWindow<T> {
         }));
     }
 
+    /** 主动关停：flush 所有槽位中未提交的数据（不停止外部传入的调度器） */
     public void shutdown() {
         log.info("Sliding window is about to exit, emitting data in the Window");
         for (int i = 0; i < ringArray.length(); i++) {
@@ -62,6 +79,12 @@ public class SlidingRingWindow<T> {
         }
     }
 
+    /**
+     * 写入一条数据：窗口不存在则创建，已超时则滚动到下一槽位，
+     * 在窗口内则入队并按数量阈值/到期标记触发 flush
+     *
+     * @param data 待写入数据
+     */
     public void add(T data) {
         final long now = System.currentTimeMillis();
 
@@ -103,6 +126,7 @@ public class SlidingRingWindow<T> {
         }
     }
 
+    /** 注册窗口到期任务：到期后标记 emitted 并 flush（下限 100ms 防止负延迟） */
     private void scheduleWindowEmit(Window<T> window, long now) {
         scheduler.schedule(() -> {
             window.setEmitted();
@@ -110,6 +134,7 @@ public class SlidingRingWindow<T> {
         }, Math.max(window.windowTime - now, 100), TimeUnit.MILLISECONDS);
     }
 
+    /** 排空窗口并通知监听器；监听器异常仅记录，不影响窗口滚动与后续数据写入 */
     private void emit(Window<T> window) {
         if (Objects.isNull(window)) {
             return;
@@ -127,6 +152,7 @@ public class SlidingRingWindow<T> {
         }
     }
 
+    /** CAS 抢占槽位创建新窗口；被其它线程抢先时返回 null，由调用方自旋重试 */
     private Window<T> createNewWindow(long sequence, Window<T> oldWindow, long now) {
         final var index = getIndex(sequence);
         Window<T> newWindow = new Window<>(now + duration.toMillis(), ConcurrentLinkedQueue::new);

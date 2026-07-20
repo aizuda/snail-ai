@@ -24,6 +24,9 @@ import com.aizuda.snail.ai.persistence.rag.po.RagDocumentPO;
 
 /**
  * 将 Docling 图片 OCR 文本合并回解析结果，确保分块、向量化和全文搜索前已经包含图片文字。
+ * <p>
+ * 识别顺序：优先复用解析结果中已有的图片文字，其次批量走 PaddleOCR，仍无结果且开启回退时
+ * 逐张调用视觉大模型 OCR（配额/限流耗尽后跳过剩余图片）；最后把 OCR 文本合并进对应元素并重建 Markdown。
  *
  * @author opensnail
  * @since 2026-07-03
@@ -54,6 +57,13 @@ public class DoclingImageOcrApplier {
         this.visionModelConfigResolver = visionModelConfigResolver;
     }
 
+    /**
+     * 对解析结果中的图片执行 OCR 并回写内容
+     *
+     * @param config      知识库配置（决定是否启用图片 OCR 及回退模型）
+     * @param document    文档记录（仅用于日志上下文）
+     * @param parseResult 文档解析结果，OCR 文本合并后其 content/markdownContent 会被重建
+     */
     void apply(RagConfigDO config, RagDocumentPO document, DocumentParseResult parseResult) {
         if (!isImageOcrEnabled(config)) {
             return;
@@ -144,6 +154,7 @@ public class DoclingImageOcrApplier {
                 .build();
     }
 
+    /** 批量提交 PaddleOCR 识别并按 imageIndex 回填结果；返回是否有图片文本发生变更 */
     private boolean applyPaddleBatchOcr(Long documentId, List<ImageOcrRequest> requests,
                                         Map<Integer, DoclingParseResult.DoclingImage> imageByIndex) {
         if (requests.isEmpty()) {
@@ -183,6 +194,7 @@ public class DoclingImageOcrApplier {
         return changed;
     }
 
+    /** 复用解析结果中已有的图片文字（如 Docling 自带 OCR 注解），避免重复识别浪费额度 */
     private String resolveExistingPictureText(DoclingParseResult result, DoclingParseResult.DoclingImage image) {
         List<DoclingParseResult.DoclingElement> elements = result.getElements();
         if (elements == null || elements.isEmpty()) {
@@ -200,6 +212,7 @@ public class DoclingImageOcrApplier {
         return "";
     }
 
+    /** 判断元素文本是否为有效图片文字：排除占位符与"仅等于图注"的情况（那不是 OCR 内容） */
     private boolean isMeaningfulPictureText(String text, String caption) {
         if (StrUtil.isBlank(text) || IMAGE_PLACEHOLDER.equals(text.trim())) {
             return false;
@@ -221,6 +234,7 @@ public class DoclingImageOcrApplier {
         return doclingProperties != null && doclingProperties.isVisionOcrFallbackEnabled();
     }
 
+    /** 解析视觉回退模型：只认模型管理中标记的默认视觉模型，知识库配置的普通对话模型不用于 OCR */
     private Long resolveVisionModelConfigId(RagConfigDO config) {
         if (config != null && config.getModelParams() != null && config.getModelParams().getModelId() != null) {
             log.warn("Docling vision OCR fallback ignores normal chat model config. "
@@ -251,6 +265,7 @@ public class DoclingImageOcrApplier {
                 .count();
     }
 
+    /** 把各图片的 OCR 文本合并到对应 picture 元素；找不到宿主元素的图片追加为独立元素，保证文字进入切块 */
     private void mergeOcrTextIntoElements(DoclingParseResult result) {
         Set<Integer> mergedImageIndexes = new HashSet<>();
         List<DoclingParseResult.DoclingElement> elements = result.getElements();
@@ -281,6 +296,7 @@ public class DoclingImageOcrApplier {
         return false;
     }
 
+    /** 图片与元素的匹配规则：优先按 elementIndex 精确匹配，否则按页码 + 图注/占位符启发式匹配 */
     private boolean isPictureElementForImage(DoclingParseResult.DoclingElement element,
                                              DoclingParseResult.DoclingImage image) {
         if (element == null || !TYPE_PICTURE.equals(element.getType())) {
@@ -300,6 +316,7 @@ public class DoclingImageOcrApplier {
                 || IMAGE_PLACEHOLDER.equals(text.trim());
     }
 
+    /** 合并元素文本与 OCR 文本：占位符先替换为图注，已包含 OCR 内容则不重复拼接 */
     private String mergeText(String elementText, String caption, String ocrText) {
         String baseText = StrUtil.blankToDefault(elementText, "");
         if (IMAGE_PLACEHOLDER.equals(baseText.trim())) {

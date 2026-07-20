@@ -53,7 +53,10 @@ import java.util.List;
 import com.aizuda.snail.ai.agent.common.counter.ActiveChatCounter;
 
 /**
- * Snail-AI Agent 客户端自动配置
+ * Snail-AI Agent 客户端自动配置：装配对话执行链（ChatClient 工厂与各 Advisor）、
+ * 工具解析器（Skill/RAG/基础工具）、服务端回调 RPC 代理，并在容器就绪后启动客户端 gRPC 服务与心跳。
+ * 仅当 {@code snail-ai.enabled=true} 时生效；多数组件以 {@code @ConditionalOnMissingBean}
+ * 暴露，宿主应用可按需替换默认实现。
  *
  * @author opensnail
  * @since 2025-04-08
@@ -133,6 +136,7 @@ public class SnailAiAgentAutoConfiguration {
         return new DefaultToolCallingManagerFactory();
     }
 
+    /** ChatClient 工厂：默认 Advisor 按声明顺序生效（拦截器链 → 用量采集 → 思考采集 → 流分片转发），宿主可通过 ChatClientCustomizer 追加定制 */
     @Bean
     @ConditionalOnMissingBean
     public ChatClientFactory chatClientFactory(ChatModelFactory chatModelFactory,
@@ -158,6 +162,7 @@ public class SnailAiAgentAutoConfiguration {
     @Bean
     public ClientChatExecutor clientChatExecutor(ChatClientFactory chatClientFactory,
                                                  PromptFactory promptFactory) {
+        // 开启 Reactor 上下文自动传播：流式对话跨线程（虚拟线程/调度器切换）时保留 MDC 与会话上下文
         Hooks.enableAutomaticContextPropagation();
         return new ClientChatExecutor(ClientChatExecutor.ClientChatExecutorConfig.builder()
                 .chatClientFactory(chatClientFactory)
@@ -171,6 +176,7 @@ public class SnailAiAgentAutoConfiguration {
         return new GrpcChannelProvider();
     }
 
+    /** 服务端回调客户端：JDK 动态代理将 {@link RpcClient} 接口方法翻译为对服务端的 gRPC 调用（路由取方法上 @Mapping 注解的 path，带重试） */
     @Bean
     @ConditionalOnMissingBean
     public RpcClient serverCallback(
@@ -245,6 +251,10 @@ public class SnailAiAgentAutoConfiguration {
 
     // ==================== 生命周期 ====================
 
+    /**
+     * 容器就绪后启动客户端 gRPC 服务与心跳调度。
+     * gRPC 服务启动失败时仅记录错误并跳过心跳（应用可继续运行，但不会注册到服务端接收分发）。
+     */
     @EventListener(ContextRefreshedEvent.class)
     public void onApplicationReady(ContextRefreshedEvent event) {
         SnailAiAgentProperties props = event.getApplicationContext().getBean(SnailAiAgentProperties.class);
@@ -272,6 +282,7 @@ public class SnailAiAgentAutoConfiguration {
                 props.getAppId(), props.getPort(), props.getServer().getHost(), props.getServer().getPort());
     }
 
+    /** 停机时先停心跳（摘除注册）再关 gRPC 服务，避免服务端继续向已关闭端口分发 */
     @PreDestroy
     public void shutdown() {
         if (heartbeatTask != null) {
