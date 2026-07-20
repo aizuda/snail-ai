@@ -128,17 +128,18 @@ public class ReadSkillTool {
         Files.writeString(skillDir.resolve("SKILL.md"), response.getSkillContent(), StandardCharsets.UTF_8);
 
         // 写入支撑文件
-        if (response.getFiles() != null) {
-            for (SkillContentResponse.SkillFile file : response.getFiles()) {
-                Path filePath = skillDir.resolve(file.getFilePath());
-                Files.createDirectories(filePath.getParent());
+        if (response.getFiles() == null) {
+            return;
+        }
+        for (SkillContentResponse.SkillFile file : response.getFiles()) {
+            Path filePath = skillDir.resolve(file.getFilePath());
+            Files.createDirectories(filePath.getParent());
 
-                if ("base64".equals(file.getEncoding())) {
-                    byte[] decoded = Base64.getDecoder().decode(file.getContent());
-                    Files.write(filePath, decoded);
-                } else {
-                    Files.writeString(filePath, file.getContent(), StandardCharsets.UTF_8);
-                }
+            if ("base64".equals(file.getEncoding())) {
+                byte[] decoded = Base64.getDecoder().decode(file.getContent());
+                Files.write(filePath, decoded);
+            } else {
+                Files.writeString(filePath, file.getContent(), StandardCharsets.UTF_8);
             }
         }
     }

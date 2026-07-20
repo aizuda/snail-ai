@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  *     避免把空值或展示值误写回数据库。</li>
  * </ul>
  *
- * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-07-20
  */
 @Slf4j

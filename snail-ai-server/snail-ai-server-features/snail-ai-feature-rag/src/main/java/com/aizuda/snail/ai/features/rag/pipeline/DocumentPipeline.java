@@ -306,29 +306,30 @@ public class DocumentPipeline {
         }
 
         // Write to search engine (if enabled)
-        if (Boolean.TRUE.equals(knowledge.getSearchEngineEnable())) {
-            try {
-                SearchEngine searchEngine = searchEngineFactory.forStoreInstance(knowledge.getSearchEngineInstanceId());
-                String searchIndexName = IndexNameBuilder.KNOWLEDGE.build(Map.of("ragId", knowledge.getId()));
+        if (!Boolean.TRUE.equals(knowledge.getSearchEngineEnable())) {
+            return;
+        }
+        try {
+            SearchEngine searchEngine = searchEngineFactory.forStoreInstance(knowledge.getSearchEngineInstanceId());
+            String searchIndexName = IndexNameBuilder.KNOWLEDGE.build(Map.of("ragId", knowledge.getId()));
 
-                List<SearchDocument> searchDocs = chunkPOs.stream()
-                        .map(c -> SearchDocument.builder()
-                                .id(String.valueOf(c.getId()))
-                                .content(c.getContent())
-                                .metadata(Map.of(
-                                        SearchMetadataKeys.RAG_ID, knowledge.getId(),
-                                        SearchMetadataKeys.DOCUMENT_ID, c.getDocumentId(),
-                                        SearchMetadataKeys.CHUNK_ID, c.getId()))
-                                .build())
-                        .toList();
-                searchEngine.insert(SearchAddRequest.builder()
-                        .indexName(searchIndexName)
-                        .documents(searchDocs)
-                        .build());
-                log.debug("RAG 搜索引擎写入 {} 个文档 ragId={}", searchDocs.size(), knowledge.getId());
-            } catch (Exception e) {
-                log.warn("SearchEngine insert failed (non-fatal): {}", e.getMessage());
-            }
+            List<SearchDocument> searchDocs = chunkPOs.stream()
+                    .map(c -> SearchDocument.builder()
+                            .id(String.valueOf(c.getId()))
+                            .content(c.getContent())
+                            .metadata(Map.of(
+                                    SearchMetadataKeys.RAG_ID, knowledge.getId(),
+                                    SearchMetadataKeys.DOCUMENT_ID, c.getDocumentId(),
+                                    SearchMetadataKeys.CHUNK_ID, c.getId()))
+                            .build())
+                    .toList();
+            searchEngine.insert(SearchAddRequest.builder()
+                    .indexName(searchIndexName)
+                    .documents(searchDocs)
+                    .build());
+            log.debug("RAG 搜索引擎写入 {} 个文档 ragId={}", searchDocs.size(), knowledge.getId());
+        } catch (Exception e) {
+            log.warn("SearchEngine insert failed (non-fatal): {}", e.getMessage());
         }
     }
 

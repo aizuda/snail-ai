@@ -18,6 +18,7 @@ import java.util.Map;
  * OpenAI 兼容对话模型适配器，基于 Spring AI {@code OpenAiChatModel} 按规格与扩展参数构建对话模型。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-06-14
  */
 @Slf4j

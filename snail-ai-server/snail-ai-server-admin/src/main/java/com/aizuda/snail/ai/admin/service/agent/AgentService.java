@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
  * 参数与关联资源校验委托 {@link AgentValidator}，PO ↔ VO 装配委托 {@link AgentAssembler}。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-06-14
  */
 @Slf4j

@@ -29,6 +29,7 @@ import java.util.List;
  * 提供模型配置CRUD、模型切换、使用统计等API
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-06-14
  */
 @RestController

@@ -92,14 +92,15 @@ public class HttpTool {
                 for (String headerLine : headers.split("\\n")) {
                     String trimmed = headerLine.trim();
                     int colonIdx = trimmed.indexOf(':');
-                    if (colonIdx > 0 && colonIdx < trimmed.length() - 1) {
-                        String key = trimmed.substring(0, colonIdx).trim();
-                        String value = trimmed.substring(colonIdx + 1).trim();
-                        if (HEADER_HOST.equalsIgnoreCase(key)) {
-                            return "Error: 不允许覆盖 Host 请求头";
-                        }
-                        requestBuilder.header(key, value);
+                    if (colonIdx <= 0 || colonIdx >= trimmed.length() - 1) {
+                        continue;
                     }
+                    String key = trimmed.substring(0, colonIdx).trim();
+                    String value = trimmed.substring(colonIdx + 1).trim();
+                    if (HEADER_HOST.equalsIgnoreCase(key)) {
+                        return "Error: 不允许覆盖 Host 请求头";
+                    }
+                    requestBuilder.header(key, value);
                 }
             }
 

@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
  * AI模型使用统计服务
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-04-20
  */
 @Slf4j

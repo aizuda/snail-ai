@@ -27,6 +27,7 @@ import java.util.stream.Collectors;
  * - 智能调用：注入知识库信息到 prompt，由 LLM 通过 tool 决定是否调用
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-06-14
  */
 @Slf4j

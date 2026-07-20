@@ -21,6 +21,7 @@ import java.util.Optional;
  * 模型配置处理器，提供模型配置信息的查询（脱敏）、API Key 解密与按类型获取默认模型。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-06-14
  */
 @Slf4j

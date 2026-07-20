@@ -460,16 +460,17 @@ public class UserService {
             return;
         }
 
-        if (requestVO.getResourceId() != null) {
-            ResourcePO resource = resourceMapper.selectById(requestVO.getResourceId());
-            if (resource == null) {
-                throw new SnailAiCommonException("头像资源不存在");
-            }
-            if (!ResourceBizTypeEnum.AVATAR.getValue().equals(resource.getBizType())) {
-                throw new SnailAiCommonException("请选择头像资源");
-            }
-            userPO.setResourceId(resource.getId());
+        if (requestVO.getResourceId() == null) {
+            return;
         }
+        ResourcePO resource = resourceMapper.selectById(requestVO.getResourceId());
+        if (resource == null) {
+            throw new SnailAiCommonException("头像资源不存在");
+        }
+        if (!ResourceBizTypeEnum.AVATAR.getValue().equals(resource.getBizType())) {
+            throw new SnailAiCommonException("请选择头像资源");
+        }
+        userPO.setResourceId(resource.getId());
     }
 
     /**

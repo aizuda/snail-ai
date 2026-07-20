@@ -19,6 +19,7 @@ import java.util.Map;
  * Qwen 重排模型适配器，通过 HTTP 调用兼容 Qwen/DashScope 的 rerank 接口构建重排客户端。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-06-17
  */
 @Slf4j

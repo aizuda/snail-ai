@@ -4,6 +4,7 @@ package com.aizuda.snail.ai.common.model;
  * 动态模型调用异常
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-05-05
  */
 public class ModelCallException extends RuntimeException {

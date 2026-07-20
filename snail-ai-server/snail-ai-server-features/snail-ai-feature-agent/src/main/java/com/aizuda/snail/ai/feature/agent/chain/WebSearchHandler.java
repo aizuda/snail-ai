@@ -14,6 +14,7 @@ import java.util.List;
  * 由 LLM 在需要时自主决策是否调用。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-06-14
  */
 @Slf4j

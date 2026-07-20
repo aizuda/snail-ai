@@ -25,6 +25,7 @@ import java.util.Set;
  * 任一校验不通过即抛出 {@link SnailAiException} 终止本次对话请求。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-07-07
  */
 @Slf4j

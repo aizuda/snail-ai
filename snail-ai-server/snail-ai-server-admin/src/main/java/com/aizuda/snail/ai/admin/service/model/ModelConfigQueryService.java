@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  * 与写操作分离后门面只承担事务性写编排。查询均为只读操作，不开启事务，与拆分前行为一致。
  * VO 组装（含 API Key 解密回显）收敛在本类的 {@link #convertToVO}，保证所有查询出口的脱敏口径统一。
  *
- * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-07-20
  */
 @Slf4j

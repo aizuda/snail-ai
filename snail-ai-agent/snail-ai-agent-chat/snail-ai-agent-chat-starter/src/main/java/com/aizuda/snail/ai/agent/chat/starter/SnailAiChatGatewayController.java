@@ -61,6 +61,7 @@ import java.util.stream.Collectors;
  * 嵌入式对话网关控制器，对前端暴露配置、会话、智能体、会话记录与流式对话等接口，统一转发至 OpenAPI 客户端。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-06-14
  */
 @Slf4j

@@ -27,7 +27,7 @@ import static com.aizuda.snail.ai.common.constants.SystemConstants.SKILL_MD;
  * 上传 zip 后支撑文件批量入库、文件树构建等文件相关持久化逻辑。事务由门面 {@link SkillService} 的
  * public 方法统一开启，本类不声明事务注解。
  *
- * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-07-20
  */
 @Slf4j

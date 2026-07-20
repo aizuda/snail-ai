@@ -46,6 +46,7 @@ import static com.aizuda.snail.ai.common.constants.SystemConstants.SKILL_MD;
  * SKILL.md 解析与重建委托 {@link SkillMarkdownParser}；事务边界统一由本类 public 方法声明。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-06-14
  */
 @Slf4j
@@ -322,14 +323,15 @@ public class SkillService {
                 new LambdaQueryWrapper<AgentSkillPO>().eq(AgentSkillPO::getAgentId, agentId));
 
         // 再插入新关联
-        if (skillIds != null && !skillIds.isEmpty()) {
-            for (Long skillId : skillIds) {
-                AgentSkillPO relation = AgentSkillPO.builder()
-                        .agentId(agentId)
-                        .skillId(skillId)
-                        .build();
-                agentSkillMapper.insert(relation);
-            }
+        if (skillIds == null || skillIds.isEmpty()) {
+            return;
+        }
+        for (Long skillId : skillIds) {
+            AgentSkillPO relation = AgentSkillPO.builder()
+                    .agentId(agentId)
+                    .skillId(skillId)
+                    .build();
+            agentSkillMapper.insert(relation);
         }
     }
 
@@ -404,25 +406,26 @@ public class SkillService {
         String body = content == null ? "" : content;
 
         SkillPO po = skillMapper.selectById(skillId);
-        if (po != null) {
-            if (SKILL_MD.equals(path) || path.endsWith("/" + SKILL_MD)) {
-                Map<String, Object> frontmatter = skillMarkdownParser.parseFrontmatter(body);
-                if (frontmatter != null && !frontmatter.isEmpty()) {
-                    po.setName((String) frontmatter.getOrDefault("name", po.getName()));
-                    po.setDescription((String) frontmatter.getOrDefault("description", po.getDescription()));
-                }
-                po.setSkillContent(skillMarkdownParser.removeFrontmatter(body));
-            } else {
-                // 非 SKILL.md 文件：保存到数据库
-                skillFileService.upsertContent(skillId, path, body);
-            }
-            // 自增版本号，重新计算文件大小
-            long newVersion = (po.getVersion() != null ? po.getVersion() : 0L) + 1;
-            po.setVersion(newVersion);
-            po.setFileSize(skillFileService.calculateTotalFileSize(po));
-            po.setUpdateDt(LocalDateTime.now());
-            skillMapper.updateById(po);
+        if (po == null) {
+            return;
         }
+        if (SKILL_MD.equals(path) || path.endsWith("/" + SKILL_MD)) {
+            Map<String, Object> frontmatter = skillMarkdownParser.parseFrontmatter(body);
+            if (frontmatter != null && !frontmatter.isEmpty()) {
+                po.setName((String) frontmatter.getOrDefault("name", po.getName()));
+                po.setDescription((String) frontmatter.getOrDefault("description", po.getDescription()));
+            }
+            po.setSkillContent(skillMarkdownParser.removeFrontmatter(body));
+        } else {
+            // 非 SKILL.md 文件：保存到数据库
+            skillFileService.upsertContent(skillId, path, body);
+        }
+        // 自增版本号，重新计算文件大小
+        long newVersion = (po.getVersion() != null ? po.getVersion() : 0L) + 1;
+        po.setVersion(newVersion);
+        po.setFileSize(skillFileService.calculateTotalFileSize(po));
+        po.setUpdateDt(LocalDateTime.now());
+        skillMapper.updateById(po);
     }
 
     /**
@@ -443,16 +446,17 @@ public class SkillService {
 
         // 新建了支撑文件，标记 hasFiles = true 并自增版本号
         SkillPO po = skillMapper.selectById(skillId);
-        if (po != null) {
-            if (!Boolean.TRUE.equals(po.getHasFiles())) {
-                po.setHasFiles(true);
-            }
-            long newVersion = (po.getVersion() != null ? po.getVersion() : 0L) + 1;
-            po.setVersion(newVersion);
-            po.setFileSize(skillFileService.calculateTotalFileSize(po));
-            po.setUpdateDt(LocalDateTime.now());
-            skillMapper.updateById(po);
+        if (po == null) {
+            return;
         }
+        if (!Boolean.TRUE.equals(po.getHasFiles())) {
+            po.setHasFiles(true);
+        }
+        long newVersion = (po.getVersion() != null ? po.getVersion() : 0L) + 1;
+        po.setVersion(newVersion);
+        po.setFileSize(skillFileService.calculateTotalFileSize(po));
+        po.setUpdateDt(LocalDateTime.now());
+        skillMapper.updateById(po);
     }
 
     /**
@@ -473,16 +477,17 @@ public class SkillService {
 
         // 删除后重新判断是否还有支撑文件，并自增版本号
         SkillPO po = skillMapper.selectById(skillId);
-        if (po != null) {
-            // 检查是否还有其他文件
-            long fileCount = skillFileService.countBySkillId(skillId);
-            po.setHasFiles(fileCount > 0);
-            long newVersion = (po.getVersion() != null ? po.getVersion() : 0L) + 1;
-            po.setVersion(newVersion);
-            po.setFileSize(skillFileService.calculateTotalFileSize(po));
-            po.setUpdateDt(LocalDateTime.now());
-            skillMapper.updateById(po);
+        if (po == null) {
+            return;
         }
+        // 检查是否还有其他文件
+        long fileCount = skillFileService.countBySkillId(skillId);
+        po.setHasFiles(fileCount > 0);
+        long newVersion = (po.getVersion() != null ? po.getVersion() : 0L) + 1;
+        po.setVersion(newVersion);
+        po.setFileSize(skillFileService.calculateTotalFileSize(po));
+        po.setUpdateDt(LocalDateTime.now());
+        skillMapper.updateById(po);
     }
 
     /**
@@ -500,13 +505,14 @@ public class SkillService {
 
         // 自增版本号
         SkillPO po = skillMapper.selectById(skillId);
-        if (po != null) {
-            long newVersion = (po.getVersion() != null ? po.getVersion() : 0L) + 1;
-            po.setVersion(newVersion);
-            po.setFileSize(skillFileService.calculateTotalFileSize(po));
-            po.setUpdateDt(LocalDateTime.now());
-            skillMapper.updateById(po);
+        if (po == null) {
+            return;
         }
+        long newVersion = (po.getVersion() != null ? po.getVersion() : 0L) + 1;
+        po.setVersion(newVersion);
+        po.setFileSize(skillFileService.calculateTotalFileSize(po));
+        po.setUpdateDt(LocalDateTime.now());
+        skillMapper.updateById(po);
     }
 
     /**

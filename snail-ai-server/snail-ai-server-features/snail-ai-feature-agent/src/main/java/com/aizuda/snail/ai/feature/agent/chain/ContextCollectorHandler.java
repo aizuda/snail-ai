@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
  * 在系统提示与工具数据就绪后，补充短期历史、长期记忆与目标 Client，供 {@link LlmCallHandler} 组装分发请求。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-06-14
  */
 @Slf4j

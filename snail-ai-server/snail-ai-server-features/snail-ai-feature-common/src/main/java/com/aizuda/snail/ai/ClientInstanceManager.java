@@ -469,12 +469,13 @@ public class ClientInstanceManager {
     }
 
     private void shutdownChannel(ManagedChannel channel) {
-        if (channel != null && !channel.isShutdown()) {
-            try {
-                channel.shutdown();
-            } catch (Exception e) {
-                log.warn("关闭 gRPC Channel 失败", e);
-            }
+        if (channel == null || channel.isShutdown()) {
+            return;
+        }
+        try {
+            channel.shutdown();
+        } catch (Exception e) {
+            log.warn("关闭 gRPC Channel 失败", e);
         }
     }
 

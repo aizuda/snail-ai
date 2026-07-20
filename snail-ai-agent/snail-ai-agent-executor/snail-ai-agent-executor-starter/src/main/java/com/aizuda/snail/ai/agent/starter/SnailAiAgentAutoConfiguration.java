@@ -59,6 +59,7 @@ import com.aizuda.snail.ai.agent.common.counter.ActiveChatCounter;
  * 暴露，宿主应用可按需替换默认实现。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2025-04-08
  */
 @Slf4j
