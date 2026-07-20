@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
  * EmbeddingModel 动态构建器。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-06-14
  */
 @Component

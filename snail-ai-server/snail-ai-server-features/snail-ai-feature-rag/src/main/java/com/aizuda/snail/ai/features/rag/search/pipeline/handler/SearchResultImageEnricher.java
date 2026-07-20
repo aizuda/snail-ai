@@ -26,6 +26,7 @@ import com.aizuda.snail.ai.persistence.rag.po.RagDocumentImagePO;
  * 的匹配度打分排序，每条结果最多保留 {@value #MAX_IMAGES_PER_RESULT} 张图片。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-07-03
  */
 @Slf4j

@@ -33,7 +33,7 @@ import static com.aizuda.snail.ai.common.constants.SystemConstants.SKILL_MD;
  * 临时目录创建与清理、技能目录持久化落盘，以及基于数据库内容将技能打包为 zip 导出。
  * 不承担任何数据库写操作，事务由门面 {@link SkillService} 统一管理。
  *
- * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-07-20
  */
 @Slf4j

@@ -13,7 +13,7 @@ import java.util.Map;
  * SKILL.md 解析器，集中承担 YAML frontmatter 解析、正文提取、元数据（name/description）校验
  * 与 SKILL.md 全文重建等纯解析逻辑，不涉及任何持久化与文件系统操作。
  *
- * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-07-20
  */
 @Slf4j

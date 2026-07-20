@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  * 智能体校验器，集中承担智能体创建/更新/会话操作前的存在性与关联资源校验，
  * 校验失败统一抛出 {@link SnailAiCommonException}，异常文案与原 {@code AgentService} 保持一致。
  *
- * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-07-20
  */
 @Slf4j

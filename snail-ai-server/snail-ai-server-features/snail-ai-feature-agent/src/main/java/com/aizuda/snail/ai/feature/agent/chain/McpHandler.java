@@ -18,6 +18,7 @@ import java.util.Map;
  * MCP 加载：若智能体启用了 MCP，加载绑定的 MCP 服务器列表，并准备远程分发用的 {@link ChatDispatchRequest.McpServerDescriptor}
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-06-14
  */
 @Slf4j

@@ -13,6 +13,7 @@ import java.util.List;
  * 对话模型运行时，按规格的 adapterKey 选择适配器并构建 {@link ChatModel}（含规格校验与异常归一化）。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-06-14
  */
 @Slf4j

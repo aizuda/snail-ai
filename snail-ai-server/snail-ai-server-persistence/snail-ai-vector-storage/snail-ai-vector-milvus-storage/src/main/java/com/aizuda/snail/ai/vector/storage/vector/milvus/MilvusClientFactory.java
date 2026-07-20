@@ -71,13 +71,14 @@ public final class MilvusClientFactory {
     public static void closeClient(MilvusVectorSettings config) {
         String cacheKey = buildCacheKey(config);
         MilvusServiceClient client = CLIENT_CACHE.remove(cacheKey);
-        if (client != null) {
-            try {
-                client.close();
-                log.info("关闭 Milvus 客户端: {}", cacheKey);
-            } catch (Exception e) {
-                log.warn("关闭 Milvus 客户端失败: {}", cacheKey, e);
-            }
+        if (client == null) {
+            return;
+        }
+        try {
+            client.close();
+            log.info("关闭 Milvus 客户端: {}", cacheKey);
+        } catch (Exception e) {
+            log.warn("关闭 Milvus 客户端失败: {}", cacheKey, e);
         }
     }
 

@@ -24,7 +24,7 @@ import org.springframework.stereotype.Component;
  * 集中管理"什么样的模型配置可以增 / 删 / 改 / 切换"的业务规则，便于单独测试与复用。
  * 校验方法自身不开启事务，在调用方事务内执行，保证与拆分前一致的事务边界。
  *
- * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-07-20
  */
 @Slf4j

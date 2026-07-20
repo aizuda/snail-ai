@@ -33,7 +33,7 @@ import static com.aizuda.snail.ai.common.constants.SystemConstants.YYYY_MM_DD_HH
  * 智能体装配器，集中承担 PO ↔ VO 转换与关联信息组装：响应视图装配（含模型名、MCP / Skill 绑定）、
  * 创建/更新请求到持久化对象的字段装配、会话摘要聚合、预设问题规范化等，不承担任何持久化写操作。
  *
- * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-07-20
  */
 @Slf4j

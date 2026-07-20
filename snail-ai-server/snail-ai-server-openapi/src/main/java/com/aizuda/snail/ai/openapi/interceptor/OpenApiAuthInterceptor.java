@@ -25,6 +25,7 @@ import java.util.Objects;
  * 通过后将应用会话写入上下文，请求结束时清理。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-06-14
  */
 @Slf4j

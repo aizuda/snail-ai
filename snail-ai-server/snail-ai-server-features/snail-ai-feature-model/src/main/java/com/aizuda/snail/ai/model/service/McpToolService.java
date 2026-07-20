@@ -249,12 +249,13 @@ public class McpToolService {
      */
     public void clearClientCache(Long serverId) {
         McpSyncClient client = clientCache.remove(serverId);
-        if (client != null) {
-            try {
-                client.closeGracefully();
-            } catch (Exception e) {
-                log.warn("Failed to close MCP client for server: {}", serverId, e);
-            }
+        if (client == null) {
+            return;
+        }
+        try {
+            client.closeGracefully();
+        } catch (Exception e) {
+            log.warn("Failed to close MCP client for server: {}", serverId, e);
         }
     }
 

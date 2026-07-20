@@ -35,7 +35,7 @@ import java.io.ByteArrayInputStream;
  * RAG 文档上传/导入服务，负责文件上传与 URL 导入的编排：导入策略选择、去重判定与决策执行
  * （新增 / 拒绝 / 跳过 / 覆盖）、原始文件落资源库以及文档行入库。
  *
- * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-07-20
  */
 @Slf4j

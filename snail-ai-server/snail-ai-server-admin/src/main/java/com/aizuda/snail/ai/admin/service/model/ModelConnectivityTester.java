@@ -24,6 +24,7 @@ import java.util.List;
  * 因为"连不通"对管理端是常态化的诊断结果，不是系统错误。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-07-20
  */
 @Slf4j

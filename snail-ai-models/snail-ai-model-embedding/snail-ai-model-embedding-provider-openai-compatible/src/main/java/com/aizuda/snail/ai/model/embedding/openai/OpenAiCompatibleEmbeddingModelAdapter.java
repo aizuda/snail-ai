@@ -18,6 +18,7 @@ import java.util.Locale;
  * OpenAI 兼容向量化模型适配器，基于 Spring AI {@code OpenAiEmbeddingModel} 按规格与扩展参数构建向量化模型。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-06-14
  */
 @Slf4j

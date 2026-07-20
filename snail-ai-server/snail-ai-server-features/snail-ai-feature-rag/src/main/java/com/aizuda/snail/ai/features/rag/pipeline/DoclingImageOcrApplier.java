@@ -29,6 +29,7 @@ import com.aizuda.snail.ai.persistence.rag.po.RagDocumentPO;
  * 逐张调用视觉大模型 OCR（配额/限流耗尽后跳过剩余图片）；最后把 OCR 文本合并进对应元素并重建 Markdown。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-07-03
  */
 @Slf4j
@@ -89,17 +90,18 @@ public class DoclingImageOcrApplier {
             if (image == null || StrUtil.isBlank(image.getBase64())) {
                 continue;
             }
-            if (StrUtil.isBlank(image.getOcrText())) {
-                String ocrText = resolveExistingPictureText(doclingResult, image);
-                if (StrUtil.isNotBlank(ocrText)) {
-                    image.setOcrText(ocrText);
-                    changed = true;
-                    continue;
-                }
-                ImageOcrRequest request = buildImageOcrRequest(documentId, image, imageIndex, null);
-                paddleRequests.add(request);
-                paddleImageByIndex.put(imageIndex, image);
+            if (StrUtil.isNotBlank(image.getOcrText())) {
+                continue;
             }
+            String ocrText = resolveExistingPictureText(doclingResult, image);
+            if (StrUtil.isNotBlank(ocrText)) {
+                image.setOcrText(ocrText);
+                changed = true;
+                continue;
+            }
+            ImageOcrRequest request = buildImageOcrRequest(documentId, image, imageIndex, null);
+            paddleRequests.add(request);
+            paddleImageByIndex.put(imageIndex, image);
         }
         changed = applyPaddleBatchOcr(documentId, paddleRequests, paddleImageByIndex) || changed;
 
@@ -111,20 +113,21 @@ public class DoclingImageOcrApplier {
             if (image == null || StrUtil.isBlank(image.getBase64()) || StrUtil.isNotBlank(image.getOcrText())) {
                 continue;
             }
-            if (shouldUseVisionFallback(visionModelConfigId, skipRemainingVisionOcr)) {
-                try {
-                    String ocrText = visionImageOcrHandler.recognize(
-                            buildImageOcrRequest(documentId, image, imageIndex, visionModelConfigId));
-                    if (StrUtil.isNotBlank(ocrText)) {
-                        image.setOcrText(ocrText);
-                        changed = true;
-                    }
-                } catch (DoclingImageOcrQuotaExceededException e) {
-                    skipRemainingVisionOcr = true;
-                    log.warn("Docling vision OCR fallback stopped because model quota or rate limit was reached. "
-                                    + "documentId={} imageIndex={} modelConfigId={}",
-                            documentId, imageIndex, visionModelConfigId);
+            if (!shouldUseVisionFallback(visionModelConfigId, skipRemainingVisionOcr)) {
+                continue;
+            }
+            try {
+                String ocrText = visionImageOcrHandler.recognize(
+                        buildImageOcrRequest(documentId, image, imageIndex, visionModelConfigId));
+                if (StrUtil.isNotBlank(ocrText)) {
+                    image.setOcrText(ocrText);
+                    changed = true;
                 }
+            } catch (DoclingImageOcrQuotaExceededException e) {
+                skipRemainingVisionOcr = true;
+                log.warn("Docling vision OCR fallback stopped because model quota or rate limit was reached. "
+                                + "documentId={} imageIndex={} modelConfigId={}",
+                        documentId, imageIndex, visionModelConfigId);
             }
         }
         log.info("Docling image OCR finished. documentId={} textImages={} totalImages={}",

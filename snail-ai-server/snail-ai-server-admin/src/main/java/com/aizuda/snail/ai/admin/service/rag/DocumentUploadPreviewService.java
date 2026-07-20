@@ -314,13 +314,14 @@ public class DocumentUploadPreviewService {
             return;
         }
         TokenEntry entry = tokenCache.remove(token);
-        if (entry != null && entry.state != null && entry.state.getItems() != null) {
-            for (UploadPreviewItemState item : entry.state.getItems()) {
-                try {
-                    resourceService.delete(item.getTempResourceId());
-                } catch (Exception e) {
-                    log.warn("Failed to delete preview resource: {}", item.getTempResourceId(), e);
-                }
+        if (entry == null || entry.state == null || entry.state.getItems() == null) {
+            return;
+        }
+        for (UploadPreviewItemState item : entry.state.getItems()) {
+            try {
+                resourceService.delete(item.getTempResourceId());
+            } catch (Exception e) {
+                log.warn("Failed to delete preview resource: {}", item.getTempResourceId(), e);
             }
         }
     }

@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
  * 同时提取图片 base64、图注与 OCR 文本。兼容 v2 的 {@code json_content} 结构与旧版 {@code elements} 结构。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-06-30
  */
 @Slf4j
@@ -520,12 +521,13 @@ public class DoclingResponseParser {
         for (int i = 0; i < annotations.size(); i++) {
             JSONObject ann = annotations.getJSONObject(i);
             String text = ann.getStr("text", "");
-            if (StrUtil.isNotBlank(text)) {
-                if (sb.length() > 0) {
-                    sb.append(" ");
-                }
-                sb.append(text.trim());
+            if (StrUtil.isBlank(text)) {
+                continue;
             }
+            if (sb.length() > 0) {
+                sb.append(" ");
+            }
+            sb.append(text.trim());
         }
         return sb.toString();
     }

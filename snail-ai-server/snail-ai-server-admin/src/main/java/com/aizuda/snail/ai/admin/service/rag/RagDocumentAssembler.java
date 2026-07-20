@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
  * RAG 文档视图装配器，集中承担文档 / 切片 / 解析图片的 PO → VO 转换与预览、下载链接组装，
  * 不承担任何持久化写操作。
  *
- * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-07-20
  */
 @Component

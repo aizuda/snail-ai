@@ -39,11 +39,12 @@ public enum BizDbTypeEnum {
     public static BizDbTypeEnum from(Environment environment) {
         for (String property : DATABASE_TYPE_PROPERTIES) {
             String value = environment.getProperty(property);
-            if (value != null) {
-                BizDbTypeEnum dbType = modeOf(value);
-                if (dbType != null) {
-                    return dbType;
-                }
+            if (value == null) {
+                continue;
+            }
+            BizDbTypeEnum dbType = modeOf(value);
+            if (dbType != null) {
+                return dbType;
             }
         }
 

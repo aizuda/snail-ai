@@ -87,11 +87,12 @@ public class ClientMcpToolResolver {
         }
 
         McpSyncClient client = connectMcpServer(desc, transportEnum);
-        if (client != null) {
-            connectedClients.add(client);
-            registerToolCallbacks(client, callbacks);
-            log.info("MCP server connected: name={}, type={}", desc.getName(), transportEnum.getProtocol());
+        if (client == null) {
+            return;
         }
+        connectedClients.add(client);
+        registerToolCallbacks(client, callbacks);
+        log.info("MCP server connected: name={}, type={}", desc.getName(), transportEnum.getProtocol());
     }
 
     private void registerToolCallbacks(McpSyncClient client, List<ToolCallback> callbacks) {

@@ -22,6 +22,7 @@ import java.util.function.Supplier;
  * 支持时间触发和数量触发两种 flush 模式，线程安全，CAS 无锁设计。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  */
 @Slf4j
 public class SlidingRingWindow<T> {

@@ -30,7 +30,7 @@ import java.util.Map;
  * （向量 / 搜索引擎索引 / 资源文件 / 解析图片 / 切片 / 文档行）以及单切片向量化的触发，
  * 解析与双写的具体实现仍由 feature-rag 模块的 {@link DocumentPipeline} 承担。
  *
- * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-07-20
  */
 @Slf4j
@@ -148,12 +148,13 @@ public class RagDocumentProcessOrchestrator {
      */
     public void reEmbedChunk(RagChunkPO chunk) {
         RagPO knowledge = knowledgeMapper.selectById(chunk.getRagId());
-        if (knowledge != null) {
-            try {
-                documentPipeline.reEmbedSingleChunk(chunk, knowledge);
-            } catch (Exception e) {
-                log.warn("编辑切片向量化失败, chunkId={}", chunk.getId(), e);
-            }
+        if (knowledge == null) {
+            return;
+        }
+        try {
+            documentPipeline.reEmbedSingleChunk(chunk, knowledge);
+        } catch (Exception e) {
+            log.warn("编辑切片向量化失败, chunkId={}", chunk.getId(), e);
         }
     }
 
@@ -163,12 +164,13 @@ public class RagDocumentProcessOrchestrator {
      * @param chunk 待删除的切片
      */
     public void deleteChunkVector(RagChunkPO chunk) {
-        if (StrUtil.isNotBlank(chunk.getVectorId())) {
-            try {
-                documentPipeline.deleteChunkVector(chunk);
-            } catch (Exception e) {
-                log.warn("Failed to delete vector for chunk: {}", chunk.getId(), e);
-            }
+        if (StrUtil.isBlank(chunk.getVectorId())) {
+            return;
+        }
+        try {
+            documentPipeline.deleteChunkVector(chunk);
+        } catch (Exception e) {
+            log.warn("Failed to delete vector for chunk: {}", chunk.getId(), e);
         }
     }
 

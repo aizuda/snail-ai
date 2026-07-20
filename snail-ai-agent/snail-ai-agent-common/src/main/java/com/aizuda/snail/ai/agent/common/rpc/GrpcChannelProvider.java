@@ -40,13 +40,14 @@ public class GrpcChannelProvider {
             channel != null ? channel.getState(false) : "null");
 
         // 优雅关闭旧 channel
-        if (oldChannel != null && oldChannel != channel && !oldChannel.isShutdown()) {
-            try {
-                oldChannel.shutdown();
-                log.debug("Old channel shutdown");
-            } catch (Exception e) {
-                log.warn("Failed to shutdown old channel", e);
-            }
+        if (oldChannel == null || oldChannel == channel || oldChannel.isShutdown()) {
+            return;
+        }
+        try {
+            oldChannel.shutdown();
+            log.debug("Old channel shutdown");
+        } catch (Exception e) {
+            log.warn("Failed to shutdown old channel", e);
         }
     }
 

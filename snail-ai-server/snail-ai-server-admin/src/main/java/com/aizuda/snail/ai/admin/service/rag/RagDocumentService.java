@@ -45,6 +45,7 @@ import java.util.stream.Collectors;
  * {@link RagDocumentProcessOrchestrator}，视图转换委托 {@link RagDocumentAssembler}。
  *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-06-14
  */
 @Slf4j
