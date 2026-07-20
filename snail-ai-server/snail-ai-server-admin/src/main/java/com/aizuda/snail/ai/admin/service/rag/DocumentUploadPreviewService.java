@@ -92,6 +92,8 @@ public class DocumentUploadPreviewService {
             throw new SnailAiCommonException("请选择要上传的文件");
         }
         RagPO knowledge = ragDocumentService.requireKnowledgeOrThrow(request.getRagId());
+        log.info("上传预览开始 ragId={} 文件数={}", knowledge.getId(), files.length);
+        long previewStartTime = System.currentTimeMillis();
         DedupStrategy strategy = ragDocumentService.resolveStrategy(request, knowledge);
         DedupAction action = ragDocumentService.resolveAction(request, knowledge);
         DocumentDedupChecker checker = ragDocumentService.getDedupChecker();
@@ -167,7 +169,8 @@ public class DocumentUploadPreviewService {
                 .build();
         tokenCache.put(token, new TokenEntry(state));
 
-        log.info("上传预览生成 ragId={} 文件数={}", knowledge.getId(), stateItems.size());
+        log.info("上传预览生成 ragId={} 文件数={} 耗时={}ms", knowledge.getId(), stateItems.size(),
+                System.currentTimeMillis() - previewStartTime);
         return UploadPreviewResultVO.builder()
                 .previewToken(token)
                 .ragId(knowledge.getId())
