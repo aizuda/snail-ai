@@ -54,6 +54,10 @@ public class DashboardOverviewVO {
         private List<Long> toolCallTrend;
         private List<Long> activeUsersTrend;
         private List<Long> activeAgentsTrend;
+        /** 按日 Prompt Token（对话记录读时聚合） */
+        private List<Long> promptTokenTrend;
+        /** 按日 Completion Token（对话记录读时聚合） */
+        private List<Long> completionTokenTrend;
     }
 
     @Data

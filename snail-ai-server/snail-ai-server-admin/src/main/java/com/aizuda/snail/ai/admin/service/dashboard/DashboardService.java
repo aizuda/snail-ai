@@ -7,6 +7,7 @@ import com.aizuda.snail.ai.admin.vo.model.AiModelUsageStatVO;
 import com.aizuda.snail.ai.admin.vo.model.AiModelUsageStatsQueryVO;
 import com.aizuda.snail.ai.features.rag.enums.RagDocumentStatus;
 import com.aizuda.snail.ai.persistence.agent.mapper.AgentConversationMapper;
+import com.aizuda.snail.ai.persistence.agent.mapper.AgentConversationRecordMapper;
 import com.aizuda.snail.ai.persistence.agent.mapper.AgentMapper;
 import com.aizuda.snail.ai.persistence.agent.mapper.AgentSkillMapper;
 import com.aizuda.snail.ai.persistence.agent.mapper.AgentUsageStatMapper;
@@ -75,6 +76,7 @@ public class DashboardService {
     private final AgentMapper agentMapper;
     private final AgentUsageStatMapper agentUsageStatMapper;
     private final AgentConversationMapper agentConversationMapper;
+    private final AgentConversationRecordMapper agentConversationRecordMapper;
     private final AgentSkillMapper agentSkillMapper;
     private final RagMapper ragMapper;
     private final RagDocumentMapper ragDocumentMapper;
@@ -103,15 +105,18 @@ public class DashboardService {
         // 用量统计一律库侧聚合：总量单行、趋势至多区间天数行、排行至多活跃智能体行
         Map<String, Object> overviewTotals = agentUsageStatMapper.sumOverview(start, end);
         List<Map<String, Object>> dailyTrends = agentUsageStatMapper.aggregateDailyTrends(start, end);
+        List<Map<String, Object>> dailyTokenTrends = agentConversationRecordMapper.aggregateDailyTokenTrends(start, end);
         List<Map<String, Object>> agentTotals = agentUsageStatMapper.aggregateAgentTotals(start, end);
 
         List<DashboardOverviewVO.ModelTokenStat> modelRanking = buildModelRanking();
-        long totalTokens = modelRanking.stream()
-                .mapToLong(DashboardOverviewVO.ModelTokenStat::getTotalTokensUsed).sum();
+        // Token 总量与按日趋势同源（对话记录读时聚合），避免排行过滤条件导致 KPI 与曲线口径不一致
+        long totalTokens = dailyTokenTrends.stream()
+                .mapToLong(row -> numOf(row, "promptTokens") + numOf(row, "completionTokens"))
+                .sum();
 
         DashboardOverviewVO result = DashboardOverviewVO.builder()
                 .overview(buildOverview(overviewTotals, totalTokens))
-                .trends(buildTrends(dailyTrends, start, end))
+                .trends(buildTrends(dailyTrends, dailyTokenTrends, start, end))
                 .modelRanking(modelRanking.stream().limit(RANKING_LIMIT).collect(Collectors.toList()))
                 .agentRanking(buildAgentRanking(agentTotals, agentById))
                 .recentConversations(buildRecentConversations(agentById))
@@ -146,17 +151,28 @@ public class DashboardService {
     /**
      * 构建按日趋势序列。数据库已按日聚合，这里仅按区间逐日补齐缺失日期为 0，保证曲线连续。
      *
-     * @param dailyRows 库侧按日聚合的行（至多为区间天数）
-     * @param start     区间起始日（含）
-     * @param end       区间结束日（含）
-     * @return 会话/消息/工具调用/活跃用户/活跃智能体的按日序列
+     * @param dailyRows      库侧按日聚合的调用行（至多为区间天数）
+     * @param dailyTokenRows 库侧按日聚合的 Token 行（至多为区间天数）
+     * @param start          区间起始日（含）
+     * @param end            区间结束日（含）
+     * @return 会话/消息/工具调用/活跃用户/活跃智能体/Prompt·Completion Token 的按日序列
      */
-    private DashboardOverviewVO.Trends buildTrends(List<Map<String, Object>> dailyRows, LocalDate start, LocalDate end) {
+    private DashboardOverviewVO.Trends buildTrends(List<Map<String, Object>> dailyRows,
+                                                   List<Map<String, Object>> dailyTokenRows,
+                                                   LocalDate start,
+                                                   LocalDate end) {
         Map<LocalDate, Map<String, Object>> byDate = new HashMap<>();
         for (Map<String, Object> row : dailyRows) {
             LocalDate date = dateOf(row, "statDate");
             if (date != null) {
                 byDate.put(date, row);
+            }
+        }
+        Map<LocalDate, Map<String, Object>> tokenByDate = new HashMap<>();
+        for (Map<String, Object> row : dailyTokenRows) {
+            LocalDate date = dateOf(row, "statDate");
+            if (date != null) {
+                tokenByDate.put(date, row);
             }
         }
 
@@ -166,9 +182,12 @@ public class DashboardService {
         List<Long> toolCallTrend = new ArrayList<>();
         List<Long> activeUsersTrend = new ArrayList<>();
         List<Long> activeAgentsTrend = new ArrayList<>();
+        List<Long> promptTokenTrend = new ArrayList<>();
+        List<Long> completionTokenTrend = new ArrayList<>();
 
         for (LocalDate date = start; !date.isAfter(end); date = date.plusDays(1)) {
             Map<String, Object> row = byDate.get(date);
+            Map<String, Object> tokenRow = tokenByDate.get(date);
             dateLabels.add(date.format(ISO_DATE));
             conversationTrend.add(numOf(row, "conversationCount"));
             messageTrend.add(numOf(row, "messageCount"));
@@ -176,6 +195,8 @@ public class DashboardService {
             toolCallTrend.add(0L);
             activeUsersTrend.add(numOf(row, "activeUsers"));
             activeAgentsTrend.add(numOf(row, "activeAgents"));
+            promptTokenTrend.add(numOf(tokenRow, "promptTokens"));
+            completionTokenTrend.add(numOf(tokenRow, "completionTokens"));
         }
 
         return DashboardOverviewVO.Trends.builder()
@@ -185,6 +206,8 @@ public class DashboardService {
                 .toolCallTrend(toolCallTrend)
                 .activeUsersTrend(activeUsersTrend)
                 .activeAgentsTrend(activeAgentsTrend)
+                .promptTokenTrend(promptTokenTrend)
+                .completionTokenTrend(completionTokenTrend)
                 .build();
     }
 
