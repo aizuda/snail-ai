@@ -129,18 +129,24 @@ http://localhost:8900/snail-ai
 curl http://localhost:8900/snail-ai/actuator/health
 ```
 
-OpenAPI 对话示例：
+OpenAPI 对话示例（替换应用凭证后可直接复制执行）：
 
 ```bash
+SNAIL_AI_APP_ID='<your-app-id>'
+SNAIL_AI_TOKEN='<your-app-token>'
+
 curl -N -X POST 'http://localhost:8900/snail-ai/openapi/v1/agent/chat' \
   -H 'Content-Type: application/json' \
-  -H 'Snail-Ai-App-Id: <your-app-id>' \
-  -H 'Snail-Ai-Token: <your-app-token>' \
-  -d '{
-    "agentId": 1,
-    "openId": "external-user-001",
-    "content": "你好"
-  }'
+  -H "Snail-Ai-App-Id: ${SNAIL_AI_APP_ID}" \
+  -H "Snail-Ai-Token: ${SNAIL_AI_TOKEN}" \
+  --data-binary @- <<'JSON'
+{
+  "agentId": 1,
+  "openId": "external-user-001",
+  "conversationId": "conv-abc123",
+  "content": "你好"
+}
+JSON
 ```
 
 ## 下一步

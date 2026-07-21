@@ -66,6 +66,7 @@ curl -N -X POST 'http://localhost:8900/snail-ai/openapi/v1/agent/chat' \
   -d '{
     "agentId": 1,
     "openId": "external-user-001",
+    "conversationId": "conv-abc123",
     "content": "你好，请介绍一下你自己"
   }'
 ```

@@ -24,6 +24,7 @@ import com.aizuda.snail.ai.agent.core.executor.model.ClientChatModelSpecFactory;
 import com.aizuda.snail.ai.agent.core.executor.model.ClientModelConfigValidator;
 import com.aizuda.snail.ai.agent.core.executor.model.DefaultChatModelFactory;
 import com.aizuda.snail.ai.agent.core.grpc.handler.ChatDispatchStreamingHandler;
+import com.aizuda.snail.ai.agent.core.grpc.handler.ClientKickOutRequestHandler;
 import com.aizuda.snail.ai.agent.core.grpc.handler.PingRequestHandler;
 import com.aizuda.snail.ai.agent.core.interceptor.SnailAiInterceptor;
 import com.aizuda.snail.ai.agent.core.interceptor.impl.LoggingInterceptor;
@@ -241,6 +242,11 @@ public class SnailAiAgentAutoConfiguration {
     }
 
     @Bean
+    public ClientKickOutRequestHandler clientKickOutRequestHandler(ClientHeartbeatScheduler heartbeatScheduler) {
+        return new ClientKickOutRequestHandler(heartbeatScheduler);
+    }
+
+    @Bean
     public ChatDispatchStreamingHandler chatDispatchStreamingHandler(ChatSessionRuntime chatSessionRuntime) {
         return new ChatDispatchStreamingHandler(chatSessionRuntime);
     }
@@ -248,6 +254,14 @@ public class SnailAiAgentAutoConfiguration {
     @Bean
     public ClientRequestDispatcher clientRequestDispatcher(GrpcRequestDispatcher grpcRequestDispatcher) {
         return new ClientRequestDispatcher(grpcRequestDispatcher);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public ClientHeartbeatScheduler clientHeartbeatScheduler(SnailAiAgentProperties props,
+                                                             ActiveChatCounter counter,
+                                                             GrpcChannelProvider grpcChannelProvider) {
+        return new ClientHeartbeatScheduler(props, counter, grpcChannelProvider);
     }
 
     // ==================== 生命周期 ====================
@@ -275,8 +289,7 @@ public class SnailAiAgentAutoConfiguration {
         }
 
         // 启动心跳
-        ActiveChatCounter counter = event.getApplicationContext().getBean(ActiveChatCounter.class);
-        heartbeatTask = new ClientHeartbeatScheduler(props, counter, grpcChannelProvider);
+        heartbeatTask = event.getApplicationContext().getBean(ClientHeartbeatScheduler.class);
         heartbeatTask.start();
 
         log.info("Snail-AI Agent started: appId={}, grpcPort={}, server={}:{}",

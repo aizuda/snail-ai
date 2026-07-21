@@ -64,6 +64,8 @@ public class ClientHeartbeatScheduler {
     @Getter
     private ManagedChannel serverChannel;
     private ScheduledExecutorService scheduler;
+    private volatile boolean running;
+    private volatile boolean kickOutPaused;
 
     public ClientHeartbeatScheduler(SnailAiAgentProperties properties,
                                     ActiveChatCounter activeChatCounter,
@@ -75,22 +77,39 @@ public class ClientHeartbeatScheduler {
         this.hostIp = resolveLocalIp();
     }
 
-    public void start() {
+    public synchronized void start() {
+        if (kickOutPaused) {
+            log.warn("Heartbeat start skipped because client has been kicked out");
+            return;
+        }
+        if (running) {
+            return;
+        }
+
         serverChannel = createServerChannel();
 
         // 更新 GrpcChannelProvider
         grpcChannelProvider.updateChannel(serverChannel, buildHeartbeatHeaders());
 
         scheduler = createScheduler();
+        running = true;
         scheduleHeartbeat();
 
         log.info("Heartbeat started: appId={}, server={}:{}",
                 properties.getAppId(),  properties.getServer().getHost(), properties.getServer().getPort());
     }
 
-    public void stop() {
-        shutdownScheduler();
-        shutdownChannel();
+    public synchronized void stop() {
+        stopHeartbeatResources();
+    }
+
+    public synchronized void pauseByKickOut() {
+        if (kickOutPaused) {
+            return;
+        }
+        kickOutPaused = true;
+        stopHeartbeatResources();
+        log.warn("Heartbeat paused after client kick-out: appId={}, hostId={}", properties.getAppId(), hostId);
     }
 
     private ManagedChannel createServerChannel() {
@@ -121,17 +140,30 @@ public class ClientHeartbeatScheduler {
 
     private void shutdownScheduler() {
         if (scheduler != null && !scheduler.isShutdown()) {
-            scheduler.shutdown();
+            scheduler.shutdownNow();
         }
+        scheduler = null;
     }
 
     private void shutdownChannel() {
         if (serverChannel != null && !serverChannel.isShutdown()) {
             serverChannel.shutdown();
         }
+        serverChannel = null;
+    }
+
+    private void stopHeartbeatResources() {
+        running = false;
+        shutdownScheduler();
+        shutdownChannel();
+        grpcChannelProvider.updateChannel(null, Map.of());
     }
 
     private void sendHeartbeat() {
+        if (kickOutPaused || !running) {
+            return;
+        }
+
         try {
             Map<String, String> headers = buildHeartbeatHeaders();
             String body = buildHeartbeatBody();
@@ -151,7 +183,11 @@ public class ClientHeartbeatScheduler {
     /**
      * 尝试重新连接到服务器
      */
-    private void attemptReconnect() {
+    private synchronized void attemptReconnect() {
+        if (kickOutPaused || !running) {
+            return;
+        }
+
         try {
             log.info("Attempting to reconnect to server");
 

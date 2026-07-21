@@ -2,6 +2,7 @@ package com.aizuda.snail.ai.admin.service.app;
 
 import cn.hutool.core.util.ObjUtil;
 import cn.hutool.core.util.StrUtil;
+import com.aizuda.snail.ai.ClientInstanceManager;
 import com.aizuda.snail.ai.common.execption.SnailAiCommonException;
 import com.aizuda.snail.ai.route.RouteStrategyType;
 import com.aizuda.snail.ai.admin.vo.PageResult;
@@ -46,6 +47,7 @@ public class AppService {
 
     private final AppMapper appMapper;
     private final ClientNodeMapper clientNodeMapper;
+    private final ClientInstanceManager clientInstanceManager;
 
     /**
      * 创建应用（appId 重复则报错，自动生成 Token 并默认启用）
@@ -183,6 +185,15 @@ public class AppService {
      * @param hostId 节点主机 ID
      */
     public void kickNode(String appId, String hostId) {
+        ClientNodePO node = clientNodeMapper.selectOne(new LambdaQueryWrapper<ClientNodePO>()
+                .eq(ClientNodePO::getAppId, appId)
+                .eq(ClientNodePO::getHostId, hostId));
+        if (node != null) {
+            clientInstanceManager.kickOutNode(node);
+        } else {
+            clientInstanceManager.kickOutNode(appId, hostId);
+        }
+
         clientNodeMapper.delete(new LambdaQueryWrapper<ClientNodePO>()
                 .eq(ClientNodePO::getAppId, appId)
                 .eq(ClientNodePO::getHostId, hostId));

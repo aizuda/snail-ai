@@ -19,13 +19,13 @@ POST /snail-ai/openapi/v1/agent/chat
 | `agentId`               | `number`   | 是   | 智能体 ID                                       |
 | `openId`                | `string`   | 是   | 外部用户标识（第三方系统的用户 ID）             |
 | `content`               | `string`   | 是   | 用户消息内容                                    |
-| `conversationId`        | `string`   | 否   | 对话 ID，多轮对话时传入以保持上下文             |
+| `conversationId`        | `string`   | 是   | 对话 ID，由调用方生成；同一话题复用以保持上下文 |
 | `disabledMcpServerIds`  | `number[]` | 否   | 本次对话禁用的 MCP 服务 ID 列表                 |
 | `disabledSkillIds`      | `number[]` | 否   | 本次对话禁用的技能 ID 列表                      |
 
 ### curl 示例
 
-**新建对话：**
+**新建对话（生成新的 conversationId）：**
 
 ```bash
 curl -X POST 'http://localhost:8900/snail-ai/openapi/v1/agent/chat' \
@@ -35,12 +35,13 @@ curl -X POST 'http://localhost:8900/snail-ai/openapi/v1/agent/chat' \
   -d '{
     "agentId": 1,
     "openId": "external-user-001",
+    "conversationId": "conv-sales-q3",
     "content": "帮我分析一下上季度的销售数据"
   }' \
   --no-buffer
 ```
 
-**多轮对话（传入 conversationId）：**
+**多轮对话（复用同一 conversationId）：**
 
 ```bash
 curl -X POST 'http://localhost:8900/snail-ai/openapi/v1/agent/chat' \
@@ -50,8 +51,8 @@ curl -X POST 'http://localhost:8900/snail-ai/openapi/v1/agent/chat' \
   -d '{
     "agentId": 1,
     "openId": "external-user-001",
-    "content": "能再详细说明一下华东区域的数据吗？",
-    "conversationId": "conv-abc123"
+    "conversationId": "conv-sales-q3",
+    "content": "能再详细说明一下华东区域的数据吗？"
   }' \
   --no-buffer
 ```
@@ -66,6 +67,7 @@ curl -X POST 'http://localhost:8900/snail-ai/openapi/v1/agent/chat' \
   -d '{
     "agentId": 1,
     "openId": "external-user-001",
+    "conversationId": "conv-weather-001",
     "content": "查询今天的天气",
     "disabledMcpServerIds": [3],
     "disabledSkillIds": [2]
@@ -157,7 +159,7 @@ async function chatWithAgent(agentId, openId, content, conversationId) {
 import requests
 import json
 
-def chat_with_agent(agent_id, open_id, content, conversation_id=None):
+def chat_with_agent(agent_id, open_id, conversation_id, content):
     url = "http://localhost:8900/snail-ai/openapi/v1/agent/chat"
     headers = {
         "Content-Type": "application/json",
@@ -167,10 +169,9 @@ def chat_with_agent(agent_id, open_id, content, conversation_id=None):
     payload = {
         "agentId": agent_id,
         "openId": open_id,
+        "conversationId": conversation_id,
         "content": content
     }
-    if conversation_id:
-        payload["conversationId"] = conversation_id
 
     response = requests.post(url, json=payload, headers=headers, stream=True)
     full_text = ""
@@ -211,9 +212,9 @@ def chat_with_agent(agent_id, open_id, content, conversation_id=None):
 
 ## conversationId 说明
 
-- **首次对话**：不传 `conversationId`，服务端会自动创建新对话并在后续响应中返回
-- **多轮对话**：传入已有的 `conversationId`，智能体会基于历史上下文继续对话
-- **新话题**：需要开始新话题时，不传或传入新的 `conversationId`
+- **首次对话**：由调用方生成新的 `conversationId`，例如按业务会话 ID、UUID 或雪花 ID 生成
+- **多轮对话**：复用已有的 `conversationId`，智能体会基于历史上下文继续对话
+- **新话题**：生成新的 `conversationId`，避免不同话题共享上下文
 
 ---
 
@@ -234,7 +235,7 @@ def chat_with_agent(agent_id, open_id, content, conversation_id=None):
 ```json
 {
   "code": 0,
-  "msg": "agentId 和 content 为必填参数",
+  "msg": "agentId、openId、conversationId 和 content 为必填参数",
   "data": null
 }
 ```

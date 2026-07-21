@@ -40,6 +40,7 @@ snail-ai:
 ```java
 SnailAiOpenApi.chat(agentId)
     .openId("user-001")
+    .conversationId("conv-abc-123")
     .content("帮我分析一下最新的销售数据")
     .listener(new SseEventListener() {
         @Override
@@ -74,7 +75,7 @@ SnailAiOpenApi.chat(agentId)
 ```java
 SnailAiOpenApi.chat(agentId)           // 指定智能体 ID
     .openId("user-001")                // 用户标识
-    .conversationId("conv-abc-123")    // 会话 ID（可选，不传则新建会话）
+    .conversationId("conv-abc-123")    // 会话 ID（必填，调用方生成或复用）
     .content("你好，请帮我分析数据")      // 用户消息内容
     .disabledMcpServerIds(ids)         // 禁用指定 MCP Server（可选）
     .disabledSkillIds(ids)             // 禁用指定技能（可选）
@@ -88,7 +89,7 @@ SnailAiOpenApi.chat(agentId)           // 指定智能体 ID
 |------|----------|------|------|
 | `chat(agentId)` | `Long` | 是 | 静态工厂方法，指定要对话的智能体 ID |
 | `openId(openId)` | `String` | 是 | 用户标识，用于关联用户身份和对话上下文 |
-| `conversationId(id)` | `String` | 否 | 会话 ID。传入已有 ID 继续对话，不传则自动创建新会话 |
+| `conversationId(id)` | `String` | 是 | 会话 ID。生成新 ID 开始新对话，复用已有 ID 继续对话 |
 | `content(content)` | `String` | 是 | 用户消息的文本内容 |
 | `disabledMcpServerIds(ids)` | `List<Long>` | 否 | 本次请求中禁用的 MCP Server ID 列表 |
 | `disabledSkillIds(ids)` | `List<Long>` | 否 | 本次请求中禁用的技能 ID 列表 |
@@ -312,6 +313,7 @@ graph TB
 // 场景：在内网安全环境中，禁用所有外部访问相关的工具
 SnailAiOpenApi.chat(agentId)
     .openId("user-001")
+    .conversationId("conv-internal-customer")
     .content("分析内部数据库中的客户信息")
     .disabledMcpServerIds(List.of(
         101L,  // 外部搜索 MCP Server
@@ -332,16 +334,17 @@ SnailAiOpenApi.chat(agentId)
 通过传入 `conversationId` 实现多轮对话的上下文延续：
 
 ```java
-// 第一轮对话（不传 conversationId，自动创建新会话）
-String conversationId = null;
+// 第一轮对话（生成新的 conversationId）
+String conversationId = "conv-order-weekly";
 
 SnailAiOpenApi.chat(agentId)
     .openId("user-001")
+    .conversationId(conversationId)
     .content("帮我查看最近一周的订单数据")
     .listener(new SseEventListener() {
         @Override
         public void onComplete() {
-            // 从响应中获取 conversationId，用于后续对话
+            // 后续对话复用同一个 conversationId
         }
         // ... 其他回调
     })

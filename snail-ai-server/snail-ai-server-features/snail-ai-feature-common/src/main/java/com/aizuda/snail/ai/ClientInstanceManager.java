@@ -1,12 +1,16 @@
 package com.aizuda.snail.ai;
 
 import cn.hutool.core.collection.CollUtil;
+import com.aizuda.snail.ai.common.grpc.auto.GrpcSnailAiResult;
+import com.aizuda.snail.ai.common.grpc.client.GrpcChannelUtil;
+import com.aizuda.snail.ai.common.grpc.constant.UriConstants;
 import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.aizuda.snail.ai.persistence.app.mapper.AppMapper;
 import com.aizuda.snail.ai.persistence.app.mapper.ClientNodeMapper;
 import com.aizuda.snail.ai.persistence.app.po.AppPO;
 import com.aizuda.snail.ai.persistence.app.po.ClientNodePO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import io.grpc.CallOptions;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import lombok.Data;
@@ -67,6 +71,15 @@ public class ClientInstanceManager {
     /** 应用状态：启用 */
     private static final int APP_STATUS_ENABLED = 1;
 
+    /** gRPC 调用成功状态 */
+    private static final int GRPC_STATUS_SUCCESS = 1;
+
+    /** 踢出客户端超时时间（秒） */
+    private static final int KICK_OUT_TIMEOUT_SECONDS = 3;
+
+    /** 空 gRPC 请求体 */
+    private static final String EMPTY_GRPC_BODY = "";
+
     // gRPC Channel 参数
     private static final int GRPC_KEEP_ALIVE_TIME_SECONDS = 30;
     private static final int GRPC_KEEP_ALIVE_TIMEOUT_SECONDS = 10;
@@ -86,6 +99,9 @@ public class ClientInstanceManager {
     /** 心跳注册队列：接收心跳数据，定时批量刷盘到 DB */
     private final LinkedBlockingDeque<ClientRegistration> registerQueue = new LinkedBlockingDeque<>(REGISTER_QUEUE_CAPACITY);
 
+    /** 已被本服务端踢出的实例 key，避免心跳或 DB 预热重新注册 */
+    private final Set<String> kickedOutInstances = ConcurrentHashMap.newKeySet();
+
     // ==================== 心跳注册（写入路径） ====================
 
     /**
@@ -96,6 +112,10 @@ public class ClientInstanceManager {
      */
     public void registerOrUpdate(ClientRegistration registration) {
         String key = buildInstanceKey(registration.getAppId(), registration.getHostId());
+        if (kickedOutInstances.contains(key)) {
+            log.warn("忽略已踢出客户端心跳: appId={}, hostId={}", registration.getAppId(), registration.getHostId());
+            return;
+        }
 
         liveInstances.compute(key, (k, existing) -> {
             if (existing == null) {
@@ -187,6 +207,9 @@ public class ClientInstanceManager {
      */
     private void registerFromDb(ClientNodePO node) {
         String key = buildInstanceKey(node.getAppId(), node.getHostId());
+        if (kickedOutInstances.contains(key)) {
+            return;
+        }
 
         liveInstances.compute(key, (k, existing) -> {
             if (existing != null && existing.getSource() == InstanceSource.LOCAL) {
@@ -250,7 +273,13 @@ public class ClientInstanceManager {
         // 按 (appId, hostId) 去重，保留最新的
         Map<String, ClientRegistration> deduped = new LinkedHashMap<>();
         for (ClientRegistration reg : batch) {
-            deduped.put(buildInstanceKey(reg.getAppId(), reg.getHostId()), reg);
+            String key = buildInstanceKey(reg.getAppId(), reg.getHostId());
+            if (!kickedOutInstances.contains(key)) {
+                deduped.put(key, reg);
+            }
+        }
+        if (deduped.isEmpty()) {
+            return;
         }
 
         List<ClientNodePO> nodes = deduped.values().stream()
@@ -436,6 +465,44 @@ public class ClientInstanceManager {
     // ==================== 实例移除 ====================
 
     /**
+     * 踢出客户端实例：通知客户端暂停心跳，并立即从本服务端路由视图中剔除。
+     *
+     * @param node 客户端注册节点
+     */
+    public void kickOutNode(ClientNodePO node) {
+        if (node == null) {
+            return;
+        }
+
+        String appId = node.getAppId();
+        String hostId = node.getHostId();
+        String key = buildInstanceKey(appId, hostId);
+
+        kickedOutInstances.add(key);
+        clearPendingRegistrations(appId, hostId);
+
+        ClientInstanceInfo removed = liveInstances.remove(key);
+        ManagedChannel channel = resolveKickOutChannel(node, removed);
+        try {
+            sendKickOutRequest(appId, hostId, channel);
+        } finally {
+            shutdownChannel(channel);
+        }
+
+        log.info("客户端实例已从路由缓存剔除: appId={}, hostId={}", appId, hostId);
+    }
+
+    /**
+     * 踢出不存在 DB 行的客户端实例，保持接口幂等。
+     */
+    public void kickOutNode(String appId, String hostId) {
+        String key = buildInstanceKey(appId, hostId);
+        kickedOutInstances.add(key);
+        clearPendingRegistrations(appId, hostId);
+        removeInstance(appId, hostId);
+    }
+
+    /**
      * 主动移除实例
      */
     public void removeInstance(String appId, String hostId) {
@@ -443,6 +510,42 @@ public class ClientInstanceManager {
         ClientInstanceInfo removed = liveInstances.remove(key);
         if (removed != null) {
             shutdownChannel(removed.getChannel());
+        }
+    }
+
+    private void clearPendingRegistrations(String appId, String hostId) {
+        String key = buildInstanceKey(appId, hostId);
+        registerQueue.removeIf(reg -> key.equals(buildInstanceKey(reg.getAppId(), reg.getHostId())));
+    }
+
+    private ManagedChannel resolveKickOutChannel(ClientNodePO node, ClientInstanceInfo cached) {
+        if (cached != null && cached.getChannel() != null && !cached.getChannel().isShutdown()) {
+            return cached.getChannel();
+        }
+        if (node.getHostIp() == null || node.getGrpcPort() == null) {
+            return null;
+        }
+        return createChannel(node.getHostIp(), node.getGrpcPort());
+    }
+
+    private void sendKickOutRequest(String appId, String hostId, ManagedChannel channel) {
+        if (channel == null) {
+            log.warn("跳过客户端踢出通知，缺少可用 gRPC Channel: appId={}, hostId={}", appId, hostId);
+            return;
+        }
+        try {
+            GrpcSnailAiResult result = GrpcChannelUtil.sendUnary(
+                    channel,
+                    UriConstants.CLIENT_KICK_OUT,
+                    EMPTY_GRPC_BODY,
+                    Map.of(),
+                    CallOptions.DEFAULT.withDeadlineAfter(KICK_OUT_TIMEOUT_SECONDS, TimeUnit.SECONDS));
+            if (result.getStatus() != GRPC_STATUS_SUCCESS) {
+                log.warn("客户端踢出通知返回失败: appId={}, hostId={}, status={}, message={}",
+                        appId, hostId, result.getStatus(), result.getMessage());
+            }
+        } catch (Exception e) {
+            log.warn("调用客户端踢出接口失败，将继续强制清理: appId={}, hostId={}", appId, hostId, e);
         }
     }
 

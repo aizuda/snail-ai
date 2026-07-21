@@ -20,4 +20,5 @@ public interface UriConstants {
     // Server → Client
     String CHAT_DISPATCH = "/chat/dispatch";
     String PING = "/ping";
+    String CLIENT_KICK_OUT = "/client/kick-out";
 }
