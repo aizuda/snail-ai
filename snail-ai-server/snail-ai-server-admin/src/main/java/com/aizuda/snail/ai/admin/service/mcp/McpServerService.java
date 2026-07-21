@@ -6,6 +6,7 @@ import com.aizuda.snail.ai.common.constants.McpDefaults;
 import com.aizuda.snail.ai.common.enums.mcp.McpTransportTypeEnum;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.common.util.JsonUtil;
+import com.aizuda.snail.ai.model.service.McpToolService;
 import com.aizuda.snail.ai.persistence.agent.mapper.AgentMcpServerMapper;
 import com.aizuda.snail.ai.persistence.mcp.mapper.McpServerMapper;
 import com.aizuda.snail.ai.admin.vo.PageResult;
@@ -62,6 +63,7 @@ public class McpServerService {
 
     private final McpServerMapper mcpServerMapper;
     private final AgentMcpServerMapper agentMcpServerMapper;
+    private final McpToolService mcpToolService;
 
     /**
      * 分页查询 MCP 服务
@@ -182,6 +184,7 @@ public class McpServerService {
         }
 
         mcpServerMapper.updateById(po);
+        mcpToolService.clearClientCache(id);
         log.info("更新 MCP 服务成功 id={} name={}", id, po.getName());
         return toResponseVO(po);
     }
@@ -199,6 +202,7 @@ public class McpServerService {
             throw new SnailAiException("该MCP服务仍被" + cnt + "个智能体使用，无法删除");
         }
         mcpServerMapper.deleteById(id);
+        mcpToolService.clearClientCache(id);
         log.info("删除 MCP 服务成功 id={}", id);
     }
 
