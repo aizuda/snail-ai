@@ -29,6 +29,33 @@ http://localhost:5100/docs
 curl http://localhost:5100/health
 ```
 
+## Docker 启动
+
+也可以直接使用本仓库提供的 Docker Compose 启动 Docling API：
+
+```bash
+docker compose -f docs/docker/docker-compose.yaml up -d --build docling-api
+```
+
+默认端口仍为 `5100`，Docling 模型目录挂载到 Compose 命名卷 `docling-models`。如果希望容器启动时自动下载 PDF/OCR 模型：
+
+```bash
+DOCLING_DOWNLOAD_MODELS=true docker compose -f docs/docker/docker-compose.yaml up -d docling-api
+```
+
+网络需要使用 HuggingFace 镜像时：
+
+```bash
+DOCLING_DOWNLOAD_MODELS=true DOCLING_HF_ENDPOINT=https://hf-mirror.com docker compose -f docs/docker/docker-compose.yaml up -d docling-api
+```
+
+单独构建镜像：
+
+```bash
+docker build -t snail-ai/docling-api:latest tools/docling-api/server
+docker run --rm -p 5100:5100 -v docling-models:/models/docling snail-ai/docling-api:latest
+```
+
 ## 新机器安装
 
 ### 在线机器
@@ -153,6 +180,8 @@ tools/docling-api/
 ├── start-docling-api.bat       # 启动 Docling API
 ├── README.md
 └── server/
+    ├── Dockerfile              # Docker 镜像构建文件
+    ├── docker-entrypoint.sh    # Docker 启动入口
     ├── main.py                 # FastAPI 服务
     ├── requirements.txt        # Python 依赖
     ├── API.md                  # 业务系统对接文档

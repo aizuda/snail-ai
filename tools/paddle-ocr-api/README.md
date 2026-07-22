@@ -37,6 +37,32 @@ PADDLE_OCR_TEXTLINE_ORIENTATION_BATCH_SIZE=8
 
 Use `server\start-background-gpu.bat` for GPU background startup. It opens a minimized Python console for the OCR service; keep that window running while Snail AI parses documents. The original `server\install.bat` and `start.bat` remain the CPU-compatible path.
 
+## Docker 启动
+
+也可以直接使用本仓库提供的 Docker Compose 启动 PaddleOCR API：
+
+```bash
+docker compose -f docs/docker/docker-compose.yaml up -d --build paddle-ocr-api
+```
+
+默认端口仍为 `8866`，模型缓存会保存在 Compose 命名卷中。单独构建镜像：
+
+```bash
+docker build -t snail-ai/paddle-ocr-api:latest tools/paddle-ocr-api/server
+docker run --rm -p 8866:8866 snail-ai/paddle-ocr-api:latest
+```
+
+如果需要构建 GPU 版镜像，可在构建时切换 PaddlePaddle 包源，并在运行时设置 `PADDLE_OCR_DEVICE=gpu:0`：
+
+```bash
+docker build \
+  --build-arg PADDLEPADDLE_PACKAGE=paddlepaddle-gpu \
+  --build-arg PADDLEPADDLE_INDEX=https://www.paddlepaddle.org.cn/packages/stable/cu126/ \
+  --build-arg PADDLEPADDLE_VERSION=3.2.2 \
+  -t snail-ai/paddle-ocr-api:gpu \
+  tools/paddle-ocr-api/server
+```
+
 ## 快速开始
 
 ### 1. 安装依赖
@@ -117,11 +143,14 @@ snail-ai:
 ```text
 tools/paddle-ocr-api/
 ├── start.bat
+├── start-gpu.bat
 ├── README.md
 └── server/
+    ├── Dockerfile
     ├── main.py
     ├── requirements.txt
     ├── install.bat
+    ├── install-gpu.bat
     ├── start-background.bat
     └── API.md
 ```

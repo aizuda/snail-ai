@@ -10,6 +10,9 @@ volumes:
     milvus: { }
     mysql: { }
     pgvector: { }
+    docling-models: { }
+    paddle-ocr-cache: { }
+    paddle-paddlex-cache: { }
 
 services:
     snail-ai:
@@ -23,6 +26,8 @@ services:
             SPRING_DATASOURCE_USERNAME: root
             SPRING_DATASOURCE_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
             SNAIL_AI_SKILL_UPLOAD_DIR: /snailai/server/upload/skills
+            SNAIL_AI_RAG_DOCLING_URL: ${SNAIL_AI_RAG_DOCLING_URL:-http://docling-api:5100}
+            SNAIL_AI_RAG_DOCLING_PADDLE_OCR_URL: ${SNAIL_AI_RAG_DOCLING_PADDLE_OCR_URL:-http://paddle-ocr-api:8866/ocr}
         ports:
             - "8900:8900"
             - "18888:18888"
@@ -32,6 +37,61 @@ services:
         depends_on:
             mysql:
                 condition: service_healthy
+
+    docling-api:
+        build:
+            context: ../../tools/docling-api/server
+            dockerfile: Dockerfile
+            args:
+                DEBIAN_MIRROR: ${DEBIAN_MIRROR:-https://mirrors.aliyun.com}
+                PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
+        image: snail-ai/docling-api:latest
+        restart: unless-stopped
+        environment:
+            TZ: Asia/Shanghai
+            DOCLING_HOST: 0.0.0.0
+            DOCLING_PORT: 5100
+            DOCLING_TASK_TTL: ${DOCLING_TASK_TTL:-3600}
+            DOCLING_MAX_CONCURRENCY: ${DOCLING_MAX_CONCURRENCY:-3}
+            DOCLING_MODEL_DIR: /models/docling
+            DOCLING_DOWNLOAD_MODELS: ${DOCLING_DOWNLOAD_MODELS:-false}
+            DOCLING_API_KEY: ${DOCLING_API_KEY:-}
+            HF_ENDPOINT: ${DOCLING_HF_ENDPOINT:-https://huggingface.co}
+        ports:
+            - "${DOCLING_PORT:-5100}:5100"
+        volumes:
+            - docling-models:/models/docling
+
+    paddle-ocr-api:
+        build:
+            context: ../../tools/paddle-ocr-api/server
+            dockerfile: Dockerfile
+            args:
+                DEBIAN_MIRROR: ${DEBIAN_MIRROR:-https://mirrors.aliyun.com}
+                PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
+                PADDLEPADDLE_VERSION: ${PADDLEPADDLE_VERSION:-3.2.2}
+                PADDLEPADDLE_PACKAGE: ${PADDLEPADDLE_PACKAGE:-paddlepaddle}
+                PADDLEPADDLE_INDEX: ${PADDLEPADDLE_INDEX:-https://www.paddlepaddle.org.cn/packages/stable/cpu/}
+        image: snail-ai/paddle-ocr-api:latest
+        restart: unless-stopped
+        environment:
+            TZ: Asia/Shanghai
+            PADDLE_OCR_HOST: 0.0.0.0
+            PADDLE_OCR_PORT: 8866
+            PADDLE_OCR_LANG: ${PADDLE_OCR_LANG:-ch}
+            PADDLE_OCR_DEVICE: ${PADDLE_OCR_DEVICE:-cpu}
+            PADDLE_OCR_USE_TEXTLINE_ORIENTATION: ${PADDLE_OCR_USE_TEXTLINE_ORIENTATION:-true}
+            PADDLE_OCR_TEXT_RECOGNITION_BATCH_SIZE: ${PADDLE_OCR_TEXT_RECOGNITION_BATCH_SIZE:-}
+            PADDLE_OCR_TEXTLINE_ORIENTATION_BATCH_SIZE: ${PADDLE_OCR_TEXTLINE_ORIENTATION_BATCH_SIZE:-}
+            PADDLE_OCR_API_KEY: ${PADDLE_OCR_API_KEY:-}
+            PADDLE_OCR_MAX_IMAGE_MB: ${PADDLE_OCR_MAX_IMAGE_MB:-20}
+            PADDLE_OCR_MAX_CONCURRENCY: ${PADDLE_OCR_MAX_CONCURRENCY:-1}
+            PADDLE_OCR_QUEUE_TIMEOUT_SECONDS: ${PADDLE_OCR_QUEUE_TIMEOUT_SECONDS:-300}
+        ports:
+            - "${PADDLE_OCR_PORT:-8866}:8866"
+        volumes:
+            - paddle-ocr-cache:/root/.paddleocr
+            - paddle-paddlex-cache:/root/.paddlex
 
     elasticsearch:
         build:

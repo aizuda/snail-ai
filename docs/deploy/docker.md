@@ -1,6 +1,6 @@
 # Docker 部署
 
-本文介绍仓库当前提供的 Docker Compose 脚本。0.0.6 版本中，Docker 与 SQL 脚本已经从 `docs/` 移到根目录 `script/`；当前 Compose 文件主要用于启动 Snail AI 依赖组件。
+本文介绍仓库当前提供的 Docker Compose 脚本。当前 Compose 文件可启动 Snail AI Server、基础依赖组件和 RAG 工具服务。
 
 ## 当前支持状态
 
@@ -10,7 +10,9 @@
 | MinIO | 已提供 Compose 服务 | `docs/docker/docker-compose.yaml` |
 | Milvus | 已提供 Compose 服务 | `docs/docker/docker-compose.yaml` |
 | PgVector | 已提供 Compose 服务 | `docs/docker/docker-compose.yaml` |
-| Snail AI Server 镜像 | 当前 Compose 未包含 | 使用 Maven/JAR 或自行扩展 Compose |
+| Docling API | 已提供 Compose 服务 | `docs/docker/docker-compose.yaml` |
+| PaddleOCR API | 已提供 Compose 服务 | `docs/docker/docker-compose.yaml` |
+| Snail AI Server 镜像 | 已提供 Compose 服务 | `docs/docker/docker-compose.yaml` |
 | MySQL 初始化脚本 | 已提供 | `docs/sql/snail_ai_schema.sql` |
 | PostgreSQL 初始化脚本 | 已提供 | `docs/sql/snail_ai_schema_pgsql.sql` |
 
@@ -21,7 +23,7 @@
 | Docker | 20.10+ | 容器运行时 |
 | Docker Compose | v2.0+ | 推荐使用 `docker compose` V2 命令 |
 
-## 启动依赖组件
+## 启动 Compose 服务
 
 在仓库根目录执行：
 
@@ -40,10 +42,26 @@ docker compose up -d
 
 | 服务 | 端口 | 说明 |
 |------|------|------|
+| Snail AI Server | `8900`、`18888` | 后端 HTTP 与 Agent Client gRPC |
+| MySQL | `13306 -> 3306` | 默认业务库 |
 | Elasticsearch | `9200`、`9300` | 向量/检索存储可选项 |
 | MinIO | `9000`、`9001` | 对象存储 |
 | Milvus | `19530`、`9091` | 向量数据库 |
 | PgVector | `15432 -> 5432` | PostgreSQL + pgvector 镜像 |
+| Docling API | `5100` | 文档转换 REST 服务 |
+| PaddleOCR API | `8866` | 图片 OCR REST 服务 |
+
+如果只启动 RAG 工具服务：
+
+```bash
+docker compose -f docs/docker/docker-compose.yaml up -d --build docling-api paddle-ocr-api
+```
+
+Docling 首次需要下载 PDF/OCR 模型时：
+
+```bash
+DOCLING_DOWNLOAD_MODELS=true docker compose -f docs/docker/docker-compose.yaml up -d docling-api
+```
 
 ## 初始化数据库
 
@@ -61,7 +79,7 @@ psql -U postgres -d snail_ai -f docs/sql/snail_ai_schema_pgsql.sql
 
 ## 启动 Snail AI Server
 
-当前仓库 Compose 文件不直接包含 Snail AI Server 容器。可先用 Maven 在本机启动：
+Compose 文件已包含 Snail AI Server 镜像。也可在本机用 Maven 启动：
 
 ```bash
 mvn spring-boot:run -pl snail-ai-starter

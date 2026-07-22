@@ -22,7 +22,7 @@ spring:
   datasource:
     name: snail_ai
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://192.168.242.120:3306/snail_ai?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&useUnicode=true
+    url: jdbc:mysql://localhost:3306/snail_ai?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&useUnicode=true
     username: root
     password: 123456
 # 支持pgsql配置
@@ -60,7 +60,7 @@ snail-ai:
     storage-type: LOCAL
     upload-dir: ./upload/resource
     minio:
-      endpoint: http://192.168.242.120:9000
+      endpoint: http://localhost:9000
       access-key: minioadmin
       secret-key: minioadmin
       bucket: snail-ai
