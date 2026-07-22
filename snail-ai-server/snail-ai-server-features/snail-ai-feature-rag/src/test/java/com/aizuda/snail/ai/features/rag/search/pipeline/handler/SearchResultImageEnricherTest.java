@@ -7,6 +7,9 @@ import com.aizuda.snail.ai.common.dto.rag.SearchResult;
 import com.aizuda.snail.ai.persistence.rag.mapper.RagDocumentImageMapper;
 import com.aizuda.snail.ai.persistence.rag.po.RagDocumentImagePO;
 import org.junit.jupiter.api.Test;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -43,6 +46,14 @@ class SearchResultImageEnricherTest {
         assertEquals("DIRECT_MATCH", result.getImages().get(0).getMatchType());
         assertEquals("ocrText", result.getImages().get(0).getMatchedFields().get(0));
         assertEquals("OCR 命中：" + CERTIFICATE_NO, result.getImages().get(0).getMatchReason());
+    }
+
+    @Test
+    void springContextCreatesEnricherWithDependencyConstructor() {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext(
+                SpringConstructorTestConfig.class, SearchResultImageEnricher.class)) {
+            assertNotNull(context.getBean(SearchResultImageEnricher.class));
+        }
     }
 
     @Test
@@ -188,7 +199,7 @@ class SearchResultImageEnricherTest {
         assertEquals(List.of(), result.getImages().get(0).getMatchedFields());
     }
 
-    private RagDocumentImageMapper mapperReturning(List<RagDocumentImagePO> images) {
+    private static RagDocumentImageMapper mapperReturning(List<RagDocumentImagePO> images) {
         return (RagDocumentImageMapper) Proxy.newProxyInstance(
                 RagDocumentImageMapper.class.getClassLoader(),
                 new Class[]{RagDocumentImageMapper.class},
@@ -198,5 +209,19 @@ class SearchResultImageEnricherTest {
                     }
                     return null;
                 });
+    }
+
+    @Configuration
+    static class SpringConstructorTestConfig {
+
+        @Bean
+        RagDocumentImageMapper ragDocumentImageMapper() {
+            return mapperReturning(List.of());
+        }
+
+        @Bean
+        ImageEvidenceMatcher imageEvidenceMatcher() {
+            return new ImageEvidenceMatcher();
+        }
     }
 }

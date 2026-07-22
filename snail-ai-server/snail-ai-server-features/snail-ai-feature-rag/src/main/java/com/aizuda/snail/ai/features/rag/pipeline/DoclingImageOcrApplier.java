@@ -45,17 +45,20 @@ public class DoclingImageOcrApplier {
     private final ImageOcrHandler paddleImageOcrHandler;
     private final ImageOcrHandler visionImageOcrHandler;
     private final VisionModelConfigResolver visionModelConfigResolver;
+    private final ImageOcrQualityEvaluator imageOcrQualityEvaluator;
 
     public DoclingImageOcrApplier(DoclingResponseParser responseParser,
                                   DoclingProperties doclingProperties,
                                   @Qualifier("paddleImageOcrHandler") ImageOcrHandler paddleImageOcrHandler,
                                   @Qualifier("doclingImageOcrService") ImageOcrHandler visionImageOcrHandler,
-                                  VisionModelConfigResolver visionModelConfigResolver) {
+                                  VisionModelConfigResolver visionModelConfigResolver,
+                                  ImageOcrQualityEvaluator imageOcrQualityEvaluator) {
         this.responseParser = responseParser;
         this.doclingProperties = doclingProperties;
         this.paddleImageOcrHandler = paddleImageOcrHandler;
         this.visionImageOcrHandler = visionImageOcrHandler;
         this.visionModelConfigResolver = visionModelConfigResolver;
+        this.imageOcrQualityEvaluator = imageOcrQualityEvaluator;
     }
 
     /**
@@ -132,7 +135,7 @@ public class DoclingImageOcrApplier {
         }
         log.info("Docling image OCR finished. documentId={} textImages={} totalImages={}",
                 documentId, countImagesWithOcrText(images), images.size());
-        if (!changed && !hasOcrText(images)) {
+        if (!hasIndexableOcrText(images)) {
             return;
         }
         mergeOcrTextIntoElements(doclingResult);
@@ -259,6 +262,15 @@ public class DoclingImageOcrApplier {
         return false;
     }
 
+    private boolean hasIndexableOcrText(List<DoclingParseResult.DoclingImage> images) {
+        for (DoclingParseResult.DoclingImage image : images) {
+            if (image != null && isIndexableOcrText(image.getOcrText())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private long countImagesWithOcrText(List<DoclingParseResult.DoclingImage> images) {
         if (images == null || images.isEmpty()) {
             return 0;
@@ -276,7 +288,7 @@ public class DoclingImageOcrApplier {
         if (elements != null) {
             for (int imageIndex = 0; imageIndex < images.size(); imageIndex++) {
                 DoclingParseResult.DoclingImage image = images.get(imageIndex);
-                if (image == null || StrUtil.isBlank(image.getOcrText())) {
+                if (image == null || !isIndexableOcrText(image.getOcrText())) {
                     continue;
                 }
                 if (mergeOcrTextIntoExistingElement(elements, image)) {
@@ -346,7 +358,7 @@ public class DoclingImageOcrApplier {
                 continue;
             }
             DoclingParseResult.DoclingImage image = images.get(imageIndex);
-            if (image == null || StrUtil.isBlank(image.getOcrText())) {
+            if (image == null || !isIndexableOcrText(image.getOcrText())) {
                 continue;
             }
             elements.add(DoclingParseResult.DoclingElement.builder()
@@ -379,5 +391,9 @@ public class DoclingImageOcrApplier {
             }
         }
         return nextIndex;
+    }
+
+    private boolean isIndexableOcrText(String ocrText) {
+        return imageOcrQualityEvaluator == null || imageOcrQualityEvaluator.isIndexable(ocrText);
     }
 }

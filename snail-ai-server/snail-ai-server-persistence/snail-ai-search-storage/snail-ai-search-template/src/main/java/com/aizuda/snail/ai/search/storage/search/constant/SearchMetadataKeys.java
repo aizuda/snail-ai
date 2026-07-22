@@ -16,6 +16,7 @@ public final class SearchMetadataKeys {
     public static final String RAG_ID = "ragId";
     public static final String DOCUMENT_ID = "documentId";
     public static final String CHUNK_ID = "chunkId";
+    public static final String SOURCE_TYPE = "sourceType";
 
     // 记忆相关
     public static final String MEMORY_ID = "memoryId";

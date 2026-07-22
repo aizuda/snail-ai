@@ -29,23 +29,34 @@ public class DocumentImageChunkMatcher {
             return null;
         }
         String caption = StrUtil.trimToEmpty(image.getCaption());
+        String figureTitle = StrUtil.trimToEmpty(image.getFigureTitle());
+        String sectionTitle = StrUtil.trimToEmpty(image.getSectionTitle());
         String ocrText = StrUtil.trimToEmpty(image.getOcrText());
-        if (StrUtil.isBlank(caption) && StrUtil.isBlank(ocrText)) {
+        if (StrUtil.isBlank(caption)
+                && StrUtil.isBlank(figureTitle)
+                && StrUtil.isBlank(sectionTitle)
+                && StrUtil.isBlank(ocrText)) {
             return null;
         }
         for (RagChunkPO chunk : chunks) {
             if (chunk == null || StrUtil.isBlank(chunk.getContent())) {
                 continue;
             }
-            if (matches(chunk.getContent(), caption, ocrText)) {
+            if (matches(chunk.getContent(), caption, figureTitle, sectionTitle, ocrText)) {
                 return chunk.getId();
             }
         }
         return null;
     }
 
-    private boolean matches(String content, String caption, String ocrText) {
+    private boolean matches(String content, String caption, String figureTitle, String sectionTitle, String ocrText) {
         if (isMeaningfulCaption(caption) && content.contains(caption)) {
+            return true;
+        }
+        if (isMeaningfulText(figureTitle, MIN_CAPTION_BODY_LENGTH) && content.contains(figureTitle)) {
+            return true;
+        }
+        if (isMeaningfulText(sectionTitle, MIN_CAPTION_BODY_LENGTH) && content.contains(sectionTitle)) {
             return true;
         }
         return isMeaningfulOcrText(ocrText) && content.contains(ocrText);
@@ -61,6 +72,10 @@ public class DocumentImageChunkMatcher {
 
     private boolean isMeaningfulOcrText(String ocrText) {
         return normalizedLength(ocrText) >= MIN_OCR_MATCH_LENGTH;
+    }
+
+    private boolean isMeaningfulText(String text, int minLength) {
+        return normalizedLength(text) >= minLength;
     }
 
     private int normalizedLength(String text) {

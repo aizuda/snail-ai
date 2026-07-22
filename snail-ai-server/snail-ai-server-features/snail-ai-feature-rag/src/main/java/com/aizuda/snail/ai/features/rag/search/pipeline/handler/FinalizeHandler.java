@@ -3,6 +3,7 @@ package com.aizuda.snail.ai.features.rag.search.pipeline.handler;
 import cn.hutool.core.collection.CollUtil;
 import com.aizuda.snail.ai.common.dto.rag.SearchResult;
 import com.aizuda.snail.ai.common.util.RagResultReorderUtil;
+import com.aizuda.snail.ai.features.rag.enums.RagChunkSourceTypeEnum;
 import com.aizuda.snail.ai.features.rag.search.pipeline.RagSearchContext;
 import com.aizuda.snail.ai.features.rag.search.pipeline.RagSearchHandler;
 import com.aizuda.snail.ai.persistence.rag.mapper.RagChunkMapper;
@@ -74,6 +75,10 @@ public class FinalizeHandler implements RagSearchHandler {
             }
             RagChunkPO currentChunk = ragChunkMapper.selectById(result.getChunkId());
             if (currentChunk == null) {
+                expanded.add(result);
+                continue;
+            }
+            if (RagChunkSourceTypeEnum.isImage(currentChunk.getSourceType())) {
                 expanded.add(result);
                 continue;
             }

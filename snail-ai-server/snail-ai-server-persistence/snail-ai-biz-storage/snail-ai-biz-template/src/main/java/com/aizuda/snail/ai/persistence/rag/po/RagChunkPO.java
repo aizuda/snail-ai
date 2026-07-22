@@ -28,6 +28,8 @@ import java.time.LocalDateTime;
 @Builder
 public class RagChunkPO {
 
+    private static final String DEFAULT_SOURCE_TYPE = "TEXT";
+
     /**
      * Chunk ID (主键)
      * 自增主键，全局唯一
@@ -90,6 +92,12 @@ public class RagChunkPO {
      * 用于 Chunk 级去重: 同一 RAG 内相同内容的 chunk 共享向量
      */
     private String contentHash;
+
+    /**
+     * Chunk 来源类型：TEXT / IMAGE。
+     */
+    @Builder.Default
+    private String sourceType = DEFAULT_SOURCE_TYPE;
 
     /**
      * 创建时间

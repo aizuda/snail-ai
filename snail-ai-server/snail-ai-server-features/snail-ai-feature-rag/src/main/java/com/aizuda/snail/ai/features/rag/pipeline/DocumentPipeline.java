@@ -9,6 +9,7 @@ import com.aizuda.snail.ai.features.rag.dto.ChunkDTO;
 import com.aizuda.snail.ai.features.rag.docling.DoclingParseResult;
 import com.aizuda.snail.ai.features.rag.docling.DoclingProperties;
 import com.aizuda.snail.ai.features.rag.enums.DocumentParseEngineEnum;
+import com.aizuda.snail.ai.features.rag.enums.RagChunkSourceTypeEnum;
 import com.aizuda.snail.ai.features.rag.enums.RagDocumentStatus;
 import com.aizuda.snail.ai.features.rag.strategy.parser.DocumentParseRequest;
 import com.aizuda.snail.ai.features.rag.strategy.parser.DocumentParseResult;
@@ -74,6 +75,7 @@ public class DocumentPipeline {
     private final DoclingProperties doclingProperties;
     private final DoclingImageOcrApplier doclingImageOcrApplier;
     private final DocumentImageChunkMatcher documentImageChunkMatcher;
+    private final DocumentImageKnowledgeChunkBuilder documentImageKnowledgeChunkBuilder;
 
     /**
      * 处理指定文档：抢占 PENDING 状态后解析、分块、双写并更新为最终状态（失败时记录错误）
@@ -131,8 +133,10 @@ public class DocumentPipeline {
                         .content(chunk.getContent())
                         .tokenCount(chunk.getTokenCount())
                         .contentHash(ContentHashUtil.sha256Hex(chunk.getContent()))
+                        .sourceType(RagChunkSourceTypeEnum.TEXT.getValue())
                         .build());
             }
+            chunkPOs.addAll(buildImageKnowledgeChunks(config, knowledge, document, parseResult, chunkPOs.size()));
 
             ragChunkMapper.insert(chunkPOs);
             // ── Dual write: VectorStore + SearchEngine ──
@@ -320,7 +324,8 @@ public class DocumentPipeline {
                             .metadata(Map.of(
                                     SearchMetadataKeys.RAG_ID, knowledge.getId(),
                                     SearchMetadataKeys.DOCUMENT_ID, c.getDocumentId(),
-                                    SearchMetadataKeys.CHUNK_ID, c.getId()))
+                                    SearchMetadataKeys.CHUNK_ID, c.getId(),
+                                    SearchMetadataKeys.SOURCE_TYPE, resolveChunkSourceType(c)))
                             .build())
                     .toList();
             searchEngine.insert(SearchAddRequest.builder()
@@ -366,7 +371,8 @@ public class DocumentPipeline {
                     .metadata(Map.of(
                             "ragId", knowledge.getId(),
                             "documentId", chunk.getDocumentId(),
-                            "chunkId", chunk.getId()))
+                            "chunkId", chunk.getId(),
+                            "sourceType", resolveChunkSourceType(chunk)))
                     .build());
         }
 
@@ -498,6 +504,22 @@ public class DocumentPipeline {
         }
     }
 
+    private List<RagChunkPO> buildImageKnowledgeChunks(RagConfigDO config, RagPO knowledge, RagDocumentPO document,
+                                                       DocumentParseResult parseResult, int startChunkIndex) {
+        if (!shouldSaveImages(config)
+                || parseResult == null
+                || parseResult.getDoclingResult() == null) {
+            return List.of();
+        }
+        return documentImageKnowledgeChunkBuilder.build(ImageKnowledgeChunkBuildRequest.builder()
+                .ragId(knowledge.getId())
+                .documentId(document.getId())
+                .documentName(document.getName())
+                .startChunkIndex(startChunkIndex)
+                .images(parseResult.getDoclingResult().getImages())
+                .build());
+    }
+
     private byte[] decodeDoclingImage(RagDocumentPO document, DoclingParseResult.DoclingImage image, int imageIndex) {
         try {
             return Base64.getMimeDecoder().decode(image.getBase64());
@@ -613,6 +635,13 @@ public class DocumentPipeline {
         update.setStatus(status.getStatus());
         update.setErrorMsg(errorMsg);
         ragDocumentMapper.updateById(update);
+    }
+
+    private String resolveChunkSourceType(RagChunkPO chunk) {
+        if (chunk == null || StrUtil.isBlank(chunk.getSourceType())) {
+            return RagChunkSourceTypeEnum.TEXT.getValue();
+        }
+        return chunk.getSourceType();
     }
 
 }

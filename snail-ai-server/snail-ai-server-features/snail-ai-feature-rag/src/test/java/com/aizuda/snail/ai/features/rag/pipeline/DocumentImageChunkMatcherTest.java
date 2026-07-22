@@ -61,4 +61,20 @@ class DocumentImageChunkMatcherTest {
 
         assertNull(chunkId);
     }
+
+    @Test
+    void matchReturnsChunkIdWhenImageChunkContainsFigureTitle() {
+        DoclingParseResult.DoclingImage image = DoclingParseResult.DoclingImage.builder()
+                .figureTitle("系统架构图")
+                .sectionTitle("总体设计")
+                .build();
+        List<RagChunkPO> chunks = List.of(RagChunkPO.builder()
+                .id(12L)
+                .content("图片知识\n图标题：系统架构图\n章节：总体设计")
+                .build());
+
+        Long chunkId = matcher.matchChunkId(image, chunks);
+
+        assertEquals(12L, chunkId);
+    }
 }

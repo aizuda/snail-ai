@@ -28,7 +28,8 @@ class DoclingImageOcrApplierTest {
                 properties,
                 request -> "diagram text",
                 request -> "",
-                () -> null);
+                () -> null,
+                new ImageOcrQualityEvaluator());
         DoclingParseResult doclingResult = DoclingParseResult.builder()
                 .success(true)
                 .build();
@@ -66,7 +67,8 @@ class DoclingImageOcrApplierTest {
                 properties,
                 request -> "scanned page text",
                 request -> "",
-                () -> null);
+                () -> null,
+                new ImageOcrQualityEvaluator());
         DoclingParseResult doclingResult = DoclingParseResult.builder()
                 .success(true)
                 .build();
@@ -95,7 +97,8 @@ class DoclingImageOcrApplierTest {
                 properties,
                 request -> "null elements image text",
                 request -> "",
-                () -> null);
+                () -> null,
+                new ImageOcrQualityEvaluator());
         DoclingParseResult doclingResult = DoclingParseResult.builder()
                 .success(true)
                 .elements(null)
@@ -118,6 +121,68 @@ class DoclingImageOcrApplierTest {
     }
 
     @Test
+    void applyKeepsLowQualityOcrOnImageButDoesNotMergeIntoChunkContent() {
+        DoclingProperties properties = new DoclingProperties();
+        properties.setPaddleOcrEnabled(true);
+        String noisyOcrText = "@@@\n1\n2\n-\n///";
+        DoclingImageOcrApplier applier = new DoclingImageOcrApplier(
+                new DoclingResponseParser(),
+                properties,
+                request -> noisyOcrText,
+                request -> "",
+                () -> null,
+                new ImageOcrQualityEvaluator());
+        DoclingParseResult doclingResult = DoclingParseResult.builder()
+                .success(true)
+                .build();
+        doclingResult.getImages().add(DoclingParseResult.DoclingImage.builder()
+                .base64("aW1hZ2U=")
+                .page(2)
+                .build());
+        DocumentParseResult parseResult = DocumentParseResult.builder()
+                .content("body")
+                .markdownContent("body")
+                .doclingResult(doclingResult)
+                .build();
+
+        applier.apply(imageOcrConfig(), RagDocumentPO.builder().id(10L).build(), parseResult);
+
+        assertEquals(noisyOcrText, doclingResult.getImages().get(0).getOcrText());
+        assertFalse(parseResult.getContent().contains(noisyOcrText));
+    }
+
+    @Test
+    void applyMergesReadableOcrIntoChunkContent() {
+        DoclingProperties properties = new DoclingProperties();
+        properties.setPaddleOcrEnabled(true);
+        String readableOcrText = "系统整体架构包含服务层、向量库和大模型调用链路。";
+        DoclingImageOcrApplier applier = new DoclingImageOcrApplier(
+                new DoclingResponseParser(),
+                properties,
+                request -> readableOcrText,
+                request -> "",
+                () -> null,
+                new ImageOcrQualityEvaluator());
+        DoclingParseResult doclingResult = DoclingParseResult.builder()
+                .success(true)
+                .build();
+        doclingResult.getImages().add(DoclingParseResult.DoclingImage.builder()
+                .base64("aW1hZ2U=")
+                .page(2)
+                .build());
+        DocumentParseResult parseResult = DocumentParseResult.builder()
+                .content("body")
+                .markdownContent("body")
+                .doclingResult(doclingResult)
+                .build();
+
+        applier.apply(imageOcrConfig(), RagDocumentPO.builder().id(10L).build(), parseResult);
+
+        assertEquals(readableOcrText, doclingResult.getImages().get(0).getOcrText());
+        assertTrue(parseResult.getContent().contains(readableOcrText));
+    }
+
+    @Test
     void applyDoesNotReuseFirstPictureTextForMultipleUncaptionedImagesOnSamePage() {
         AtomicInteger paddleCallCount = new AtomicInteger();
         DoclingProperties properties = new DoclingProperties();
@@ -127,7 +192,8 @@ class DoclingImageOcrApplierTest {
                 properties,
                 request -> "image-" + paddleCallCount.incrementAndGet() + "-text",
                 request -> "",
-                () -> null);
+                () -> null,
+                new ImageOcrQualityEvaluator());
         DoclingParseResult doclingResult = DoclingParseResult.builder()
                 .success(true)
                 .build();
@@ -192,7 +258,8 @@ class DoclingImageOcrApplierTest {
                 properties,
                 paddleHandler,
                 request -> "",
-                () -> null);
+                () -> null,
+                new ImageOcrQualityEvaluator());
         DoclingParseResult doclingResult = DoclingParseResult.builder()
                 .success(true)
                 .build();
@@ -232,7 +299,8 @@ class DoclingImageOcrApplierTest {
                     return "should not call";
                 },
                 request -> "",
-                () -> null);
+                () -> null,
+                new ImageOcrQualityEvaluator());
         DoclingParseResult doclingResult = DoclingParseResult.builder()
                 .success(true)
                 .build();
@@ -275,7 +343,8 @@ class DoclingImageOcrApplierTest {
                     return "should not call";
                 },
                 request -> "",
-                () -> null);
+                () -> null,
+                new ImageOcrQualityEvaluator());
         DoclingParseResult doclingResult = DoclingParseResult.builder()
                 .success(true)
                 .build();
@@ -308,7 +377,8 @@ class DoclingImageOcrApplierTest {
                     usedModelConfigId.set(request.getModelConfigId());
                     return "vision fallback text";
                 },
-                () -> ModelConfigInfoDTO.builder().id(88L).build());
+                () -> ModelConfigInfoDTO.builder().id(88L).build(),
+                new ImageOcrQualityEvaluator());
         DoclingParseResult doclingResult = DoclingParseResult.builder()
                 .success(true)
                 .build();

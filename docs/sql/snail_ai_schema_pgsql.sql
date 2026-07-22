@@ -512,11 +512,13 @@ CREATE TABLE sai_rag_chunk
     token_count INT,
     vector_id VARCHAR(128),
     content_hash VARCHAR(64) DEFAULT NULL,
+    source_type VARCHAR(20) NOT NULL DEFAULT 'TEXT',
     create_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 COMMENT ON COLUMN sai_rag_chunk.content_hash IS 'chunk内容SHA-256，用于向量去重';
+COMMENT ON COLUMN sai_rag_chunk.source_type IS 'chunk来源类型：TEXT文本、IMAGE图片';
 
 CREATE TRIGGER trigger_sai_rag_chunk_update
     BEFORE UPDATE ON sai_rag_chunk
@@ -526,6 +528,7 @@ CREATE TRIGGER trigger_sai_rag_chunk_update
 CREATE INDEX idx_rag_chunk_rag ON sai_rag_chunk (rag_id);
 CREATE INDEX idx_rag_chunk_document ON sai_rag_chunk (document_id);
 CREATE INDEX idx_chunk_rag_hash ON sai_rag_chunk (rag_id, content_hash);
+CREATE INDEX idx_chunk_rag_source_type ON sai_rag_chunk (rag_id, source_type);
 
 -- ============================================================
 -- 五、MCP 服务管理
