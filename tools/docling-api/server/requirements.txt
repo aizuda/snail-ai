@@ -1,3 +1,6 @@
 fastapi>=0.115.0
 uvicorn[standard]>=0.30.0
 python-multipart>=0.0.9
+docling>=2.108.0
+onnxruntime>=1.23.0,<2.0.0
+rapidocr>=3.9.0

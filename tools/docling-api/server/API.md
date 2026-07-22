@@ -48,6 +48,32 @@
 
 ---
 
+## PDF / OCR 注意事项
+
+DOCX/PPTX/XLSX 等 Office 文件通常只读取文档结构；PDF 会额外加载 Docling 的 PDF 版面识别、表格识别和 OCR 模型。扫描件 PDF 或图片型 PDF 必须启用 OCR，普通 PDF 也可能在版面分析阶段触发模型加载。
+
+服务端已将 Docling OCR 固定为 RapidOCR `onnxruntime` 后端，运行环境必须安装：
+
+```bat
+python -m pip install -r requirements.txt
+```
+
+其中至少包含：
+
+```txt
+docling
+rapidocr
+onnxruntime
+```
+
+如果 PDF 报 `Unsupported configuration: torch.PP-OCRv6.det.small`，说明当前进程没有加载到 `onnxruntime`，Docling 自动回退到了 RapidOCR `torch` 后端。安装依赖后需要重启 Docling API。
+
+如果 PDF 报 HuggingFace 连接超时或模型缓存不存在，说明 Docling PDF 布局/表格/OCR 模型尚未下载。联网环境下在 `tools\docling-api` 目录执行 `setup-docling-api-env.bat` 下载依赖和模型；脚本默认直连 HuggingFace，失败后会自动尝试 `https://hf-mirror.com`，也可以通过 `DOCLING_HF_ENDPOINT` 指定内网镜像。离线环境需要先在已成功解析 PDF 的机器上打包 `%USERPROFILE%\.cache\docling\models`，再解压到目标机器相同路径。
+
+服务启动脚本会设置 `DOCLING_MODEL_DIR=%USERPROFILE%\.cache\docling\models`，服务端会将该目录传给 Docling 的 `artifacts_path`，避免转换时再次访问 HuggingFace。
+
+---
+
 ## 响应示例
 
 ### Markdown (`to=md`, 默认)

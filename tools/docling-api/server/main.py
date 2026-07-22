@@ -28,7 +28,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from docling.document_converter import DocumentConverter, PdfFormatOption
 from docling.datamodel.base_models import InputFormat
-from docling.datamodel.pipeline_options import PdfPipelineOptions
+from docling.datamodel.pipeline_options import PdfPipelineOptions, RapidOcrOptions
 from docling.exceptions import ConversionError
 from docling_core.types.doc.base import ImageRefMode
 
@@ -46,6 +46,10 @@ DEFAULT_HOST = os.environ.get("DOCLING_HOST", "0.0.0.0")
 DEFAULT_PORT = int(os.environ.get("DOCLING_PORT", "5100"))
 TASK_TTL_SECONDS = int(os.environ.get("DOCLING_TASK_TTL", "3600"))
 MAX_CONCURRENT_CONVERTS = int(os.environ.get("DOCLING_MAX_CONCURRENCY", "3"))
+DOCLING_MODEL_DIR = Path(os.environ.get("DOCLING_MODEL_DIR", str(Path.home() / ".cache" / "docling" / "models")))
+DOCLING_OCR_BACKEND = "onnxruntime"
+DOCLING_OCR_LANG = ["chinese"]
+DEFAULT_IMAGE_EXPORT_MODE = "embedded"
 
 app = FastAPI(title="Docling API", version="2.1")
 
@@ -65,14 +69,35 @@ _tasks: Dict[str, dict] = {}
 _tasks_lock = threading.Lock()
 
 
-def _build_pipeline_options(do_ocr: bool, do_table_structure: bool) -> PdfPipelineOptions:
+def _resolve_image_ref_mode(image_export_mode: Optional[str]) -> ImageRefMode:
+    normalized = (image_export_mode or DEFAULT_IMAGE_EXPORT_MODE).strip().lower()
+    if normalized == ImageRefMode.PLACEHOLDER.value:
+        return ImageRefMode.PLACEHOLDER
+    if normalized == ImageRefMode.REFERENCED.value:
+        return ImageRefMode.REFERENCED
+    return ImageRefMode.EMBEDDED
+
+
+def _build_pipeline_options(
+    do_ocr: bool,
+    do_table_structure: bool,
+    image_export_mode: Optional[str] = DEFAULT_IMAGE_EXPORT_MODE,
+) -> PdfPipelineOptions:
     opts = PdfPipelineOptions()
     opts.do_ocr = do_ocr
     opts.do_table_structure = do_table_structure
+    opts.artifacts_path = DOCLING_MODEL_DIR
+    opts.generate_picture_images = _resolve_image_ref_mode(image_export_mode) != ImageRefMode.PLACEHOLDER
+    if do_ocr:
+        opts.ocr_options = RapidOcrOptions(lang=DOCLING_OCR_LANG, backend=DOCLING_OCR_BACKEND)
     return opts
 
 
-def _get_converter(do_ocr: bool = True, do_table_structure: bool = True) -> DocumentConverter:
+def _get_converter(
+    do_ocr: bool = True,
+    do_table_structure: bool = True,
+    image_export_mode: str = DEFAULT_IMAGE_EXPORT_MODE,
+) -> DocumentConverter:
     """获取或创建 DocumentConverter，OCR/表格开关按参数配置。
 
     首次初始化后 _converter 会被缓存复用，因为实际转换时 pipeline_options
@@ -81,7 +106,7 @@ def _get_converter(do_ocr: bool = True, do_table_structure: bool = True) -> Docu
     global _converter, _converter_warm
     if _converter is None:
         logger.info("正在初始化 DocumentConverter（首次会下载模型，请耐心等待）...")
-        pdf_opts = _build_pipeline_options(do_ocr, do_table_structure)
+        pdf_opts = _build_pipeline_options(do_ocr, do_table_structure, image_export_mode)
         format_options = {InputFormat.PDF: PdfFormatOption(pipeline_options=pdf_opts)}
         _converter = DocumentConverter(format_options=format_options)
         _converter_warm = True
@@ -99,9 +124,16 @@ def _cleanup_expired_tasks():
                 shutil.rmtree(task["tmp_dir"], ignore_errors=True)
 
 
-def _do_convert(source, to_formats: list, do_ocr: bool, do_table_structure: bool) -> dict:
+def _do_convert(
+    source,
+    to_formats: list,
+    do_ocr: bool,
+    do_table_structure: bool,
+    image_export_mode: str = DEFAULT_IMAGE_EXPORT_MODE,
+) -> dict:
     """执行一次转换，返回包含 json_content / md_content 的 dict。"""
-    pdf_opts = _build_pipeline_options(do_ocr, do_table_structure)
+    image_mode = _resolve_image_ref_mode(image_export_mode)
+    pdf_opts = _build_pipeline_options(do_ocr, do_table_structure, image_export_mode)
     format_options = {InputFormat.PDF: PdfFormatOption(pipeline_options=pdf_opts)}
     converter = DocumentConverter(format_options=format_options)
 
@@ -109,7 +141,7 @@ def _do_convert(source, to_formats: list, do_ocr: bool, do_table_structure: bool
     doc = result.document
 
     json_content = doc.export_to_dict()
-    md_content = doc.export_to_markdown() if "md" in to_formats else ""
+    md_content = doc.export_to_markdown(image_mode=image_mode) if "md" in to_formats else ""
 
     return {
         "document": {
@@ -120,11 +152,12 @@ def _do_convert(source, to_formats: list, do_ocr: bool, do_table_structure: bool
 
 
 def _run_async_convert(task_id: str, source, tmp_dir: Optional[str], to_formats: list,
-                       do_ocr: bool, do_table_structure: bool):
+                       do_ocr: bool, do_table_structure: bool,
+                       image_export_mode: str = DEFAULT_IMAGE_EXPORT_MODE):
     try:
         _convert_semaphore.acquire()
         logger.info(f"[{task_id}] 开始转换 (ocr={do_ocr}, tables={do_table_structure})")
-        result = _do_convert(source, to_formats, do_ocr, do_table_structure)
+        result = _do_convert(source, to_formats, do_ocr, do_table_structure, image_export_mode)
         doc_pages = result["document"]["json_content"].get("pages", {}) if isinstance(result["document"]["json_content"], dict) else {}
         logger.info(f"[{task_id}] 转换成功, pages={len(doc_pages) if doc_pages else '?'}")
 
@@ -247,7 +280,7 @@ async def convert_async(
     """异步提交文档转换任务，返回 task_id。
 
     参数名对齐 Snail AI DoclingClient.applyOptions() 的字段名。
-    image_export_mode / pdf_backend / ocr_lang 当前版本保留但暂未映射到 pipeline options。
+    image_export_mode 会映射到 Docling 图片导出模式；pdf_backend / ocr_lang 当前版本保留但暂未映射。
     """
     _cleanup_expired_tasks()
 
@@ -275,7 +308,7 @@ async def convert_async(
 
     thread = threading.Thread(
         target=_run_async_convert,
-        args=(task_id, tmp_path, str(tmp_dir), to_formats, do_ocr, do_table_structure),
+        args=(task_id, tmp_path, str(tmp_dir), to_formats, do_ocr, do_table_structure, image_export_mode),
         daemon=True,
     )
     thread.start()
