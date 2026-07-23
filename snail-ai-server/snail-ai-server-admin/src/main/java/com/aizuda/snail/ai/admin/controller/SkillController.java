@@ -1,5 +1,7 @@
 package com.aizuda.snail.ai.admin.controller;
 
+import com.aizuda.snail.ai.admin.vo.skill.SkillAiGenerateRequestVO;
+import com.aizuda.snail.ai.admin.vo.skill.SkillAiGenerateResponseVO;
 import com.aizuda.snail.ai.admin.vo.skill.SkillCreateFileRequestVO;
 import com.aizuda.snail.ai.admin.vo.skill.SkillFileContentRequestVO;
 import com.aizuda.snail.ai.admin.vo.skill.SkillQueryVO;
@@ -99,6 +101,23 @@ public class SkillController {
     public Result<SkillResponseVO> update(
             @PathVariable("id") Long id, @RequestBody SkillUpdateRequestVO request) {
         return Result.ok(skillService.update(id, request));
+    }
+
+    /** 根据需求说明生成完整 SKILL.md 内容，不创建版本。 */
+    @PostMapping("/ai/generate")
+    @LoginRequired
+    public Result<SkillAiGenerateResponseVO> generateDraft(
+            @RequestBody @Validated SkillAiGenerateRequestVO request) {
+        return Result.ok(skillService.generateDraft(request));
+    }
+
+    /** 基于当前 SKILL.md 内容优化指定技能，不创建版本。 */
+    @PostMapping("/{id}/ai/optimize")
+    @LoginRequired
+    public Result<SkillAiGenerateResponseVO> optimizeDraft(
+            @PathVariable("id") Long id,
+            @RequestBody @Validated SkillAiGenerateRequestVO request) {
+        return Result.ok(skillService.optimizeDraft(id, request));
     }
 
     // ==================== 文件管理（在线编辑） ====================

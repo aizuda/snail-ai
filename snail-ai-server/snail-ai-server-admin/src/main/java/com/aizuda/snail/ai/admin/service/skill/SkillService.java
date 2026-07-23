@@ -2,6 +2,8 @@ package com.aizuda.snail.ai.admin.service.skill;
 
 import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.admin.vo.PageResult;
+import com.aizuda.snail.ai.admin.vo.skill.SkillAiGenerateRequestVO;
+import com.aizuda.snail.ai.admin.vo.skill.SkillAiGenerateResponseVO;
 import com.aizuda.snail.ai.admin.vo.skill.SkillCreateFileRequestVO;
 import com.aizuda.snail.ai.admin.vo.skill.SkillCreateRequestVO;
 import com.aizuda.snail.ai.admin.vo.skill.SkillFileContentRequestVO;
@@ -59,6 +61,7 @@ public class SkillService {
     private final SkillPackageService skillPackageService;
     private final SkillFileService skillFileService;
     private final SkillMarkdownParser skillMarkdownParser;
+    private final SkillAiContentService skillAiContentService;
 
     /**
      * 上传 Skill zip 包
@@ -335,6 +338,24 @@ public class SkillService {
         }
     }
 
+    /**
+     * 根据需求说明生成完整 SKILL.md 内容，不直接保存。
+     */
+    public SkillAiGenerateResponseVO generateDraft(SkillAiGenerateRequestVO request) {
+        return skillAiContentService.generateDraft(request);
+    }
+
+    /**
+     * 基于当前 SKILL.md 内容优化指定技能，不直接保存。
+     */
+    public SkillAiGenerateResponseVO optimizeDraft(Long skillId, SkillAiGenerateRequestVO request) {
+        getById(skillId);
+        String currentContent = request.getCurrentContent();
+        if (StrUtil.isBlank(currentContent)) {
+            currentContent = getFileContent(skillId, SKILL_MD).getContent();
+        }
+        return skillAiContentService.optimizeDraft(request, currentContent);
+    }
 
     // ==================== 文件管理 API（在线编辑，委托 SkillFileService / SkillPackageService） ====================
 
