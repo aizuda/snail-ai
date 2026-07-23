@@ -84,7 +84,6 @@ public class DoclingImageOcrApplier {
         log.info("Docling image OCR started. documentId={} imageCount={} paddleEnabled={} visionFallbackEnabled={}",
                 documentId, images.size(), doclingProperties != null && doclingProperties.isPaddleOcrEnabled(),
                 isVisionOcrFallbackEnabled());
-        boolean changed = false;
         List<ImageOcrRequest> paddleRequests = new ArrayList<>();
         Map<Integer, DoclingParseResult.DoclingImage> paddleImageByIndex = new LinkedHashMap<>();
         for (int i = 0; i < images.size(); i++) {
@@ -99,15 +98,13 @@ public class DoclingImageOcrApplier {
             String ocrText = resolveExistingPictureText(doclingResult, image);
             if (StrUtil.isNotBlank(ocrText)) {
                 image.setOcrText(ocrText);
-                changed = true;
                 continue;
             }
             ImageOcrRequest request = buildImageOcrRequest(documentId, image, imageIndex, null);
             paddleRequests.add(request);
             paddleImageByIndex.put(imageIndex, image);
         }
-        // todo 这个代码有用吗
-        changed = applyPaddleBatchOcr(documentId, paddleRequests, paddleImageByIndex) || changed;
+        applyPaddleBatchOcr(documentId, paddleRequests, paddleImageByIndex);
 
         Long visionModelConfigId = isVisionOcrFallbackEnabled() ? resolveVisionModelConfigId(config) : null;
         boolean skipRemainingVisionOcr = false;
@@ -125,7 +122,6 @@ public class DoclingImageOcrApplier {
                         buildImageOcrRequest(documentId, image, imageIndex, visionModelConfigId));
                 if (StrUtil.isNotBlank(ocrText)) {
                     image.setOcrText(ocrText);
-                    changed = true;
                 }
             } catch (DoclingImageOcrQuotaExceededException e) {
                 skipRemainingVisionOcr = true;
@@ -161,16 +157,15 @@ public class DoclingImageOcrApplier {
                 .build();
     }
 
-    /** 批量提交 PaddleOCR 识别并按 imageIndex 回填结果；返回是否有图片文本发生变更 */
-    private boolean applyPaddleBatchOcr(Long documentId, List<ImageOcrRequest> requests,
-                                        Map<Integer, DoclingParseResult.DoclingImage> imageByIndex) {
+    /** 批量提交 PaddleOCR 识别并按 imageIndex 回填结果 */
+    private void applyPaddleBatchOcr(Long documentId, List<ImageOcrRequest> requests,
+                                     Map<Integer, DoclingParseResult.DoclingImage> imageByIndex) {
         if (requests.isEmpty()) {
             log.info("Docling image OCR skipped PaddleOCR because no image requires recognition. documentId={}", documentId);
-            return false;
+            return;
         }
         log.info("Docling PaddleOCR batch started. documentId={} count={}", documentId, requests.size());
         List<PaddleImageOcrResult> results = paddleImageOcrHandler.recognizeBatch(requests);
-        boolean changed = false;
         int successCount = 0;
         int emptyCount = 0;
         int failedCount = 0;
@@ -183,7 +178,6 @@ public class DoclingImageOcrApplier {
                 DoclingParseResult.DoclingImage image = imageByIndex.get(result.getImageIndex());
                 if (image != null && StrUtil.isNotBlank(result.getText())) {
                     image.setOcrText(result.getText());
-                    changed = true;
                     successCount++;
                     continue;
                 }
@@ -198,7 +192,6 @@ public class DoclingImageOcrApplier {
         }
         log.info("Docling PaddleOCR batch finished. documentId={} count={} success={} empty={} failed={}",
                 documentId, requests.size(), successCount, emptyCount, failedCount);
-        return changed;
     }
 
     /** 复用解析结果中已有的图片文字（如 Docling 自带 OCR 注解），避免重复识别浪费额度 */

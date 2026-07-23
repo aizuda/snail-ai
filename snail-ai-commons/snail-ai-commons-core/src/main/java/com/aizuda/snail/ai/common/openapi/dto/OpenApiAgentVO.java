@@ -32,6 +32,8 @@ public class OpenApiAgentVO {
 
     private List<String> presetQuestions;
 
+    private List<String> capabilities;
+
     private Boolean mcpEnabled;
 
     private List<OpenApiAgentToolVO> mcpServers;
