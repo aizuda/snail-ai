@@ -106,6 +106,7 @@ public class DoclingImageOcrApplier {
             paddleRequests.add(request);
             paddleImageByIndex.put(imageIndex, image);
         }
+        // todo 这个代码有用吗
         changed = applyPaddleBatchOcr(documentId, paddleRequests, paddleImageByIndex) || changed;
 
         Long visionModelConfigId = isVisionOcrFallbackEnabled() ? resolveVisionModelConfigId(config) : null;

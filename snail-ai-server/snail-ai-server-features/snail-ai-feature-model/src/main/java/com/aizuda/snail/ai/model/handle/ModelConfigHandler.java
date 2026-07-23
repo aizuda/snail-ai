@@ -144,7 +144,7 @@ public class ModelConfigHandler implements VisionModelConfigResolver {
     private boolean isVisionChatModel(AiModelConfigPO po) {
         ConfigExtAttrsDTO attrs = parseConfigJson(po);
         return attrs.getCapabilities() != null && attrs.getCapabilities().stream()
-                .anyMatch(capability -> VISION_CAPABILITY.equalsIgnoreCase(capability));
+                .anyMatch(VISION_CAPABILITY::equalsIgnoreCase);
     }
 
     private boolean isDefaultVisionModel(AiModelConfigPO po) {

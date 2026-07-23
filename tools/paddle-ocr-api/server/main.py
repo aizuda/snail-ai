@@ -397,12 +397,17 @@ def _collect_texts(node: Any, values: list[str]) -> None:
     if node is None:
         return
     if isinstance(node, dict):
+        has_ocr_text = False
         for key in ("text", "ocrText", "content", "rec_text", "rec_texts"):
             if key in node:
                 _collect_texts(node[key], values)
-        for key, value in node.items():
-            if key not in {"text", "ocrText", "content", "rec_text", "rec_texts"}:
-                _collect_texts(value, values)
+                has_ocr_text = True
+        if has_ocr_text:
+            return
+
+        for key in ("data", "res", "result", "results", "ocr_result"):
+            if key in node:
+                _collect_texts(node[key], values)
         return
     if isinstance(node, (list, tuple)):
         if _looks_like_text_score_pair(node):

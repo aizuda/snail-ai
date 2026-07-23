@@ -87,8 +87,7 @@ public class AgentChatAttachmentService {
         if (configJson == null || configJson.getCapabilities() == null) {
             return false;
         }
-        return configJson.getCapabilities().stream()
-                .anyMatch(capability -> VISION_CAPABILITY.equalsIgnoreCase(capability));
+        return configJson.getCapabilities().stream().anyMatch(VISION_CAPABILITY::equalsIgnoreCase);
     }
 
     private AgentChatAttachmentDTO resolveAttachment(AgentChatAttachmentDTO attachment, UserPO user) {

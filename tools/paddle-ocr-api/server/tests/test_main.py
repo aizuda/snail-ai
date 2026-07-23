@@ -113,6 +113,20 @@ class PaddleOcrApiTest(unittest.TestCase):
         self.assertEqual("cpu", kwargs["device"])
         self.assertFalse(kwargs["use_textline_orientation"])
 
+    def test_extract_texts_ignores_paddleocr_metadata(self):
+        raw_result = [{
+            "res": {
+                "input_path": "/tmp/input.png",
+                "text_det_params": {
+                    "limit_type": "min",
+                },
+                "text_type": "general",
+                "rec_texts": ["Snail OCR Test"],
+            },
+        }]
+
+        self.assertEqual(["Snail OCR Test"], main._extract_texts(raw_result))
+
 
 if __name__ == "__main__":
     unittest.main()

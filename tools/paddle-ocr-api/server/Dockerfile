@@ -8,9 +8,7 @@ ENV TZ=Asia/Shanghai \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
     PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PADDLE_OCR_HOST=0.0.0.0 \
-    PADDLE_OCR_PORT=8866
+    PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
@@ -42,6 +40,16 @@ RUN python -m pip install --retries 10 --timeout 120 --upgrade pip \
     && python -m pip install --retries 10 --timeout 120 -r requirements.txt
 
 COPY main.py .
+
+ENV \
+    FLAGS_use_mkldnn=0 \
+    OMP_NUM_THREADS=1 \
+    OPENBLAS_NUM_THREADS=1 \
+    MKL_NUM_THREADS=1 \
+    PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK=True \
+    PADDLE_OCR_HOST=0.0.0.0 \
+    PADDLE_OCR_PORT=8866 \
+    PADDLE_OCR_CPU_THREADS=1
 
 EXPOSE 8866
 

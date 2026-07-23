@@ -125,7 +125,7 @@ snail-ai:
 | `PADDLE_OCR_PORT` | `8866` | 服务端口 |
 | `PADDLE_OCR_LANG` | `ch` | OCR 语言，中文/英文建议用 `ch` |
 | `PADDLE_OCR_DEVICE` | 空 | PaddleOCR 推理设备，例如 `cpu`、`gpu:0` |
-| `PADDLE_OCR_CPU_THREADS` | 空 | CPU 推理线程数，留空使用 PaddleOCR 默认值 |
+| `PADDLE_OCR_CPU_THREADS` | `1` | CPU 推理线程数，Docker CPU 默认固定为 1，避免 ARM 环境下 PaddlePaddle 原生推理段错误 |
 | `PADDLE_OCR_USE_TEXTLINE_ORIENTATION` | `true` | 是否启用文字行方向分类；关闭可提速但可能影响旋转文字 |
 | `PADDLE_OCR_TEXT_RECOGNITION_BATCH_SIZE` | 空 | 文本识别模型 batch size，CPU 可从 6/8/12 小步试起 |
 | `PADDLE_OCR_TEXTLINE_ORIENTATION_BATCH_SIZE` | 空 | 文字行方向分类模型 batch size |
@@ -133,6 +133,11 @@ snail-ai:
 | `PADDLE_OCR_MAX_IMAGE_MB` | `20` | 单张图片最大大小 |
 | `PADDLE_OCR_MAX_CONCURRENCY` | `1` | OCR 最大并发数 |
 | `PADDLE_OCR_QUEUE_TIMEOUT_SECONDS` | `300` | OCR 忙时单个请求最长排队等待时间 |
+| `PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK` | `True` | 跳过模型源连通性探测，减少首次加载等待 |
+| `PADDLE_FLAGS_USE_MKLDNN` | `0` | 映射到容器内 `FLAGS_use_mkldnn`，Docker CPU 默认禁用 MKLDNN |
+| `PADDLE_OMP_NUM_THREADS` | `1` | 映射到容器内 `OMP_NUM_THREADS` |
+| `PADDLE_OPENBLAS_NUM_THREADS` | `1` | 映射到容器内 `OPENBLAS_NUM_THREADS` |
+| `PADDLE_MKL_NUM_THREADS` | `1` | 映射到容器内 `MKL_NUM_THREADS` |
 
 ## 接口文档
 
