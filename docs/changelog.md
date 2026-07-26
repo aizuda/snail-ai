@@ -49,6 +49,69 @@
 - `sai_mcp_server` 移除旧的 `version`、`auth_type`、`auth_config`、`capabilities` 字段，新增 `timeout` 与 `headers` 字段，对应 MCP 超时和请求头配置。
 - PostgreSQL 与达梦脚本补充 `sai_rag_document_image.update_dt` 自动更新时间触发器。
 
+### SQL 变更记录
+- 对话记录表：`sai_agent_conversation_record` 增加 `metadata` 字段。
+- RAG 文档表：`sai_rag_document` 增加 Docling 解析统计、Markdown 内容和元数据字段。
+- RAG 图片表：新增 `sai_rag_document_image`，并增加 `rag_id`、`document_id`、`chunk_id`、`resource_id` 索引。
+- RAG 分块表：`sai_rag_chunk` 增加 `source_type` 字段和 `(rag_id, source_type)` 索引。
+- MCP 服务表：`sai_mcp_server` 删除 `version`、`auth_type`、`auth_config`、`capabilities`，新增 `timeout`、`headers`。
+
+MySQL 升级参考 DDL：
+
+```sql
+ALTER TABLE sai_agent_conversation_record
+    ADD COLUMN metadata LONGTEXT DEFAULT NULL COMMENT '消息扩展元数据JSON';
+
+ALTER TABLE sai_rag_document
+    ADD COLUMN page_count INT DEFAULT 0 COMMENT 'Docling parse page count',
+    ADD COLUMN element_count INT DEFAULT 0 COMMENT 'Docling parse element count',
+    ADD COLUMN table_count INT DEFAULT 0 COMMENT 'Docling parse table count',
+    ADD COLUMN image_count INT DEFAULT 0 COMMENT 'Docling parse image count',
+    ADD COLUMN parse_time INT DEFAULT 0 COMMENT 'Parse duration in milliseconds',
+    ADD COLUMN md_content LONGTEXT DEFAULT NULL COMMENT 'Docling markdown content',
+    ADD COLUMN doc_metadata LONGTEXT DEFAULT NULL COMMENT 'Docling document metadata JSON';
+
+CREATE TABLE sai_rag_document_image
+(
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    rag_id BIGINT NOT NULL,
+    document_id BIGINT NOT NULL,
+    chunk_id BIGINT DEFAULT NULL,
+    resource_id BIGINT DEFAULT NULL,
+    image_index INT,
+    image_url VARCHAR(1024),
+    caption TEXT,
+    figure_no VARCHAR(64),
+    figure_title VARCHAR(512),
+    section_title VARCHAR(512),
+    source_page INT,
+    document_name VARCHAR(255),
+    ocr_text TEXT,
+    create_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
+
+CREATE INDEX idx_rag_doc_image_rag ON sai_rag_document_image (rag_id);
+CREATE INDEX idx_rag_doc_image_document ON sai_rag_document_image (document_id);
+CREATE INDEX idx_rag_doc_image_chunk ON sai_rag_document_image (chunk_id);
+CREATE INDEX idx_rag_doc_image_resource ON sai_rag_document_image (resource_id);
+
+ALTER TABLE sai_rag_chunk
+    ADD COLUMN source_type VARCHAR(20) NOT NULL DEFAULT 'TEXT' COMMENT 'chunk来源类型：TEXT文本、IMAGE图片';
+
+CREATE INDEX idx_chunk_rag_source_type ON sai_rag_chunk (rag_id, source_type);
+
+ALTER TABLE sai_mcp_server
+    DROP COLUMN version,
+    DROP COLUMN auth_type,
+    DROP COLUMN auth_config,
+    DROP COLUMN capabilities,
+    ADD COLUMN timeout BIGINT DEFAULT 60000 COMMENT '超时时间(毫秒)',
+    ADD COLUMN headers TEXT COMMENT '请求头(JSON对象)';
+```
+
 ### 文档与部署
 - 新增 Docling 解析引擎设计文档、RAG 图片识别与证据匹配说明、图片对话设计方案和 Docker 部署说明。
 - 更新管理端、OpenAPI、模型配置、RAG、Skill、独立聊天页等使用文档，并补充图片对话、模型视觉能力和 RAG 图片证据截图。
