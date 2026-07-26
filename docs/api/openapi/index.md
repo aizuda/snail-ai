@@ -52,6 +52,7 @@ Snail-Ai-Token: <your-app-token>
 | 创建会话 | `POST /agent/conversations` | 创建智能体会话 |
 | 删除/清空会话 | `DELETE /agent/conversations` | 删除指定会话或清空智能体会话 |
 | 会话消息 | `GET /agent/conversations/messages` | 查询会话消息 |
+| 上传资源 | `POST /resource/upload` | 上传对话图片等资源，返回可用于附件的资源 ID |
 | 流式对话 | `POST /agent/chat` | SSE 流式对话 |
 | 同步对话 | `POST /agent/chat/sync` | 同步返回完整回答 |
 | Chat 会话 Token | `GET/POST /embed-token` | 生成智能体对话会话 Token |

@@ -1,6 +1,6 @@
 # 对话接口
 
-对话接口提供与 Snail AI 智能体进行流式对话的能力，采用 SSE（Server-Sent Events）方式实时推送回答内容，支持多轮对话。
+对话接口提供与 Snail AI 智能体进行流式对话的能力，采用 SSE（Server-Sent Events）方式实时推送回答内容，支持多轮对话。智能体绑定视觉 CHAT 模型时，也支持随消息携带图片附件进行图片识别。
 
 ---
 
@@ -20,8 +20,32 @@ POST /snail-ai/openapi/v1/agent/chat
 | `openId`                | `string`   | 是   | 外部用户标识（第三方系统的用户 ID）             |
 | `content`               | `string`   | 是   | 用户消息内容                                    |
 | `conversationId`        | `string`   | 是   | 对话 ID，由调用方生成；同一话题复用以保持上下文 |
+| `attachments`           | `object[]` | 否   | 本次消息携带的附件，目前支持图片                |
+| `attachments[].type`    | `string`   | 是   | 附件类型，图片填 `IMAGE`                        |
+| `attachments[].resourceId` | `number` | 是   | 通过 `/resource/upload` 上传得到的资源 ID        |
 | `disabledMcpServerIds`  | `number[]` | 否   | 本次对话禁用的 MCP 服务 ID 列表                 |
 | `disabledSkillIds`      | `number[]` | 否   | 本次对话禁用的技能 ID 列表                      |
+
+### 图片附件
+
+图片对话需要先上传资源，再把返回的 `id` 放入 `attachments[].resourceId`。资源上传接口为：
+
+```text
+POST /snail-ai/openapi/v1/resource/upload
+```
+
+上传请求体：
+
+| 字段 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `openId` | `string` | 是 | 外部用户标识 |
+| `originalName` | `string` | 是 | 原始文件名 |
+| `fileSize` | `number` | 是 | 文件大小，单位字节 |
+| `content` | `string` | 是 | 图片二进制内容的 base64 字符串 |
+| `bizType` | `string` | 否 | 业务类型，可填 `ATTACHMENT` |
+| `bizId` | `number` | 否 | 业务 ID |
+
+携带图片附件时，智能体绑定的 CHAT 模型必须在模型配置中开启“支持图片输入”（`configJson.capabilities` 包含 `vision`）。每次对话最多 3 张图片，支持 JPG、PNG、WEBP，单张不超过 10MB。
 
 ### curl 示例
 
@@ -71,6 +95,37 @@ curl -X POST 'http://localhost:8900/snail-ai/openapi/v1/agent/chat' \
     "content": "查询今天的天气",
     "disabledMcpServerIds": [3],
     "disabledSkillIds": [2]
+  }' \
+  --no-buffer
+```
+
+**图片对话：**
+
+```bash
+curl -X POST 'http://localhost:8900/snail-ai/openapi/v1/resource/upload' \
+  -H 'Content-Type: application/json' \
+  -H 'Snail-Ai-App-Id: <your-app-id>' \
+  -H 'Snail-Ai-Token: <your-app-token>' \
+  -d '{
+    "openId": "external-user-001",
+    "originalName": "receipt.png",
+    "fileSize": 204800,
+    "content": "<base64-image-content>",
+    "bizType": "ATTACHMENT"
+  }'
+
+curl -X POST 'http://localhost:8900/snail-ai/openapi/v1/agent/chat' \
+  -H 'Content-Type: application/json' \
+  -H 'Snail-Ai-App-Id: <your-app-id>' \
+  -H 'Snail-Ai-Token: <your-app-token>' \
+  -d '{
+    "agentId": 1,
+    "openId": "external-user-001",
+    "conversationId": "conv-image-001",
+    "content": "这张图片里说了什么？",
+    "attachments": [
+      {"type": "IMAGE", "resourceId": 88}
+    ]
   }' \
   --no-buffer
 ```

@@ -106,7 +106,12 @@ POST /snail-ai/rag
 | `chunkRegex`             | `string`  | 否   | 正则表达式（`chunkMode=regex` 时使用）                        |
 | `chunkModelId`           | `number`  | 否   | 语义切片模型 ID（`chunkMode=smart` 时使用）                   |
 | `mergeShortSegments`     | `boolean` | 否   | 是否合并短段落                                                |
-| `imageOcr`               | `boolean` | 否   | 是否启用图片 OCR                                              |
+| `imageOcr`               | `boolean` | 否   | 是否启用图片 OCR，写入 `chunkParams.imageOcr`                 |
+| `parseEngine`            | `string`  | 否   | 解析引擎：`default` / `docling`                               |
+| `doclingDoOcr`           | `boolean` | 否   | Docling OCR 开关，适用于扫描件或图片型 PDF                    |
+| `doclingDoTableStructure` | `boolean` | 否   | 是否启用 Docling 表格结构识别                                 |
+| `doclingSaveImages`      | `boolean` | 否   | 是否保存 Docling 提取出的图片到资源库                         |
+| `parseParams`            | `object`  | 否   | 解析引擎完整配置对象，结构同 `PUT /rag/{id}/config` 的 `parseParams` |
 | `dedupStrategy`          | `number`  | 否   | 去重策略：`0`=无 `1`=按名称 `2`=按内容 `3`=按名称或内容      |
 | `dedupAction`            | `number`  | 否   | 冲突动作：`0`=拒绝 `1`=跳过 `2`=覆盖                         |
 | `uploadConfirm`          | `boolean` | 否   | 是否需要上传前二次确认                                        |
@@ -190,7 +195,19 @@ PUT /snail-ai/rag/{id}/config
     "maxChunkTokens": 512,
     "chunkOverlap": 50,
     "mergeShortSegments": true,
-    "imageOcr": false
+    "imageOcr": true
+  },
+  "parseParams": {
+    "engine": "docling",
+    "docling": {
+      "doOcr": true,
+      "doTableStructure": true,
+      "imageExportMode": "embedded",
+      "ocrLang": ["en", "zh"],
+      "saveImages": true,
+      "maxImageCount": 50,
+      "maxImageBytes": 5242880
+    }
   },
   "searchParams": {
     "resultCount": 5,
@@ -520,6 +537,52 @@ GET /snail-ai/document/{id}/download
 
 ---
 
+### 获取文档解析图片
+
+查询 Docling 从文档中提取并保存的图片。用于文档详情页「查看图片」弹窗，也会作为检索和问答的图片证据来源。
+
+```
+GET /snail-ai/document/{id}/images
+```
+
+**curl 示例：**
+
+```bash
+curl -X GET 'http://localhost:8900/snail-ai/document/10/images' \
+  -H 'Snail-Ai-Auth: eyJhbGciOiJIUzI1NiJ9...'
+```
+
+**响应示例：**
+
+```json
+{
+  "code": 1,
+  "msg": "success",
+  "data": [
+    {
+      "id": 301,
+      "ragId": 1,
+      "documentId": 10,
+      "chunkId": 1001,
+      "resourceId": 88,
+      "imageIndex": 1,
+      "imageUrl": "https://example.com/resource/88/preview",
+      "caption": "组配置列表页",
+      "figureNo": "图 1",
+      "figureTitle": "组配置列表页",
+      "sectionTitle": "组配置页面",
+      "sourcePage": 1,
+      "documentName": "组管理 _ Snail Job.pdf",
+      "ocrText": "组名称 状态 ID 生成模式 分区 初始化场景 更新时间 描述",
+      "createDt": "2026-07-21 23:53:51",
+      "updateDt": "2026-07-21 23:53:51"
+    }
+  ]
+}
+```
+
+---
+
 ### 删除文档
 
 ```
@@ -700,7 +763,28 @@ curl -X POST 'http://localhost:8900/snail-ai/rag/search' \
         "score": 0.92,
         "documentId": 10,
         "documentName": "退款政策.md",
-        "metadata": {}
+        "metadata": {},
+        "images": [
+          {
+            "id": 301,
+            "ragId": 1,
+            "documentId": 10,
+            "chunkId": 105,
+            "resourceId": 88,
+            "imageIndex": 1,
+            "imageUrl": "https://example.com/resource/88/preview",
+            "sourcePage": 1,
+            "documentName": "退款政策.md",
+            "caption": "退款流程截图",
+            "figureTitle": "退款流程",
+            "ocrText": "申请退款 填写原因 提交审核",
+            "matchType": "DIRECT_MATCH",
+            "matchScore": 2,
+            "matchReason": "图片 OCR 命中查询词",
+            "matchedTerms": ["退款"],
+            "matchedFields": ["ocrText"]
+          }
+        ]
       },
       {
         "chunkId": 108,
@@ -726,11 +810,13 @@ curl -X POST 'http://localhost:8900/snail-ai/rag/search' \
 }
 ```
 
+`results[].images` 为可选字段，表示命中分片关联的图片证据。每张图片包含 `imageUrl`、`sourcePage`、`caption`、`figureTitle`、`ocrText`、`matchType`、`matchReason` 等信息；`matchType=DIRECT_MATCH` 表示图片文字或图注直接命中查询，`CONTEXT_MATCH` 表示图片与命中文本分片上下文关联。
+
 ---
 
 ## 知识库问答（流式）
 
-基于知识库进行 RAG 问答，返回纯文本流。
+基于知识库进行 RAG 问答，返回 NDJSON 事件流。
 
 ```
 POST /snail-ai/rag/qa/stream
@@ -757,17 +843,19 @@ curl -X POST 'http://localhost:8900/snail-ai/rag/qa/stream' \
   --no-buffer
 ```
 
-**响应格式：** 纯文本流，逐块返回生成内容。
+**响应格式：** `application/x-ndjson`，每行是一个 JSON 事件。
 
 ```
-根据知识库中的退款政策文档，
-退款流程如下：
-
-1. 在订单详情页点击"申请退款"
-2. 填写退款原因和说明
-3. 提交后等待审核（3-5 个工作日）
-4. 审核通过后，退款将原路返回
+{"type":"text","data":"根据知识库中的退款政策文档，"}
+{"type":"text","data":"退款流程如下：\n\n1. 在订单详情页点击\"申请退款\""}
+{"type":"done","references":[{"chunkId":105,"documentId":10,"documentName":"退款政策.md","images":[{"imageUrl":"https://example.com/resource/88/preview","sourcePage":1,"matchType":"DIRECT_MATCH","matchReason":"图片 OCR 命中查询词"}]}]}
 ```
+
+| 事件类型 | 字段 | 说明 |
+|----------|------|------|
+| `text` | `data` | 模型生成的增量文本 |
+| `done` | `references` | 回答完成事件，携带本次引用的检索结果；引用中的 `images` 为图片证据 |
+| `error` | `message` | 生成失败时的错误信息 |
 
 ---
 

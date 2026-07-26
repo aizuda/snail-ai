@@ -32,6 +32,33 @@ Docling 是**可选增强引擎**——开启后在知识库配置中选择 `eng
 
 参见 [Docling 解析引擎设计文档](../../architecture/docling-engine.md)。
 
+## 图片识别
+
+当知识库启用 Docling 解析引擎并开启图片 OCR 后，系统会在文档解析完成后、分片和向量化之前处理文档中的图片。PDF 页面中的产品截图、系统界面图、流程图等会被提取为图片证据，图片中的文字会通过 OCR 转成可检索文本。
+
+![PDF 原图示例](/images/rag/rag-pdf-image-source.png)
+
+识别结果会写入两类数据：
+
+| 数据 | 用途 |
+|------|------|
+| 图片 OCR 文本 | 参与分片、向量索引和 BM25 全文索引，用户可以直接用图片里的文字提问 |
+| 图片证据 | 保存图片地址、页码、章节、图注和 OCR 文本，检索或问答命中时回传给前端展示 |
+
+### 启用条件
+
+图片识别需要同时满足以下条件：
+
+| 条件 | 配置 |
+|------|------|
+| 应用开启 Docling | `snail-ai.rag.docling.enabled=true` |
+| 知识库选择 Docling 引擎 | `parseParams.engine=docling` |
+| 开启图片 OCR | `chunkParams.imageOcr=true` |
+| 保存解析图片 | `parseParams.docling.saveImages=true`（默认开启） |
+| 可选本地 OCR 服务 | `snail-ai.rag.docling.paddle-ocr-enabled=true`，并配置 `paddle-ocr-url` |
+
+> **说明：** 扫描件或图片型 PDF 的整页 OCR 文本可以进入切片参与检索；图片证据卡片优先展示 Docling 从文档结构中抽取出的 `picture` 图片，不会把整页页图当成低清晰度证据图。
+
 ## 文档导入
 
 进入知识库详情页的「文档」标签页，点击「导入文档」按钮即可打开导入窗口。
@@ -211,6 +238,8 @@ stateDiagram-v2
 ### 查看解析图片
 
 使用 Docling 引擎解析文档后，系统会自动提取文档中的图片并保存到资源库。在文档操作菜单中点击「查看图片」即可浏览所有解析出的图片及其图注和页码信息。
+
+![文档解析图片](/images/rag/rag-document-images.png)
 
 ```
 GET /document/{id}/images

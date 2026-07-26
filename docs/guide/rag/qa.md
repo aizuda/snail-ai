@@ -21,7 +21,7 @@ Snail AI 的 RAG 问答采用**流式输出**（Streaming），回答内容逐�
 
 ### 流式实现
 
-前端通过原生 `fetch` + `ReadableStream` 接收后端的流式响应，实现逐块渲染：
+前端通过原生 `fetch` + `ReadableStream` 接收后端的 NDJSON 事件流，实现逐块渲染：
 
 ```mermaid
 sequenceDiagram
@@ -37,9 +37,9 @@ sequenceDiagram
     R-->>S: 返回相关分片
     S->>M: 组装 Prompt + 调用 LLM
     M-->>S: 流式返回 Token
-    S-->>F: 逐块 SSE 推送
+    S-->>F: NDJSON 事件流<br/>(text / done / error)
     F-->>U: 实时渲染回答
-    F->>U: 流结束，渲染完毕
+    F->>U: done 事件携带 references
 ```
 
 ### API 接口
@@ -62,7 +62,34 @@ Snail-Ai-Auth: {token}
 | `query` | string | 是 | 用户问题，最大长度 8000 字符 |
 | `conversationId` | string | 否 | 对话 ID，用于多轮对话上下文关联。首次对话不传 |
 
-返回格式为 `text/event-stream`，前端通过 ReadableStream 逐块读取纯文本内容。
+返回格式为 `application/x-ndjson`，每行是一个 JSON 事件：
+
+```json
+{"type":"text","data":"根据参考资料，"}
+{"type":"text","data":"组管理列表页包含..."}
+{"type":"done","references":[{"chunkId":42,"documentName":"组管理 _ Snail Job.pdf","images":[{"imageUrl":"https://...","sourcePage":1,"matchType":"DIRECT_MATCH"}]}]}
+```
+
+| 事件类型 | 说明 |
+|----------|------|
+| `text` | 模型生成的增量文本，前端逐块追加到回答气泡 |
+| `done` | 回答结束，可携带 `references` 引用列表 |
+| `error` | 生成失败，`message` 为错误信息 |
+
+## 图片证据引用
+
+当问题命中文档图片中的 OCR 文本、图注或图片所属上下文时，`done.references[].images` 会携带图片证据。前端会在回答下方展示命中来源，区分「直接命中」和「上下文关联」。
+
+![问答图片证据](/images/rag/rag-qa-image-evidence.png)
+
+| 字段 | 说明 |
+|------|------|
+| `imageUrl` | 图片访问地址 |
+| `sourcePage` | 图片所在 PDF / Office 文档页码 |
+| `documentName` | 图片所属文档名 |
+| `caption` / `figureTitle` | Docling 解析出的图注和图标题 |
+| `ocrText` | 图片 OCR 识别文本 |
+| `matchType` | `DIRECT_MATCH` 或 `CONTEXT_MATCH` |
 
 ## 对话上下文
 

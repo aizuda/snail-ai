@@ -123,10 +123,13 @@ Snail AI 支持两种文档解析引擎，可在此选择：
 | Docling OCR | docling 时可选 | 是否对扫描件 / 图片型 PDF 启用 OCR（默认开启） |
 | 表格结构识别 | docling 时可选 | 是否识别并导出文档中的表格结构（默认开启） |
 | 保存解析图片 | docling 时可选 | 是否将文档中的图片提取保存到资源库（默认开启） |
+| 图片文字入库 | 否 | 开启后将图片 OCR / 图注 / 章节信息生成可检索图片知识分片 |
 
 > **注意：** Docling 解析引擎需要额外部署 [Docling Serve](https://github.com/DS4SD/docling) 服务，并在应用配置中开启 `snail-ai.rag.docling.enabled=true`。如果 Docling 服务不可用，系统会自动降级回内置解析器，不影响文档导入流程。
 
 > **提示：** OCR 语言默认为英文（`en`），如需中文识别请设置 `ocrLang: ["en", "zh"]`。
+
+> **提示：** 修改解析引擎或图片识别配置只影响后续新上传文档。已有文档需要在文档管理中点击「重新解析」后，才会重新抽取图片、执行 OCR 并回填图片证据。
 
 详见 [Docling 解析引擎设计文档](../../architecture/docling-engine.md)。
 
@@ -141,6 +144,7 @@ Snail AI 支持两种文档解析引擎，可在此选择：
 - 去重策略与冲突动作
 - 上传确认开关
 - 分片策略
+- 解析引擎与图片识别配置
 
 > **注意：** 修改分片策略只影响后续新上传的文档，已有文档的分片不会自动重新生成。如需对已有文档应用新策略，请在文档管理中使用「重新解析」功能。
 
@@ -181,6 +185,17 @@ Content-Type: application/json
   "maxChunkTokens": 600,
   "chunkOverlap": 16,
   "mergeShortSegments": true,
+  "imageOcr": true,
+  "parseParams": {
+    "engine": "docling",
+    "docling": {
+      "doOcr": true,
+      "doTableStructure": true,
+      "imageExportMode": "embedded",
+      "ocrLang": ["en", "zh"],
+      "saveImages": true
+    }
+  },
   "dedupStrategy": 2,
   "dedupAction": 0,
   "uploadConfirm": true

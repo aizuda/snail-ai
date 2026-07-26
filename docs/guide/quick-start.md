@@ -118,7 +118,7 @@ http://localhost:8900/snail-ai
 ## 第六步：完成首次对话
 
 1. 登录管理端。
-2. 在「模型管理」中创建 OpenAI-compatible Chat 模型配置，并设置为默认对话模型。
+2. 在「模型管理」中创建 OpenAI-compatible Chat 模型配置，点击「验证」确认连通后设置为默认对话模型。
 3. 在「应用管理」中创建应用，复制 `appId` 和 `token` 供 Agent Client 或 OpenAPI 使用。
 4. 在「智能体管理」中创建智能体。
 5. 进入智能体对话页面开始测试。

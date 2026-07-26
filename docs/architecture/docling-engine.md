@@ -514,10 +514,10 @@ snail-ai:
 | `source_page` | int | 图片所在原文页码 |
 | `document_name` | varchar | 图片所属文件名快照 |
 | `ocr_text` | text | 图片 OCR 文本 |
-
-检索最终阶段会按 `chunk_id` 批量回填图片证据到 `SearchResult.images`，问答流结束事件会返回同一批引用，前端可据此展示命中图片、页码、章节和文件名。
 | `create_dt` | datetime | 创建时间 |
 | `update_dt` | datetime | 更新时间 |
+
+检索最终阶段会按 `chunk_id` 批量回填图片证据到 `SearchResult.images`，问答流结束事件会返回同一批引用，前端可据此展示命中图片、页码、章节和文件名。
 
 ## 文档处理状态流转
 
