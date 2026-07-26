@@ -28,6 +28,8 @@ RUN sed -i "s|http://deb.debian.org|${DEBIAN_MIRROR}|g" /etc/apt/sources.list.d/
     && rm -rf /var/lib/apt/lists/*
 
 ARG PIP_INDEX_URL=https://pypi.org/simple
+ARG PYTORCH_CPU_WHEEL_BASE=https://mirrors.aliyun.com/pytorch-wheels/cpu
+ARG TARGETARCH=amd64
 ENV PIP_NO_CACHE_DIR=1 \
     PIP_DEFAULT_TIMEOUT=120 \
     PIP_RETRIES=10 \
@@ -36,9 +38,16 @@ ENV PIP_NO_CACHE_DIR=1 \
 COPY requirements.txt .
 
 RUN python -m pip install --retries 10 --timeout 120 --upgrade pip \
+    && if [ "${TARGETARCH}" = "amd64" ]; then \
+        python -m pip install --retries 10 --timeout 120 \
+            "${PYTORCH_CPU_WHEEL_BASE}/torch-2.8.0%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl" \
+            "${PYTORCH_CPU_WHEEL_BASE}/torchvision-0.23.0%2Bcpu-cp310-cp310-manylinux_2_28_x86_64.whl"; \
+    else \
+        python -m pip install --retries 10 --timeout 120 "torch==2.8.0" "torchvision==0.23.0"; \
+    fi \
     && python -m pip install --retries 10 --timeout 120 -r requirements.txt
 
-COPY main.py docker-entrypoint.sh .
+COPY main.py docker-entrypoint.sh ./
 RUN chmod +x /app/docker-entrypoint.sh
 
 EXPOSE 5100

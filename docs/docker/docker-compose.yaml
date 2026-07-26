@@ -45,6 +45,7 @@ services:
             args:
                 DEBIAN_MIRROR: ${DEBIAN_MIRROR:-https://mirrors.aliyun.com}
                 PIP_INDEX_URL: ${PIP_INDEX_URL:-https://mirrors.aliyun.com/pypi/simple/}
+                PYTORCH_CPU_WHEEL_BASE: ${PYTORCH_CPU_WHEEL_BASE:-https://mirrors.aliyun.com/pytorch-wheels/cpu}
         image: opensnail/docling-api:latest
         restart: unless-stopped
         environment:
