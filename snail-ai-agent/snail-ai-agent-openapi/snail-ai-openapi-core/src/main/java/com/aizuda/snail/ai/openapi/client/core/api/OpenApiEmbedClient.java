@@ -8,6 +8,9 @@ import com.aizuda.snail.ai.openapi.client.core.annotation.OpenApiMapping;
 
 /**
  * OpenAPI 嵌入式对话客户端接口。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public interface OpenApiEmbedClient {
 

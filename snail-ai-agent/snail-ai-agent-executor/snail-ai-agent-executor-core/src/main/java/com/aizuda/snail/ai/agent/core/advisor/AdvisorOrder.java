@@ -2,6 +2,9 @@ package com.aizuda.snail.ai.agent.core.advisor;
 
 /**
  * Spring AI Advisor 执行顺序。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public final class AdvisorOrder {
 

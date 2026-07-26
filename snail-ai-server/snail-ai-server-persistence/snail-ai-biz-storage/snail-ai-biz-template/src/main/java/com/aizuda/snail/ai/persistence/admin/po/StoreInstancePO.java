@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  * 同一类型可配置多个实例实现负载均衡或灾备
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @TableName("sai_store_instance")
 @Data

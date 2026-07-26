@@ -7,6 +7,9 @@ import java.util.Map;
 
 /**
  * ToolCallingManager 构建请求。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

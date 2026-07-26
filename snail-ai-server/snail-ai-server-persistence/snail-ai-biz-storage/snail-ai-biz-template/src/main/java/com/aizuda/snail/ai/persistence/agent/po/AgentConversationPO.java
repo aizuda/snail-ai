@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  * 支持会话管理、标题、创建时间等
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @TableName("sai_agent_conversation")
 @Data

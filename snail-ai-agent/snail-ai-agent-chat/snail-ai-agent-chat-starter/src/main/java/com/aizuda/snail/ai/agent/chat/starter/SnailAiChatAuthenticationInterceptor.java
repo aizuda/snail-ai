@@ -14,6 +14,12 @@ import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.util.List;
 
+/**
+ * 对话网关鉴权拦截器，对标注 {@code @SnailAiChatAuthorize} 的接口校验会话令牌并写入会话上下文，请求结束时清理。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @RequiredArgsConstructor
 public class SnailAiChatAuthenticationInterceptor implements HandlerInterceptor {
 

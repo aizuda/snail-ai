@@ -4,6 +4,9 @@ import java.io.InputStream;
 
 /**
  * 通用资源存储接口（不绑定任何业务字段）
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public interface ResourceStorageService {
 

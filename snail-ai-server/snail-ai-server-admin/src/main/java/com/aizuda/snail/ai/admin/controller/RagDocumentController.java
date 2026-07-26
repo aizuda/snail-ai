@@ -7,6 +7,7 @@ import com.aizuda.snail.ai.admin.vo.rag.UploadPreviewResultVO;
 import com.aizuda.snail.ai.common.model.Result;
 import com.aizuda.snail.ai.admin.security.annotation.LoginRequired;
 import com.aizuda.snail.ai.admin.vo.PageResult;
+import com.aizuda.snail.ai.admin.vo.rag.RagDocumentImageResponseVO;
 import com.aizuda.snail.ai.admin.vo.rag.RagDocumentQueryVO;
 import com.aizuda.snail.ai.admin.vo.rag.RagDocumentResponseVO;
 import com.aizuda.snail.ai.admin.service.rag.DocumentUploadPreviewService;
@@ -19,6 +20,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+/**
+ * RAG 文档管理接口：文档上传（直传 / 预览-提交两段式）、URL 导入、重处理与分页。
+ * <p>
+ * 全部端点均需 ADMIN 角色。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @RestController
 @RequestMapping("/document")
 @RequiredArgsConstructor
@@ -76,6 +85,7 @@ public class RagDocumentController {
         return Result.ok(ragDocumentService.importFromUrl(request));
     }
 
+    /** 删除文档及其切块 / 向量（管理员）。 */
     @DeleteMapping("/{id}")
     @LoginRequired
     public Result<Void> delete(@PathVariable("id") Long id) {
@@ -83,6 +93,7 @@ public class RagDocumentController {
         return Result.ok(null);
     }
 
+    /** 重新解析并向量化文档（管理员）。 */
     @PostMapping("/{id}/reprocess")
     @LoginRequired
     public Result<Void> reprocess(@PathVariable("id") Long id) {
@@ -90,9 +101,17 @@ public class RagDocumentController {
         return Result.ok(null);
     }
 
+    /** 分页查询文档列表（管理员）。 */
     @GetMapping("/page")
     @LoginRequired
     public PageResult<List<RagDocumentResponseVO>> page(RagDocumentQueryVO query) {
         return ragDocumentService.page(query);
+    }
+
+    /** 查询 Docling 从文档中提取并保存的图片列表。 */
+    @GetMapping("/{id}/images")
+    @LoginRequired
+    public Result<List<RagDocumentImageResponseVO>> images(@PathVariable("id") Long id) {
+        return Result.ok(ragDocumentService.listImages(id));
     }
 }

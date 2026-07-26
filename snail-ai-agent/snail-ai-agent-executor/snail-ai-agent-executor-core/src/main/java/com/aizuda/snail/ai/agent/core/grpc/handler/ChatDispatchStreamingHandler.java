@@ -16,6 +16,9 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * 客户端 Chat 分发（流式）：{@link UriConstants#CHAT_DISPATCH}
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @RequiredArgsConstructor

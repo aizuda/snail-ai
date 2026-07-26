@@ -10,6 +10,9 @@ import java.util.Map;
 
 /**
  * 客户端 gRPC 请求分发器 — 委托 {@link GrpcRequestDispatcher} 按 URI 路由。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @RequiredArgsConstructor
 public class ClientRequestDispatcher {

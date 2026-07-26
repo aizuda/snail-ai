@@ -108,6 +108,7 @@ export const sidebar = {
         { text: '分布式架构', link: '/architecture/distributed' },
         { text: 'Agent 责任链', link: '/architecture/agent-chain' },
         { text: 'RAG 流水线', link: '/architecture/rag-pipeline' },
+        { text: 'Docling 解析引擎', link: '/architecture/docling-engine' },
         { text: '记忆架构', link: '/architecture/memory-architecture' },
         { text: '数据模型', link: '/architecture/data-model' },
       ],

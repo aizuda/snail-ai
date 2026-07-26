@@ -115,7 +115,7 @@ curl -X GET 'http://localhost:8900/snail-ai/agent/page' \
 | [RAG API](./rag.md)          | `/rag` `/document` `/chunk` `/store-instance` | 知识库、文档、切片、存储实例 |
 | [模型 API](./model.md)       | `/ai-model`            | 模型提供商、模型配置、用量统计 |
 | [MCP API](./mcp.md)          | `/mcp-server`          | MCP 服务管理、连接测试       |
-| [技能 API](./skill.md)       | `/skill`               | 技能包管理、文件在线编辑     |
+| [技能 API](./skill.md)       | `/skill`               | 技能包管理、AI 生成/优化、文件在线编辑 |
 | [应用 API](./app.md)         | `/app`                 | 应用管理、客户端节点         |
 | [资源 API](./resource.md)    | `/resource`            | 文件上传、预览、下载         |
 | [用户 API](./user.md)        | `/user`                | 用户登录、管理、授权         |

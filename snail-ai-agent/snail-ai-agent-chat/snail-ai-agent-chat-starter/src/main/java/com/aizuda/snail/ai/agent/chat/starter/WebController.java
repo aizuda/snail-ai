@@ -5,6 +5,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
+/**
+ * 嵌入式对话页面路由控制器，处理 {@code /snail-chat} 的重定向与首页转发。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Controller
 public class WebController {
 

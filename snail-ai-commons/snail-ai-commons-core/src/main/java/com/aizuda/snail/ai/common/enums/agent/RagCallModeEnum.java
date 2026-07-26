@@ -5,6 +5,9 @@ import lombok.Getter;
 
 /**
  * RAG 调用方式枚举
+ *
+ * @author opensnail
+ * @since 2026-06-03
  */
 @Getter
 @AllArgsConstructor

@@ -25,6 +25,12 @@ import java.time.LocalDateTime;
 import java.util.HexFormat;
 import java.util.UUID;
 
+/**
+ * 开放 API 用户服务，负责外部应用用户的注册（建立平台用户映射、可选外链头像资源）与按 openId 查询。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -36,6 +42,12 @@ public class OpenApiUserService {
     private final UserMapper userMapper;
     private final ResourceMapper resourceMapper;
 
+    /**
+     * 注册外部应用用户：externalId 已存在时幂等返回，否则新建平台用户与开放用户映射
+     *
+     * @param request 注册请求，含外部用户标识、昵称、头像 URL 等
+     * @return 用户视图对象，created 字段标识本次是否为新建
+     */
     @Transactional(rollbackFor = Exception.class)
     public OpenApiUserVO register(OpenApiUserRegisterRequest request) {
         String appId = OpenApiSessionUtils.current().getAppId();
@@ -47,6 +59,7 @@ public class OpenApiUserService {
                             .eq(OpenApiUserPO::getExternalId, request.getExternalId()));
             if (existing != null) {
                 UserPO existingUser = userMapper.selectById(existing.getPlatformUserId());
+                log.info("OpenAPI 用户已存在(幂等返回) appId={} externalId={}", appId, request.getExternalId());
                 return buildVO(existing, false, resolveAvatarUrl(existing.getPlatformUserId()),
                         existingUser != null ? existingUser.getNickname() : null);
             }
@@ -76,10 +89,17 @@ public class OpenApiUserService {
                 .updateDt(LocalDateTime.now())
                 .build();
         openApiUserMapper.insert(openApiUser);
+        log.info("OpenAPI 注册新用户 appId={} openId={} platformUserId={}", appId, openId, platformUser.getId());
 
         return buildVO(openApiUser, true, request.getAvatarUrl(), request.getNickname());
     }
 
+    /**
+     * 按 openId 查询当前应用下的用户，不存在时抛出异常
+     *
+     * @param openId 开放平台用户标识
+     * @return 用户视图对象
+     */
     public OpenApiUserVO getByOpenId(String openId) {
         String appId = OpenApiSessionUtils.current().getAppId();
         OpenApiUserPO user = openApiUserMapper.selectOne(

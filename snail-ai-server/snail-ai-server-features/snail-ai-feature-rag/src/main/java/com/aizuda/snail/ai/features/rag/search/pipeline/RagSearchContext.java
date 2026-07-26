@@ -9,6 +9,12 @@ import lombok.Data;
 
 import java.util.List;
 
+/**
+ * RAG 检索责任链上下文：在各节点间流转的输入、配置、中间结果、指标与控制标志。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 @Builder
 public class RagSearchContext {

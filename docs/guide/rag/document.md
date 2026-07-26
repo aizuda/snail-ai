@@ -19,6 +19,46 @@ Snail AI 支持以下 10 种常见文档格式：
 
 > **提示：** 上传文件时系统会自动根据文件扩展名和 MIME 类型判断格式，并选择对应的解析器。
 
+### 解析引擎
+
+Snail AI 支持两种文档解析引擎：
+
+| 引擎 | 标识 | 说明 |
+|------|------|------|
+| **内置解析器** | `default` | 基于 PDFBox / POI 的项目内置解析链路，默认启用，无外部依赖 |
+| **Docling 解析引擎** | `docling` | 外部 Docling Serve 服务，提供更精准的结构化解析、表格识别、图片提取和 OCR |
+
+Docling 是**可选增强引擎**——开启后在知识库配置中选择 `engine=docling` 即可使用；Docling 服务不可用时系统会自动降级回内置解析器，不影响文档导入流程。
+
+参见 [Docling 解析引擎设计文档](../../architecture/docling-engine.md)。
+
+## 图片识别
+
+当知识库启用 Docling 解析引擎并开启图片 OCR 后，系统会在文档解析完成后、分片和向量化之前处理文档中的图片。PDF 页面中的产品截图、系统界面图、流程图等会被提取为图片证据，图片中的文字会通过 OCR 转成可检索文本。
+
+![PDF 原图示例](/images/rag/rag-pdf-image-source.png)
+
+识别结果会写入两类数据：
+
+| 数据 | 用途 |
+|------|------|
+| 图片 OCR 文本 | 参与分片、向量索引和 BM25 全文索引，用户可以直接用图片里的文字提问 |
+| 图片证据 | 保存图片地址、页码、章节、图注和 OCR 文本，检索或问答命中时回传给前端展示 |
+
+### 启用条件
+
+图片识别需要同时满足以下条件：
+
+| 条件 | 配置 |
+|------|------|
+| 应用开启 Docling | `snail-ai.rag.docling.enabled=true` |
+| 知识库选择 Docling 引擎 | `parseParams.engine=docling` |
+| 开启图片 OCR | `chunkParams.imageOcr=true` |
+| 保存解析图片 | `parseParams.docling.saveImages=true`（默认开启） |
+| 可选本地 OCR 服务 | `snail-ai.rag.docling.paddle-ocr-enabled=true`，并配置 `paddle-ocr-url` |
+
+> **说明：** 扫描件或图片型 PDF 的整页 OCR 文本可以进入切片参与检索；图片证据卡片优先展示 Docling 从文档结构中抽取出的 `picture` 图片，不会把整页页图当成低清晰度证据图。
+
 ## 文档导入
 
 进入知识库详情页的「文档」标签页，点击「导入文档」按钮即可打开导入窗口。
@@ -193,6 +233,20 @@ stateDiagram-v2
 | TXT / CSV | 等宽字体纯文本展示 |
 | PPTX 等 | 提供下载按钮 |
 
+> **提示：** 使用 Docling 引擎解析的文档，系统会额外保存清理后的 Markdown 内容（`mdContent`），前端优先使用 Markdown 渲染器展示，保留标题层级和表格格式。
+
+### 查看解析图片
+
+使用 Docling 引擎解析文档后，系统会自动提取文档中的图片并保存到资源库。在文档操作菜单中点击「查看图片」即可浏览所有解析出的图片及其图注和页码信息。
+
+![文档解析图片](/images/rag/rag-document-images.png)
+
+```
+GET /document/{id}/images
+```
+
+返回结果包含每张图片的访问地址、图注（caption）、图号（figureNo）、图标题（figureTitle）、所属章节（sectionTitle）、来源页码（sourcePage）、所属文件名（documentName）和 OCR 文本（ocrText）。图片会按命中的 chunkId 回填到检索结果 images 字段，问答引用也会携带同一批图片证据。
+
 ### 重新解析
 
 对于解析失败（`failed`）的文档，可在操作菜单中点击「重新解析」触发再次处理：
@@ -232,5 +286,6 @@ DELETE /document/{id}
 | `/document/import/url` | POST | URL 导入文档 |
 | `/document/{id}/reprocess` | POST | 重新解析文档 |
 | `/document/{id}` | DELETE | 删除文档 |
+| `/document/{id}/images` | GET | 查看 Docling 解析提取的图片列表 |
 | `/resource/{resourceId}/preview` | GET | 文档预览（二进制流） |
 | `/resource/{resourceId}/download` | GET | 文档下载（二进制流） |

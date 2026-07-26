@@ -6,6 +6,9 @@ import lombok.Data;
 
 /**
  * OpenAPI 用户智能体关联请求。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 public class OpenApiUserAgentRequest {

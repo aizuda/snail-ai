@@ -6,6 +6,9 @@ import lombok.Getter;
 
 /**
  * MCP 传输类型
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 @Getter
 @AllArgsConstructor

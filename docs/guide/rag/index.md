@@ -24,6 +24,7 @@ RAG 列表页通过知识库卡片展示文档数、切片数、描述和更新�
 | 特性 | 说明 |
 |------|------|
 | **多格式文档支持** | PDF、Word（DOCX/DOC）、Excel（XLSX/XLS）、Markdown、HTML、TXT、CSV、PPTX，共 10+ 格式 |
+| **图片识别与证据引用** | Docling 提取文档图片，PaddleOCR 识别图片文字，检索和问答可展示命中图片证据 |
 | **4 种分片策略** | 默认递归切分、自定义分隔符、正则表达式、LLM 智能语义切分 |
 | **混合检索** | 向量检索 + BM25 全文检索，支持 RRF / 加权求和两种融合策略 |
 | **重排序** | 集成 Reranker 模型对检索结果进行二次精排，显著提升相关性 |
@@ -49,7 +50,10 @@ graph TB
     subgraph 离线索引["离线索引阶段"]
         direction TB
         A[文档导入] --> B[文档解析]
-        B --> C[文本分片]
+        B --> OCR{启用图片识别?}
+        OCR -->|是| IMG[图片提取 + OCR]
+        OCR -->|否| C[文本分片]
+        IMG --> C
         C --> D[向量嵌入]
         D --> E[向量存储]
         C --> F[BM25 索引]
@@ -83,7 +87,8 @@ graph TB
 | 阶段 | 说明 | 关键参数 |
 |------|------|----------|
 | **文档导入** | 支持本地上传、URL 导入，上传前可配置去重策略和二次确认 | `dedupStrategy`、`dedupAction`、`uploadConfirm` |
-| **文档解析** | 根据文件类型自动选择解析器，提取纯文本内容 | 支持 OCR 识别图片中的文字 |
+| **文档解析** | 根据文件类型自动选择解析器，提取纯文本、结构化元素和图片 | `parseParams.engine` |
+| **图片识别** | Docling 提取 PDF/Office 文档中的图片，PaddleOCR 识别图片文字并生成可检索图片知识 | `chunkParams.imageOcr`、`parseParams.docling.saveImages` |
 | **文本分片** | 将长文本切分为适合检索的片段，4 种策略可选 | `maxChunkTokens`、`chunkOverlap`、`chunkMode` |
 | **向量嵌入** | 调用 Embedding 模型将文本片段转换为向量 | `embeddingModelId`、`dimensionOfVectorModel` |
 | **向量存储** | 将向量写入向量数据库，建立索引 | `vectorStoreInstanceId` |

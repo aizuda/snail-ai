@@ -1,0 +1,35 @@
+#!/bin/sh
+# 提交信息校验（scope = 版本号）
+# 启用方式（每位开发者执行一次）：
+#   git config core.hooksPath .githooks
+#
+# 规范：<type>(<版本号>): <描述>
+#   type   : feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert
+#   版本号 : 当前迭代版本，与 pom.xml <revision> 一致（如 1.1.0）
+#   描述   : 简洁中文，说明“为什么”而非“做了什么”
+
+msg_file="$1"
+first_line=$(head -n 1 "$msg_file")
+
+# 放行自动生成的合并/回退/fixup 提交
+case "$first_line" in
+    "Merge "*|"Revert "*|"fixup! "*|"squash! "*) exit 0 ;;
+esac
+
+# <type>(<版本号>): <描述>，版本号形如 1.1.0 / 1.1 / v1.1.0
+pattern='^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)\(v?[0-9]+\.[0-9]+(\.[0-9]+)?\)(!)?: .+'
+
+if printf '%s' "$first_line" | grep -Eq "$pattern"; then
+    exit 0
+fi
+
+echo "" >&2
+echo "✗ 提交信息不符合规范：" >&2
+echo "    $first_line" >&2
+echo "" >&2
+echo "  正确格式： <type>(<版本号>): <中文描述>" >&2
+echo "  type    ： feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert" >&2
+echo "  版本号  ： 当前迭代版本（与 pom.xml <revision> 一致，如 1.1.0）" >&2
+echo "  示例    ： refactor(1.1.0): 卫语句与提前 continue 降低嵌套" >&2
+echo "" >&2
+exit 1

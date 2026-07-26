@@ -2,29 +2,30 @@ package com.aizuda.snail.ai.admin.service.model;
 
 import com.aizuda.snail.ai.admin.vo.model.AiModelUsageStatsQueryVO;
 import com.aizuda.snail.ai.admin.vo.PageResult;
+import com.aizuda.snail.ai.persistence.agent.mapper.AgentConversationRecordMapper;
 import com.aizuda.snail.ai.persistence.model.mapper.AiModelConfigMapper;
+import com.aizuda.snail.ai.persistence.model.mapper.AiModelProviderMapper;
 import com.aizuda.snail.ai.persistence.model.mapper.AiModelUsageStatMapper;
 import com.aizuda.snail.ai.admin.vo.model.AiModelUsageStatVO;
 import com.aizuda.snail.ai.persistence.model.po.AiModelConfigPO;
+import com.aizuda.snail.ai.persistence.model.po.AiModelProviderPO;
 import com.aizuda.snail.ai.persistence.model.po.AiModelUsageStatPO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * AI模型使用统计服务
- * 
+ *
  * @author opensnail
+ * @author 唐亚峰 | battcn
  * @since 2026-04-20
  */
 @Slf4j
@@ -34,7 +35,8 @@ public class AiModelUsageService implements com.aizuda.snail.ai.model.service.Ai
 
     private final AiModelUsageStatMapper usageStatMapper;
     private final AiModelConfigMapper configMapper;
-
+    private final AiModelProviderMapper providerMapper;
+    private final AgentConversationRecordMapper conversationRecordMapper;
 
 
     /**
@@ -46,8 +48,8 @@ public class AiModelUsageService implements com.aizuda.snail.ai.model.service.Ai
      */
     public AiModelUsageStatVO getUsageStats(Long modelId, Long userId) {
         LambdaQueryWrapper<AiModelUsageStatPO> queryWrapper = new LambdaQueryWrapper<AiModelUsageStatPO>()
-                .eq(AiModelUsageStatPO::getModelId, modelId)
-                .eq(AiModelUsageStatPO::getUserId, userId);
+            .eq(AiModelUsageStatPO::getModelId, modelId)
+            .eq(AiModelUsageStatPO::getUserId, userId);
 
         AiModelUsageStatPO stat = usageStatMapper.selectOne(queryWrapper);
         if (stat == null) {
@@ -68,13 +70,13 @@ public class AiModelUsageService implements com.aizuda.snail.ai.model.service.Ai
     public PageResult<List<AiModelUsageStatVO>> getUserModelStats(Long userId, AiModelUsageStatsQueryVO queryVO) {
         PageDTO<AiModelUsageStatPO> page = new PageDTO<>(queryVO.getPage(), queryVO.getSize());
         LambdaQueryWrapper<AiModelUsageStatPO> queryWrapper = new LambdaQueryWrapper<AiModelUsageStatPO>()
-                .eq(AiModelUsageStatPO::getUserId, userId)
-                .orderByDesc(AiModelUsageStatPO::getUpdatedDt);
+            .eq(AiModelUsageStatPO::getUserId, userId)
+            .orderByDesc(AiModelUsageStatPO::getUpdatedDt);
 
         PageDTO<AiModelUsageStatPO> result = usageStatMapper.selectPage(page, queryWrapper);
         List<AiModelUsageStatVO> records = result.getRecords().stream()
-                .map(po -> enrichStatVO(convertToVO(po)))
-                .collect(Collectors.toList());
+            .map(po -> enrichStatVO(convertToVO(po)))
+            .collect(Collectors.toList());
 
         return new PageResult<>(result, records);
     }
@@ -87,18 +89,57 @@ public class AiModelUsageService implements com.aizuda.snail.ai.model.service.Ai
      * @return 分页结果
      */
     public PageResult<List<AiModelUsageStatVO>> getGlobalModelStats(AiModelUsageStatsQueryVO queryVO) {
-        PageDTO<AiModelUsageStatPO> page = new PageDTO<>(queryVO.getPage(), queryVO.getSize());
+        // 读时聚合：从对话消息记录按模型实时汇总真实用量，替代曾经无人写入、恒为空的 sai_model_usage_stat 表
+        List<AiModelUsageStatPO> aggregated = conversationRecordMapper.aggregateModelUsageByModel();
+        if (aggregated.isEmpty()) {
+            return paginate(List.of(), queryVO.getPage(), queryVO.getSize());
+        }
 
-        LambdaQueryWrapper<AiModelUsageStatPO> queryWrapper = new LambdaQueryWrapper<AiModelUsageStatPO>()
-                .orderByDesc(AiModelUsageStatPO::getTotalCalls)
-                .orderByDesc(AiModelUsageStatPO::getUpdatedDt);
+        // 批量预取模型配置与提供商，避免对每个模型逐条 selectById 造成 N+1
+        Set<Long> modelIds = aggregated.stream()
+            .map(AiModelUsageStatPO::getModelId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+        Map<Long, AiModelConfigPO> configById = modelIds.isEmpty() ? Map.of()
+            : configMapper.selectByIds(modelIds).stream()
+                .collect(Collectors.toMap(AiModelConfigPO::getId, c -> c, (a, b) -> a));
+        Set<Long> providerIds = configById.values().stream()
+            .map(AiModelConfigPO::getProviderId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+        Map<Long, AiModelProviderPO> providerById = providerIds.isEmpty() ? Map.of()
+            : providerMapper.selectByIds(providerIds).stream()
+                .collect(Collectors.toMap(AiModelProviderPO::getId, p -> p, (a, b) -> a));
 
-        PageDTO<AiModelUsageStatPO> result = usageStatMapper.selectPage(page, queryWrapper);
-        List<AiModelUsageStatVO> records = result.getRecords().stream()
-                .map(po -> enrichStatVO(convertToVO(po)))
-                .collect(Collectors.toList());
+        List<AiModelUsageStatVO> all = aggregated.stream()
+            .map(this::convertToVO)
+            .filter(Objects::nonNull)
+            .map(vo -> {
+                AiModelConfigPO config = configById.get(vo.getModelId());
+                AiModelProviderPO provider = config != null ? providerById.get(config.getProviderId()) : null;
+                applyModelInfo(vo, config, provider);
+                return vo;
+            })
+            .sorted(Comparator.comparingLong(
+                    (AiModelUsageStatVO vo) -> vo.getTotalTokensUsed() == null ? 0L : vo.getTotalTokensUsed())
+                .reversed())
+            .collect(Collectors.toList());
 
-        return new PageResult<>(result, records);
+        return paginate(all, queryVO.getPage(), queryVO.getSize());
+    }
+
+    /** 内存分页：聚合结果集很小（模型数量级），直接切片返回。 */
+    private PageResult<List<AiModelUsageStatVO>> paginate(List<AiModelUsageStatVO> all, int page, int size) {
+        int safePage = page <= 0 ? 1 : page;
+        int safeSize = size <= 0 ? 10 : size;
+        int from = Math.min((safePage - 1) * safeSize, all.size());
+        int to = Math.min(from + safeSize, all.size());
+        PageResult<List<AiModelUsageStatVO>> result = new PageResult<>();
+        result.setPage((long) safePage);
+        result.setSize((long) safeSize);
+        result.setTotal((long) all.size());
+        result.setData(all.subList(from, to));
+        return result;
     }
 
     /**
@@ -112,8 +153,8 @@ public class AiModelUsageService implements com.aizuda.snail.ai.model.service.Ai
     public List<AiModelUsageStatVO> getStatsByModelType(String modelType, LocalDate startDate, LocalDate endDate) {
         // 首先获取该类型的所有模型
         List<AiModelConfigPO> models = configMapper.selectList(
-                new LambdaQueryWrapper<AiModelConfigPO>()
-                        .eq(AiModelConfigPO::getModelType, modelType)
+            new LambdaQueryWrapper<AiModelConfigPO>()
+                .eq(AiModelConfigPO::getModelType, modelType)
         );
 
         if (models.isEmpty()) {
@@ -122,45 +163,63 @@ public class AiModelUsageService implements com.aizuda.snail.ai.model.service.Ai
 
         // 获取每个模型的统计
         return models.stream()
-                .flatMap(model -> {
-                    List<AiModelUsageStatPO> stats = usageStatMapper.selectList(
-                            new LambdaQueryWrapper<AiModelUsageStatPO>()
-                                    .eq(AiModelUsageStatPO::getModelId, model.getId())
-                                    .between(AiModelUsageStatPO::getCreatedDt,
-                                            startDate.atStartOfDay(),
-                                            endDate.plusDays(1).atStartOfDay())
-                    );
-                    return stats.stream().map(po -> enrichStatVO(convertToVO(po)));
-                })
-                .collect(Collectors.toList());
+            .flatMap(model -> {
+                List<AiModelUsageStatPO> stats = usageStatMapper.selectList(
+                    new LambdaQueryWrapper<AiModelUsageStatPO>()
+                        .eq(AiModelUsageStatPO::getModelId, model.getId())
+                        .between(AiModelUsageStatPO::getCreatedDt,
+                            startDate.atStartOfDay(),
+                            endDate.plusDays(1).atStartOfDay())
+                );
+                return stats.stream().map(po -> enrichStatVO(convertToVO(po)));
+            })
+            .collect(Collectors.toList());
     }
 
     /**
-     * 丰富统计VO信息
-     * 添加模型名称、类型、提供商等信息
+     * 丰富统计 VO 信息：补充模型名称、类型、提供商并计算成功率。
+     * <p>
+     * 单条路径（低频：单模型/用户维度查询）使用，内部各查一次配置与提供商；
+     * 高频的 {@link #getGlobalModelStats} 走批量预取，不经过此方法，避免 N+1。
+     *
+     * @param vo 统计 VO，可能为 null
+     * @return 回填后的 VO
      */
     private AiModelUsageStatVO enrichStatVO(AiModelUsageStatVO vo) {
         if (vo == null) {
             return null;
         }
-
-        // 获取模型配置信息
         AiModelConfigPO config = configMapper.selectById(vo.getModelId());
+        AiModelProviderPO provider = (config != null && config.getProviderId() != null)
+            ? providerMapper.selectById(config.getProviderId()) : null;
+        applyModelInfo(vo, config, provider);
+        return vo;
+    }
+
+    /**
+     * 用模型配置与提供商信息回填统计 VO（模型名/类型/提供商 ID 与名称，并计算成功率）。
+     * 纯内存组装、不查库，批量与单条两条路径共用，避免重复逻辑。
+     *
+     * @param vo       统计 VO（非 null）
+     * @param config   模型配置，可能为 null
+     * @param provider 提供商，可能为 null
+     */
+    private void applyModelInfo(AiModelUsageStatVO vo, AiModelConfigPO config, AiModelProviderPO provider) {
         if (config != null) {
             vo.setModelName(config.getModelName());
             vo.setModelType(config.getModelType());
             vo.setProviderId(config.getProviderId());
-
-            // 计算成功率 (0-100)
-            if (vo.getTotalCalls() != null && vo.getTotalCalls() > 0) {
-                Double successRate = (vo.getSuccessCalls() * 100.0) / vo.getTotalCalls();
-                vo.setSuccessRate(Math.round(successRate * 100.0) / 100.0);
-            } else {
-                vo.setSuccessRate(0.0);
-            }
         }
-
-        return vo;
+        if (provider != null) {
+            vo.setProviderName(provider.getProviderName());
+        }
+        // 计算成功率 (0-100)
+        if (vo.getTotalCalls() != null && vo.getTotalCalls() > 0 && vo.getSuccessCalls() != null) {
+            double successRate = (vo.getSuccessCalls() * 100.0) / vo.getTotalCalls();
+            vo.setSuccessRate(Math.round(successRate * 100.0) / 100.0);
+        } else {
+            vo.setSuccessRate(0.0);
+        }
     }
 
     /**
@@ -172,64 +231,22 @@ public class AiModelUsageService implements com.aizuda.snail.ai.model.service.Ai
         }
 
         return AiModelUsageStatVO.builder()
-                .id(po.getId())
-                .modelId(po.getModelId())
-                .userId(po.getUserId())
-                .totalCalls(po.getTotalCalls())
-                .successCalls(po.getSuccessCalls())
-                .failedCalls(po.getFailedCalls())
-                .totalTokensUsed(po.getTotalTokensUsed())
-                .totalCost(po.getTotalCost())
-                .avgResponseTime(po.getAvgResponseTime())
-                .lastUsedDt(po.getLastUsedDt() != null ?
-                        po.getLastUsedDt().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() : null)
-                .createdDt(po.getCreatedDt() != null ?
-                        po.getCreatedDt().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() : null)
-                .updatedDt(po.getUpdatedDt() != null ?
-                        po.getUpdatedDt().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() : null)
-                .build();
-    }
-
-    // ========== 内部类 ==========
-
-    /**
-     * 模型-用户 组合键
-     */
-    private static class ModelUserKey {
-        final String modelKey;
-        final Long userId;
-
-        ModelUserKey(String modelKey, Long userId) {
-            this.modelKey = modelKey;
-            this.userId = userId;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            ModelUserKey that = (ModelUserKey) o;
-            return Objects.equals(modelKey, that.modelKey) && Objects.equals(userId, that.userId);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(modelKey, userId);
-        }
-    }
-
-    /**
-     * 使用量聚合
-     */
-    private static class UsageAggregation {
-        long totalCalls = 0;
-        long successCalls = 0;
-        long failedCalls = 0;
-        long totalInputTokens = 0;
-        long totalOutputTokens = 0;
-        BigDecimal totalCost = BigDecimal.ZERO;
-        long totalResponseTime = 0;
-        LocalDateTime lastUsedTime = null;
+            .id(po.getId())
+            .modelId(po.getModelId())
+            .userId(po.getUserId())
+            .totalCalls(po.getTotalCalls())
+            .successCalls(po.getSuccessCalls())
+            .failedCalls(po.getFailedCalls())
+            .totalTokensUsed(po.getTotalTokensUsed())
+            .totalCost(po.getTotalCost())
+            .avgResponseTime(po.getAvgResponseTime())
+            .lastUsedDt(po.getLastUsedDt() != null ?
+                po.getLastUsedDt().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() : null)
+            .createdDt(po.getCreatedDt() != null ?
+                po.getCreatedDt().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() : null)
+            .updatedDt(po.getUpdatedDt() != null ?
+                po.getUpdatedDt().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli() : null)
+            .build();
     }
 
     // ========== 废弃的方法（保留接口签名用于兼容） ==========

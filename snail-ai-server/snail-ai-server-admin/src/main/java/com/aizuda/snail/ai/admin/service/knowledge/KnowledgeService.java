@@ -4,9 +4,11 @@ import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.common.execption.SnailAiCommonException;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.common.util.JsonUtil;
+import com.aizuda.snail.ai.features.resource.ResourceService;
 import com.aizuda.snail.ai.vector.storage.vector.api.SnailAiVectorStore;
 import com.aizuda.snail.ai.persistence.rag.mapper.RagMapper;
 import com.aizuda.snail.ai.persistence.rag.mapper.RagChunkMapper;
+import com.aizuda.snail.ai.persistence.rag.mapper.RagDocumentImageMapper;
 import com.aizuda.snail.ai.persistence.rag.mapper.RagDocumentMapper;
 import com.aizuda.snail.ai.persistence.admin.mapper.StoreInstanceMapper;
 import com.aizuda.snail.ai.admin.vo.PageResult;
@@ -15,6 +17,7 @@ import com.aizuda.snail.ai.persistence.rag.po.RagChunkPO;
 import com.aizuda.snail.ai.persistence.rag.po.RagDocumentPO;
 import com.aizuda.snail.ai.admin.vo.knowledge.KnowledgeConfigRequestVO;
 import com.aizuda.snail.ai.persistence.rag.dataobject.RagConfigDO;
+import com.aizuda.snail.ai.persistence.rag.po.RagDocumentImagePO;
 import com.aizuda.snail.ai.admin.vo.knowledge.KnowledgeQueryVO;
 import com.aizuda.snail.ai.admin.service.VectorDimensionConstraintService;
 import com.aizuda.snail.ai.admin.service.model.AiModelConfigService;
@@ -26,6 +29,9 @@ import com.aizuda.snail.ai.features.rag.enums.DedupAction;
 import com.aizuda.snail.ai.features.rag.enums.DedupStrategy;
 import com.aizuda.snail.ai.common.enums.store.StoreCategoryEnum;
 import com.aizuda.snail.ai.persistence.admin.po.StoreInstancePO;
+import com.aizuda.snail.ai.search.storage.search.SearchEngineFactory;
+import com.aizuda.snail.ai.search.storage.search.api.SearchDeleteRequest;
+import com.aizuda.snail.ai.search.storage.search.api.SearchEngine;
 import com.aizuda.snail.ai.vector.storage.vector.VectorStoreFactory;
 import com.aizuda.snail.ai.vector.storage.vector.api.IndexNameBuilder;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -41,6 +47,12 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.regex.PatternSyntaxException;
 
+/**
+ * 知识库管理服务，负责知识库的增删改查、检索配置、向量库绑定与维度约束校验。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -48,12 +60,21 @@ public class KnowledgeService {
 
     private final RagMapper knowledgeMapper;
     private final RagDocumentMapper ragDocumentMapper;
+    private final RagDocumentImageMapper ragDocumentImageMapper;
     private final RagChunkMapper ragChunkMapper;
     private final StoreInstanceMapper storeInstanceMapper;
     private final AiModelConfigService aiModelConfigService;
     private final VectorDimensionConstraintService vectorDimensionConstraintService;
     private final VectorStoreFactory vectorStoreFactory;
+    private final SearchEngineFactory searchEngineFactory;
+    private final ResourceService resourceService;
 
+    /**
+     * 创建知识库
+     *
+     * @param request 知识库创建请求参数
+     * @return 创建后的知识库详情
+     */
     public KnowledgeResponseVO create(KnowledgeRequestVO request) {
         validateKnowledgeStorage(request);
         validateDimension(request);
@@ -80,9 +101,17 @@ public class KnowledgeService {
                 .uploadConfirm(request.getUploadConfirm() == null ? Boolean.TRUE : request.getUploadConfirm())
                 .build();
         knowledgeMapper.insert(po);
+        log.info("创建知识库成功 id={} name={}", po.getId(), po.getName());
         return toResponseVO(po);
     }
 
+    /**
+     * 更新知识库
+     *
+     * @param id      知识库 ID
+     * @param request 知识库更新请求参数
+     * @return 更新后的知识库详情
+     */
     public KnowledgeResponseVO update(Long id, KnowledgeRequestVO request) {
         RagPO po = knowledgeMapper.selectById(id);
         if (po == null) {
@@ -117,12 +146,19 @@ public class KnowledgeService {
         po.setDelimiter(resolveDelimiterFromChunkConfig(merged));
 
         knowledgeMapper.updateById(po);
+        log.info("更新知识库成功 id={} name={}", id, po.getName());
 
         KnowledgeResponseVO vo = toResponseVO(po);
         enrichEmbeddingModelName(vo);
         return vo;
     }
 
+    /**
+     * 更新知识库的切片/检索配置
+     *
+     * @param id     知识库 ID
+     * @param config 知识库配置请求参数
+     */
     public void updateConfig(Long id, KnowledgeConfigRequestVO config) {
         RagPO po = knowledgeMapper.selectById(id);
         if (po == null) {
@@ -133,6 +169,9 @@ public class KnowledgeService {
         if (incoming.getChunkParams() == null) {
             incoming.setChunkParams(existing.getChunkParams());
         }
+        if (incoming.getParseParams() == null) {
+            incoming.setParseParams(existing.getParseParams());
+        }
         if (incoming.getSearchParams() == null) {
             incoming.setSearchParams(existing.getSearchParams());
         }
@@ -141,8 +180,14 @@ public class KnowledgeService {
         }
         po.setConfig(JsonUtil.toJsonString(incoming));
         knowledgeMapper.updateById(po);
+        log.info("更新知识库配置 id={}", id);
     }
 
+    /**
+     * 删除知识库，同时清理其向量库数据、文档与分片
+     *
+     * @param id 知识库 ID
+     */
     @Transactional
     public void delete(Long id) {
         RagPO po = knowledgeMapper.selectById(id);
@@ -157,11 +202,60 @@ public class KnowledgeService {
             log.warn("Failed to clean vector store for knowledge: {}", id, e);
         }
 
+        // 清理搜索引擎索引：先查所有 chunk ID 再按 ID 列表批量删除
+        if (Boolean.TRUE.equals(po.getSearchEngineEnable()) && po.getSearchEngineInstanceId() != null) {
+            try {
+                List<RagChunkPO> chunks = ragChunkMapper.selectList(
+                        new LambdaQueryWrapper<RagChunkPO>().eq(RagChunkPO::getRagId, id));
+                if (!chunks.isEmpty()) {
+                    SearchEngine searchEngine = searchEngineFactory.forStoreInstance(po.getSearchEngineInstanceId());
+                    String indexName = IndexNameBuilder.KNOWLEDGE.build(Map.of("ragId", id));
+                    List<String> chunkIds = chunks.stream()
+                            .map(c -> String.valueOf(c.getId()))
+                            .toList();
+                    searchEngine.delete(SearchDeleteRequest.builder()
+                            .indexName(indexName)
+                            .ids(chunkIds)
+                            .build());
+                    log.info("清理知识库搜索引擎索引 {} 条 ragId={}", chunkIds.size(), id);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to clean search engine for knowledge: {}", id, e);
+            }
+        }
+
+        cleanKnowledgeImages(id);
         ragChunkMapper.delete(new LambdaQueryWrapper<RagChunkPO>().eq(RagChunkPO::getRagId, id));
         ragDocumentMapper.delete(new LambdaQueryWrapper<RagDocumentPO>().eq(RagDocumentPO::getRagId, id));
         knowledgeMapper.deleteById(id);
+        log.info("删除知识库成功 id={} name={}", id, po.getName());
     }
 
+    private void cleanKnowledgeImages(Long ragId) {
+        // 知识库删除时同步清理 Docling 图片资源，避免 sai_resource 中留下孤立文件。
+        List<RagDocumentImagePO> images = ragDocumentImageMapper.selectList(
+                new LambdaQueryWrapper<RagDocumentImagePO>().eq(RagDocumentImagePO::getRagId, ragId));
+        for (RagDocumentImagePO image : images) {
+            if (image.getResourceId() == null) {
+                continue;
+            }
+            try {
+                resourceService.delete(image.getResourceId());
+            } catch (Exception e) {
+                log.warn("Failed to delete knowledge image resource. ragId={} resourceId={}",
+                        ragId, image.getResourceId(), e);
+            }
+        }
+        ragDocumentImageMapper.delete(
+                new LambdaQueryWrapper<RagDocumentImagePO>().eq(RagDocumentImagePO::getRagId, ragId));
+    }
+
+    /**
+     * 获取知识库详情
+     *
+     * @param id 知识库 ID
+     * @return 知识库详情（含文档/分片统计与嵌入模型名）
+     */
     public KnowledgeResponseVO getById(Long id) {
         RagPO po = knowledgeMapper.selectById(id);
         if (po == null) {
@@ -173,6 +267,12 @@ public class KnowledgeService {
         return vo;
     }
 
+    /**
+     * 分页查询知识库
+     *
+     * @param query 分页查询条件
+     * @return 知识库分页结果
+     */
     public PageResult<List<KnowledgeResponseVO>> page(KnowledgeQueryVO query) {
         LambdaQueryWrapper<RagPO> wrapper = new LambdaQueryWrapper<>();
         if (StrUtil.isNotBlank(query.getName())) {
@@ -304,6 +404,22 @@ public class KnowledgeService {
                 .imageOcr(request.getImageOcr() != null ? request.getImageOcr() : Boolean.FALSE)
                 .build();
         cfg.setChunkParams(cp);
+        // 解析引擎配置
+        if (StrUtil.isNotBlank(request.getParseEngine())) {
+            RagConfigDO.ParseParams pp = new RagConfigDO.ParseParams();
+            pp.setEngine(request.getParseEngine());
+            if ("docling".equalsIgnoreCase(request.getParseEngine())) {
+                RagConfigDO.DoclingParams dp = new RagConfigDO.DoclingParams();
+                dp.setDoOcr(request.getDoclingDoOcr());
+                dp.setDoTableStructure(request.getDoclingDoTableStructure());
+                dp.setSaveImages(request.getDoclingSaveImages());
+                pp.setDocling(dp);
+            }
+            cfg.setParseParams(pp);
+        } else if (request.getParseParams() != null) {
+            // 前端直接传 parseParams 对象（RagCreateRequest.parseParams）
+            cfg.setParseParams(toParseParamsDO(request.getParseParams()));
+        }
         return cfg;
     }
 
@@ -378,6 +494,22 @@ public class KnowledgeService {
                 .imageOcr(imageOcr)
                 .build();
         cfg.setChunkParams(cp);
+        // 解析引擎配置：编辑时可以修改
+        if (StrUtil.isNotBlank(request.getParseEngine())) {
+            RagConfigDO.ParseParams pp = new RagConfigDO.ParseParams();
+            pp.setEngine(request.getParseEngine());
+            if ("docling".equalsIgnoreCase(request.getParseEngine())) {
+                RagConfigDO.DoclingParams dp = new RagConfigDO.DoclingParams();
+                dp.setDoOcr(request.getDoclingDoOcr());
+                dp.setDoTableStructure(request.getDoclingDoTableStructure());
+                dp.setSaveImages(request.getDoclingSaveImages());
+                pp.setDocling(dp);
+            }
+            cfg.setParseParams(pp);
+        } else if (request.getParseParams() != null) {
+            // 前端直接传 parseParams 对象（RagCreateRequest.parseParams）
+            cfg.setParseParams(toParseParamsDO(request.getParseParams()));
+        }
         return cfg;
     }
 
@@ -414,5 +546,12 @@ public class KnowledgeService {
             return new RagConfigDO();
         }
         return JsonUtil.parseObject(JsonUtil.toJsonString(configVO), RagConfigDO.class);
+    }
+
+    private RagConfigDO.ParseParams toParseParamsDO(KnowledgeConfigRequestVO.ParseParams pp) {
+        if (pp == null) {
+            return null;
+        }
+        return JsonUtil.parseObject(JsonUtil.toJsonString(pp), RagConfigDO.ParseParams.class);
     }
 }

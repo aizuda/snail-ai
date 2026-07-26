@@ -17,6 +17,9 @@ import java.util.List;
 
 /**
  * 按知识库 config.chunkParams.mode 选择切片策略。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Service
@@ -44,14 +47,22 @@ public class DocumentChunkingService {
                 .build();
 
         ChunkStrategy strategy = chunkStrategyFactory.getStrategy(mode);
-        return strategy.chunk(context);
+        List<ChunkDTO> chunks = strategy.chunk(context);
+        log.debug("RAG 文档分块完成 模式={} 切片数={}", mode, chunks.size());
+        return chunks;
     }
 
     private RagConfigDO parseKnowledgeConfig(RagPO k) {
-        if (StrUtil.isBlank(k.getConfig())) {
+        if (k == null || StrUtil.isBlank(k.getConfig())) {
             return null;
         }
-        return JsonUtil.parseObject(k.getConfig(), RagConfigDO.class);
+        try {
+            return JsonUtil.parseObject(k.getConfig(), RagConfigDO.class);
+        } catch (Exception e) {
+            log.warn("Failed to parse knowledge chunk config, fallback to defaults. ragId={}, reason={}",
+                    k.getId(), e.getMessage());
+            return null;
+        }
     }
 
     private String resolveDelimiterForChunk(RagPO k, RagConfigDO.ChunkParams cp) {

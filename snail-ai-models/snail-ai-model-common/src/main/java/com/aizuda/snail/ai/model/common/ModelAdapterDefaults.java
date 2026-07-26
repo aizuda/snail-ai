@@ -2,6 +2,12 @@ package com.aizuda.snail.ai.model.common;
 
 import java.util.List;
 
+/**
+ * 模型适配默认值与解析工具，提供默认适配器键、模型类型常量及按模型类型解析适配器键。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 public final class ModelAdapterDefaults {
 
     public static final String CHAT_MODEL_TYPE = "CHAT";

@@ -34,7 +34,7 @@ import java.util.Objects;
  * 系统登录认证拦截器
  *
  * @author: byteblogs
- * @date:2023-04-26 12:52
+ * @since 2023-04-26 12:52
  */
 @Slf4j
 @Configuration
@@ -64,6 +64,7 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         // 从请求头中取出token
         String token = request.getHeader(AUTHENTICATION);
         if (StrUtil.isBlank(token)) {
+            log.warn("管理端鉴权失败: 缺少 Token, uri={}", request.getRequestURI());
             throw new SnailAiAuthenticationException("未登录或登录已过期");
         }
 
@@ -73,6 +74,8 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
         // 检查角色权限
         RoleEnum requiredRole = loginRequired.role();
         if (requiredRole == RoleEnum.ADMIN && !RoleEnum.isAdmin(userPO.getRole())) {
+            log.warn("管理端鉴权失败: 权限不足, username={}, role={}, uri={}",
+                    userPO.getUsername(), userPO.getRole(), request.getRequestURI());
             throw new SnailAiAuthenticationException("权限不足");
         }
 
@@ -129,7 +132,6 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
 
     @Override
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
-        // 可以在这里做一些后置处理
     }
 
     @Override

@@ -2,6 +2,9 @@ package com.aizuda.snail.ai.common.mcp;
 
 /**
  * Minimal MCP server view for chat/tool wiring (implemented by persistence PO).
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 public interface McpServerRef {
 
@@ -21,7 +24,7 @@ public interface McpServerRef {
 
     String getEnvVars();
 
-    Integer getAuthType();
+    Long getTimeoutMs();
 
-    String getAuthConfig();
+    String getHeaders();
 }

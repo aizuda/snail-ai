@@ -2,6 +2,9 @@ package com.aizuda.snail.ai.model.enums;
 
 /**
  * 模型作用域枚举
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public enum ModelScopeEnum {
     /**

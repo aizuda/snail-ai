@@ -10,12 +10,10 @@ import lombok.NoArgsConstructor;
 import com.aizuda.snail.ai.common.model.ConfigExtAttrsDTO;
 
 /**
- * <p>
- *
- * </p>
+ * 模型配置信息：模型 / 提供商 / 凭证等运行时配置（内部传输用，敏感字段不对外暴露）。
  *
  * @author opensnail
- * @date 2026-03-31
+ * @since 2026-03-31
  */
 @Data
 @Builder

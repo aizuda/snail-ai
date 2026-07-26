@@ -12,6 +12,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+/**
+ * 配置解析节点：加载知识库及其检索 / 模型参数并注入上下文；知识库不存在则终止链路。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Component
 @Order(10)
@@ -44,5 +50,8 @@ public class ConfigResolveHandler implements RagSearchHandler {
                 ? configDO.getSearchParams() : new RagConfigDO.SearchParams());
         ctx.setModelParams(configDO.getModelParams());
         ctx.setQuery(ctx.getOriginalQuery());
+
+        log.debug("RAG 配置解析完成 ragId={} 搜索引擎启用={}",
+                ctx.getRagId(), knowledge.getSearchEngineEnable());
     }
 }

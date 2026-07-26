@@ -17,6 +17,9 @@ import java.time.LocalDateTime;
  *
  * 按模型和用户维度统计使用情况
  * 定期从usage_log表聚合更新
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

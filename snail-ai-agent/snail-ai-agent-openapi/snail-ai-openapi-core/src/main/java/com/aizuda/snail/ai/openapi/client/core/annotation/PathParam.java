@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * 路径参数注解
  *
  * @author opensnail
- * @date 2026-04-24
+ * @since 2026-04-24
  */
 @Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)

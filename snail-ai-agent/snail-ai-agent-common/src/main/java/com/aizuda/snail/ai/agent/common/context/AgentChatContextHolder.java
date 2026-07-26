@@ -18,6 +18,9 @@ import java.util.Map;
  * - 用户信息：userName, department
  * - 记忆配置：memoryEnabled, memoryTopK, embeddingModelId
  * - 其他配置：skillEnabled, mcpEnabled, webSearchEnabled 等
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 public class AgentChatContextHolder {
     public static final String KEY = "AgentChatContext";

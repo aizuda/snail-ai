@@ -2,6 +2,9 @@ package com.aizuda.snail.ai.common.grpc.constant;
 
 /**
  * gRPC URI 路由路径常量
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 public interface UriConstants {
 
@@ -17,4 +20,5 @@ public interface UriConstants {
     // Server → Client
     String CHAT_DISPATCH = "/chat/dispatch";
     String PING = "/ping";
+    String CLIENT_KICK_OUT = "/client/kick-out";
 }

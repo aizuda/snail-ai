@@ -27,6 +27,9 @@ import com.aizuda.snail.ai.vector.storage.vector.api.SnailAiVectorStore;
 
 /**
  * 向量库工厂：连接与索引参数均来自「存储实例」表 config JSON。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Component
 @RequiredArgsConstructor
@@ -43,6 +46,12 @@ public class VectorStoreFactory {
     private final StoreInstanceMapper storeInstanceMapper;
     private final EmbeddingModelDimensionService embeddingModelDimensionService;
 
+    /**
+     * 按知识库配置创建向量库（维度缺省时由嵌入模型探测）。
+     *
+     * @param knowledge 知识库配置
+     * @return 向量库实例
+     */
     public SnailAiVectorStore create(RagPO knowledge) {
         Integer dimension = knowledge.getDimensionOfVectorModel();
         if (dimension == null) {
@@ -56,6 +65,11 @@ public class VectorStoreFactory {
 
     /**
      * 按存储实例 ID + 嵌入模型创建向量库（知识库 / 记忆配置共用）
+     *
+     * @param vectorStoreInstanceId  向量存储实例 ID
+     * @param embeddingModelId       嵌入模型 ID
+     * @param dimensionOfVectorModel 向量维度
+     * @return 向量库实例（命中缓存时复用）
      */
     public SnailAiVectorStore createForStoreInstance(Long vectorStoreInstanceId,
                                                      Long embeddingModelId,

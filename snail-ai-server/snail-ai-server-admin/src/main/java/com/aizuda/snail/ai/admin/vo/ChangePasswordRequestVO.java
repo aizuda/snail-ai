@@ -8,7 +8,7 @@ import lombok.Data;
  * 用户自助修改密码请求VO
  *
  * @author opensnail
- * @date 2026-04-28
+ * @since 2026-04-28
  */
 @Data
 public class ChangePasswordRequestVO {

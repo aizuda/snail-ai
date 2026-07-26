@@ -34,33 +34,44 @@
 ## 项目结构
 
 - 后端：Spring Boot + MyBatis-Plus，模块化 Maven 项目
-- 前端：Vue 3 + TypeScript + Ant Design Vue，位于 `snail-ai-web/`
+- 前端：Vue 3 + TypeScript + Naive UI，独立仓库（路径通过 `.env` 中 `SNAIL_AI_FRONTEND_PATH` 配置）
 - 前端页面使用 `useTable` + `useTableOperate` + TSX `customRender` 标准模式
 - API 服务层按功能模块拆分（`model.ts`、`provider.ts` 等）
 
+## 环境配置
+
+- 本地环境变量在项目根目录 `.env` 文件中配置（不提交到 Git）
+- `.env.example` 为模板文件，列出所有可用变量及默认值
+- 如需新增环境变量，同时更新 `.env.example`（模板）和 `.env`（本地值）
+- 智能体/Skill 读取 `.env` 失败时应使用 `env-config` skill 引导用户配置
+
 ## 通用规则
 
-- 提交信息格式：`feat/fix/refactor(scope): 中文描述`
+- 提交信息格式：`<type>(<version>): <中文描述>`，如 `feat(1.1.0): 新增用户管理`
 - 不要修改不相关的代码，保持变更最小化
 - 新增 API 端点时同步更新前端 service 层类型定义
+- 提交代码时使用 `git-submit` skill 或 `@agents/git-submit.md` 自动生成 commit message 和更新 changelog
 
 ## 开发规范 Skill
 
 - 每次编写或修改代码前，必须先阅读 `.claude/skills/dev-guide/SKILL.md`。
 - 按任务类型继续阅读对应细则：架构调整读 `architecture.md`，Java/编码风格读 `coding-standards.md`，数据库/Mapper/PO 调整读 `database-guide.md`，接口调整读 `api-design.md`，命名不确定时读 `naming-conventions.md`。
 - `.claude/skills/dev-guide/` 中的规范与本文件同时生效；如与当前开源版实际模块结构冲突，以当前代码结构和本文件的开源版约束为准。
+- **前端开发**：涉及前端变更时使用 `frontend-dev` skill 或 `@agents/frontend-dev.md`，遵循其中的 Vue 3/Naive UI 编码规范。
+- **Git 提交**：提交代码时使用 `git-submit` skill 或 `@agents/git-submit.md`，自动更新 changelog、生成规范 commit message、创建 Gitee PR。
+- **环境配置**：`.env` 配置缺失时使用 `env-config` skill 引导用户完成配置。
 
 <!-- gitnexus:start -->
 # GitNexus — Code Intelligence
 
-This project is indexed by GitNexus as **snail-ai** (14934 symbols, 33408 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
+This project is indexed by GitNexus as **snail-ai** (16191 symbols, 34312 relationships, 300 execution flows). Use the GitNexus MCP tools to understand code, assess impact, and navigate safely.
 
 > Index stale? Run `node .gitnexus/run.cjs analyze` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? `npx gitnexus analyze` (npm 11 crash → `npm i -g gitnexus`; #1939).
 
 ## Always Do
 
 - **MUST run impact analysis before editing any symbol.** Before modifying a function, class, or method, run `impact({target: "symbolName", direction: "upstream"})` and report the blast radius (direct callers, affected processes, risk level) to the user.
-- **MUST run `detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows. For regression review, compare against the default branch: `detect_changes({scope: "compare", base_ref: "main"})`.
+- **MUST run `detect_changes()` before committing** to verify your changes only affect expected symbols and execution flows. For regression review, compare against the default branch: `detect_changes({scope: "compare", base_ref: "0.0.1"})`.
 - **MUST warn the user** if impact analysis returns HIGH or CRITICAL risk before proceeding with edits.
 - When exploring unfamiliar code, use `query({search_query: "concept"})` to find execution flows instead of grepping. It returns process-grouped results ranked by relevance.
 - When you need full context on a specific symbol — callers, callees, which execution flows it participates in — use `context({name: "symbolName"})`.

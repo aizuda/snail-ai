@@ -1,0 +1,7 @@
+fastapi>=0.115.0
+uvicorn[standard]>=0.30.0
+python-multipart>=0.0.9
+docling==2.69.1
+transformers==4.57.6
+onnxruntime==1.19.2
+rapidocr==3.9.2

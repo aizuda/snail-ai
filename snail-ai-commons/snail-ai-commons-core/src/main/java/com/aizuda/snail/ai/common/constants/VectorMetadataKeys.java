@@ -2,6 +2,9 @@ package com.aizuda.snail.ai.common.constants;
 
 /**
  * 向量存储元数据键名常量
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 public final class VectorMetadataKeys {
 

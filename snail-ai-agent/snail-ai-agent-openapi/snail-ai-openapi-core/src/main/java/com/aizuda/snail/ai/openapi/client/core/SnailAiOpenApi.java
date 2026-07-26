@@ -15,6 +15,7 @@ import com.aizuda.snail.ai.common.openapi.dto.OpenApiAgentQueryRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationClearRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationIdentityRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationQueryRequest;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationUpdateTitleRequest;
 import com.aizuda.snail.ai.openapi.client.core.api.OpenApiAgentClient;
 import com.aizuda.snail.ai.openapi.client.core.api.OpenApiChatClient;
 import com.aizuda.snail.ai.openapi.client.core.api.OpenApiConversationClient;
@@ -46,7 +47,7 @@ import java.util.List;
  * </pre>
  *
  * @author opensnail
- * @date 2026-04-24
+ * @since 2026-04-24
  */
 public class SnailAiOpenApi {
 
@@ -190,6 +191,17 @@ public class SnailAiOpenApi {
             request.setOpenId(openId);
             request.setTitle(title);
             return conversationClient.createConversation(request);
+        }
+
+        public Result<Void> rename(String title) {
+            checkClient();
+            requireOpenId();
+            OpenApiConversationUpdateTitleRequest request = new OpenApiConversationUpdateTitleRequest();
+            request.setAgentId(agentId);
+            request.setOpenId(openId);
+            request.setConversationId(conversationId);
+            request.setTitle(title);
+            return conversationClient.updateConversationTitle(request);
         }
 
         public Result<Void> delete() {

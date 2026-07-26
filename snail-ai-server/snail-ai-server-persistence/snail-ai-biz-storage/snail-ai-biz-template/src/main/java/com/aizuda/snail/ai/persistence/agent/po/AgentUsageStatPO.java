@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  * 按天聚合统计消息数、会话数等指标
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @TableName("sai_agent_usage_stat")
 @Data

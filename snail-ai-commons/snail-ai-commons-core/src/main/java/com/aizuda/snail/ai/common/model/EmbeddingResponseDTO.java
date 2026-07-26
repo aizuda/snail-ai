@@ -6,6 +6,9 @@ import java.util.List;
 
 /**
  * (复制自 snail-job-ai-executor)
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 @Data
 public class EmbeddingResponseDTO {

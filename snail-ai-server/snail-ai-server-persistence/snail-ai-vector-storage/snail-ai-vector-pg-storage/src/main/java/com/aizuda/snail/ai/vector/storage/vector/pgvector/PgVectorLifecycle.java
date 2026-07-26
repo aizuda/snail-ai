@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * PgVector 生命周期管理
  *
  * @author opensnail
- * @date 2026-04-02
+ * @since 2026-04-02
  */
 @Slf4j
 @Component
@@ -25,10 +25,12 @@ public class PgVectorLifecycle implements Lifecycle {
                         configDTO.getDimensions(),
                         JsonUtil.parseObject(configDTO.getConfig(), PgVectorSettings.class)
                 ));
+        log.info("PgVector 向量库已注册");
     }
 
     @Override
     public void close() {
         PgDataSourceFactory.closeAll();
+        log.info("PgVector 向量库连接已关闭");
     }
 }

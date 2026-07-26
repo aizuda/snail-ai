@@ -10,6 +10,9 @@ import java.util.List;
 /**
  * AI模型列表响应 VO
  * 用于返回分组/过滤后的模型列表
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

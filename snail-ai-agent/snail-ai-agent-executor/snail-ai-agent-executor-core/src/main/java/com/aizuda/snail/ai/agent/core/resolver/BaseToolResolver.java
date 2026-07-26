@@ -18,6 +18,9 @@ import java.util.List;
  * 客户端 RAG 知识库搜索工具解析器
  * <p>
  * 当 Agent 启用知识库时，注册本地 {@link RagSearchTool} 替代 MCP 调用。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 public class BaseToolResolver {
@@ -31,6 +34,12 @@ public class BaseToolResolver {
         this.tempDir = tempDir;
     }
 
+    /**
+     * 解析基础工具集合（Shell / HTTP），并为本次对话准备隔离工作目录。
+     *
+     * @param request 对话分发请求
+     * @return 基础工具回调列表
+     */
     public List<ToolCallback> resolve(ChatDispatchRequest request) {
         String workingDirectory = buildIsolatedDir(request);
         log.info("ShellTool + HttpTool registered, workingDirectory={}", workingDirectory);
@@ -41,7 +50,10 @@ public class BaseToolResolver {
     }
 
     /**
-     * 构建按 agentId/conversationId 隔离的工作目录，并自动创建
+     * 构建按 agentId/conversationId 隔离的工作目录，并自动创建。
+     *
+     * @param request 对话分发请求
+     * @return 隔离工作目录路径
      */
     public String buildIsolatedDir(ChatDispatchRequest request) {
         Long agentId = request.getAgentConfig() != null ? request.getAgentConfig().getAgentId() : null;

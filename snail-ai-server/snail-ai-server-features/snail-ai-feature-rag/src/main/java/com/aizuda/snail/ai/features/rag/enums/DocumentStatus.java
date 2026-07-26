@@ -9,14 +9,18 @@ import lombok.Getter;
  * </p>
  *
  * @author opensnail
- * @date 2025-07-19
+ * @since 2025-07-19
  */
 @AllArgsConstructor
 @Getter
 public enum DocumentStatus {
+    /** 初始（待处理） */
     INIT(0),
+    /** 处理中 */
     PROCESSING(1),
+    /** 处理成功 */
     SUCCESS(2),
+    /** 处理失败 */
     FAIL(3);
 
     private final int status;

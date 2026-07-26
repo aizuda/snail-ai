@@ -10,7 +10,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * OpenAPI WebMvc 配置，注册认证拦截器到 /openapi/** 路径
  *
  * @author opensnail
- * @date 2026-04-24
+ * @since 2026-04-24
  */
 @Configuration
 @RequiredArgsConstructor

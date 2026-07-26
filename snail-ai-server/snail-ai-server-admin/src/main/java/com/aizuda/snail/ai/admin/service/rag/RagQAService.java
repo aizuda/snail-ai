@@ -15,7 +15,6 @@ import com.aizuda.snail.ai.features.rag.service.RagSearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import reactor.core.Disposable;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
@@ -23,6 +22,12 @@ import reactor.core.publisher.FluxSink;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * 知识库问答服务，基于检索到的参考资料拼装提示词并调用模型进行（流式）问答。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -38,12 +43,16 @@ public class RagQAService {
 
     /**
      * 流式问答：从 DB 读取知识库配置 → 检索 → 组装 prompt → 调用 LLM 流式输出
+     *
+     * @param request 知识库问答请求（知识库 ID 与用户问题）
+     * @return 问答过程的流式事件（文本块/结束/错误）
      */
     public Flux<RagQaStreamEvent> qaStream(RagQARequestVO request) {
         return Flux.create(sink -> doQaStream(request, sink), FluxSink.OverflowStrategy.BUFFER);
     }
 
     private void doQaStream(RagQARequestVO request, FluxSink<RagQaStreamEvent> sink) {
+        log.debug("知识库问答开始 ragId={} query={}", request.getRagId(), request.getQuery());
         try {
             RagPO knowledge = knowledgeMapper.selectById(request.getRagId());
             if (knowledge == null) {
@@ -76,6 +85,7 @@ public class RagQAService {
             searchRequest.setQuery(request.getQuery());
             List<SearchResult> searchResults = new ArrayList<>(
                     ragSearchService.search(searchRequest, searchConfigDO).getResults());
+            log.debug("知识库问答检索完成 ragId={} 命中={} 条", request.getRagId(), searchResults.size());
 
             // 2. 组装 prompt
             String documentsText = buildDocumentsText(searchResults);
@@ -87,7 +97,7 @@ public class RagQAService {
                     request.getQuery(),
                     systemPrompt,
                     chunk -> emit(sink, RagQaStreamEvent.text(chunk)),
-                    () -> complete(sink),
+                    () -> complete(sink, searchResults),
                     error -> emitError(sink, error)
             ));
             sink.onCancel(subscription);
@@ -110,32 +120,35 @@ public class RagQAService {
     }
 
     private String buildSystemPrompt(String promptTemplate, String documentsText) {
-        if (!StringUtils.hasText(promptTemplate)) {
+        if (StrUtil.isBlank(promptTemplate)) {
             return DEFAULT_SYSTEM_PROMPT_PREFIX + documentsText;
         }
         return promptTemplate.replace(DOCUMENTS_PLACEHOLDER, documentsText);
     }
 
     private void emit(FluxSink<RagQaStreamEvent> sink, RagQaStreamEvent event) {
-        if (!sink.isCancelled()) {
-            sink.next(event);
+        if (sink.isCancelled()) {
+            return;
         }
+        sink.next(event);
     }
 
-    private void complete(FluxSink<RagQaStreamEvent> sink) {
-        if (!sink.isCancelled()) {
-            sink.next(RagQaStreamEvent.done());
-            sink.complete();
+    private void complete(FluxSink<RagQaStreamEvent> sink, List<SearchResult> references) {
+        if (sink.isCancelled()) {
+            return;
         }
+        sink.next(RagQaStreamEvent.done(references));
+        sink.complete();
     }
 
     private void emitError(FluxSink<RagQaStreamEvent> sink, Throwable error) {
-        if (!sink.isCancelled()) {
-            String message = error != null && error.getMessage() != null
-                    ? error.getMessage()
-                    : "RAG QA stream error";
-            sink.next(RagQaStreamEvent.error(message));
-            sink.complete();
+        if (sink.isCancelled()) {
+            return;
         }
+        String message = error != null && error.getMessage() != null
+                ? error.getMessage()
+                : "RAG QA stream error";
+        sink.next(RagQaStreamEvent.error(message));
+        sink.complete();
     }
 }

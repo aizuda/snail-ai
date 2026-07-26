@@ -32,6 +32,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 基于 Elasticsearch 的全文检索引擎实现，负责索引自动创建、文档批量写入、全文检索与删除。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 public class ElasticsearchSearchEngine implements SearchEngine {
 
@@ -53,11 +59,16 @@ public class ElasticsearchSearchEngine implements SearchEngine {
         if (indexName == null) {
             throw new SearchEngineException("SearchAddRequest.indexName 不能为空");
         }
+        int rawCount = request.getDocuments().size();
         List<SearchDocument> documents = request.getDocuments().stream()
                 .filter(document -> document != null && document.getId() != null && document.getContent() != null)
                 .toList();
         if (documents.isEmpty()) {
             return;
+        }
+        if (documents.size() < rawCount) {
+            log.warn("ES 全文检索写入过滤掉 {} 个非法文档（id/content 为空）index={}",
+                    rawCount - documents.size(), indexName);
         }
         batchInsert(indexName, documents);
     }
@@ -78,6 +89,7 @@ public class ElasticsearchSearchEngine implements SearchEngine {
         try {
             boolean exists = client.indices().exists(r -> r.index(indexName)).value();
             if (!exists) {
+                log.debug("ES 全文检索索引不存在，返回空结果: {}", indexName);
                 return List.of();
             }
 
@@ -114,6 +126,7 @@ public class ElasticsearchSearchEngine implements SearchEngine {
                         .metadata(toMetadata(source))
                         .build());
             }
+            log.debug("ES 全文检索完成 index={} topK={} 命中 {} 条", indexName, topK, results.size());
             return results;
         } catch (IOException e) {
             throw new SearchEngineException("Elasticsearch full-text search failed", e);
@@ -130,6 +143,7 @@ public class ElasticsearchSearchEngine implements SearchEngine {
             throw new SearchEngineException("SearchDeleteRequest.indexName 不能为空");
         }
         try {
+            log.info("ES 全文检索删除 {} 个文档 index={}", request.getIds().size(), indexName);
             BulkRequest.Builder bulkBuilder = new BulkRequest.Builder();
             for (String id : request.getIds()) {
                 bulkBuilder.operations(op -> op
@@ -160,6 +174,7 @@ public class ElasticsearchSearchEngine implements SearchEngine {
                 }
                 throw new SearchEngineException("Elasticsearch bulk insert had errors");
             }
+            log.info("ES 全文检索写入 {} 个文档 index={}", documents.size(), indexName);
         } catch (IOException e) {
             throw new SearchEngineException("Failed to insert documents into Elasticsearch search index", e);
         }
@@ -218,22 +233,42 @@ public class ElasticsearchSearchEngine implements SearchEngine {
         }
         Rest5Client rest5Client = builder.build();
         Rest5ClientTransport transport = new Rest5ClientTransport(rest5Client, new JacksonJsonpMapper());
+        log.info("创建 Elasticsearch 全文检索客户端: {}", uri);
         return new ElasticsearchClient(transport);
     }
 
+    /**
+     * 创建 ES 全文检索引擎构造器。
+     *
+     * @return 新的 {@link Builder} 实例
+     */
     public static Builder builder() {
         return new Builder();
     }
 
+    /**
+     * {@link ElasticsearchSearchEngine} 构造器，承载创建引擎所需的连接配置。
+     */
     public static final class Builder {
 
         private ElasticsearchVectorSettings settings;
 
+        /**
+         * 设置 Elasticsearch 连接与索引配置。
+         *
+         * @param settings 连接与映射参数
+         * @return 当前构造器（支持链式调用）
+         */
         public Builder setConfig(com.aizuda.snail.ai.search.storage.search.elasticsearch.ElasticsearchVectorSettings settings) {
             this.settings = settings;
             return this;
         }
 
+        /**
+         * 按已设置的配置构建 ES 全文检索引擎实例。
+         *
+         * @return ES 全文检索引擎
+         */
         public ElasticsearchSearchEngine build() {
             return new ElasticsearchSearchEngine(settings);
         }

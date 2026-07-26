@@ -3,6 +3,7 @@ package com.aizuda.snail.ai.openapi.service;
 import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.common.enums.agent.AgentStatusEnum;
 import com.aizuda.snail.ai.common.execption.SnailAiException;
+import com.aizuda.snail.ai.common.model.ConfigExtAttrsDTO;
 import com.aizuda.snail.ai.common.model.PageResult;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiAgentQueryRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiAgentToolVO;
@@ -19,6 +20,8 @@ import com.aizuda.snail.ai.persistence.agent.po.AgentSkillPO;
 import com.aizuda.snail.ai.persistence.agent.po.UserAgentPO;
 import com.aizuda.snail.ai.persistence.mcp.mapper.McpServerMapper;
 import com.aizuda.snail.ai.persistence.mcp.po.McpServerPO;
+import com.aizuda.snail.ai.persistence.model.mapper.AiModelConfigMapper;
+import com.aizuda.snail.ai.persistence.model.po.AiModelConfigPO;
 import com.aizuda.snail.ai.persistence.openapi.mapper.OpenApiUserMapper;
 import com.aizuda.snail.ai.persistence.openapi.po.OpenApiUserPO;
 import com.aizuda.snail.ai.persistence.skill.mapper.SkillMapper;
@@ -39,7 +42,7 @@ import java.util.stream.Collectors;
  * OpenAPI Agent 查询服务
  *
  * @author opensnail
- * @date 2026-04-24
+ * @since 2026-04-24
  */
 @Service
 @RequiredArgsConstructor
@@ -55,7 +58,14 @@ public class OpenApiAgentService {
     private final SkillMapper skillMapper;
     private final UserAgentMapper userAgentMapper;
     private final OpenApiUserMapper openApiUserMapper;
+    private final AiModelConfigMapper aiModelConfigMapper;
 
+    /**
+     * 分页查询已上架的智能体
+     *
+     * @param request 智能体分页查询请求
+     * @return 已上架智能体分页结果
+     */
     public PageResult<List<OpenApiAgentVO>> listAgents(OpenApiAgentQueryRequest request) {
         Page<AgentPO> pageParam = new Page<>(request.getPage(), request.getSize());
         Page<AgentPO> page = agentMapper.selectPage(pageParam,
@@ -69,6 +79,12 @@ public class OpenApiAgentService {
         return pageResult(page, agents);
     }
 
+    /**
+     * 获取智能体详情
+     *
+     * @param agentId 智能体 ID
+     * @return 智能体详情 VO；不存在时抛出异常
+     */
     public OpenApiAgentVO getAgent(Long agentId) {
         AgentPO agent = agentMapper.selectById(agentId);
         if (agent == null) {
@@ -77,6 +93,12 @@ public class OpenApiAgentService {
         return toVO(agent, null);
     }
 
+    /**
+     * 查询某用户已订阅且上架的智能体列表
+     *
+     * @param openId 开放平台用户标识
+     * @return 该用户已订阅的智能体列表
+     */
     public List<OpenApiAgentVO> listUserAgents(String openId) {
         OpenApiUserPO user = getOpenApiUser(openId);
         List<UserAgentPO> relations = userAgentMapper.selectList(
@@ -99,6 +121,12 @@ public class OpenApiAgentService {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 订阅智能体（已订阅时幂等返回）
+     *
+     * @param openId  开放平台用户标识
+     * @param agentId 目标智能体 ID
+     */
     @Transactional(rollbackFor = Exception.class)
     public void subscribeAgent(String openId, Long agentId) {
         OpenApiUserPO user = getOpenApiUser(openId);
@@ -123,8 +151,15 @@ public class OpenApiAgentService {
                 .agentId(agentId)
                 .createDt(LocalDateTime.now())
                 .build());
+        log.info("OpenAPI 用户订阅智能体 openId={} agentId={}", openId, agentId);
     }
 
+    /**
+     * 取消订阅智能体
+     *
+     * @param openId  开放平台用户标识
+     * @param agentId 目标智能体 ID
+     */
     @Transactional(rollbackFor = Exception.class)
     public void unsubscribeAgent(String openId, Long agentId) {
         OpenApiUserPO user = getOpenApiUser(openId);
@@ -132,6 +167,7 @@ public class OpenApiAgentService {
                 new LambdaQueryWrapper<UserAgentPO>()
                         .eq(UserAgentPO::getUserId, user.getPlatformUserId())
                         .eq(UserAgentPO::getAgentId, agentId));
+        log.info("OpenAPI 用户取消订阅智能体 openId={} agentId={}", openId, agentId);
     }
 
     private OpenApiUserPO getOpenApiUser(String openId) {
@@ -163,6 +199,7 @@ public class OpenApiAgentService {
                 .avatar(po.getAvatar())
                 .greeting(po.getGreeting())
                 .presetQuestions(resolvePresetQuestions(po))
+                .capabilities(resolveChatModelCapabilities(po.getChatModelId()))
                 .mcpEnabled(po.getMcpEnabled())
                 .mcpServers(getMcpTools(po))
                 .skillEnabled(po.getSkillEnabled())
@@ -199,6 +236,36 @@ public class OpenApiAgentService {
                 .map(String::trim)
                 .distinct()
                 .limit(MAX_PRESET_QUESTION_SIZE)
+                .collect(Collectors.toList());
+    }
+
+    private List<String> resolveChatModelCapabilities(Long chatModelId) {
+        if (chatModelId == null) {
+            return List.of();
+        }
+
+        AiModelConfigPO model = aiModelConfigMapper.selectById(chatModelId);
+        if (model == null || StrUtil.isBlank(model.getConfigJson())) {
+            return List.of();
+        }
+
+        try {
+            ConfigExtAttrsDTO attrs = JsonUtil.parseObject(model.getConfigJson(), ConfigExtAttrsDTO.class);
+            return normalizeCapabilities(attrs != null ? attrs.getCapabilities() : null);
+        } catch (Exception e) {
+            log.warn("解析 OpenAPI 智能体模型能力失败: modelConfigId={}", chatModelId, e);
+            return List.of();
+        }
+    }
+
+    private List<String> normalizeCapabilities(List<String> capabilities) {
+        if (capabilities == null || capabilities.isEmpty()) {
+            return List.of();
+        }
+        return capabilities.stream()
+                .filter(StrUtil::isNotBlank)
+                .map(capability -> capability.trim().toLowerCase())
+                .distinct()
                 .collect(Collectors.toList());
     }
 

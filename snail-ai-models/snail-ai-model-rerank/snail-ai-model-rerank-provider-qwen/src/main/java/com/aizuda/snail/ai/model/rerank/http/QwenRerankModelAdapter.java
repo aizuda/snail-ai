@@ -15,6 +15,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Qwen 重排模型适配器，通过 HTTP 调用兼容 Qwen/DashScope 的 rerank 接口构建重排客户端。
+ *
+ * @author opensnail
+ * @author 唐亚峰 | battcn
+ * @since 2026-06-17
+ */
 @Slf4j
 public class QwenRerankModelAdapter implements RerankModelAdapter, Ordered {
 
@@ -31,6 +38,7 @@ public class QwenRerankModelAdapter implements RerankModelAdapter, Ordered {
     public RerankApiClient create(RerankModelSpec spec) {
         ConfigExtAttrsDTO config = spec.configJson();
         String fullUrl = spec.baseUrl().replaceAll("/+$", "") + rerankPath(config);
+        log.debug("Creating Qwen RerankApiClient, url={}, model={}", fullUrl, spec.modelKey());
         return new HttpRerankApiClient(fullUrl, spec.apiKey(), spec.modelKey(), readTimeoutMs(config));
     }
 
@@ -132,6 +140,9 @@ public class QwenRerankModelAdapter implements RerankModelAdapter, Ordered {
         }
     }
 
+    /**
+     * rerank 接口请求体参数
+     */
     public record RerankParams(String model, String query, List<String> documents, int top_n) {
     }
 }

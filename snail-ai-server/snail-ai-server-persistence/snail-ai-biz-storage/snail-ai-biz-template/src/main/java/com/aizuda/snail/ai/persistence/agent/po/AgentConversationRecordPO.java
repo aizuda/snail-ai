@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  * 支持多轮对话追踪、上下文恢复、记忆提取等
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @TableName("sai_agent_conversation_record")
 @Data
@@ -76,6 +76,11 @@ public class AgentConversationRecordPO {
      * 模型的思维链/推理过程（仅 assistant 角色）
      */
     private String thinking;
+
+    /**
+     * 消息扩展元数据 JSON，例如图片附件列表
+     */
+    private String metadata;
 
     /**
      * 消息状态

@@ -9,6 +9,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 
+/**
+ * 本地上传文件导入策略：读取 MultipartFile 字节、计算内容哈希并组装导入结果。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Component
 public class LocalFileImportStrategy implements DocumentImportStrategy {
@@ -37,6 +43,7 @@ public class LocalFileImportStrategy implements DocumentImportStrategy {
 
         String contentHash = ContentHashUtil.sha256Hex(fileBytes);
 
+        log.info("RAG 本地文件导入完成 name={} type={} size={}B", originalName, fileType, fileBytes.length);
         return ImportResult.builder()
                 .fileName(originalName)
                 .fileType(fileType)

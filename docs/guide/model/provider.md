@@ -56,8 +56,9 @@ curl -X GET 'http://localhost:8900/snail-ai/ai-model/providers' \
    - API Endpoint：`https://api.deepseek.com`
    - Model Key：`deepseek-chat`
    - API Key：填写服务商密钥
-3. 设置为默认 Chat 模型。
-4. 创建智能体并发起对话验证。
+3. 在模型列表点击「验证」，确认端点、密钥和模型标识可用。
+4. 设置为默认 Chat 模型。
+5. 创建智能体并发起对话验证。
 
 ## 注意事项
 

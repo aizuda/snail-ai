@@ -24,7 +24,7 @@ import javax.net.ssl.SSLContext;
  * 使用缓存机制复用客户端，避免重复创建导致连接数暴增。
  *
  * @author opensnail
- * @date 2026-06-03
+ * @since 2026-06-03
  */
 @Slf4j
 public final class EsClientFactory {
@@ -43,6 +43,9 @@ public final class EsClientFactory {
 
     /**
      * 获取或创建 Rest5Client（复用客户端连接）
+     *
+     * @param config Elasticsearch 向量库连接配置（来自存储实例 config JSON）
+     * @return 缓存复用或新建的低层 REST 客户端
      */
     public static Rest5Client getOrCreateClient(ElasticsearchVectorSettings config) {
         if (!config.isEnabled()) {

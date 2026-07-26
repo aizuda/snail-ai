@@ -16,6 +16,9 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * PostgreSQL：单表 {@code vector_store} + metadata 区分 RAG / 记忆分区；
  * 语义删除按 {@code ragId} / {@code agentId+userId} 过滤，不再使用旧表 {@code snail_knowledge_chunk_vector}。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 public class PgSnailAiVectorStore extends AbstractSnailAiVectorStore {
@@ -65,6 +68,7 @@ public class PgSnailAiVectorStore extends AbstractSnailAiVectorStore {
 
         jdbcTemplate.execute("DROP TABLE IF EXISTS " + indexName);
         storeCache.remove(indexName);
+        log.info("PgVector 删除集合(DROP TABLE) index={}", indexName);
     }
 
     @Override

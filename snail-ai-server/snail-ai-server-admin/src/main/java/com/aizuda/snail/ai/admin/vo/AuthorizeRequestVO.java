@@ -4,12 +4,10 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * <p>
- *
- * </p>
+ * 管理员授权用户请求：指定账号及授予的配额 / 有效天数。
  *
  * @author opensnail
- * @date 2025-07-13
+ * @since 2025-07-13
  */
 @Data
 public class AuthorizeRequestVO {

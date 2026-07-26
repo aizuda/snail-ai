@@ -4,6 +4,9 @@ import lombok.Data;
 
 /**
  * POST /skill/{id}/files 请求体
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 public class SkillCreateFileRequestVO {

@@ -11,7 +11,7 @@ import java.lang.annotation.Target;
  * 启用 Snail AI OpenAPI 客户端
  *
  * @author opensnail
- * @date 2026-04-24
+ * @since 2026-04-24
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

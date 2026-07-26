@@ -12,7 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * 使用缓存机制复用客户端，避免重复创建导致连接数暴增。
  *
  * @author opensnail
- * @date 2026-06-03
+ * @since 2026-06-03
  */
 @Slf4j
 public final class MilvusClientFactory {
@@ -27,6 +27,9 @@ public final class MilvusClientFactory {
 
     /**
      * 获取或创建 MilvusServiceClient（复用客户端连接）
+     *
+     * @param config Milvus 连接配置（来自存储实例 config JSON）
+     * @return 缓存复用或新建的 Milvus gRPC 客户端
      */
     public static MilvusServiceClient getOrCreateClient(MilvusVectorSettings config) {
         if (!config.isEnabled()) {
@@ -62,17 +65,20 @@ public final class MilvusClientFactory {
 
     /**
      * 关闭指定配置的客户端（存储实例删除或配置变更时调用）
+     *
+     * @param config 需要关闭并移除缓存的 Milvus 连接配置
      */
     public static void closeClient(MilvusVectorSettings config) {
         String cacheKey = buildCacheKey(config);
         MilvusServiceClient client = CLIENT_CACHE.remove(cacheKey);
-        if (client != null) {
-            try {
-                client.close();
-                log.info("关闭 Milvus 客户端: {}", cacheKey);
-            } catch (Exception e) {
-                log.warn("关闭 Milvus 客户端失败: {}", cacheKey, e);
-            }
+        if (client == null) {
+            return;
+        }
+        try {
+            client.close();
+            log.info("关闭 Milvus 客户端: {}", cacheKey);
+        } catch (Exception e) {
+            log.warn("关闭 Milvus 客户端失败: {}", cacheKey, e);
         }
     }
 
@@ -93,6 +99,8 @@ public final class MilvusClientFactory {
 
     /**
      * 获取当前缓存的客户端数量（用于监控/调试）
+     *
+     * @return 当前缓存中的 Milvus 客户端数量
      */
     public static int getCachedClientCount() {
         return CLIENT_CACHE.size();

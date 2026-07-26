@@ -21,6 +21,9 @@ import java.util.Map;
 
 /**
  * 回调：获取 Skill 完整内容 + 支撑文件
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Component
@@ -67,6 +70,7 @@ public class SkillContentCallbackHandler implements GrpcRequestHandler {
             }).toList();
             result.put("files", fileList);
 
+            log.debug("回调获取技能内容 skillId={} 文件数={}", req.getSkillId(), fileList.size());
             return GrpcSnailAiResult.newBuilder()
                     .setStatus(1).setMessage("OK")
                     .setData(JsonUtil.toJsonString(result))

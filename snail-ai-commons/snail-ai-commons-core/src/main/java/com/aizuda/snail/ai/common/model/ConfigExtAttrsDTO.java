@@ -15,7 +15,7 @@ import java.util.Map;
  * - RERANKER：rerankPath
  *
  * @author opensnail
- * @date 2026-03-04
+ * @since 2026-03-04
  */
 @Data
 public class ConfigExtAttrsDTO {
@@ -37,6 +37,8 @@ public class ConfigExtAttrsDTO {
     private Long seed;
     private String responseFormat;
     private Boolean stream;
+    private List<String> capabilities;
+    private Boolean defaultVisionModel;
     private Map<String, Object> extraBody;
 
     // ==================== EMBEDDING 向量模型 ====================

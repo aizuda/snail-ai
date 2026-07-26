@@ -3,11 +3,20 @@ package com.aizuda.snail.ai.model.rerank;
 import com.aizuda.snail.ai.common.model.RerankApiClient;
 import com.aizuda.snail.ai.model.common.ModelAdapterException;
 import com.aizuda.snail.ai.model.common.ModelErrorCode;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.Ordered;
 
 import java.util.Comparator;
 import java.util.List;
 
+/**
+ * 重排模型运行时，按规格的 adapterKey 选择适配器并构建 {@link RerankApiClient}（含规格校验与异常归一化）。
+ *
+ * @author opensnail
+ * @author 唐亚峰 | battcn
+ * @since 2026-06-14
+ */
+@Slf4j
 public class RerankModelRuntime {
 
     private final List<RerankModelAdapter> adapters;
@@ -18,6 +27,12 @@ public class RerankModelRuntime {
                 .toList();
     }
 
+    /**
+     * 按规格构建重排客户端
+     *
+     * @param spec 重排模型构建规格
+     * @return 重排客户端实例
+     */
     public RerankApiClient build(RerankModelSpec spec) {
         validate(spec);
         RerankModelAdapter adapter = adapters.stream()
@@ -26,11 +41,15 @@ public class RerankModelRuntime {
                 .orElseThrow(() -> new ModelAdapterException(
                         ModelErrorCode.ADAPTER_NOT_FOUND,
                         "No RerankModelAdapter for adapterKey=" + spec.adapterKey()));
+        log.debug("RerankApiClient building via adapter={}, provider={}, model={}",
+                adapter.adapterKey(), spec.providerKey(), spec.modelKey());
         try {
             return adapter.create(spec);
         } catch (ModelAdapterException e) {
             throw e;
         } catch (Exception e) {
+            log.error("RerankApiClient build failed, adapter={}, provider={}, model={}",
+                    adapter.adapterKey(), spec.providerKey(), spec.modelKey(), e);
             throw new ModelAdapterException(
                     ModelErrorCode.MODEL_BUILD_FAILED,
                     "RerankApiClient build failed: " + e.getMessage(), e);

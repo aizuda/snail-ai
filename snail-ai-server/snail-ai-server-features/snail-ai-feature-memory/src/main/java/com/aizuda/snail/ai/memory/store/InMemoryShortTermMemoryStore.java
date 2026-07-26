@@ -24,8 +24,8 @@ import java.util.stream.Collectors;
  *
  * 激活方式：snail.ai.memory.short-term.store-type: memory
  *
- * author: opensnail
- * date: 2026-03-26
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Component
@@ -42,7 +42,9 @@ public class InMemoryShortTermMemoryStore implements ShortTermMemoryStore {
     public void append(String conversationId, String role, String content, int windowSize) {
         int cap = Math.max(1, windowSize);
         store.compute(conversationId, (k, list) -> {
-            if (list == null) list = new LinkedList<>();
+            if (list == null) {
+                list = new LinkedList<>();
+            }
             list.addLast(new ShortTermMessage(role, content));
             // 维护滑动窗口
             while (list.size() > cap) {
@@ -75,6 +77,7 @@ public class InMemoryShortTermMemoryStore implements ShortTermMemoryStore {
     @Override
     public void evict(String conversationId) {
         store.remove(conversationId);
+        log.debug("短期记忆内存清理 conversationId={}", conversationId);
     }
 
     @Override

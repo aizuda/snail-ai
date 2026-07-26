@@ -1,0 +1,10 @@
+.venv
+.cache
+.paddlex-cache
+.pycache-local
+__pycache__
+.pytest_cache
+*.pyc
+*.pyo
+*.log
+tests

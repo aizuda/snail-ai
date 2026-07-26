@@ -3,12 +3,10 @@ package com.aizuda.snail.ai.admin.vo;
 import lombok.Data;
 
 /**
- * <p>
- *
- * </p>
+ * 会话记录响应：单轮问答内容及处理状态。
  *
  * @author opensnail
- * @date 2025-07-13
+ * @since 2025-07-13
  */
 @Data
 public class ConversationRecordResponseVO {

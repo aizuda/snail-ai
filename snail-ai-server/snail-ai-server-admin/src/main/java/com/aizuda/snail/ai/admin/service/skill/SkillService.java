@@ -1,61 +1,73 @@
 package com.aizuda.snail.ai.admin.service.skill;
 
 import cn.hutool.core.util.StrUtil;
-import com.aizuda.snail.ai.common.execption.SnailAiCommonException;
-import com.aizuda.snail.ai.common.execption.SnailAiException;
-import com.aizuda.snail.ai.persistence.agent.mapper.AgentSkillMapper;
-import com.aizuda.snail.ai.persistence.skill.mapper.SkillFileMapper;
-import com.aizuda.snail.ai.persistence.skill.mapper.SkillMapper;
 import com.aizuda.snail.ai.admin.vo.PageResult;
+import com.aizuda.snail.ai.admin.vo.skill.SkillAiGenerateRequestVO;
+import com.aizuda.snail.ai.admin.vo.skill.SkillAiGenerateResponseVO;
 import com.aizuda.snail.ai.admin.vo.skill.SkillCreateFileRequestVO;
-import com.aizuda.snail.ai.admin.vo.skill.SkillRenameFileRequestVO;
-import com.aizuda.snail.ai.persistence.agent.po.AgentSkillPO;
-import com.aizuda.snail.ai.persistence.skill.po.SkillFilePO;
-import com.aizuda.snail.ai.persistence.skill.po.SkillPO;
 import com.aizuda.snail.ai.admin.vo.skill.SkillCreateRequestVO;
 import com.aizuda.snail.ai.admin.vo.skill.SkillFileContentRequestVO;
 import com.aizuda.snail.ai.admin.vo.skill.SkillFileTreeNodeVO;
+import com.aizuda.snail.ai.admin.vo.skill.SkillRenameFileRequestVO;
 import com.aizuda.snail.ai.admin.vo.skill.SkillResponseVO;
 import com.aizuda.snail.ai.admin.vo.skill.SkillUpdateRequestVO;
+import com.aizuda.snail.ai.common.execption.SnailAiCommonException;
+import com.aizuda.snail.ai.common.execption.SnailAiException;
+import com.aizuda.snail.ai.persistence.agent.mapper.AgentSkillMapper;
+import com.aizuda.snail.ai.persistence.agent.po.AgentSkillPO;
 import com.aizuda.snail.ai.persistence.security.UserSessionUtils;
+import com.aizuda.snail.ai.persistence.skill.mapper.SkillMapper;
+import com.aizuda.snail.ai.persistence.skill.po.SkillPO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.yaml.snakeyaml.Yaml;
 
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
-
-import java.io.*;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import static com.aizuda.snail.ai.common.constants.SystemConstants.SKILL_MD;
 
+/**
+ * 技能管理门面服务，负责技能的增删改查、智能体技能关联与在线文件编辑的流程编排：
+ * zip 解压/打包委托 {@link SkillPackageService}，支撑文件持久化委托 {@link SkillFileService}，
+ * SKILL.md 解析与重建委托 {@link SkillMarkdownParser}；事务边界统一由本类 public 方法声明。
+ *
+ * @author opensnail
+ * @author 唐亚峰 | battcn
+ * @since 2026-06-14
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class SkillService {
 
     private final SkillMapper skillMapper;
-    private final SkillFileMapper skillFileMapper;
     private final AgentSkillMapper agentSkillMapper;
-    @Value("${snail-ai.skill.upload-dir:./upload/skills}")
-    private String skillUploadDir;
+    private final SkillPackageService skillPackageService;
+    private final SkillFileService skillFileService;
+    private final SkillMarkdownParser skillMarkdownParser;
+    private final SkillAiContentService skillAiContentService;
 
     /**
      * 上传 Skill zip 包
+     *
+     * @param file 待上传的 .zip 技能包（须含 SKILL.md）
+     * @return 创建成功的技能响应 VO
      */
     public SkillResponseVO upload(MultipartFile file) {
         String originalFilename = file.getOriginalFilename();
@@ -65,40 +77,30 @@ public class SkillService {
 
         try {
             // 创建临时目录解压
-            Path tempDir = Files.createTempDirectory("skill-upload-");
+            Path tempDir = skillPackageService.createTempDirectory();
 
             try {
                 // 解压 zip 文件
-                unzip(file.getInputStream(), tempDir);
+                skillPackageService.unzip(file.getInputStream(), tempDir);
 
                 // 查找 SKILL.md（可能在根目录或子目录中）
-                Path skillMdPath = findSkillMd(tempDir);
+                Path skillMdPath = skillPackageService.findSkillMd(tempDir);
                 if (skillMdPath == null) {
                     throw new SnailAiCommonException("zip 包中未找到 SKILL.md 文件");
                 }
 
-                // 解析 SKILL.md
+                // 解析 SKILL.md（frontmatter 校验 + 去除 frontmatter 的正文）
                 String content = Files.readString(skillMdPath, StandardCharsets.UTF_8);
-                Map<String, Object> frontmatter = parseFrontmatter(content);
-                if (frontmatter == null || frontmatter.isEmpty()) {
-                    throw new SnailAiCommonException("SKILL.md 缺少 YAML frontmatter (---...---)");
-                }
+                SkillMarkdownParser.SkillMetadata metadata = skillMarkdownParser.extractMetadata(content);
 
-                String name = (String) frontmatter.get("name");
-                String description = (String) frontmatter.get("description");
-                if (StrUtil.isBlank(name)) {
-                    throw new SnailAiCommonException("SKILL.md frontmatter 中缺少 name 字段");
-                }
-                if (StrUtil.isBlank(description)) {
-                    throw new SnailAiCommonException("SKILL.md frontmatter 中缺少 description 字段");
-                }
+                String name = metadata.name();
+                String description = metadata.description();
                 Long count = skillMapper.selectCount(new LambdaQueryWrapper<SkillPO>().eq(SkillPO::getName, name));
                 if (count > 0) {
                     throw new SnailAiCommonException("{} 已经存在", name);
                 }
 
-                // 去除 frontmatter，保留正文
-                String skillContent = removeFrontmatter(content);
+                String skillContent = metadata.body();
 
                 // 先创建记录获取 id
                 SkillPO po = SkillPO.builder()
@@ -112,29 +114,25 @@ public class SkillService {
                         .build();
                 skillMapper.insert(po);
 
-                // 移动到持久化目录 {upload-dir}/{skillId}/
-                Path targetDir = Paths.get(skillUploadDir, String.valueOf(po.getId()));
-                Files.createDirectories(targetDir);
-
-                // 确定要移动的源目录（SKILL.md 所在的目录）
+                // 移动到持久化目录 {upload-dir}/{skillId}/（源目录为 SKILL.md 所在的目录）
                 Path skillRootDir = skillMdPath.getParent();
-                copyDirectory(skillRootDir, targetDir);
+                Path targetDir = skillPackageService.persistSkillDir(po.getId(), skillRootDir);
 
                 // 更新 filePath 和 hasFiles
                 po.setFilePath(targetDir.toAbsolutePath().toString());
-                po.setHasFiles(hasExtraFiles(skillRootDir));
+                po.setHasFiles(skillFileService.hasExtraFiles(skillRootDir));
                 skillMapper.updateById(po);
 
                 // 将支撑文件保存到数据库
                 if (po.getHasFiles()) {
-                    saveSkillFilesFromZip(po.getId(), skillRootDir);
+                    skillFileService.saveSkillFilesFromZip(po.getId(), skillRootDir);
                 }
 
                 return toResponseVO(po);
 
             } finally {
                 // 清理临时目录
-                deleteDirectory(tempDir);
+                skillPackageService.deleteDirectory(tempDir);
             }
 
         } catch (SnailAiCommonException e) {
@@ -147,6 +145,11 @@ public class SkillService {
 
     /**
      * 分页查询
+     *
+     * @param page    页码（从 1 开始）
+     * @param size    每页条数
+     * @param keyword 名称模糊匹配关键字，可为空
+     * @return 技能分页结果
      */
     public PageResult<List<SkillResponseVO>> page(int page, int size, String keyword) {
         LambdaQueryWrapper<SkillPO> wrapper = new LambdaQueryWrapper<SkillPO>()
@@ -165,6 +168,8 @@ public class SkillService {
 
     /**
      * 删除 Skill
+     *
+     * @param id 技能 ID
      */
     @Transactional
     public void delete(Long id) {
@@ -178,12 +183,12 @@ public class SkillService {
                 new LambdaQueryWrapper<AgentSkillPO>().eq(AgentSkillPO::getSkillId, id));
 
         // 删除数据库中的 Skill 文件记录
-        skillFileMapper.delete(new LambdaQueryWrapper<SkillFilePO>().eq(SkillFilePO::getSkillId, id));
+        skillFileService.deleteAllBySkillId(id);
 
         // 删除磁盘文件
         if (StrUtil.isNotBlank(po.getFilePath())) {
             try {
-                deleteDirectory(Paths.get(po.getFilePath()));
+                skillPackageService.deleteDirectory(Paths.get(po.getFilePath()));
             } catch (IOException e) {
                 log.warn("删除 Skill 文件失败: {}", po.getFilePath(), e);
             }
@@ -194,6 +199,8 @@ public class SkillService {
 
     /**
      * 全量列表（给智能体选择下拉用）
+     *
+     * @return 全部技能响应 VO 列表
      */
     public List<SkillResponseVO> listAll() {
         List<SkillPO> list = skillMapper.selectList(
@@ -201,6 +208,12 @@ public class SkillService {
         return list.stream().map(this::toResponseVO).collect(Collectors.toList());
     }
 
+    /**
+     * 按 ID 获取技能详情
+     *
+     * @param id 技能 ID
+     * @return 技能响应 VO；不存在时抛出异常
+     */
     public SkillResponseVO getById(Long id) {
         SkillPO po = skillMapper.selectById(id);
         if (po == null) {
@@ -211,6 +224,9 @@ public class SkillService {
 
     /**
      * 在线创建 Skill（无 zip，仅 DB）
+     *
+     * @param request 技能创建请求参数（名称、描述）
+     * @return 创建成功的技能响应 VO
      */
     @Transactional
     public SkillResponseVO createOnline(SkillCreateRequestVO request) {
@@ -236,6 +252,10 @@ public class SkillService {
 
     /**
      * 更新 Skill 元数据（名称/描述）
+     *
+     * @param id      技能 ID
+     * @param request 技能更新请求参数（名称、描述，仅非空字段生效）
+     * @return 更新后的技能响应 VO
      */
     @Transactional
     public SkillResponseVO update(Long id, SkillUpdateRequestVO request) {
@@ -274,6 +294,9 @@ public class SkillService {
 
     /**
      * 获取智能体关联的 Skill 列表
+     *
+     * @param agentId 智能体 ID
+     * @return 该智能体关联的技能响应 VO 列表
      */
     public List<SkillResponseVO> getByAgentId(Long agentId) {
         List<AgentSkillPO> relations = agentSkillMapper.selectList(
@@ -292,6 +315,9 @@ public class SkillService {
 
     /**
      * 更新智能体的 Skill 关联
+     *
+     * @param agentId  智能体 ID
+     * @param skillIds 目标技能 ID 列表（覆盖原关联，可为空表示清空）
      */
     @Transactional
     public void updateAgentSkills(Long agentId, List<Long> skillIds) {
@@ -300,19 +326,38 @@ public class SkillService {
                 new LambdaQueryWrapper<AgentSkillPO>().eq(AgentSkillPO::getAgentId, agentId));
 
         // 再插入新关联
-        if (skillIds != null && !skillIds.isEmpty()) {
-            for (Long skillId : skillIds) {
-                AgentSkillPO relation = AgentSkillPO.builder()
-                        .agentId(agentId)
-                        .skillId(skillId)
-                        .build();
-                agentSkillMapper.insert(relation);
-            }
+        if (skillIds == null || skillIds.isEmpty()) {
+            return;
+        }
+        for (Long skillId : skillIds) {
+            AgentSkillPO relation = AgentSkillPO.builder()
+                    .agentId(agentId)
+                    .skillId(skillId)
+                    .build();
+            agentSkillMapper.insert(relation);
         }
     }
 
+    /**
+     * 根据需求说明生成完整 SKILL.md 内容，不直接保存。
+     */
+    public SkillAiGenerateResponseVO generateDraft(SkillAiGenerateRequestVO request) {
+        return skillAiContentService.generateDraft(request);
+    }
 
-    // ==================== 文件管理 API（在线编辑，经 SkillCacheService + SkillStorageService） ====================
+    /**
+     * 基于当前 SKILL.md 内容优化指定技能，不直接保存。
+     */
+    public SkillAiGenerateResponseVO optimizeDraft(Long skillId, SkillAiGenerateRequestVO request) {
+        getById(skillId);
+        String currentContent = request.getCurrentContent();
+        if (StrUtil.isBlank(currentContent)) {
+            currentContent = getFileContent(skillId, SKILL_MD).getContent();
+        }
+        return skillAiContentService.optimizeDraft(request, currentContent);
+    }
+
+    // ==================== 文件管理 API（在线编辑，委托 SkillFileService / SkillPackageService） ====================
 
 
     /**
@@ -331,120 +376,25 @@ public class SkillService {
 
     /**
      * 构建文件树（SKILL.md + skill_file）
+     *
+     * @param skillId 技能 ID
+     * @return 技能文件树根节点
      */
     public SkillFileTreeNodeVO buildFileTree(Long skillId) {
         SkillPO po = skillMapper.selectById(skillId);
         if (po == null) {
             throw new SnailAiException("技能不存在: " + skillId);
         }
-        String skillMdFull = rebuildSkillMd(po);
-        long skillMdSize = skillMdFull.getBytes(StandardCharsets.UTF_8).length;
-        SkillFileTreeNodeVO skillMdNode = SkillFileTreeNodeVO.builder()
-                .name(SKILL_MD)
-                .type("file")
-                .size(skillMdSize)
-                .build();
-
-        List<SkillFileTreeNodeVO> children = new ArrayList<>();
-        children.add(skillMdNode);
-
-        List<SkillFilePO> files = skillFileMapper.selectList(
-                new LambdaQueryWrapper<SkillFilePO>()
-                        .eq(SkillFilePO::getSkillId, skillId)
-                        .orderByAsc(SkillFilePO::getFilePath));
-        for (SkillFilePO f : files) {
-            String fp = f.getFilePath();
-            if (fp == null) {
-                continue;
-            }
-            String norm = fp.replace('\\', '/').trim();
-            if (SKILL_MD.equalsIgnoreCase(norm) || norm.endsWith("/" + SKILL_MD)) {
-                continue;
-            }
-            long sz = f.getFileSize() != null ? f.getFileSize().longValue() : 0L;
-            insertPathIntoTree(children, norm, sz);
-        }
-        sortTreeChildren(children);
-        return SkillFileTreeNodeVO.builder()
-                .name("/")
-                .type("directory")
-                .children(children)
-                .build();
-    }
-
-    private void insertPathIntoTree(List<SkillFileTreeNodeVO> rootChildren, String relativePath, long size) {
-        String p = relativePath.replace('\\', '/').trim();
-        if (p.startsWith("/")) {
-            p = p.substring(1);
-        }
-        if (StrUtil.isBlank(p)) {
-            return;
-        }
-        String[] parts = p.split("/");
-        List<SkillFileTreeNodeVO> level = rootChildren;
-        for (int i = 0; i < parts.length; i++) {
-            String part = parts[i];
-            if (StrUtil.isBlank(part)) {
-                continue;
-            }
-            boolean isLast = i == parts.length - 1;
-            if (isLast) {
-                level.add(SkillFileTreeNodeVO.builder()
-                        .name(part)
-                        .type("file")
-                        .size(size)
-                        .build());
-            } else {
-                SkillFileTreeNodeVO dir = findOrCreateDir(level, part);
-                if (dir.getChildren() == null) {
-                    dir.setChildren(new ArrayList<>());
-                }
-                level = dir.getChildren();
-            }
-        }
-    }
-
-    private SkillFileTreeNodeVO findOrCreateDir(List<SkillFileTreeNodeVO> siblings, String name) {
-        for (SkillFileTreeNodeVO n : siblings) {
-            if ("directory".equals(n.getType()) && name.equals(n.getName())) {
-                return n;
-            }
-        }
-        SkillFileTreeNodeVO dir = SkillFileTreeNodeVO.builder()
-                .name(name)
-                .type("directory")
-                .children(new ArrayList<>())
-                .build();
-        siblings.add(dir);
-        return dir;
-    }
-
-    private void sortTreeChildren(List<SkillFileTreeNodeVO> children) {
-        if (children == null) {
-            return;
-        }
-        children.sort((a, b) -> {
-            boolean skillA = SKILL_MD.equalsIgnoreCase(a.getName());
-            boolean skillB = SKILL_MD.equalsIgnoreCase(b.getName());
-            if (skillA != skillB) {
-                return skillA ? -1 : 1;
-            }
-            boolean da = "directory".equals(a.getType());
-            boolean db = "directory".equals(b.getType());
-            if (da != db) {
-                return da ? -1 : 1;
-            }
-            return a.getName().compareToIgnoreCase(b.getName());
-        });
-        for (SkillFileTreeNodeVO c : children) {
-            if (c.getChildren() != null) {
-                sortTreeChildren(c.getChildren());
-            }
-        }
+        String skillMdFull = skillMarkdownParser.rebuildSkillMd(po);
+        return skillFileService.buildFileTree(skillId, skillMdFull);
     }
 
     /**
      * 读取文件内容（SKILL.md 为完整 Markdown；其它路径来自 skill_file）
+     *
+     * @param skillId 技能 ID
+     * @param path    技能内相对路径
+     * @return 文件内容 VO（内容、编码、大小）
      */
     public SkillFileContentRequestVO getFileContent(Long skillId, String path) {
         path = normalizeRelativePath(path);
@@ -453,7 +403,7 @@ public class SkillService {
             throw new SnailAiException("技能不存在: " + skillId);
         }
         if (SKILL_MD.equals(path) || path.endsWith("/" + SKILL_MD)) {
-            String full = rebuildSkillMd(po);
+            String full = skillMarkdownParser.rebuildSkillMd(po);
             byte[] bytes = full.getBytes(StandardCharsets.UTF_8);
             return SkillFileContentRequestVO.builder()
                     .content(full)
@@ -461,23 +411,15 @@ public class SkillService {
                     .size((long) bytes.length)
                     .build();
         }
-        SkillFilePO f = skillFileMapper.selectOne(new LambdaQueryWrapper<SkillFilePO>()
-                .eq(SkillFilePO::getSkillId, skillId)
-                .eq(SkillFilePO::getFilePath, path));
-        if (f == null) {
-            throw new SnailAiException("文件不存在: " + path);
-        }
-        String c = f.getContent() != null ? f.getContent() : "";
-        byte[] bytes = c.getBytes(StandardCharsets.UTF_8);
-        return SkillFileContentRequestVO.builder()
-                .content(c)
-                .encoding("utf-8")
-                .size((long) bytes.length)
-                .build();
+        return skillFileService.getSupportFileContent(skillId, path);
     }
 
     /**
      * 保存文件内容；若为 SKILL.md 则解析 frontmatter 更新 DB；写存储并失效缓存；自增版本号
+     *
+     * @param skillId 技能 ID
+     * @param path    技能内相对路径
+     * @param content 文件内容
      */
     @Transactional
     public void saveFileContent(Long skillId, String path, String content) {
@@ -485,105 +427,64 @@ public class SkillService {
         String body = content == null ? "" : content;
 
         SkillPO po = skillMapper.selectById(skillId);
-        if (po != null) {
-            if (SKILL_MD.equals(path) || path.endsWith("/" + SKILL_MD)) {
-                Map<String, Object> frontmatter = parseFrontmatter(body);
-                if (frontmatter != null && !frontmatter.isEmpty()) {
-                    po.setName((String) frontmatter.getOrDefault("name", po.getName()));
-                    po.setDescription((String) frontmatter.getOrDefault("description", po.getDescription()));
-                }
-                po.setSkillContent(removeFrontmatter(body));
-            } else {
-                // 非 SKILL.md 文件：保存到数据库
-                int fileSize = body.length();
-                SkillFilePO existingFile = skillFileMapper.selectOne(new LambdaQueryWrapper<SkillFilePO>()
-                        .eq(SkillFilePO::getSkillId, skillId)
-                        .eq(SkillFilePO::getFilePath, path));
-                if (existingFile != null) {
-                    existingFile.setContent(body);
-                    existingFile.setFileSize(fileSize);
-                    existingFile.setUpdatedAt(LocalDateTime.now());
-                    skillFileMapper.updateById(existingFile);
-                } else {
-                    SkillFilePO newFile = SkillFilePO.builder()
-                            .skillId(skillId)
-                            .filePath(path)
-                            .content(body)
-                            .fileSize(fileSize)
-                            .encoding("utf-8")
-                            .createdAt(LocalDateTime.now())
-                            .updatedAt(LocalDateTime.now())
-                            .build();
-                    skillFileMapper.insert(newFile);
-                }
-            }
-            // 自增版本号，重新计算文件大小
-            long newVersion = (po.getVersion() != null ? po.getVersion() : 0L) + 1;
-            po.setVersion(newVersion);
-            po.setFileSize(calculateTotalFileSize(po));
-            po.setUpdateDt(LocalDateTime.now());
-            skillMapper.updateById(po);
+        if (po == null) {
+            return;
         }
+        if (SKILL_MD.equals(path) || path.endsWith("/" + SKILL_MD)) {
+            Map<String, Object> frontmatter = skillMarkdownParser.parseFrontmatter(body);
+            if (frontmatter != null && !frontmatter.isEmpty()) {
+                po.setName((String) frontmatter.getOrDefault("name", po.getName()));
+                po.setDescription((String) frontmatter.getOrDefault("description", po.getDescription()));
+            }
+            po.setSkillContent(skillMarkdownParser.removeFrontmatter(body));
+        } else {
+            // 非 SKILL.md 文件：保存到数据库
+            skillFileService.upsertContent(skillId, path, body);
+        }
+        // 自增版本号，重新计算文件大小
+        long newVersion = (po.getVersion() != null ? po.getVersion() : 0L) + 1;
+        po.setVersion(newVersion);
+        po.setFileSize(skillFileService.calculateTotalFileSize(po));
+        po.setUpdateDt(LocalDateTime.now());
+        skillMapper.updateById(po);
     }
 
     /**
      * 新建文件或目录（写存储并失效树缓存；标记 hasFiles、自增版本号）
+     *
+     * @param skillId 技能 ID
+     * @param dto     新建文件/目录请求参数（路径、类型）
      */
     @Transactional
     public void createFile(Long skillId, SkillCreateFileRequestVO dto) {
         dto.setPath(normalizeRelativePath(dto.getPath()));
 
         if ("file".equals(dto.getType())) {
-            SkillFilePO newFile = SkillFilePO.builder()
-                    .skillId(skillId)
-                    .filePath(dto.getPath())
-                    .content("")
-                    .fileSize(0)
-                    .encoding("utf-8")
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
-                    .build();
-            skillFileMapper.insert(newFile);
+            skillFileService.createEmptyFile(skillId, dto.getPath());
         } else if ("directory".equals(dto.getType())) {
-            String base = dto.getPath().replaceAll("/+$", "");
-            if (StrUtil.isBlank(base)) {
-                throw new SnailAiException("目录路径不能为空");
-            }
-            String markerPath = base + "/.keep";
-            Long exists = skillFileMapper.selectCount(new LambdaQueryWrapper<SkillFilePO>()
-                    .eq(SkillFilePO::getSkillId, skillId)
-                    .eq(SkillFilePO::getFilePath, markerPath));
-            if (exists != null && exists > 0) {
-                throw new SnailAiException("目录已存在: " + base);
-            }
-            SkillFilePO marker = SkillFilePO.builder()
-                    .skillId(skillId)
-                    .filePath(markerPath)
-                    .content("")
-                    .fileSize(0)
-                    .encoding("utf-8")
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
-                    .build();
-            skillFileMapper.insert(marker);
+            skillFileService.createDirectoryMarker(skillId, dto.getPath());
         }
 
         // 新建了支撑文件，标记 hasFiles = true 并自增版本号
         SkillPO po = skillMapper.selectById(skillId);
-        if (po != null) {
-            if (!Boolean.TRUE.equals(po.getHasFiles())) {
-                po.setHasFiles(true);
-            }
-            long newVersion = (po.getVersion() != null ? po.getVersion() : 0L) + 1;
-            po.setVersion(newVersion);
-            po.setFileSize(calculateTotalFileSize(po));
-            po.setUpdateDt(LocalDateTime.now());
-            skillMapper.updateById(po);
+        if (po == null) {
+            return;
         }
+        if (!Boolean.TRUE.equals(po.getHasFiles())) {
+            po.setHasFiles(true);
+        }
+        long newVersion = (po.getVersion() != null ? po.getVersion() : 0L) + 1;
+        po.setVersion(newVersion);
+        po.setFileSize(skillFileService.calculateTotalFileSize(po));
+        po.setUpdateDt(LocalDateTime.now());
+        skillMapper.updateById(po);
     }
 
     /**
      * 删除文件；禁止删除 SKILL.md（写存储并失效缓存；重新判断 hasFiles、自增版本号）
+     *
+     * @param skillId 技能 ID
+     * @param path    技能内相对路径
      */
     @Transactional
     public void deleteFile(Long skillId, String path) {
@@ -593,171 +494,61 @@ public class SkillService {
         }
 
         // 从数据库中删除文件
-        skillFileMapper.delete(new LambdaQueryWrapper<SkillFilePO>()
-                .eq(SkillFilePO::getSkillId, skillId)
-                .eq(SkillFilePO::getFilePath, path));
+        skillFileService.deleteBySkillIdAndPath(skillId, path);
 
         // 删除后重新判断是否还有支撑文件，并自增版本号
         SkillPO po = skillMapper.selectById(skillId);
-        if (po != null) {
-            // 检查是否还有其他文件
-            long fileCount = skillFileMapper.selectCount(new LambdaQueryWrapper<SkillFilePO>()
-                    .eq(SkillFilePO::getSkillId, skillId));
-            po.setHasFiles(fileCount > 0);
-            long newVersion = (po.getVersion() != null ? po.getVersion() : 0L) + 1;
-            po.setVersion(newVersion);
-            po.setFileSize(calculateTotalFileSize(po));
-            po.setUpdateDt(LocalDateTime.now());
-            skillMapper.updateById(po);
+        if (po == null) {
+            return;
         }
+        // 检查是否还有其他文件
+        long fileCount = skillFileService.countBySkillId(skillId);
+        po.setHasFiles(fileCount > 0);
+        long newVersion = (po.getVersion() != null ? po.getVersion() : 0L) + 1;
+        po.setVersion(newVersion);
+        po.setFileSize(skillFileService.calculateTotalFileSize(po));
+        po.setUpdateDt(LocalDateTime.now());
+        skillMapper.updateById(po);
     }
 
     /**
      * 重命名文件或目录（写存储并失效缓存；自增版本号）
+     *
+     * @param skillId 技能 ID
+     * @param dto     重命名请求参数（旧路径、新路径）
      */
     @Transactional
     public void renameFile(Long skillId, SkillRenameFileRequestVO dto) {
         dto.setOldPath(normalizeRelativePath(dto.getOldPath()));
         dto.setNewPath(normalizeRelativePath(dto.getNewPath()));
 
-        // 从数据库中读取旧文件
-        SkillFilePO oldFile = skillFileMapper.selectOne(new LambdaQueryWrapper<SkillFilePO>()
-                .eq(SkillFilePO::getSkillId, skillId)
-                .eq(SkillFilePO::getFilePath, dto.getOldPath()));
-        if (oldFile != null) {
-            // 创建新文件记录
-            SkillFilePO newFile = SkillFilePO.builder()
-                    .skillId(skillId)
-                    .filePath(dto.getNewPath())
-                    .content(oldFile.getContent())
-                    .fileSize(oldFile.getFileSize())
-                    .encoding(oldFile.getEncoding())
-                    .createdAt(LocalDateTime.now())
-                    .updatedAt(LocalDateTime.now())
-                    .build();
-            skillFileMapper.insert(newFile);
-            // 删除旧文件记录
-            skillFileMapper.deleteById(oldFile.getId());
-        }
+        skillFileService.rename(skillId, dto.getOldPath(), dto.getNewPath());
 
         // 自增版本号
         SkillPO po = skillMapper.selectById(skillId);
-        if (po != null) {
-            long newVersion = (po.getVersion() != null ? po.getVersion() : 0L) + 1;
-            po.setVersion(newVersion);
-            po.setFileSize(calculateTotalFileSize(po));
-            po.setUpdateDt(LocalDateTime.now());
-            skillMapper.updateById(po);
+        if (po == null) {
+            return;
         }
+        long newVersion = (po.getVersion() != null ? po.getVersion() : 0L) + 1;
+        po.setVersion(newVersion);
+        po.setFileSize(skillFileService.calculateTotalFileSize(po));
+        po.setUpdateDt(LocalDateTime.now());
+        skillMapper.updateById(po);
     }
 
     /**
      * 将技能目录打包为 zip 写入输出流（用于下载；基于 DB 内容）
+     *
+     * @param skillId 技能 ID
+     * @param out     目标输出流（写入 zip 字节）
      */
     public void writeZipToStream(Long skillId, OutputStream out) {
         SkillPO po = skillMapper.selectById(skillId);
         if (po == null) {
             throw new SnailAiException("技能不存在: " + skillId);
         }
-        try (ZipOutputStream zos = new ZipOutputStream(out, StandardCharsets.UTF_8)) {
-            String skillMd = rebuildSkillMd(po);
-            ZipEntry skillEntry = new ZipEntry(SKILL_MD);
-            zos.putNextEntry(skillEntry);
-            zos.write(skillMd.getBytes(StandardCharsets.UTF_8));
-            zos.closeEntry();
-
-            List<SkillFilePO> files = skillFileMapper.selectList(
-                    new LambdaQueryWrapper<SkillFilePO>().eq(SkillFilePO::getSkillId, skillId));
-            for (SkillFilePO f : files) {
-                String entryName = normalizeZipEntryName(f.getFilePath());
-                ZipEntry fe = new ZipEntry(entryName);
-                zos.putNextEntry(fe);
-                String body = f.getContent() != null ? f.getContent() : "";
-                zos.write(body.getBytes(StandardCharsets.UTF_8));
-                zos.closeEntry();
-            }
-        } catch (IOException e) {
-            log.error("打包 Skill zip 失败", e);
-            throw new SnailAiException("打包 Skill zip 失败: " + e.getMessage());
-        }
+        skillPackageService.writeZipToStream(po, out);
     }
-
-    private String normalizeZipEntryName(String path) {
-        if (StrUtil.isBlank(path)) {
-            throw new SnailAiException("非法 zip 条目路径");
-        }
-        String p = path.replace('\\', '/').trim();
-        if (p.startsWith("/")) {
-            p = p.substring(1);
-        }
-        if (p.contains("..")) {
-            throw new SnailAiException("非法 zip 条目路径: " + path);
-        }
-        return p;
-    }
-
-    /**
-     * 上传 Skill 时，将支撑文件内容保存到数据库
-     */
-    private void saveSkillFilesFromZip(Long skillId, Path unzipPath) {
-        try (var stream = Files.walk(unzipPath)) {
-            stream.filter(Files::isRegularFile)
-                    .filter(p -> !p.getFileName().toString().equals(SKILL_MD))
-                    .forEach(filePath -> {
-                        try {
-                            String relativePath = unzipPath.relativize(filePath).toString()
-                                    .replace('\\', '/');
-                            String content = Files.readString(filePath, StandardCharsets.UTF_8);
-                            int fileSize = (int) Files.size(filePath);
-
-                            SkillFilePO fileContent = SkillFilePO.builder()
-                                    .skillId(skillId)
-                                    .filePath(relativePath)
-                                    .content(content)
-                                    .fileSize(fileSize)
-                                    .encoding("utf-8")
-                                    .createdAt(LocalDateTime.now())
-                                    .updatedAt(LocalDateTime.now())
-                                    .build();
-                            skillFileMapper.insert(fileContent);
-                        } catch (IOException e) {
-                            log.error("保存文件到数据库失败: {}", filePath, e);
-                        }
-                    });
-
-        } catch (IOException e) {
-            log.error("扫描 Skill 文件失败: {}", unzipPath, e);
-        }
-    }
-
-
-    /**
-     * 根据 SkillPO 重建 SKILL.md（frontmatter + 正文）
-     */
-    private String rebuildSkillMd(SkillPO po) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("---\n");
-        sb.append("name: ").append(StrUtil.nullToDefault(po.getName(), "")).append("\n");
-        sb.append("description: \"").append(StrUtil.nullToDefault(po.getDescription(), "")).append("\"\n");
-        sb.append("---\n");
-        sb.append(StrUtil.nullToDefault(po.getSkillContent(), ""));
-        return sb.toString();
-    }
-
-    /**
-     * 重新计算 Skill 的总文件大小（SKILL.md + 所有支撑文件）
-     */
-    private long calculateTotalFileSize(SkillPO po) {
-        long skillMdSize = rebuildSkillMd(po).getBytes(StandardCharsets.UTF_8).length;
-        List<SkillFilePO> files = skillFileMapper.selectList(
-                new LambdaQueryWrapper<SkillFilePO>().eq(SkillFilePO::getSkillId, po.getId()));
-        long supportFilesSize = files.stream()
-                .mapToLong(f -> f.getContent() != null ? f.getContent().getBytes(StandardCharsets.UTF_8).length : 0L)
-                .sum();
-        return skillMdSize + supportFilesSize;
-    }
-
-    // ==================== 私有方法 ====================
 
     private SkillResponseVO toResponseVO(SkillPO po) {
         return SkillResponseVO.builder()
@@ -770,136 +561,4 @@ public class SkillService {
                 .updateDt(po.getUpdateDt())
                 .build();
     }
-
-    /**
-     * 解压 zip 文件，防止 zip slip 攻击
-     * 使用 Apache Commons Compress 提高 ZIP 兼容性，支持 data descriptor
-     */
-    private void unzip(InputStream inputStream, Path targetDir) throws IOException {
-        try (ZipArchiveInputStream zis = new ZipArchiveInputStream(inputStream, StandardCharsets.UTF_8.name(), false, true)) {
-            ArchiveEntry entry;
-            while ((entry = zis.getNextEntry()) != null) {
-                Path entryPath = targetDir.resolve(entry.getName()).normalize();
-                // 防止 zip slip
-                if (!entryPath.startsWith(targetDir)) {
-                    throw new SnailAiException("非法 zip 条目路径: " + entry.getName());
-                }
-                if (entry.isDirectory()) {
-                    Files.createDirectories(entryPath);
-                } else {
-                    Files.createDirectories(entryPath.getParent());
-                    Files.copy(zis, entryPath, StandardCopyOption.REPLACE_EXISTING);
-                }
-            }
-        }
-    }
-
-    /**
-     * 在目录中查找 SKILL.md 文件
-     */
-    private Path findSkillMd(Path dir) throws IOException {
-        // 先检查根目录
-        Path root = dir.resolve("SKILL.md");
-        if (Files.exists(root)) {
-            return root;
-        }
-        // 检查一级子目录（zip 内可能有一层包装目录）
-        try (var stream = Files.list(dir)) {
-            Optional<Path> found = stream
-                    .filter(Files::isDirectory)
-                    .map(d -> d.resolve("SKILL.md"))
-                    .filter(Files::exists)
-                    .findFirst();
-            return found.orElse(null);
-        }
-    }
-
-    /**
-     * 解析 YAML frontmatter
-     */
-    private Map<String, Object> parseFrontmatter(String content) {
-        if (!content.startsWith("---")) {
-            return null;
-        }
-        int endIndex = content.indexOf("---", 3);
-        if (endIndex == -1) {
-            return null;
-        }
-        String frontmatterStr = content.substring(3, endIndex).trim();
-        try {
-            Yaml yaml = new Yaml();
-            return yaml.load(frontmatterStr);
-        } catch (Exception e) {
-            log.error("解析 YAML frontmatter 失败", e);
-            return null;
-        }
-    }
-
-    /**
-     * 去除 frontmatter，返回正文内容
-     */
-    private String removeFrontmatter(String content) {
-        if (!content.startsWith("---")) {
-            return content;
-        }
-        int endIndex = content.indexOf("---", 3);
-        if (endIndex == -1) {
-            return content;
-        }
-        return content.substring(endIndex + 3).trim();
-    }
-
-    /**
-     * 复制目录
-     */
-    private void copyDirectory(Path source, Path target) throws IOException {
-        try (var stream = Files.walk(source)) {
-            stream.forEach(src -> {
-                Path dest = target.resolve(source.relativize(src));
-                try {
-                    if (Files.isDirectory(src)) {
-                        Files.createDirectories(dest);
-                    } else {
-                        Files.copy(src, dest, StandardCopyOption.REPLACE_EXISTING);
-                    }
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
-            });
-        }
-    }
-
-    /**
-     * 删除目录及其内容
-     */
-    private void deleteDirectory(Path dir) throws IOException {
-        if (!Files.exists(dir)) {
-            return;
-        }
-        try (var stream = Files.walk(dir)) {
-            stream.sorted(Comparator.reverseOrder())
-                    .forEach(path -> {
-                        try {
-                            Files.deleteIfExists(path);
-                        } catch (IOException e) {
-                            log.warn("删除文件失败: {}", path, e);
-                        }
-                    });
-        }
-    }
-
-    /**
-     * 判断解压后的技能目录是否包含 SKILL.md 以外的其他文件
-     */
-    private boolean hasExtraFiles(Path skillRootDir) {
-        try (var stream = Files.walk(skillRootDir)) {
-            return stream.filter(Files::isRegularFile)
-                    .anyMatch(p -> !p.getFileName().toString().equals(SKILL_MD));
-        } catch (IOException e) {
-            log.warn("检查支撑文件失败: {}", skillRootDir, e);
-            return false;
-        }
-    }
-
-
 }

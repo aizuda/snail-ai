@@ -3,10 +3,17 @@ package com.aizuda.snail.ai.agent.common.config;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
+/**
+ * Snail AI Agent 客户端配置，绑定 {@code snail-ai} 前缀，含应用认证、客户端端口与服务端连接等配置。
+ *
+ * @author opensnail
+ * @since 2026-05-05
+ */
 @Data
 @ConfigurationProperties(prefix = "snail-ai")
 public class SnailAiAgentProperties {
 
+    /** 是否启用 Agent */
     private boolean enabled = true;
 
     /** 应用 ID */
@@ -37,6 +44,9 @@ public class SnailAiAgentProperties {
      */
     private ServerConfig server = new ServerConfig();
 
+    /**
+     * 服务端（RPC）连接配置
+     */
     @Data
     public static class ServerConfig {
         /**

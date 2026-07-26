@@ -23,6 +23,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static org.springframework.ai.vectorstore.filter.Filter.ExpressionType.*;
 
+/**
+ * Elasticsearch 向量库存储实现，基于 Spring AI {@link ElasticsearchVectorStore}，按索引名缓存并复用 store 实例与底层连接。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 public class ElasticsearchSnailAiVectorStore extends AbstractSnailAiVectorStore {
 
@@ -89,6 +95,7 @@ public class ElasticsearchSnailAiVectorStore extends AbstractSnailAiVectorStore 
             throw new VectorStoreException("indexName 不能为空");
         }
         getStore(indexName).delete(ids);
+        log.info("ES 向量库删除 {} 个文档 index={}", ids.size(), indexName);
     }
 
     @Override

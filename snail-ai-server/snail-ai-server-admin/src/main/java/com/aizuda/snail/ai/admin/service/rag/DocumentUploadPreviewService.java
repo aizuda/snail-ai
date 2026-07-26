@@ -80,11 +80,20 @@ public class DocumentUploadPreviewService {
 
     // ──────────────────────────────────── preview ────────────────────────────────────
 
+    /**
+     * 上传预览：落临时资源、按去重策略生成每文件决策，并返回带 token 的预览结果
+     *
+     * @param files   待上传的文件数组
+     * @param request 上传请求（知识库 ID、去重策略/动作等）
+     * @return 预览结果（含预览 token 与每文件决策）
+     */
     public UploadPreviewResultVO preview(MultipartFile[] files, RagDocumentUploadRequestVO request) {
         if (files == null || files.length == 0) {
             throw new SnailAiCommonException("请选择要上传的文件");
         }
         RagPO knowledge = ragDocumentService.requireKnowledgeOrThrow(request.getRagId());
+        log.info("上传预览开始 ragId={} 文件数={}", knowledge.getId(), files.length);
+        long previewStartTime = System.currentTimeMillis();
         DedupStrategy strategy = ragDocumentService.resolveStrategy(request, knowledge);
         DedupAction action = ragDocumentService.resolveAction(request, knowledge);
         DocumentDedupChecker checker = ragDocumentService.getDedupChecker();
@@ -160,6 +169,8 @@ public class DocumentUploadPreviewService {
                 .build();
         tokenCache.put(token, new TokenEntry(state));
 
+        log.info("上传预览生成 ragId={} 文件数={} 耗时={}ms", knowledge.getId(), stateItems.size(),
+                System.currentTimeMillis() - previewStartTime);
         return UploadPreviewResultVO.builder()
                 .previewToken(token)
                 .ragId(knowledge.getId())
@@ -169,6 +180,12 @@ public class DocumentUploadPreviewService {
 
     // ──────────────────────────────────── commit ────────────────────────────────────
 
+    /**
+     * 上传提交：在知识库锁内重新校验决策（TOCTOU）并按用户最终选择执行入库
+     *
+     * @param request 提交请求（预览 token 与每文件最终决策）
+     * @return 提交结果（含冲突是否变化与已入库文档）
+     */
     public UploadCommitResultVO commit(UploadCommitRequestVO request) {
         UploadPreviewState state = loadState(request.getPreviewToken());
         RagPO knowledge = ragDocumentService.requireKnowledgeOrThrow(state.getRagId());
@@ -177,7 +194,9 @@ public class DocumentUploadPreviewService {
         Object lock = uploadLocks.computeIfAbsent(knowledge.getId(), ignored -> new Object());
         synchronized (lock) {
             UploadCommitResultVO result = doCommit(knowledge, state, request);
-            
+            log.info("上传提交完成 ragId={} 提交数={} 冲突变化={}", knowledge.getId(),
+                    result.getItems() != null ? result.getItems().size() : 0, result.getConflictChanged());
+
             // 整批 commit 完成才删除 token，避免部分失败时用户无法重试
             if (Boolean.FALSE.equals(result.getConflictChanged())) {
                 tokenCache.remove(request.getPreviewToken());
@@ -288,24 +307,33 @@ public class DocumentUploadPreviewService {
 
     // ──────────────────────────────────── cancel ────────────────────────────────────
 
+    /**
+     * 取消上传预览：删除临时资源并失效预览 token
+     *
+     * @param token 预览 token
+     */
     public void cancel(String token) {
         if (token == null || token.isBlank()) {
             return;
         }
         TokenEntry entry = tokenCache.remove(token);
-        if (entry != null && entry.state != null && entry.state.getItems() != null) {
-            for (UploadPreviewItemState item : entry.state.getItems()) {
-                try {
-                    resourceService.delete(item.getTempResourceId());
-                } catch (Exception e) {
-                    log.warn("Failed to delete preview resource: {}", item.getTempResourceId(), e);
-                }
+        if (entry == null || entry.state == null || entry.state.getItems() == null) {
+            return;
+        }
+        for (UploadPreviewItemState item : entry.state.getItems()) {
+            try {
+                resourceService.delete(item.getTempResourceId());
+            } catch (Exception e) {
+                log.warn("Failed to delete preview resource: {}", item.getTempResourceId(), e);
             }
         }
     }
 
     // ──────────────────────────────────── 定时清理过期 Token ────────────────────────────────────
 
+    /**
+     * 定时清理过期的预览 token（每分钟执行一次）
+     */
     @Scheduled(fixedDelay = 60_000) // 每 1 分钟检查一次
     public void cleanupExpiredTokens() {
         Iterator<Map.Entry<String, TokenEntry>> iter = tokenCache.entrySet().iterator();

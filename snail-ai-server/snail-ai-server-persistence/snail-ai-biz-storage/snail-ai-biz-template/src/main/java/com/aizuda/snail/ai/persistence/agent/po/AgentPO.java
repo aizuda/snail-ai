@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  * 支持多种能力组合：MCP、技能、网络搜索、知识库、记忆等
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @TableName("sai_agent")
 @Data

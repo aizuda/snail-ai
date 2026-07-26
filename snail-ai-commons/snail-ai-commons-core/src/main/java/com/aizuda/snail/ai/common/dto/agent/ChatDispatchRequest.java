@@ -13,14 +13,14 @@ import java.util.Map;
  * 聊天分发请求
  *
  * @author opensnail
- * @date 2025-04-08
+ * @since 2025-04-08
  */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class ChatDispatchRequest {
-    
+
     /** 请求ID */
     private String requestId;
 
@@ -29,36 +29,38 @@ public class ChatDispatchRequest {
 
     /** 智能体配置 */
     private AgentConfig agentConfig;
-    
+
     /** 会话ID */
     private String conversationId;
-    
+
     /** 用户消息 */
     private String userMessage;
-    
+
     /** 模型配置 */
     private ModelConfig modelConfig;
-    
+
     /** MCP 服务列表 */
     private List<McpServerDescriptor> mcpServers;
-    
+
     /** 技能列表 */
     private List<SkillDescriptor> skills;
-    
+
     /** 历史消息 */
     private List<HistoryMessage> historyMessages;
-    
+
     /** 记忆上下文 */
     private String memoryContext;
-    
+
     /** 系统提示词 */
     private String systemPrompt;
+
+    private List<MediaAttachment> mediaAttachments;
 
     /**
      * 服务端web端口
      */
     private Integer serverHttpPort;
-    
+
     /**
      * 智能体配置
      */
@@ -79,7 +81,7 @@ public class ChatDispatchRequest {
         private String ragIds;
         private Integer ragCallMode;
     }
-    
+
     /**
      * 模型配置
      */
@@ -96,7 +98,7 @@ public class ChatDispatchRequest {
         private String apiKey;
         private ConfigExtAttrsDTO configJson;
     }
-    
+
     /**
      * MCP 服务描述符
      */
@@ -113,10 +115,10 @@ public class ChatDispatchRequest {
         private String command;
         private List<String> args;
         private Map<String, String> envVars;
-        private Integer authType;
-        private Map<String, String> authConfig;
+        private Long timeoutMs;
+        private Map<String, String> headers;
     }
-    
+
     /**
      * 技能描述符
      */
@@ -132,7 +134,7 @@ public class ChatDispatchRequest {
         /** SKILL.md 等完整技能正文 */
         private String skillPrompt;
     }
-    
+
     /**
      * 历史消息
      */
@@ -143,5 +145,22 @@ public class ChatDispatchRequest {
     public static class HistoryMessage {
         private String role;
         private String content;
+    }
+
+    /**
+     * 当前用户消息携带的媒体附件。
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class MediaAttachment {
+        private Long resourceId;
+        private String type;
+        private String fileName;
+        private String mimeType;
+        private Long size;
+        private String accessUrl;
+        private String base64;
     }
 }

@@ -6,6 +6,9 @@ import lombok.Getter;
 
 /**
  * 记忆提取规则指令类型
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 @Getter
 @AllArgsConstructor
@@ -22,9 +25,13 @@ public enum ExtractionRuleTypeEnum {
     private final String description;
 
     public static ExtractionRuleTypeEnum fromCode(String code) {
-        if (code == null) return DEFAULT;
+        if (code == null) {
+            return DEFAULT;
+        }
         for (ExtractionRuleTypeEnum e : values()) {
-            if (e.code.equalsIgnoreCase(code)) return e;
+            if (e.code.equalsIgnoreCase(code)) {
+                return e;
+            }
         }
         return DEFAULT;
     }

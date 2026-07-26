@@ -2,6 +2,9 @@ package com.aizuda.snail.ai.common.enums.memory;
 
 /**
  * 记忆压缩策略
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 public enum CompressionStrategy {
 
@@ -15,7 +18,7 @@ public enum CompressionStrategy {
         if (raw == null) {
             return SLIDING_WINDOW;
         }
-        return raw == CompressionStrategyEnum.IMPORTANCE_BASED.getStrategy()
+        return raw.equals(CompressionStrategyEnum.IMPORTANCE_BASED.getStrategy())
                 ? IMPORTANCE_BASED
                 : SLIDING_WINDOW;
     }

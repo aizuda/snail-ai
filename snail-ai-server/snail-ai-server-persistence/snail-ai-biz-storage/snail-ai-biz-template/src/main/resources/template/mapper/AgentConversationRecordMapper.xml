@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.aizuda.snail.ai.persistence.agent.mapper.AgentConversationRecordMapper">
+
+    <!--
+      按模型维度读时聚合对话用量统计。
+      数据源为对话消息记录（assistant 行携带 token），通过 agent.chat_model_id 归属到模型。
+      仅统计携带 token 的消息（即真实模型调用）。结果用于首页「模型 Token 消耗排行」。
+    -->
+    <select id="aggregateModelUsageByModel"
+            resultType="com.aizuda.snail.ai.persistence.model.po.AiModelUsageStatPO">
+        SELECT a.chat_model_id AS model_id,
+               COUNT(*) AS total_calls,
+               SUM(CASE WHEN cr.status &lt; 0 THEN 0 ELSE 1 END) AS success_calls,
+               SUM(CASE WHEN cr.status &lt; 0 THEN 1 ELSE 0 END) AS failed_calls,
+               COALESCE(SUM(cr.input_tokens), 0) + COALESCE(SUM(cr.output_tokens), 0) AS total_tokens_used,
+               MAX(cr.create_dt) AS last_used_dt
+          FROM sai_agent_conversation_record cr
+          JOIN sai_agent a ON cr.agent_id = a.id
+         WHERE a.chat_model_id IS NOT NULL
+           AND (cr.input_tokens &gt; 0 OR cr.output_tokens &gt; 0)
+         GROUP BY a.chat_model_id
+    </select>
+
+    <!--
+      按日读时聚合 Token 消耗趋势（Prompt / Completion）。
+      库侧 GROUP BY 日期后返回行数至多为区间天数，供首页「Token 消耗趋势」展示。
+    -->
+    <select id="aggregateDailyTokenTrends" resultType="java.util.HashMap">
+        SELECT CAST(cr.create_dt AS DATE) AS statDate,
+               COALESCE(SUM(cr.input_tokens), 0) AS promptTokens,
+               COALESCE(SUM(cr.output_tokens), 0) AS completionTokens
+          FROM sai_agent_conversation_record cr
+         WHERE CAST(cr.create_dt AS DATE) BETWEEN #{start} AND #{end}
+         GROUP BY CAST(cr.create_dt AS DATE)
+    </select>
+
+</mapper>

@@ -15,6 +15,9 @@ import java.util.List;
 /**
  * 默认重排服务实现
  * 通过模型运行入口进行真正的 cross-encoder 重排。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Component

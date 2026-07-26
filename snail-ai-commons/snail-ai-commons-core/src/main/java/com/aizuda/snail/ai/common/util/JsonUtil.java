@@ -3,6 +3,7 @@ package com.aizuda.snail.ai.common.util;
 import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.common.execption.SnailAiCommonException;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.extern.slf4j.Slf4j;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.DeserializationFeature;
@@ -34,7 +35,11 @@ import static com.aizuda.snail.ai.common.constants.SystemConstants.YYYY_MM_DD_HH
 
 /**
  * (复制自 snail-job)
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
+@Slf4j
 public class JsonUtil {
 
     public static String toJsonString(Object object) {
@@ -102,7 +107,7 @@ public class JsonUtil {
         try {
             return JsonMapper.objectMapper.writeValueAsString(objectNode);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to serialize empty JSON object", e);
             return null;
         }
     }

@@ -28,7 +28,10 @@ public class SnailAiInterceptorChain {
     }
 
     /**
-     * 正序执行所有拦截器的 beforeRequest
+     * 正序执行所有拦截器的 beforeRequest。
+     *
+     * @param request 初始 ChatClient 请求
+     * @return 经全部拦截器处理后的请求
      */
     public ChatClientRequest applyBefore(ChatClientRequest request) {
         ChatClientRequest current = request;
@@ -39,7 +42,10 @@ public class SnailAiInterceptorChain {
     }
 
     /**
-     * 逆序执行所有拦截器的 afterResponse
+     * 逆序执行所有拦截器的 afterResponse。
+     *
+     * @param response 初始 ChatClient 响应
+     * @return 经全部拦截器处理后的响应
      */
     public ChatClientResponse applyAfter(ChatClientResponse response) {
         ChatClientResponse current = response;
@@ -49,10 +55,20 @@ public class SnailAiInterceptorChain {
         return current;
     }
 
+    /**
+     * 获取已按 Order 排序的拦截器列表。
+     *
+     * @return 不可变拦截器列表
+     */
     public List<SnailAiInterceptor> getInterceptors() {
         return interceptors;
     }
 
+    /**
+     * 判断拦截器链是否为空。
+     *
+     * @return 无任何拦截器时返回 {@code true}
+     */
     public boolean isEmpty() {
         return interceptors.isEmpty();
     }

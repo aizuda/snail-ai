@@ -17,7 +17,7 @@ import java.util.List;
  * 扫描 PENDING 状态的文档并逐个处理（解析、切片、向量化）
  *
  * @author opensnail
- * @date 2026-04-28
+ * @since 2026-04-28
  */
 @Slf4j
 @Component

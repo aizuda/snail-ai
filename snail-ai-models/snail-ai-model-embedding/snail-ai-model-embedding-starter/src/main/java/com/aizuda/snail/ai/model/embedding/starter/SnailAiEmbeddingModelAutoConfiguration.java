@@ -12,6 +12,12 @@ import org.springframework.context.annotation.Bean;
 
 import java.util.List;
 
+/**
+ * 向量化模型自动配置，装配向量化模型运行时、OpenAI 兼容适配器及其描述符。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @AutoConfiguration
 public class SnailAiEmbeddingModelAutoConfiguration {
 

@@ -6,6 +6,9 @@ import lombok.Data;
 
 /**
  * OpenAPI 会话身份请求（Query 参数）
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 @Data
 public class OpenApiConversationIdentityRequest {

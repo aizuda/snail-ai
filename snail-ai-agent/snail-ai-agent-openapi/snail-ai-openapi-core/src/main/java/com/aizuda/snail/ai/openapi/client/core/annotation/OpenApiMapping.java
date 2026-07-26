@@ -9,7 +9,7 @@ import java.lang.annotation.Target;
  * OpenAPI 接口方法映射注解
  *
  * @author opensnail
- * @date 2026-04-24
+ * @since 2026-04-24
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)

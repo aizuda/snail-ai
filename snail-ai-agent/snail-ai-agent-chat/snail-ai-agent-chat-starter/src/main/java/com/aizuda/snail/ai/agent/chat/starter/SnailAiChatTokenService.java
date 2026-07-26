@@ -16,6 +16,12 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.Objects;
 
+/**
+ * 对话网关 Token 服务，基于 JWT（HMAC256）校验嵌入会话令牌并解析出会话信息（openId、appId 等）。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 public class SnailAiChatTokenService {
 
     public static final String AUTH_HEADER = "Snail-Ai-Auth";
@@ -31,6 +37,12 @@ public class SnailAiChatTokenService {
         this.agentProperties = agentProperties;
     }
 
+    /**
+     * 校验会话令牌并解析为会话信息，校验失败/过期时抛出认证异常
+     *
+     * @param rawToken 原始令牌（可含 Bearer 前缀）
+     * @return 解析出的对话会话
+     */
     public SnailAiChatSession verify(String rawToken) {
         String token = normalizeToken(rawToken);
         if (StrUtil.isBlank(token)) {

@@ -23,6 +23,9 @@ import java.util.function.Consumer;
  * 随 {@code ChatCompletionResult.fullThinking} 返回给调用方用于对话记录持久化。
  * <p>
  * 兼容 reasoning_content 直接写入 metadata，或存在于底层响应对象 _additionalProperties() 中的场景。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @RequiredArgsConstructor

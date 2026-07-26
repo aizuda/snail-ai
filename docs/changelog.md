@@ -10,6 +10,119 @@
 
 ---
 
+## [1.1.0] - 未发布
+
+### 新增功能
+- 智能体对话支持图片附件链路，独立聊天页、OpenAPI 和 Agent SDK 可上传图片并随消息发送，支持图片消息预览、附件校验与会话记录元数据持久化。
+- 模型配置新增能力标记，CHAT 模型可开启 `vision` 支持图片输入，并可配置默认视觉模型用于图片识别和 RAG 图片 OCR 兜底。
+- RAG 知识库新增 Docling 解析引擎，支持 PDF/文档版面元素解析、Markdown 内容留存、解析统计和解析引擎参数回显。
+- RAG 图片识别能力增强，支持 Docling 图片提取、PaddleOCR/多模态模型 OCR、图片 chunk 构建、图片证据召回与检索结果图片证据返回。
+- 模型配置新增连通性验证，支持 Chat、Embedding、Reranker 三类模型测试，并完善模型用量统计持久化。
+- 首页新增运营概览聚合接口，支持 KPI、趋势、排行、知识库、技能与资源数据汇总，Token 趋势改为按对话记录读时聚合。
+- OpenAPI 增加会话标题更新、资源上传、用户解析等能力，图片对话与资源返回结构同步扩展。
+- MCP 服务配置支持超时时间和请求头配置，便于对接需要自定义 Header 或较长响应时间的 MCP 服务。
+- 新增 Docling API 与 PaddleOCR API 工具目录及 Docker 化部署支持，补充 `.env.example`、Docker Compose 与相关启动脚本。
+
+### 功能优化
+- 拆分 Agent、模型配置、RAG 文档、Skill 等管理端大服务类，补充 Assembler、Validator、QueryService、FileService 等职责边界，降低服务复杂度。
+- 优化智能体对话链路，新增附件解析处理，调整模型视觉能力分发、Prompt 构建、RAG/Skill/MCP 工具解析和流式输出元数据。
+- 优化 RAG 文档导入与检索流水线，支持图片 OCR 质量评估、图片与文本 chunk 匹配、检索结果重排和图片证据增强。
+- 优化客户端实例管理和心跳调度，补充客户端踢出处理、路由策略可观测性和异常路径日志。
+- 完善资源、向量存储、全文检索、OpenAPI、鉴权、异常处理、RAG 和 Agent 链路的观测性日志与公开 API 注释。
+- 接入 EditorConfig、Spotless、commit-msg 钩子和 git-submit/frontend-dev/env-config 技能，统一代码格式、提交规范和开发流程说明。
+
+### 问题修复
+- 修复 Docling v2 API 兼容、图片 caption 前瞻提取、页码识别和 Media 构造方式等问题。
+- 修复 RAG 文档管道资源引用、图片 OCR/图注/公式内容不可检索、知识库编辑时解析配置未保留等问题。
+- 修复批量上传超时，增加上传预览耗时日志和 axios 超时配置。
+- 修复首页模型用量统计为空、首页 Token 趋势统计口径不准确的问题。
+- 修复 `AdminWebController` 与 Agent Chat `WebController` Bean 名称冲突。
+- 修复模型配置字段长度校验不足导致插入异常，以及删除模型/存储/MCP 时缺少引用检查的问题。
+- 修复图片对话执行端依赖版本、模型视觉能力返回和图片附件校验链路中的兼容问题。
+
+### 数据库变更
+- MySQL、PostgreSQL、达梦三套建表脚本同步更新：`docs/sql/snail_ai_schema.sql`、`docs/sql/snail_ai_schema_pgsql.sql`、`docs/sql/snail_ai_schema_dameng.sql`。
+- `sai_agent_conversation_record` 新增 `metadata` 字段，用于保存图片附件、工具结果等消息扩展元数据。
+- `sai_rag_document` 新增 Docling 解析统计与内容字段：`page_count`、`element_count`、`table_count`、`image_count`、`parse_time`、`md_content`、`doc_metadata`。
+- 新增 `sai_rag_document_image` 表，保存 RAG 文档解析出的图片、资源关联、页码、图注、章节、OCR 文本和 chunk 关联，并增加 rag/document/chunk/resource 维度索引。
+- `sai_rag_chunk` 新增 `source_type` 字段和 `(rag_id, source_type)` 索引，用于区分 `TEXT` 文本 chunk 与 `IMAGE` 图片 chunk。
+- `sai_mcp_server` 移除旧的 `version`、`auth_type`、`auth_config`、`capabilities` 字段，新增 `timeout` 与 `headers` 字段，对应 MCP 超时和请求头配置。
+- PostgreSQL 与达梦脚本补充 `sai_rag_document_image.update_dt` 自动更新时间触发器。
+
+### SQL 变更记录
+- 对话记录表：`sai_agent_conversation_record` 增加 `metadata` 字段。
+- RAG 文档表：`sai_rag_document` 增加 Docling 解析统计、Markdown 内容和元数据字段。
+- RAG 图片表：新增 `sai_rag_document_image`，并增加 `rag_id`、`document_id`、`chunk_id`、`resource_id` 索引。
+- RAG 分块表：`sai_rag_chunk` 增加 `source_type` 字段和 `(rag_id, source_type)` 索引。
+- MCP 服务表：`sai_mcp_server` 删除 `version`、`auth_type`、`auth_config`、`capabilities`，新增 `timeout`、`headers`。
+
+MySQL 升级参考 DDL：
+
+```sql
+ALTER TABLE sai_agent_conversation_record
+    ADD COLUMN metadata LONGTEXT DEFAULT NULL COMMENT '消息扩展元数据JSON';
+
+ALTER TABLE sai_rag_document
+    ADD COLUMN page_count INT DEFAULT 0 COMMENT 'Docling parse page count',
+    ADD COLUMN element_count INT DEFAULT 0 COMMENT 'Docling parse element count',
+    ADD COLUMN table_count INT DEFAULT 0 COMMENT 'Docling parse table count',
+    ADD COLUMN image_count INT DEFAULT 0 COMMENT 'Docling parse image count',
+    ADD COLUMN parse_time INT DEFAULT 0 COMMENT 'Parse duration in milliseconds',
+    ADD COLUMN md_content LONGTEXT DEFAULT NULL COMMENT 'Docling markdown content',
+    ADD COLUMN doc_metadata LONGTEXT DEFAULT NULL COMMENT 'Docling document metadata JSON';
+
+CREATE TABLE sai_rag_document_image
+(
+    id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    rag_id BIGINT NOT NULL,
+    document_id BIGINT NOT NULL,
+    chunk_id BIGINT DEFAULT NULL,
+    resource_id BIGINT DEFAULT NULL,
+    image_index INT,
+    image_url VARCHAR(1024),
+    caption TEXT,
+    figure_no VARCHAR(64),
+    figure_title VARCHAR(512),
+    section_title VARCHAR(512),
+    source_page INT,
+    document_name VARCHAR(255),
+    ocr_text TEXT,
+    create_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_dt TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_unicode_ci;
+
+CREATE INDEX idx_rag_doc_image_rag ON sai_rag_document_image (rag_id);
+CREATE INDEX idx_rag_doc_image_document ON sai_rag_document_image (document_id);
+CREATE INDEX idx_rag_doc_image_chunk ON sai_rag_document_image (chunk_id);
+CREATE INDEX idx_rag_doc_image_resource ON sai_rag_document_image (resource_id);
+
+ALTER TABLE sai_rag_chunk
+    ADD COLUMN source_type VARCHAR(20) NOT NULL DEFAULT 'TEXT' COMMENT 'chunk来源类型：TEXT文本、IMAGE图片';
+
+CREATE INDEX idx_chunk_rag_source_type ON sai_rag_chunk (rag_id, source_type);
+
+ALTER TABLE sai_mcp_server
+    DROP COLUMN version,
+    DROP COLUMN auth_type,
+    DROP COLUMN auth_config,
+    DROP COLUMN capabilities,
+    ADD COLUMN timeout BIGINT DEFAULT 60000 COMMENT '超时时间(毫秒)',
+    ADD COLUMN headers TEXT COMMENT '请求头(JSON对象)';
+```
+
+### 文档与部署
+- 新增 Docling 解析引擎设计文档、RAG 图片识别与证据匹配说明、图片对话设计方案和 Docker 部署说明。
+- 更新管理端、OpenAPI、模型配置、RAG、Skill、独立聊天页等使用文档，并补充图片对话、模型视觉能力和 RAG 图片证据截图。
+- Docker 部署增加 Docling 与 PaddleOCR 服务配置，完善环境变量模板和工具服务 README/API 文档。
+
+### 升级说明
+- 本版本涉及数据库结构变更，升级前请先备份数据库，并按实际数据库类型同步执行或合并新版 schema 中的字段、索引、触发器和新表变更。
+- 已有 MCP 服务配置需要从旧的认证/能力字段迁移到 `timeout`、`headers` 配置模型，历史 `auth_type/auth_config/capabilities` 字段不再保留。
+- 使用图片对话或 RAG 图片 OCR 前，需要在模型配置中为可处理图片的 CHAT 模型开启 `vision` 能力，并按需配置默认视觉模型。
+- 使用 Docling/PaddleOCR 解析能力时，需要部署对应工具服务并配置 `.env`/Docker Compose 中的服务地址、超时和 OCR 参数。
+
 ## [1.0.0] - 2026-06-28
 
 ### 版本亮点

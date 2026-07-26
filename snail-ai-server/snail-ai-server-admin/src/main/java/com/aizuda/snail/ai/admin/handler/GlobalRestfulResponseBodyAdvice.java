@@ -13,6 +13,12 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 import java.lang.annotation.Annotation;
 
+/**
+ * 全局响应体包装处理，将控制器返回值统一包装为 {@link Result}（流式响应与标注 {@link OriginalControllerReturnValue} 的除外）。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @ControllerAdvice(basePackages = {"com.aizuda.snail.ai.admin"})
 public class GlobalRestfulResponseBodyAdvice implements ResponseBodyAdvice<Object> {

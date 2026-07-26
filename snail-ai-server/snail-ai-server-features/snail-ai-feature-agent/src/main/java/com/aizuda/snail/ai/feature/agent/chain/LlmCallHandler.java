@@ -5,6 +5,7 @@ import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
 import com.aizuda.snail.ai.common.grpc.client.GrpcChannelUtil;
 import com.aizuda.snail.ai.common.grpc.constant.UriConstants;
 import com.aizuda.snail.ai.common.util.JsonUtil;
+import com.aizuda.snail.ai.feature.agent.dto.AgentChatAttachmentDTO;
 import com.aizuda.snail.ai.persistence.agent.po.AgentPO;
 import com.aizuda.snail.ai.feature.agent.stream.ChatStreamWriter;
 import lombok.RequiredArgsConstructor;
@@ -13,11 +14,15 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 /**
  * 责任链终点：从 {@link AgentChatContext} 组装 {@link com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest}，通过 gRPC 流式调用远程 Client。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Component
@@ -39,12 +44,14 @@ public class LlmCallHandler implements AgentChatHandler {
         }
 
         if (ctx.getTargetClient() == null) {
+            log.warn("聊天分发失败：未找到可用的客户端实例, conversationId={}", ctx.getConversationId());
             sendError(ctx.getStreamWriter(), "未找到可用的客户端实例");
             ctx.setTerminated(true);
             return;
         }
 
         if (ctx.getModelConfig() == null) {
+            log.warn("聊天分发失败：模型配置缺失, conversationId={}", ctx.getConversationId());
             sendError(ctx.getStreamWriter(), "模型配置缺失");
             ctx.setTerminated(true);
             return;
@@ -73,11 +80,12 @@ public class LlmCallHandler implements AgentChatHandler {
             ctx.setStreamDispatchStarted(true);
         } catch (Exception e) {
             ctx.setStreamDispatchStarted(false);
+            log.error("聊天 gRPC 分发失败, conversationId={}", ctx.getConversationId(), e);
             throw e;
         }
     }
 
-    private ChatDispatchRequest buildDispatchRequest(AgentChatContext ctx) {
+    ChatDispatchRequest buildDispatchRequest(AgentChatContext ctx) {
         AgentPO agent = ctx.getAgent();
 
         ChatDispatchRequest.AgentConfig agentConfig = ChatDispatchRequest.AgentConfig.builder()
@@ -105,8 +113,26 @@ public class LlmCallHandler implements AgentChatHandler {
                 .historyMessages(ctx.getHistoryMessages())
                 .memoryContext(ctx.getMemoryContext())
                 .systemPrompt(ctx.getSystemPrompt())
+                .mediaAttachments(toMediaAttachments(ctx.getAttachments()))
                 .serverHttpPort(serverHttpPort)
                 .build();
+    }
+
+    private List<ChatDispatchRequest.MediaAttachment> toMediaAttachments(List<AgentChatAttachmentDTO> attachments) {
+        if (attachments == null || attachments.isEmpty()) {
+            return List.of();
+        }
+        return attachments.stream()
+                .map(attachment -> ChatDispatchRequest.MediaAttachment.builder()
+                        .resourceId(attachment.getResourceId())
+                        .type(attachment.getType())
+                        .fileName(attachment.getFileName())
+                        .mimeType(attachment.getMimeType())
+                        .size(attachment.getSize())
+                        .accessUrl(attachment.getAccessUrl())
+                        .base64(attachment.getBase64())
+                        .build())
+                .toList();
     }
 
     private static void sendError(ChatStreamWriter streamWriter, String message) {

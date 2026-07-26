@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
  * 文档会被分割为多个chunk进行向量化和检索
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @TableName("sai_rag_document")
 @Data
@@ -87,6 +87,27 @@ public class RagDocumentPO {
      * 用于统计和显示
      */
     private Integer chunkCount;
+
+    /** Docling 解析页数。 */
+    private Integer pageCount;
+
+    /** Docling 解析元素数量。 */
+    private Integer elementCount;
+
+    /** Docling 解析表格数量。 */
+    private Integer tableCount;
+
+    /** Docling 解析图片数量。 */
+    private Integer imageCount;
+
+    /** 文档解析耗时，单位毫秒。 */
+    private Integer parseTime;
+
+    /** Docling 清理后的 Markdown 内容。 */
+    private String mdContent;
+
+    /** Docling 文档元数据 JSON。 */
+    private String docMetadata;
 
     /**
      * 文件内容SHA-256哈希

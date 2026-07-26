@@ -12,7 +12,7 @@ import java.util.HashMap;
  * </p>
  *
  * @author opensnail
- * @date 2026-06-17
+ * @since 2026-06-17
  */
 @Component
 public class MyChatClientCustomizer implements ChatClientCustomizer {

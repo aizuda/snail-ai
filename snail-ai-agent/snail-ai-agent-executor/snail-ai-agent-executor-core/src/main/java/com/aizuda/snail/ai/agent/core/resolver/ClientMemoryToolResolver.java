@@ -10,6 +10,9 @@ import java.util.List;
  * 客户端记忆检索工具解析器
  * <p>
  * 记忆工具已简化 - 不再使用独立的工具注册，记忆检索通过后台处理
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 public class ClientMemoryToolResolver {
@@ -17,6 +20,12 @@ public class ClientMemoryToolResolver {
     public ClientMemoryToolResolver() {
     }
 
+    /**
+     * 解析记忆相关工具。当前记忆检索由后台处理，不再注册独立工具。
+     *
+     * @param request 对话分发请求
+     * @return 始终返回空列表
+     */
     public List<ToolCallback> resolve(ChatDispatchRequest request) {
         // Memory tools are now handled by the backend without independent tool registration
         return List.of();

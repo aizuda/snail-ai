@@ -10,8 +10,8 @@ import java.io.Serializable;
 /**
  * 短期记忆消息 - 用于在各存储介质中传递会话历史
  *
- * author: opensnail
- * date: 2026-03-26
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @NoArgsConstructor

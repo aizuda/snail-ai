@@ -9,6 +9,9 @@ import java.time.LocalDateTime;
 
 /**
  * OpenAPI 嵌入式对话 token 响应。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

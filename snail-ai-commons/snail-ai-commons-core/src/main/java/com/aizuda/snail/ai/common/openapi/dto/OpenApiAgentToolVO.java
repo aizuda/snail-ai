@@ -7,6 +7,9 @@ import lombok.NoArgsConstructor;
 
 /**
  * OpenAPI Agent 工具概要信息。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

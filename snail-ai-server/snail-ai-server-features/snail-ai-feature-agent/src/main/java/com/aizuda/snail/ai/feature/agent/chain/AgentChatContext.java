@@ -1,19 +1,23 @@
 package com.aizuda.snail.ai.feature.agent.chain;
 
 import com.aizuda.snail.ai.ClientInstanceManager;
+import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
+import com.aizuda.snail.ai.feature.agent.dto.AgentChatAttachmentDTO;
+import com.aizuda.snail.ai.feature.agent.stream.ChatStreamWriter;
 import com.aizuda.snail.ai.persistence.admin.po.UserPO;
 import com.aizuda.snail.ai.persistence.agent.po.AgentPO;
 import com.aizuda.snail.ai.persistence.mcp.po.McpServerPO;
-import com.aizuda.snail.ai.feature.agent.stream.ChatStreamWriter;
 import com.google.common.collect.Lists;
 import lombok.Data;
 import org.springframework.ai.tool.ToolCallback;
-import com.aizuda.snail.ai.common.dto.agent.ChatDispatchRequest;
 
 import java.util.List;
 
 /**
  * 智能体对话责任链上下文，在各 Handler 间流转并被逐步填充
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 public class AgentChatContext {
@@ -63,7 +67,18 @@ public class AgentChatContext {
     private String systemPrompt;
     private List<McpServerPO> mcpServers = Lists.newArrayList();
     private List<ToolCallback> toolCallbacks = Lists.newArrayList();
+    
+    /**
+     * 本次请求携带的原始附件参数，进入校验处理前使用。
+     */
+    private List<AgentChatAttachmentDTO> requestedAttachments = Lists.newArrayList();
 
+    /**
+     * 校验通过并补齐资源元数据后的附件列表。
+     */
+    private List<AgentChatAttachmentDTO> attachments = Lists.newArrayList();
+    private Long userRecordId;
+    
     // ── 远程分发传输数据（由对应 Handler 填充，LlmCallHandler 统一组装）──
 
     /**

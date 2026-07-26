@@ -6,6 +6,9 @@ import org.springframework.ai.chat.model.ChatModel;
 
 /**
  * 默认 ChatModel 工厂。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public class DefaultChatModelFactory implements ChatModelFactory {
 

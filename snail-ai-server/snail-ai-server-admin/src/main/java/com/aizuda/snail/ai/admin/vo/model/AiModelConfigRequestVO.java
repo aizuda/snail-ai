@@ -8,10 +8,14 @@ import lombok.NoArgsConstructor;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 /**
  * AI模型配置请求 VO
  * 用于接收前端新增/编辑模型配置的请求
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder
@@ -29,12 +33,14 @@ public class AiModelConfigRequestVO {
      * 模型名称 (必填)
      */
     @NotBlank(message = "模型名称不能为空")
+    @Size(max = 255, message = "模型名称最多255个字符")
     private String modelName;
 
     /**
      * 模型标识符 (必填)
      */
     @NotBlank(message = "模型标识符不能为空")
+    @Size(max = 100, message = "模型标识最多100个字符")
     private String modelKey;
 
     /**
@@ -52,6 +58,7 @@ public class AiModelConfigRequestVO {
     /**
      * 模型描述
      */
+    @Size(max = 1000, message = "模型描述最多1000个字符")
     private String description;
 
     /**

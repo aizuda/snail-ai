@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
  * 聊天流事件（HTTP 推送给前端的行分隔 JSON 格式）
  *
  * @author opensnail
- * @date 2025-04-08
+ * @since 2025-04-08
  */
 @Data
 @AllArgsConstructor

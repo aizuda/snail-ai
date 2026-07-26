@@ -18,6 +18,12 @@ import org.springframework.ai.vectorstore.milvus.MilvusVectorStore;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Milvus 向量库存储实现，基于 Spring AI {@link MilvusVectorStore}，按集合名缓存并复用 store 实例与底层连接。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 public class MilvusSnailAiVectorStore extends AbstractSnailAiVectorStore {
 
@@ -96,6 +102,7 @@ public class MilvusSnailAiVectorStore extends AbstractSnailAiVectorStore {
             throw new VectorStoreException("indexName 不能为空");
         }
         getStore(indexName).delete(ids);
+        log.info("Milvus 向量库删除 {} 个文档 index={}", ids.size(), indexName);
     }
 
     @Override
@@ -116,7 +123,11 @@ public class MilvusSnailAiVectorStore extends AbstractSnailAiVectorStore {
     @Override
     public boolean test() {
         R<CheckHealthResponse> checkHealthResponseR = milvusClient.checkHealth();
-        return Integer.valueOf(R.Status.Success.getCode()).equals(checkHealthResponseR.getStatus());
+        boolean healthy = Integer.valueOf(R.Status.Success.getCode()).equals(checkHealthResponseR.getStatus());
+        if (!healthy) {
+            log.warn("Milvus 连接健康检查未通过: status={}", checkHealthResponseR.getStatus());
+        }
+        return healthy;
     }
 
 

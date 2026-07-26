@@ -18,13 +18,18 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 智能体创建服务，借助大模型流式生成智能体配置（名称/提示词等）并落库。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -41,7 +46,10 @@ public class AgentCreateService {
     private record AgentInfo(String name, String description, String greeting, List<String> presetQuestions, String instruction) {}
 
     /**
-     * 流式创建智能体（单次LLM调用 + 阶段性推送）
+     * 流式创建智能体（单次 LLM 调用 + 阶段性推送）
+     *
+     * @param description 用户对智能体的需求描述
+     * @return 智能体创建过程的流式事件（开始/字段完成/结束/错误）
      */
     public Flux<AgentCreateStreamEvent> createByDescriptionStream(String description) {
         Long userId = UserSessionUtils.currentUserSession().getId();
@@ -95,10 +103,11 @@ public class AgentCreateService {
                                         .map(org.springframework.ai.chat.messages.AssistantMessage::getText)
                                         .orElse(null);
 
-                                if (StringUtils.hasText(text)) {
-                                    buffer.append(text);
-                                    tryDetectAndPushFields(buffer.toString(), pushedFields, sink);
+                                if (StrUtil.isBlank(text)) {
+                                    return;
                                 }
+                                buffer.append(text);
+                                tryDetectAndPushFields(buffer.toString(), pushedFields, sink);
                             },
                             error -> {
                                 log.error("流式创建失败", error);
@@ -215,12 +224,13 @@ public class AgentCreateService {
                 );
 
                 java.util.regex.Matcher matcher = pattern.matcher(content);
-                if (matcher.find()) {
-                    String value = matcher.group(1);
-                    emit(sink, AgentCreateStreamEvent.fieldDone(field, value));
-                    pushedFields.add(field);
-                    log.info("字段 {} 完成并推送", field);
+                if (!matcher.find()) {
+                    continue;
                 }
+                String value = matcher.group(1);
+                emit(sink, AgentCreateStreamEvent.fieldDone(field, value));
+                pushedFields.add(field);
+                log.info("字段 {} 完成并推送", field);
             }
 
             if (!pushedFields.contains("presetQuestions")) {
@@ -278,21 +288,24 @@ public class AgentCreateService {
     }
 
     private void emit(FluxSink<AgentCreateStreamEvent> sink, AgentCreateStreamEvent event) {
-        if (!sink.isCancelled()) {
-            sink.next(event);
+        if (sink.isCancelled()) {
+            return;
         }
+        sink.next(event);
     }
 
     private void complete(FluxSink<AgentCreateStreamEvent> sink) {
-        if (!sink.isCancelled()) {
-            sink.complete();
+        if (sink.isCancelled()) {
+            return;
         }
+        sink.complete();
     }
 
     private void emitError(FluxSink<AgentCreateStreamEvent> sink, String message) {
-        if (!sink.isCancelled()) {
-            sink.next(AgentCreateStreamEvent.error(message != null ? message : "Unknown error"));
-            sink.complete();
+        if (sink.isCancelled()) {
+            return;
         }
+        sink.next(AgentCreateStreamEvent.error(message != null ? message : "Unknown error"));
+        sink.complete();
     }
 }

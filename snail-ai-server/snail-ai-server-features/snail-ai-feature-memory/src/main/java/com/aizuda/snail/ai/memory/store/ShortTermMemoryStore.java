@@ -11,8 +11,8 @@ import java.util.List;
  * 通过策略模式支持多种存储介质（Redis、JVM 内存等），
  * 通过配置 snail.ai.memory.short-term.store-type 切换实现。
  *
- * author: opensnail
- * date: 2026-03-26
+ * @author opensnail
+ * @since 2026-06-14
  */
 public interface ShortTermMemoryStore {
 

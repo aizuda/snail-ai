@@ -5,6 +5,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * 系统提示词初始化：以智能体 instruction 作为 systemPrompt 基础
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Component
 @Order(50)

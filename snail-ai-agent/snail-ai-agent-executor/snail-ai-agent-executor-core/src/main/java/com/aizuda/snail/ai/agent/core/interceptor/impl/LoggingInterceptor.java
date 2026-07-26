@@ -11,6 +11,9 @@ import java.util.Optional;
 
 /**
  * 可选的请求/响应日志拦截器。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 public class LoggingInterceptor implements SnailAiInterceptor {

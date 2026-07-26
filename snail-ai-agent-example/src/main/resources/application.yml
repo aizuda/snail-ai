@@ -73,7 +73,7 @@ snail-ai:
 
     chat:
       ui:
-        page-title: SnailAIChat
+        page-title: snail-ai
         logo: https://snailjob.opensnail.com/logo.svg
         embed:
           enabled: false

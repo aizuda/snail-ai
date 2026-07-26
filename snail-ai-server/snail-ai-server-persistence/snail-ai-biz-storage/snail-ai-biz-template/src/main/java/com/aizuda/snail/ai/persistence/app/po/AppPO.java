@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
  * 用于管理和隔离不同应用的配置、数据、Agent等资源
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @TableName("sai_app")
 @Data

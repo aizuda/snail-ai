@@ -9,7 +9,7 @@ import java.util.List;
  * 固定路由策略（始终选第一个实例，适用于单客户端场景）
  *
  * @author opensnail
- * @date 2025-04-09
+ * @since 2025-04-09
  */
 @Component
 public class FirstClientRoute implements ClientRouteStrategy {

@@ -4,6 +4,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
+/**
+ * 记忆检索调试请求参数
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Data
 public class MemoryDebugRequestVO {
 
@@ -15,8 +21,10 @@ public class MemoryDebugRequestVO {
     @NotNull
     private Long userId;
 
+    /** 检索查询文本 */
     @NotBlank
     private String query;
 
+    /** 会话 ID */
     private String conversationId;
 }

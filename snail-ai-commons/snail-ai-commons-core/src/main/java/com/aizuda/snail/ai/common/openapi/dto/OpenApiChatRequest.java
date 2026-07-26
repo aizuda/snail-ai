@@ -8,6 +8,9 @@ import java.util.List;
 
 /**
  * OpenAPI 对话请求
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 @Data
 public class OpenApiChatRequest {
@@ -23,6 +26,8 @@ public class OpenApiChatRequest {
 
     @NotBlank(message = "content is required")
     private String content;
+
+    private List<OpenApiChatAttachmentRequest> attachments;
 
     private List<Long> disabledMcpServerIds;
 

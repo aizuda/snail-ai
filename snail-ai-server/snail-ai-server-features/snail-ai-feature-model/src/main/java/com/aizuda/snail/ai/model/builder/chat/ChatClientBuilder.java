@@ -22,6 +22,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * <p>
  * 缓存 key = configId，避免每次切片/对话都重建 OpenAiChatModel 及其底层 HTTP 连接池。
  * 5 分钟 TTL 自动淘汰过期条目。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Component
 @Slf4j
@@ -35,6 +38,13 @@ public class ChatClientBuilder {
 
     private final ConcurrentHashMap<String, CacheEntry> clientCache = new ConcurrentHashMap<>();
 
+    /**
+     * 获取缓存的 ChatClient，缓存未命中、已过期或 API Key 变更时重建
+     *
+     * @param decryptedApiKey 解密后的 API Key
+     * @param config          模型配置信息
+     * @return 可用的 ChatClient 实例
+     */
     public ChatClient getOrBuildChatClient(String decryptedApiKey, ModelConfigInfoDTO config) {
         String cacheKey = String.valueOf(config.getId());
         CacheEntry entry = clientCache.get(cacheKey);
@@ -62,6 +72,13 @@ public class ChatClientBuilder {
         }
     }
 
+    /**
+     * 构建一个新的 ChatClient（装配日志与项目自定义 advisor）
+     *
+     * @param config          模型配置信息
+     * @param decryptedApiKey 解密后的 API Key
+     * @return 新建的 ChatClient 实例
+     */
     public ChatClient buildChatClient(ModelConfigInfoDTO config, String decryptedApiKey) {
         try {
             ChatModel chatModel = serverModelFacade.buildChatModel(config, decryptedApiKey);
@@ -82,6 +99,9 @@ public class ChatClientBuilder {
         }
     }
 
+    /**
+     * 定时清理缓存中已过期的 ChatClient 条目
+     */
     @Scheduled(fixedDelay = 300_000)
     public void evictExpiredClients() {
         int before = clientCache.size();
@@ -98,6 +118,11 @@ public class ChatClientBuilder {
         }
     }
 
+    /**
+     * 主动失效指定模型配置的 ChatClient 缓存（如配置变更后）
+     *
+     * @param configId 模型配置 ID
+     */
     public void invalidateClient(Long configId) {
         String cacheKey = String.valueOf(configId);
         CacheEntry removed = clientCache.remove(cacheKey);

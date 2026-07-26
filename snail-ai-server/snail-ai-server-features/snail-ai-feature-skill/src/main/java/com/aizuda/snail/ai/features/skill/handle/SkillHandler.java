@@ -25,6 +25,9 @@ import java.util.stream.Collectors;
 /**
  * Skill 服务接口（基础设施层）
  * 供 features 层的工具类和 admin 层的 handler 调用，由 admin 层实现
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Component
 @Slf4j
@@ -36,6 +39,9 @@ public class SkillHandler {
 
     /**
      * 获取智能体关联的 Skill（含 skillContent），用于对话注入
+     *
+     * @param agentId 智能体 ID
+     * @return 该智能体关联的技能 PO 列表（含技能内容）
      */
     public List<SkillPO> getSkillsWithContentForAgent(Long agentId) {
         List<AgentSkillPO> relations = agentSkillMapper.selectList(
@@ -48,7 +54,9 @@ public class SkillHandler {
         List<Long> skillIds = relations.stream()
                 .map(AgentSkillPO::getSkillId)
                 .collect(Collectors.toList());
-        return skillMapper.selectByIds(skillIds);
+        List<SkillPO> skills = skillMapper.selectByIds(skillIds);
+        log.debug("加载智能体技能 agentId={} 技能数={}", agentId, skills.size());
+        return skills;
     }
 
 }

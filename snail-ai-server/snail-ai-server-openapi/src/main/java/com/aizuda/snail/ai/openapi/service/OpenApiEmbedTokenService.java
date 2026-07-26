@@ -15,6 +15,7 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTCreator;
 import com.auth0.jwt.algorithms.Algorithm;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -23,7 +24,11 @@ import java.util.Date;
 
 /**
  * OpenAPI 嵌入式对话 token 服务。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OpenApiEmbedTokenService {
@@ -34,6 +39,12 @@ public class OpenApiEmbedTokenService {
     private final OpenApiUserResolver openApiUserResolver;
     private final ResourceMapper resourceMapper;
 
+    /**
+     * 创建嵌入式对话授权 token
+     *
+     * @param request 嵌入式 token 请求（openId、有效期、可信凭据等）
+     * @return 嵌入式对话 token 响应（token、有效期、用户信息）
+     */
     public OpenApiEmbedTokenResponse createEmbedToken(OpenApiEmbedTokenRequest request) {
         OpenApiSessionUtils.OpenApiSession session = OpenApiSessionUtils.current();
         OpenApiResolvedUser resolvedUser = openApiUserResolver.resolveUser(session.getAppId(), request.getOpenId());
@@ -41,6 +52,7 @@ public class OpenApiEmbedTokenService {
         int ttlSeconds = request.getTtlSeconds() == null ? DEFAULT_TOKEN_TTL_SECONDS : request.getTtlSeconds();
         LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(ttlSeconds);
         String token = createUserAuthToken(requestUser, session, request, expiresAt);
+        log.info("OpenAPI 签发嵌入式对话 token appId={} openId={} ttl={}s", session.getAppId(), request.getOpenId(), ttlSeconds);
 
         return OpenApiEmbedTokenResponse.builder()
                 .token(token)

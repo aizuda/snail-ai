@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
  * 这些文件与SKILL.md定义一起组成完整的技能包
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @TableName("sai_skill_file")
 @Data

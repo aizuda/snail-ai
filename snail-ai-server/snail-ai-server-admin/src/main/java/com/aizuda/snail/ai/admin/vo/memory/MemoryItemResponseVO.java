@@ -10,6 +10,9 @@ import java.util.List;
 
 /**
  * 对外统一记忆视图（门面 API）
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

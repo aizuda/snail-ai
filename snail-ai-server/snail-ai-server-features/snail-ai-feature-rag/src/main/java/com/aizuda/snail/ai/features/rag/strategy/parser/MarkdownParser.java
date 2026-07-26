@@ -9,6 +9,12 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.stream.Collectors;
 
+/**
+ * Markdown 文档解析器：去除 Markdown 标记语法，保留可供检索的纯文本。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Component
 public class MarkdownParser implements DocumentParser {
 
@@ -27,6 +33,9 @@ public class MarkdownParser implements DocumentParser {
         }
     }
 
+    /**
+     * 去除标题、代码围栏、强调、图片 / 链接、引用、列表等标记，仅保留文本内容。
+     */
     private String cleanMarkdown(String md) {
         String clean = md;
         // 去掉标题标记，保留标题文本

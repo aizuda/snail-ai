@@ -20,7 +20,7 @@ import org.springframework.core.env.Environment;
  * 业务库存储自动配置。
  *
  * @author suiyaner
- * @date 2026-06-17
+ * @since 2026-06-17
  */
 @AutoConfiguration
 @AutoConfigureBefore(MybatisPlusAutoConfiguration.class)

@@ -23,6 +23,9 @@ import java.util.function.Consumer;
 /**
  * 客户端 LLM 执行引擎：通过 {@link org.springframework.ai.chat.client.advisor.api.Advisor} 责任链管理
  * Prompt 注入、拦截器、思维链与 chunk 转发，自身仅负责组装 {@link ChatClient} 与流式调用。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 public class ClientChatExecutor {
@@ -37,6 +40,8 @@ public class ClientChatExecutor {
 
     /**
      * 流式执行：Advisor 链负责 memory/history、拦截、thinking 上报与 chunk 回调。
+     *
+     * @param request 客户端对话执行请求（含分发请求、工具与各类回调）
      */
     public void executeStream(ClientChatExecutionRequest request) {
         ChatDispatchRequest dispatchRequest = request.getDispatchRequest();
@@ -61,6 +66,10 @@ public class ClientChatExecutor {
 
     /**
      * 返回原始响应流（文本 chunk 已由 {@link com.aizuda.snail.ai.agent.core.advisor.StreamChunkForwarderAdvisor} 转发）。
+     *
+     * @param request 客户端对话执行请求
+     * @param state   流式执行上下文（累积文本、思维链与用量）
+     * @return 原始 ChatResponse 响应流
      */
     public Flux<ChatResponse> streamResponses(ClientChatExecutionRequest request,
                                               ClientStreamExecutionContext state) {
@@ -81,6 +90,11 @@ public class ClientChatExecutor {
     }
 
     /**
+     * 兼容旧调用的别名方法。
+     *
+     * @param request 客户端对话执行请求
+     * @param state   流式执行上下文
+     * @return 原始 ChatResponse 响应流
      * @deprecated use {@link #streamResponses(ClientChatExecutionRequest, ClientStreamExecutionContext)}
      */
     @Deprecated

@@ -8,7 +8,7 @@ import lombok.Getter;
  * 通用状态枚举（启用/禁用）
  *
  * @author opensnail
- * @date 2025-04-11
+ * @since 2025-04-11
  */
 @AllArgsConstructor
 @Getter

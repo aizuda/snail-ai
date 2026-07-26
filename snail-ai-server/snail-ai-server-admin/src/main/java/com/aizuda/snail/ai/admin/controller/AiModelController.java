@@ -12,9 +12,11 @@ import com.aizuda.snail.ai.admin.vo.model.AiModelProviderQueryVO;
 import com.aizuda.snail.ai.admin.vo.model.AiModelUsageStatVO;
 import com.aizuda.snail.ai.admin.vo.model.AiModelUsageStatsQueryVO;
 import com.aizuda.snail.ai.admin.vo.model.ModelAdapterOptionVO;
+import com.aizuda.snail.ai.admin.vo.model.ModelTestResultVO;
 import com.aizuda.snail.ai.admin.service.model.AiModelConfigService;
 import com.aizuda.snail.ai.admin.service.model.AiModelProviderService;
 import com.aizuda.snail.ai.admin.service.model.AiModelUsageService;
+import com.aizuda.snail.ai.admin.service.model.ModelConnectivityTester;
 import com.aizuda.snail.ai.persistence.security.UserSessionUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -25,6 +27,10 @@ import java.util.List;
 /**
  * AI模型管理控制器
  * 提供模型配置CRUD、模型切换、使用统计等API
+ *
+ * @author opensnail
+ * @author 唐亚峰 | battcn
+ * @since 2026-06-14
  */
 @RestController
 @RequestMapping("/ai-model")
@@ -34,6 +40,7 @@ public class AiModelController {
     private final AiModelConfigService modelConfigService;
     private final AiModelProviderService modelProviderService;
     private final AiModelUsageService modelUsageService;
+    private final ModelConnectivityTester modelConnectivityTester;
 
     /**
      * 获取提供商列表（仅启用的）
@@ -279,5 +286,15 @@ public class AiModelController {
     @LoginRequired
     public PageResult<List<AiModelUsageStatVO>> getGlobalModelStats(AiModelUsageStatsQueryVO queryVO) {
         return modelUsageService.getGlobalModelStats(queryVO);
+    }
+
+    /**
+     * 测试模型配置连通性 (Admin)
+     * POST /ai-model/config/{id}/test
+     */
+    @PostMapping("/config/{id}/test")
+    @LoginRequired
+    public ModelTestResultVO testModelConfig(@PathVariable("id") Long id) {
+        return modelConnectivityTester.testConnection(id);
     }
 }

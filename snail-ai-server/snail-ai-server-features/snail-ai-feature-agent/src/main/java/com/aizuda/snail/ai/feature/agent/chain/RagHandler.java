@@ -25,6 +25,10 @@ import java.util.stream.Collectors;
  * RAG 检索：若智能体绑定了知识库，根据调用方式处理
  * - 强制调用：服务端虚拟线程并行检索所有知识库，结果注入 systemPrompt
  * - 智能调用：注入知识库信息到 prompt，由 LLM 通过 tool 决定是否调用
+ *
+ * @author opensnail
+ * @author 唐亚峰 | battcn
+ * @since 2026-06-14
  */
 @Slf4j
 @Component
@@ -49,10 +53,19 @@ public class RagHandler implements AgentChatHandler {
             return;
         }
 
+        // 非数字片段直接跳过并告警，避免脏配置抛 NumberFormatException 中断整个对话
         List<Long> ragIds = Arrays.stream(ragIdsStr.split(","))
                 .map(String::trim)
                 .filter(StrUtil::isNotBlank)
-                .map(Long::parseLong)
+                .map(id -> {
+                    try {
+                        return Long.parseLong(id);
+                    } catch (NumberFormatException e) {
+                        log.warn("Agent ragIds 含非法值已忽略: '{}', agentId={}", id, ctx.getAgentId());
+                        return null;
+                    }
+                })
+                .filter(java.util.Objects::nonNull)
                 .toList();
 
         if (ragIds.isEmpty()) {
@@ -67,6 +80,7 @@ public class RagHandler implements AgentChatHandler {
 
         RagCallModeEnum callMode = RagCallModeEnum.of(ctx.getAgent().getRagCallMode());
 
+        long startTime = System.currentTimeMillis();
         if (callMode == RagCallModeEnum.FORCED) {
             // 强制调用：服务端直接并行检索所有知识库，结果注入 prompt
             String retrievedContent = parallelSearch(ragIds, ctx.getContent());
@@ -75,6 +89,8 @@ public class RagHandler implements AgentChatHandler {
             // 智能调用：注入可用知识库信息，由 LLM 通过 rag_search tool 决定
             ctx.setSystemPrompt(ctx.getSystemPrompt() + buildSmartPrompt(ragList));
         }
+        log.debug("RAG 处理完成, mode={}, ragCount={}, costMs={}, conversationId={}",
+                callMode, ragList.size(), System.currentTimeMillis() - startTime, ctx.getConversationId());
     }
 
     /**

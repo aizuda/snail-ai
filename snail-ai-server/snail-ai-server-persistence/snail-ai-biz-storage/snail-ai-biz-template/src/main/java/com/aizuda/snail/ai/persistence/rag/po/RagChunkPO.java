@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  * 每个chunk是一个可独立向量化和检索的文本片段
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @TableName("sai_rag_chunk")
 @Data
@@ -27,6 +27,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class RagChunkPO {
+
+    private static final String DEFAULT_SOURCE_TYPE = "TEXT";
 
     /**
      * Chunk ID (主键)
@@ -90,6 +92,12 @@ public class RagChunkPO {
      * 用于 Chunk 级去重: 同一 RAG 内相同内容的 chunk 共享向量
      */
     private String contentHash;
+
+    /**
+     * Chunk 来源类型：TEXT / IMAGE。
+     */
+    @Builder.Default
+    private String sourceType = DEFAULT_SOURCE_TYPE;
 
     /**
      * 创建时间

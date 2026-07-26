@@ -9,6 +9,12 @@ import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 
+/**
+ * PDF 文档解析器，基于 Apache PDFBox 提取纯文本内容。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Component
 public class PdfParser implements DocumentParser {

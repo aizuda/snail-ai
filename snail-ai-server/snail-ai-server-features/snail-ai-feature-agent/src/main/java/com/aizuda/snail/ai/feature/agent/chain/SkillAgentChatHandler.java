@@ -16,6 +16,9 @@ import java.util.stream.Collectors;
 
 /**
  * Skill 加载：将技能元数据追加至 systemPrompt，注册 skill 工具回调，并准备远程分发的 Skill 描述符
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Component
@@ -58,6 +61,8 @@ public class SkillAgentChatHandler implements AgentChatHandler {
                         .build())
                 .collect(Collectors.toList());
         ctx.setSkillDescriptors(descriptors);
+        log.debug("Skill 加载完成 技能 {} 个 耗时 {}ms agentId={}",
+                descriptors.size(), System.currentTimeMillis() - startTime, ctx.getAgentId());
     }
 
 

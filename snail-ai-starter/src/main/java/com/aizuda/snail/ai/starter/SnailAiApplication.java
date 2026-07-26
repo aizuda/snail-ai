@@ -9,15 +9,21 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.TimeZone;
 
-@SpringBootApplication(scanBasePackages = "com.aizuda.snail.ai")
-@EnableConfigurationProperties
+/**
+ * Snail AI 应用启动类，设置默认时区为 Asia/Shanghai 并启用异步与定时任务。
+ *
+ * @author 唐亚峰 | battcn
+ * @since 2026-06-28
+ */
 @EnableAsync
-@SpringBootConfiguration
 @EnableScheduling
-public class SnailAiSpringbootApplication {
+@SpringBootConfiguration
+@EnableConfigurationProperties
+@SpringBootApplication(scanBasePackages = "com.aizuda.snail.ai")
+public class SnailAiApplication {
 
     public static void main(String[] args) {
         TimeZone.setDefault(TimeZone.getTimeZone("Asia/Shanghai"));
-        SpringApplication.run(SnailAiSpringbootApplication.class, args);
+        SpringApplication.run(SnailAiApplication.class, args);
     }
 }

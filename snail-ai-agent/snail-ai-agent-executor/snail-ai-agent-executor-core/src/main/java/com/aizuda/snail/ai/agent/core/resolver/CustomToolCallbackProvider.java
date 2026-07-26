@@ -29,7 +29,7 @@ import java.util.List;
  * </pre>
  *
  * @author opensnail
- * @date 2026-05-24
+ * @since 2026-05-24
  */
 @Slf4j
 public class CustomToolCallbackProvider implements ToolCallbackProvider, InitializingBean {

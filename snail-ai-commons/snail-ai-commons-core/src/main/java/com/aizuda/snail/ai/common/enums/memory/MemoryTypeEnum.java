@@ -4,6 +4,12 @@ import com.baomidou.mybatisplus.annotation.EnumValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+/**
+ * 记忆类型枚举，标识一条记忆的语义分类。
+ *
+ * @author opensnail
+ * @since 2026-05-05
+ */
 @Getter
 @AllArgsConstructor
 public enum MemoryTypeEnum {
@@ -14,8 +20,14 @@ public enum MemoryTypeEnum {
     TASK_PROGRESS(4, "任务进度"),
     REFERENCE(5, "参考资料");
 
+    /**
+     * 持久化存储值（@EnumValue 映射数据库字段）
+     */
     @EnumValue
     private final Integer type;
+    /**
+     * 枚举描述（中文）
+     */
     private final String description;
 
     public static MemoryTypeEnum fromType(Integer type) {

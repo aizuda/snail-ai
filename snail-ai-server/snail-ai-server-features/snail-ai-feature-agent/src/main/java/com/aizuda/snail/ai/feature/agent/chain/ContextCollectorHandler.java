@@ -23,6 +23,10 @@ import java.util.stream.Collectors;
 
 /**
  * 在系统提示与工具数据就绪后，补充短期历史、长期记忆与目标 Client，供 {@link LlmCallHandler} 组装分发请求。
+ *
+ * @author opensnail
+ * @author 唐亚峰 | battcn
+ * @since 2026-06-14
  */
 @Slf4j
 @Component
@@ -85,6 +89,7 @@ public class ContextCollectorHandler implements AgentChatHandler {
                 ctx.getMemoryContext() != null && !ctx.getMemoryContext().isEmpty());
     }
 
+    /** 查询启用状态的应用；不存在或已停用返回 null，由调用方终止链路 */
     private AppPO findEnabledApp(String appId) {
         return appMapper.selectOne(
                 new LambdaQueryWrapper<AppPO>()
@@ -92,6 +97,7 @@ public class ContextCollectorHandler implements AgentChatHandler {
                         .eq(AppPO::getStatus, CommonStatusEnum.ENABLED.getValue()));
     }
 
+    /** 加载短期对话历史并转换为分发消息；加载失败降级为空历史，不阻断本次对话 */
     private List<ChatDispatchRequest.HistoryMessage> loadHistoryMessages(AgentChatContext ctx, int windowSize) {
         try {
             ShortTermHistoryQuery query = ShortTermHistoryQuery.builder()
@@ -111,12 +117,15 @@ public class ContextCollectorHandler implements AgentChatHandler {
                             .build())
                     .collect(Collectors.toList());
         } catch (Exception e) {
-            log.warn("Failed to load history messages for dispatch", e);
+            log.warn("加载短期历史失败，降级为空历史, conversationId={}", ctx.getConversationId(), e);
             return List.of();
         }
     }
 
+    /** 向前端发送错误并终止责任链，同时记录日志便于定位分发失败原因 */
     private void sendError(AgentChatContext ctx, String message) {
+        log.warn("上下文收集失败终止链路: {}, conversationId={}, agentId={}",
+                message, ctx.getConversationId(), ctx.getAgentId());
         ctx.getStreamWriter().send("[ERROR] " + message);
         ctx.getStreamWriter().complete();
         ctx.setTerminated(true);

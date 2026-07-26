@@ -19,7 +19,7 @@ import java.time.LocalDateTime;
  * 用于管理头像、文件上传、素材库等
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @TableName("sai_resource")
 @Data

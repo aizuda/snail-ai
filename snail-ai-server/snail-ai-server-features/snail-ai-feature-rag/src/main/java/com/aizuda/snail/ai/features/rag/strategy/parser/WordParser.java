@@ -8,6 +8,12 @@ import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
 
+/**
+ * Word（.docx）文档解析器，基于 Apache POI 提取纯文本内容。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Component
 public class WordParser implements DocumentParser {

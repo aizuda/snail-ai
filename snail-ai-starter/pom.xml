@@ -61,7 +61,7 @@
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <version>${spring-boot.version}</version>
                 <configuration>
-                    <mainClass>com.aizuda.snail.ai.starter.SnailAiSpringbootApplication</mainClass>
+                    <mainClass>com.aizuda.snail.ai.starter.SnailAiApplication</mainClass>
                     <classifier>exec</classifier>
                 </configuration>
                 <executions>

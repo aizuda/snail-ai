@@ -5,9 +5,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * author: zhangshuguang
  * date: 2026-04-01
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder
@@ -21,6 +26,43 @@ public class RagConfigDO {
 
     /** 文档切片策略（创建知识库时写入） */
     private ChunkParams chunkParams;
+
+    /** 文档解析引擎配置；为空时使用项目内置默认解析器。 */
+    private ParseParams parseParams;
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ParseParams {
+        /** 解析引擎：default 使用内置解析器，docling 使用外部 Docling Serve。 */
+        private String engine;
+        /** Docling 专属参数，仅 engine=docling 时生效。 */
+        private DoclingParams docling;
+    }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class DoclingParams {
+        /** 是否启用 OCR，适用于扫描件或图片型 PDF。 */
+        private Boolean doOcr;
+        /** 是否启用表格结构识别。 */
+        private Boolean doTableStructure;
+        /** 图片导出模式，默认 embedded。 */
+        private String imageExportMode;
+        /** OCR 语言列表，例如 en、zh。 */
+        private List<String> ocrLang;
+        /** PDF 解析后端，随 Docling 服务版本调整。 */
+        private String pdfBackend;
+        /** 是否保存 Docling 提取出的图片到资源库。 */
+        private Boolean saveImages;
+        /** 单个文档最多保存的 Docling 图片数；为空时使用全局 snail-ai.rag.docling.max-image-count。 */
+        private Integer maxImageCount;
+        /** 单张 Docling 图片最大字节数；为空时使用全局 snail-ai.rag.docling.max-image-bytes。 */
+        private Long maxImageBytes;
+    }
 
     @Data
     @Builder

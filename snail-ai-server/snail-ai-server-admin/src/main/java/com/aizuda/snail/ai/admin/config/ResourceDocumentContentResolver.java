@@ -12,6 +12,9 @@ import java.io.InputStream;
 
 /**
  * 通过资源库加载文档内容。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Primary

@@ -59,6 +59,8 @@
 对话模型的配置和管理请参考 [模型管理](/guide/model/) 文档。当前源码已落地的模型调用规格以 OpenAI-compatible Chat、OpenAI-compatible Embedding 和 Qwen/HTTP Rerank 为主；其他服务如提供兼容接口，可按兼容端点验证接入。
 :::
 
+需要在对话预览中上传图片时，请选择已在模型配置中开启“支持图片输入”的 CHAT 模型。该开关对应 `configJson.capabilities` 中的 `vision` 能力，未开启时图片消息会被服务端拒绝。
+
 ---
 
 ## 绑定 RAG 知识库

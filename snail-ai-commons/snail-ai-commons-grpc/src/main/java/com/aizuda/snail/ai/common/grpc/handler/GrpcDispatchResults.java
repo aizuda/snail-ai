@@ -4,6 +4,9 @@ import com.aizuda.snail.ai.common.grpc.auto.GrpcSnailAiResult;
 
 /**
  * gRPC 分发层共用的响应构建。
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 public final class GrpcDispatchResults {
 

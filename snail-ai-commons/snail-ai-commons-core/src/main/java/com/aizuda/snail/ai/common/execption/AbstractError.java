@@ -4,6 +4,9 @@ import lombok.Data;
 
 /**
  * (复制自 snail-job)
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 @Data
 public abstract class AbstractError {

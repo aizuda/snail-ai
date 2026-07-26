@@ -1,5 +1,7 @@
 package com.aizuda.snail.ai.agent.core.tool;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.agent.common.rpc.RpcClient;
 import com.aizuda.snail.ai.common.dto.rag.RagSearchRequest;
 import com.aizuda.snail.ai.common.dto.rag.RagSearchResponse;
@@ -14,6 +16,9 @@ import java.util.*;
  * 客户端本地 RAG 知识库搜索工具
  * <p>
  * 通过 gRPC 回调服务端执行检索，支持多知识库（由 LLM 通过 ragId 参数选择）。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 public class RagSearchTool {
@@ -26,6 +31,13 @@ public class RagSearchTool {
         this.rpcClient = rpcClient;
     }
 
+    /**
+     * 按 ragId 检索指定知识库，通过 gRPC 回调服务端执行检索。
+     *
+     * @param ragId         待检索的知识库 ID
+     * @param queryQuestion 用户问题或相关查询
+     * @return 拼接后的参考资料文本；无结果或失败时返回提示信息
+     */
     @Tool(name = "rag_search",
             description = "Search a specific knowledge base by ragId. "
                     + "Use the ragId parameter to specify which knowledge base to search. "
@@ -34,7 +46,7 @@ public class RagSearchTool {
             @ToolParam(description = "The ID of the knowledge base to search") Long ragId,
             @ToolParam(description = "The user's question or related query") String queryQuestion) {
 
-        if (queryQuestion == null || queryQuestion.trim().isEmpty()) {
+        if (StrUtil.isBlank(queryQuestion)) {
             return "No relevant reference materials found";
         }
 
@@ -49,7 +61,7 @@ public class RagSearchTool {
             RagSearchResponse resp = rpcClient.searchRag(req);
             List<SearchResult> results = resp != null ? resp.getResults() : null;
 
-            if (results == null || results.isEmpty()) {
+            if (CollUtil.isEmpty(results)) {
                 return "未找到相关参考资料。";
             }
 

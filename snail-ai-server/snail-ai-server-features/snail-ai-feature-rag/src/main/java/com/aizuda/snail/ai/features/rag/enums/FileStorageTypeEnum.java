@@ -5,11 +5,15 @@ import lombok.Getter;
 
 /**
  * 文件存储类型
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Getter
 @AllArgsConstructor
 public enum FileStorageTypeEnum {
 
+    /** 本地磁盘存储 */
     LOCAL("LOCAL");
 
     private final String value;

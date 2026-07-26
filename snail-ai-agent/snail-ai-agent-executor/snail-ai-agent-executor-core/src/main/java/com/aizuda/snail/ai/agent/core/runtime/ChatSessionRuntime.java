@@ -9,6 +9,9 @@ import lombok.extern.slf4j.Slf4j;
 
 /**
  * 客户端一次 Chat 会话运行时，负责工具准备、活跃计数与资源清理。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @RequiredArgsConstructor

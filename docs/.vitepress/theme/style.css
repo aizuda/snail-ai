@@ -1,10 +1,54 @@
 :root {
   --vp-home-hero-name-color: transparent;
   --vp-home-hero-name-background: -webkit-linear-gradient(120deg, #bd34fe, #41d1ff);
+  --snail-code-border: rgba(36, 63, 102, 0.1);
+  --snail-code-shadow: 0 12px 32px rgba(15, 23, 42, 0.06);
+  --snail-code-gutter: rgba(60, 84, 122, 0.12);
+  --snail-code-muted: #7b879b;
 }
 
 .VPDoc.has-aside .content-container {
   max-width: 95% !important;
+}
+
+.vp-doc div[class*='language-'] {
+  border: 1px solid var(--snail-code-border);
+  border-radius: 8px;
+  box-shadow: var(--snail-code-shadow);
+}
+
+.vp-doc div[class*='language-'] pre {
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
+.vp-doc div[class*='language-'] code {
+  font-size: 14px;
+  line-height: 1.72;
+}
+
+.vp-doc div[class*='language-'] > span.lang {
+  top: 10px;
+  right: 12px;
+  color: var(--snail-code-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.vp-doc div[class*='language-'].line-numbers-mode .line-numbers-wrapper {
+  border-right: 1px solid var(--snail-code-gutter);
+  color: var(--snail-code-muted);
+}
+
+@media (max-width: 640px) {
+  .vp-doc div[class*='language-'] code {
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  .vp-doc div[class*='language-'] > span.lang {
+    display: none;
+  }
 }
 
 @media (min-width: 1440px) {

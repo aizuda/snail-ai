@@ -1,5 +1,6 @@
 package com.aizuda.snail.ai.agent.core.tool;
 
+import cn.hutool.core.util.StrUtil;
 import com.aizuda.snail.ai.agent.common.rpc.RpcClient;
 import com.aizuda.snail.ai.common.dto.agent.SkillContentResponse;
 import com.aizuda.snail.ai.common.dto.agent.SkillContentRequest;
@@ -23,6 +24,9 @@ import java.util.concurrent.ConcurrentHashMap;
  *   <li>支撑文件（scripts、references 等）异步写入本地临时目录，不阻塞返回</li>
  *   <li>后续同一 skill 的重复调用直接返回缓存，不再请求 Server</li>
  * </ol>
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 public class ReadSkillTool {
@@ -47,12 +51,18 @@ public class ReadSkillTool {
         }
     }
 
+    /**
+     * 读取指定技能的完整说明内容（SKILL.md）：首次调用同步回源并缓存，支撑文件异步落盘。
+     *
+     * @param skillName 技能名称，必须与可用技能列表中的名称完全一致
+     * @return 技能说明内容；技能不存在或获取失败时以 "Error:" 开头
+     */
     @Tool(name = "read_skill",
           description = "Read the full instruction content (SKILL.md) of a specified skill. "
                   + "Call this tool first to get detailed execution steps and parameter descriptions before using a skill. "
                   + "The parameter must exactly match a name from the available skills list.")
     public String readSkill(@ToolParam(description = "Skill name, must exactly match a name from the available skills list") String skillName) {
-        if (skillName == null || skillName.trim().isEmpty()) {
+        if (StrUtil.isBlank(skillName)) {
             return "Error: please provide a skill name";
         }
 
@@ -101,7 +111,11 @@ public class ReadSkillTool {
     }
 
     /**
-     * 获取 skill 临时目录路径（供 ShellTool 使用）
+     * 获取 skill 临时目录路径（供 ShellTool 使用）。
+     *
+     * @param skillId 技能 ID
+     * @param version 技能版本，为空时默认 "1"
+     * @return 技能临时目录的绝对路径字符串
      */
     public String getSkillDir(Long skillId, String version) {
         return Path.of(tempDir, String.valueOf(skillId), version != null ? version : "1").toString();
@@ -114,17 +128,18 @@ public class ReadSkillTool {
         Files.writeString(skillDir.resolve("SKILL.md"), response.getSkillContent(), StandardCharsets.UTF_8);
 
         // 写入支撑文件
-        if (response.getFiles() != null) {
-            for (SkillContentResponse.SkillFile file : response.getFiles()) {
-                Path filePath = skillDir.resolve(file.getFilePath());
-                Files.createDirectories(filePath.getParent());
+        if (response.getFiles() == null) {
+            return;
+        }
+        for (SkillContentResponse.SkillFile file : response.getFiles()) {
+            Path filePath = skillDir.resolve(file.getFilePath());
+            Files.createDirectories(filePath.getParent());
 
-                if ("base64".equals(file.getEncoding())) {
-                    byte[] decoded = Base64.getDecoder().decode(file.getContent());
-                    Files.write(filePath, decoded);
-                } else {
-                    Files.writeString(filePath, file.getContent(), StandardCharsets.UTF_8);
-                }
+            if ("base64".equals(file.getEncoding())) {
+                byte[] decoded = Base64.getDecoder().decode(file.getContent());
+                Files.write(filePath, decoded);
+            } else {
+                Files.writeString(filePath, file.getContent(), StandardCharsets.UTF_8);
             }
         }
     }

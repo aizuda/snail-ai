@@ -14,6 +14,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * (复制自 snail-job)
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 @Component("snailAiSpringContext")
 @Order(Ordered.HIGHEST_PRECEDENCE)

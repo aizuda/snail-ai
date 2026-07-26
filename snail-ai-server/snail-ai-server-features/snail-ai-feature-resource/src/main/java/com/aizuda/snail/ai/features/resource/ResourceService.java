@@ -14,6 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 
+/**
+ * 资源服务，统一文件资源的上传（落地存储 + 元数据入库 + 访问地址回填）、加载、删除与查询。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -22,6 +28,17 @@ public class ResourceService {
     private final ResourceMapper resourceMapper;
     private final ResourceStorageFactory storageFactory;
 
+    /**
+     * 上传资源：写入默认存储后端，登记元数据并回填访问地址
+     *
+     * @param inputStream  文件输入流
+     * @param originalName 原始文件名
+     * @param fileSize     文件大小（字节）
+     * @param bizType      业务类型
+     * @param bizId        业务主键
+     * @param creatorId    创建者 ID
+     * @return 入库后的资源记录
+     */
     @Transactional
     public ResourcePO upload(InputStream inputStream, String originalName, long fileSize,
                              String bizType, Long bizId, Long creatorId) {
@@ -48,16 +65,29 @@ public class ResourceService {
         return resource;
     }
 
+    /**
+     * 按资源 ID 加载文件内容流，资源不存在时抛出异常
+     *
+     * @param resourceId 资源 ID
+     * @return 文件输入流
+     */
     public InputStream load(Long resourceId) {
         ResourcePO resource = requireResource(resourceId);
         ResourceStorageService storage = storageFactory.get(resource.getStorageType());
         return storage.load(resource.getStorageKey());
     }
 
+    /**
+     * 删除资源：先尽力删除存储文件（失败仅告警），再删除元数据记录
+     *
+     * @param resourceId 资源 ID
+     */
     @Transactional
     public void delete(Long resourceId) {
         ResourcePO resource = resourceMapper.selectById(resourceId);
-        if (resource == null) return;
+        if (resource == null) {
+            return;
+        }
         try {
             ResourceStorageService storage = storageFactory.get(resource.getStorageType());
             storage.delete(resource.getStorageKey());
@@ -67,10 +97,22 @@ public class ResourceService {
         resourceMapper.deleteById(resourceId);
     }
 
+    /**
+     * 按 ID 查询资源记录
+     *
+     * @param resourceId 资源 ID
+     * @return 资源记录，不存在时返回 {@code null}
+     */
     public ResourcePO getById(Long resourceId) {
         return resourceMapper.selectById(resourceId);
     }
 
+    /**
+     * 按存储键查询资源记录
+     *
+     * @param storageKey 存储键
+     * @return 资源记录，不存在时返回 {@code null}
+     */
     public ResourcePO getByStorageKey(String storageKey) {
         return resourceMapper.selectOne(new LambdaQueryWrapper<ResourcePO>()
                 .eq(ResourcePO::getStorageKey, storageKey));
@@ -86,11 +128,20 @@ public class ResourceService {
         }
         resource.setBizType(bizType);
         resourceMapper.updateById(resource);
+        log.info("资源 bizType 变更 resourceId={} -> bizType={}", resourceId, bizType);
     }
 
+    /**
+     * 按 ID 获取资源，不存在时抛出异常
+     *
+     * @param resourceId 资源 ID
+     * @return 资源记录（保证非空）
+     */
     public ResourcePO requireResource(Long resourceId) {
         ResourcePO r = resourceMapper.selectById(resourceId);
-        if (r == null) throw new SnailAiException("Resource not found: " + resourceId);
+        if (r == null) {
+            throw new SnailAiException("Resource not found: " + resourceId);
+        }
         return r;
     }
 }

@@ -254,54 +254,71 @@ const isValid = computed(() => agentName.value.length > 0)
 采用 [Conventional Commits](https://www.conventionalcommits.org/zh-hans/) 规范，格式如下：
 
 ```
-<type>(<scope>): <description>
+<type>(<版本号>): <中文描述>
 
 [可选 body]
 
 [可选 footer]
 ```
 
+> `scope` 统一填**当前迭代版本号**（与 `pom.xml` 的 `<revision>` 一致，如 `1.1.0`）。
+
 ### Type 类型
 
 | Type | 说明 | 示例 |
 |------|------|------|
-| `feat` | 新功能 | `feat(agent): add batch delete support` |
-| `fix` | Bug 修复 | `fix(rag): fix document parsing failure for xlsx files` |
-| `docs` | 文档更新 | `docs: update deployment guide` |
-| `style` | 代码格式（不影响功能） | `style: format code with prettier` |
-| `refactor` | 重构（非新功能、非 Bug 修复） | `refactor(chain): simplify handler pipeline` |
-| `perf` | 性能优化 | `perf(rag): optimize vector search query` |
-| `test` | 测试相关 | `test(agent): add unit tests for create flow` |
-| `chore` | 构建/工具/依赖变更 | `chore: upgrade Spring Boot to 4.1` |
-| `ci` | CI/CD 相关 | `ci: add GitHub Actions workflow` |
+| `feat` | 新功能 | `feat(1.1.0): 新增模型批量删除` |
+| `fix` | Bug 修复 | `fix(1.1.0): 修复 xlsx 文档解析失败` |
+| `docs` | 文档更新 | `docs(1.1.0): 更新部署指南` |
+| `style` | 代码格式（不影响功能） | `style(1.1.0): 统一卫语句花括号` |
+| `refactor` | 重构（非新功能、非 Bug 修复） | `refactor(1.1.0): 卫语句与提前 continue 降低嵌套` |
+| `perf` | 性能优化 | `perf(1.1.0): 优化向量检索查询` |
+| `test` | 测试相关 | `test(1.1.0): 补充创建流程单元测试` |
+| `chore` | 构建/工具/依赖变更 | `chore(1.1.0): 升级 Spring Boot 至 4.1` |
+| `ci` | CI/CD 相关 | `ci(1.1.0): 新增 GitHub Actions 工作流` |
 
-### Scope 范围
+### Scope（版本号）
 
-| Scope | 说明 |
-|-------|------|
-| `agent` | 智能体模块 |
-| `rag` | RAG 知识库模块 |
-| `model` | 模型管理模块 |
-| `mcp` | MCP 工具集成 |
-| `client` | Agent Client / SDK |
-| `chain` | 责任链 |
-| `memory` | 记忆系统 |
-| `skill` | 技能系统 |
-| `auth` | 认证鉴权 |
-| `api` | REST API / OpenAPI |
-| `ui` | 前端界面 |
-| `deploy` | 部署相关 |
+`scope` 统一填**当前迭代的版本号**（与 `pom.xml` 的 `<revision>` 一致），便于从提交历史直接看出每个改动归属的版本线。
+
+- 当前版本：`1.1.0` → 提交写作 `type(1.1.0): 描述`
+- 版本号随里程碑 / 发布递增（见下文「版本号规范」），同一版本线内的提交 `scope` 保持该版本号
 
 ### Breaking Change 标记
 
 如果提交包含不兼容的变更，在 footer 中添加 `BREAKING CHANGE:` 说明：
 
 ```
-feat(api): change chat endpoint response format
+feat(1.1.0)!: 变更对话接口响应结构
 
-BREAKING CHANGE: The chat API response structure has changed.
-`data.content` is now `data.message.content`.
+BREAKING CHANGE: 对话接口响应结构调整，`data.content` 改为 `data.message.content`。
 ```
+
+### 本地启用提交校验
+
+仓库在 `.githooks/` 下提供 `commit-msg` 钩子，自动校验提交信息格式。每位开发者克隆后执行一次：
+
+```bash
+git config core.hooksPath .githooks
+```
+
+启用后，不符合 `<type>(<版本号>): <描述>` 格式的提交会被拦截。
+
+> **注意**：`scope` 填当前版本号（如 `1.1.0`），与 `pom.xml` 的 `<revision>` 保持一致。
+
+## 版本号规范
+
+项目采用[语义化版本 SemVer](https://semver.org/lang/zh-CN/)（`MAJOR.MINOR.PATCH`）：
+
+| 版本位 | 递增时机 |
+|--------|---------|
+| MAJOR | 不兼容的 API 变更 |
+| MINOR | 向后兼容的新功能、成规模的重构 / 质量整改 |
+| PATCH | 向后兼容的 Bug 修复、小修小补 |
+
+- 版本号统一在根 `pom.xml` 的 `<revision>` 维护（各模块继承 `${revision}`），并作为 Commit Message 的 `scope`。
+- 按**里程碑 / 发布**升版并打 git tag（如 `v1.1.0`）；同一版本线内的提交 `scope` 保持该版本号，**而非每次提交都升版**。
+- 当前版本：`1.1.0`。
 
 ## Issue 提交指南
 

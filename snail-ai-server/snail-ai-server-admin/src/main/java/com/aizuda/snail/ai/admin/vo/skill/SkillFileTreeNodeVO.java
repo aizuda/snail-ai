@@ -9,6 +9,9 @@ import java.util.List;
 
 /**
  * Skill 文件树节点，用于 GET /skill/{id}/files 响应
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

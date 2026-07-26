@@ -17,6 +17,9 @@ import java.util.List;
  * <p>
  * 仅在智能调用模式下注册 rag_search tool；
  * 强制调用模式由服务端预检索，不需要 tool。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 public class ClientRagToolResolver {
@@ -26,6 +29,12 @@ public class ClientRagToolResolver {
         this.rpcClient = rpcClient;
     }
 
+    /**
+     * 智能调用模式下注册 rag_search 工具；强制模式由服务端预检索，不注册工具。
+     *
+     * @param request 对话分发请求
+     * @return RAG 工具回调列表；未启用或强制模式时返回空列表
+     */
     public List<ToolCallback> resolve(ChatDispatchRequest request) {
         ChatDispatchRequest.AgentConfig agentConfig = request.getAgentConfig();
         if (agentConfig == null

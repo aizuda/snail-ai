@@ -26,32 +26,32 @@ import java.util.concurrent.TimeUnit;
  * 客户端心跳注册任务（每 10 秒向 Server 发送心跳）
  *
  * @author opensnail
- * @date 2025-04-08
+ * @since 2025-04-08
  */
 @Slf4j
 public class ClientHeartbeatScheduler {
 
     /** 心跳间隔（秒） */
     private static final long HEARTBEAT_INTERVAL_SECONDS = 10;
-    
+
     /** gRPC 保活时间（秒） */
     private static final int GRPC_KEEP_ALIVE_TIME_SECONDS = 30;
-    
+
     /** gRPC 保活超时（秒） */
     private static final int GRPC_KEEP_ALIVE_TIMEOUT_SECONDS = 10;
-    
+
     /** gRPC 空闲超时（分钟） */
     private static final int GRPC_IDLE_TIMEOUT_MINUTES = 5;
-    
+
     /** 主机ID长度 */
     private static final int HOST_ID_LENGTH = 16;
-    
+
     /** 默认主机IP */
     private static final String DEFAULT_HOST_IP = "127.0.0.1";
-    
+
     /** 客户端版本 */
     private static final String CLIENT_VERSION = "1.0.0";
-    
+
     /** 心跳状态：成功 */
     private static final int HEARTBEAT_STATUS_SUCCESS = 1;
 
@@ -64,6 +64,8 @@ public class ClientHeartbeatScheduler {
     @Getter
     private ManagedChannel serverChannel;
     private ScheduledExecutorService scheduler;
+    private volatile boolean running;
+    private volatile boolean kickOutPaused;
 
     public ClientHeartbeatScheduler(SnailAiAgentProperties properties,
                                     ActiveChatCounter activeChatCounter,
@@ -75,22 +77,39 @@ public class ClientHeartbeatScheduler {
         this.hostIp = resolveLocalIp();
     }
 
-    public void start() {
+    public synchronized void start() {
+        if (kickOutPaused) {
+            log.warn("Heartbeat start skipped because client has been kicked out");
+            return;
+        }
+        if (running) {
+            return;
+        }
+
         serverChannel = createServerChannel();
-        
+
         // 更新 GrpcChannelProvider
         grpcChannelProvider.updateChannel(serverChannel, buildHeartbeatHeaders());
-        
+
         scheduler = createScheduler();
+        running = true;
         scheduleHeartbeat();
-        
-        log.info("Heartbeat started: appId={}, server={}:{}", 
+
+        log.info("Heartbeat started: appId={}, server={}:{}",
                 properties.getAppId(),  properties.getServer().getHost(), properties.getServer().getPort());
     }
 
-    public void stop() {
-        shutdownScheduler();
-        shutdownChannel();
+    public synchronized void stop() {
+        stopHeartbeatResources();
+    }
+
+    public synchronized void pauseByKickOut() {
+        if (kickOutPaused) {
+            return;
+        }
+        kickOutPaused = true;
+        stopHeartbeatResources();
+        log.warn("Heartbeat paused after client kick-out: appId={}, hostId={}", properties.getAppId(), hostId);
     }
 
     private ManagedChannel createServerChannel() {
@@ -113,25 +132,38 @@ public class ClientHeartbeatScheduler {
 
     private void scheduleHeartbeat() {
         scheduler.scheduleAtFixedRate(
-                this::sendHeartbeat, 
-                0, 
-                HEARTBEAT_INTERVAL_SECONDS, 
+                this::sendHeartbeat,
+                0,
+                HEARTBEAT_INTERVAL_SECONDS,
                 TimeUnit.SECONDS);
     }
 
     private void shutdownScheduler() {
         if (scheduler != null && !scheduler.isShutdown()) {
-            scheduler.shutdown();
+            scheduler.shutdownNow();
         }
+        scheduler = null;
     }
 
     private void shutdownChannel() {
         if (serverChannel != null && !serverChannel.isShutdown()) {
             serverChannel.shutdown();
         }
+        serverChannel = null;
+    }
+
+    private void stopHeartbeatResources() {
+        running = false;
+        shutdownScheduler();
+        shutdownChannel();
+        grpcChannelProvider.updateChannel(null, Map.of());
     }
 
     private void sendHeartbeat() {
+        if (kickOutPaused || !running) {
+            return;
+        }
+
         try {
             Map<String, String> headers = buildHeartbeatHeaders();
             String body = buildHeartbeatBody();
@@ -151,21 +183,25 @@ public class ClientHeartbeatScheduler {
     /**
      * 尝试重新连接到服务器
      */
-    private void attemptReconnect() {
+    private synchronized void attemptReconnect() {
+        if (kickOutPaused || !running) {
+            return;
+        }
+
         try {
             log.info("Attempting to reconnect to server");
-            
+
             // 关闭旧 channel
             if (serverChannel != null && !serverChannel.isShutdown()) {
                 serverChannel.shutdown();
             }
-            
+
             // 创建新 channel
             serverChannel = createServerChannel();
-            
+
             // 更新 GrpcChannelProvider
             grpcChannelProvider.updateChannel(serverChannel, buildHeartbeatHeaders());
-            
+
             log.info("Reconnected to server successfully");
         } catch (Exception e) {
             log.error("Failed to reconnect to server", e);

@@ -2,6 +2,9 @@ package com.aizuda.snail.ai.common.execption;
 
 /**
  * (复制自 snail-job-ai-executor)
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 public class SnailAiException extends BaseSnailAiException {
 

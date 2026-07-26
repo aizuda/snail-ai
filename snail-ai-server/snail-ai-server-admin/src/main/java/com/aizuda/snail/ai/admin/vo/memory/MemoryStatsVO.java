@@ -9,6 +9,9 @@ import java.util.Map;
 
 /**
  * 记忆统计VO
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @AllArgsConstructor

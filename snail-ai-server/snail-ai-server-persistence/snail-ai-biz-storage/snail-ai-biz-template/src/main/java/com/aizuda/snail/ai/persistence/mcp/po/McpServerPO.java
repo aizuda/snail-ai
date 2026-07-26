@@ -2,6 +2,7 @@ package com.aizuda.snail.ai.persistence.mcp.po;
 
 import com.aizuda.snail.ai.common.mcp.McpServerRef;
 import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
@@ -20,7 +21,7 @@ import java.time.LocalDateTime;
  * Agent可通过MCP调用第三方工具和资源
  *
  * @author opensnail
- * @date 2026-04-14
+ * @since 2026-04-14
  */
 @TableName("sai_mcp_server")
 @Data
@@ -94,35 +95,17 @@ public class McpServerPO implements McpServerRef {
     private String envVars;
 
     /**
-     * MCP协议版本
-     * 实现的MCP协议版本号
-     * 例如: 1.0, 2.0
+     * MCP 客户端超时时间（毫秒）
      */
-    private String version;
+    @TableField("timeout")
+    private Long timeoutMs;
 
     /**
-     * 认证类型
-     * NONE: 无认证
-     * API_KEY: API密钥认证
-     * OAUTH2: OAuth2认证
-     * CUSTOM: 自定义认证
+     * Streamable HTTP 请求头 (JSON对象格式)
+     * 仅当transportType为STREAMABLE_HTTP时使用
+     * 示例: {"Authorization": "Bearer xxx"}
      */
-    private Integer authType;
-
-    /**
-     * 认证配置 (JSON格式)
-     * 根据authType存储相应的认证信息
-     * API_KEY例: {"key": "sk-xxx"}
-     * OAUTH2例: {"client_id": "...", "client_secret": "..."}
-     */
-    private String authConfig;
-
-    /**
-     * MCP服务器支持的能力 (JSON数组格式)
-     * 定义该服务器支持的工具和资源
-     * 示例: ["tools", "resources", "prompts"]
-     */
-    private String capabilities;
+    private String headers;
 
     /**
      * 最后连接时间

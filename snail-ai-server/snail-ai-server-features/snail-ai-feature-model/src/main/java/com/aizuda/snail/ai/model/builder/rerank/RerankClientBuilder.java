@@ -10,6 +10,10 @@ import org.springframework.stereotype.Component;
 
 /**
  * Rerank 客户端动态构建器。
+ *
+ * @author opensnail
+ * @author 唐亚峰 | battcn
+ * @since 2026-06-14
  */
 @Component
 @RequiredArgsConstructor
@@ -18,6 +22,13 @@ public class RerankClientBuilder {
 
     private final ServerModelFacade serverModelFacade;
 
+    /**
+     * 构建重排客户端
+     *
+     * @param decryptedApiKey 解密后的 API Key
+     * @param config          模型配置信息
+     * @return 重排客户端
+     */
     public RerankApiClient buildRerankClient(String decryptedApiKey, ModelConfigInfoDTO config) {
         try {
             RerankApiClient client = serverModelFacade.buildRerankClient(config, decryptedApiKey);
@@ -29,7 +40,7 @@ public class RerankClientBuilder {
         } catch (Exception e) {
             log.error("Failed to build RerankApiClient for config: {}", config.getId(), e);
             throw new ModelCallException(
-                    ModelCallException.ErrorCode.CHAT_MODEL_BUILD_FAILED,
+                    ModelCallException.ErrorCode.RERANK_CLIENT_BUILD_FAILED,
                     "RerankClient 构建失败: " + e.getMessage(),
                     e);
         }

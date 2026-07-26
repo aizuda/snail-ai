@@ -5,6 +5,9 @@ import org.springframework.ai.model.tool.ToolCallingManager;
 
 /**
  * 默认 ToolCallingManager 工厂。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @RequiredArgsConstructor
 public class DefaultToolCallingManagerFactory implements ToolCallingManagerFactory {

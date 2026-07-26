@@ -8,6 +8,9 @@ import java.lang.annotation.Target;
 
 /**
  * 标记需要嵌入式 chat 会话认证的接口。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Documented
 @Target({ElementType.TYPE, ElementType.METHOD})

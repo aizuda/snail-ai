@@ -5,6 +5,9 @@ import java.util.function.Function;
 
 /**
  * 向量索引名称构建器：各场景命名规则集中在此，{@link SnailAiVectorStore} 只消费最终字符串。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public enum IndexNameBuilder {
 

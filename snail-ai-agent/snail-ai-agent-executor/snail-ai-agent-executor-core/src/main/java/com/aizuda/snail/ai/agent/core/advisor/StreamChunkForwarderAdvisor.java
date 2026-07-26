@@ -14,6 +14,9 @@ import java.util.function.Consumer;
 
 /**
  * 将模型输出的文本增量回调给 {@link ClientAdvisorKeys#CHUNK_CONSUMER}，并累积到 {@link ClientStreamExecutionContext}。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public class StreamChunkForwarderAdvisor implements StreamAdvisor {
 
@@ -36,13 +39,14 @@ public class StreamChunkForwarderAdvisor implements StreamAdvisor {
 
         return chain.nextStream(request).doOnNext(response -> {
             String text = extractText(response);
-            if (text != null && !text.isEmpty()) {
-                if (state != null) {
-                    state.fullText.append(text);
-                }
-                if (chunkConsumer != null) {
-                    chunkConsumer.accept(text);
-                }
+            if (text == null || text.isEmpty()) {
+                return;
+            }
+            if (state != null) {
+                state.fullText.append(text);
+            }
+            if (chunkConsumer != null) {
+                chunkConsumer.accept(text);
             }
         });
     }

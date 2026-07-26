@@ -4,7 +4,7 @@ package com.aizuda.snail.ai.route;
  * 路由策略类型常量
  *
  * @author opensnail
- * @date 2025-04-08
+ * @since 2025-04-08
  */
 public final class RouteStrategyType {
 

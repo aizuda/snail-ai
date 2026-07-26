@@ -6,6 +6,9 @@ import org.springframework.ai.chat.client.ChatClient;
 
 /**
  * ChatClient 自定义上下文。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 @Builder

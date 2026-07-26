@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
  * Swagger 配置
  *
  * @author opensnail
- * @date 2026-04-25
+ * @since 2026-04-25
  */
 @Configuration
 public class SwaggerConfig {

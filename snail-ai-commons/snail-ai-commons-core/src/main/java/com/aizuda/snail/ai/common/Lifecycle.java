@@ -4,7 +4,7 @@ package com.aizuda.snail.ai.common;
  * 组件生命周期
  *
  * @author: opensnail
- * @date : 2021-11-19 14:43
+ * @since : 2021-11-19 14:43
  */
 public interface Lifecycle {
 

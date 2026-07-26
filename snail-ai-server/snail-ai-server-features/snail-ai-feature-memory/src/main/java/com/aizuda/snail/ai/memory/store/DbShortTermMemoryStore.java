@@ -30,8 +30,8 @@ import java.util.stream.Collectors;
  *
  * 激活方式：snail.ai.memory.short-term.store-type: db
  *
- * author: opensnail
- * date: 2026-05-09
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @Component

@@ -291,7 +291,7 @@ curl -X GET 'http://localhost:8900/snail-ai/agent/chat-models' \
   "code": 1,
   "msg": "success",
   "data": [
-    { "id": 1, "value": "gpt-4o", "label": "GPT-4o" },
+    { "id": 1, "value": "gpt-4o", "label": "GPT-4o", "capabilities": ["vision"] },
     { "id": 2, "value": "claude-sonnet-4-20250514", "label": "Claude Sonnet 4" },
     { "id": 3, "value": "deepseek-chat", "label": "DeepSeek Chat" }
   ]
@@ -508,10 +508,17 @@ POST /snail-ai/agent/{agentId}/chat
 
 **请求体：**
 
-| 字段             | 类型     | 必填 | 说明                         |
-|------------------|----------|------|------------------------------|
-| `conversationId` | `string` | 是   | 对话 ID，首次对话可生成 UUID |
-| `content`        | `string` | 是   | 用户消息内容                 |
+| 字段                       | 类型       | 必填 | 说明                         |
+|----------------------------|------------|------|------------------------------|
+| `conversationId`           | `string`   | 是   | 对话 ID，首次对话可生成 UUID |
+| `content`                  | `string`   | 是   | 用户消息内容                 |
+| `attachments`              | `object[]` | 否   | 本次消息携带的附件，目前支持图片 |
+| `attachments[].type`       | `string`   | 是   | 附件类型，图片填 `IMAGE`     |
+| `attachments[].resourceId` | `number`   | 是   | 已上传到资源库的图片资源 ID  |
+| `disabledMcpServerIds`     | `number[]` | 否   | 本次对话临时禁用的 MCP 服务 ID |
+| `disabledSkillIds`         | `number[]` | 否   | 本次对话临时禁用的技能 ID    |
+
+携带图片附件时，智能体绑定的 CHAT 模型必须在模型配置中开启“支持图片输入”（`configJson.capabilities` 包含 `vision`）。每次对话最多 3 张图片，支持 JPG、PNG、WEBP，单张不超过 10MB。
 
 **curl 示例：**
 
@@ -521,7 +528,10 @@ curl -X POST 'http://localhost:8900/snail-ai/agent/1/chat' \
   -H 'Snail-Ai-Auth: eyJhbGciOiJIUzI1NiJ9...' \
   -d '{
     "conversationId": "conv-abc123",
-    "content": "帮我分析一下上季度的销售数据"
+    "content": "这张图里说了什么？",
+    "attachments": [
+      {"type": "IMAGE", "resourceId": 88}
+    ]
   }' \
   --no-buffer
 ```

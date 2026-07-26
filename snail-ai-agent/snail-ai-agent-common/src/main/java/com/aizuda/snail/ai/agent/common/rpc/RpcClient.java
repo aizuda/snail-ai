@@ -19,16 +19,16 @@ import java.util.Map;
  * 请求Server接口
  *
  * @author opensnail
- * @date 2025-04-12
+ * @since 2025-04-12
  */
 public interface RpcClient {
-    
+
     /**
      * 创建对话并保存用户消息
      */
     @Mapping(path = UriConstants.CALLBACK_CONVERSATION_CREATE)
     void createConversation(ConversationCreateRequest request);
-    
+
     /**
      * 保存对话消息记录
      */

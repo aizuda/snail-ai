@@ -12,6 +12,9 @@ import java.util.Map;
 /**
  * 联网搜索工具（基于 Tavily API），通过 Spring AI @Tool 注解注册为 LLM 可调用工具。
  * <p>由 WebSearchHandler 在运行时实例化并注入责任链上下文。
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 @Slf4j
 public class WebSearchTool {

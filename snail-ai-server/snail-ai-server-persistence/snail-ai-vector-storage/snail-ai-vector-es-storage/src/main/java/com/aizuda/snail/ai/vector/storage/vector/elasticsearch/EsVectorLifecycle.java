@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
  * Elasticsearch 向量库生命周期管理
  *
  * @author opensnail
- * @date 2026-04-02
+ * @since 2026-04-02
  */
 @Slf4j
 @Component
@@ -25,10 +25,12 @@ public class EsVectorLifecycle implements Lifecycle {
                         configDTO.getDimensions(),
                         JsonUtil.parseObject(configDTO.getConfig(), ElasticsearchVectorSettings.class)
                 ));
+        log.info("Elasticsearch 向量库已注册");
     }
 
     @Override
     public void close() {
         EsClientFactory.closeAll();
+        log.info("Elasticsearch 向量库连接已关闭");
     }
 }

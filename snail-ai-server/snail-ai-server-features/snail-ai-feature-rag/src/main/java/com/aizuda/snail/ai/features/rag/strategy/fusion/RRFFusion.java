@@ -8,6 +8,9 @@ import java.util.Map;
 
 /**
  * Reciprocal Rank Fusion: score = 1 / (k + rank)
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 public class RRFFusion implements HybridFusion {
 

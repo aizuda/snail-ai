@@ -6,6 +6,7 @@ import com.aizuda.snail.ai.common.model.Result;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationClearRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationIdentityRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationQueryRequest;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationUpdateTitleRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiConversationVO;
 import com.aizuda.snail.ai.openapi.client.core.annotation.OpenApiMapping;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiCreateConversationRequest;
@@ -17,7 +18,7 @@ import java.util.List;
  * OpenAPI 会话管理客户端接口
  *
  * @author opensnail
- * @date 2026-04-24
+ * @since 2026-04-24
  */
 public interface OpenApiConversationClient {
 
@@ -32,6 +33,9 @@ public interface OpenApiConversationClient {
 
     @OpenApiMapping(path = OpenApiPathConstants.OPEN_API_AGENT_CONVERSATIONS, method = OpenApiMapping.HttpMethod.DELETE)
     Result<Void> clearConversations(OpenApiConversationClearRequest request);
+
+    @OpenApiMapping(path = OpenApiPathConstants.OPEN_API_AGENT_CONVERSATIONS, method = OpenApiMapping.HttpMethod.PUT)
+    Result<Void> updateConversationTitle(OpenApiConversationUpdateTitleRequest request);
 
     @OpenApiMapping(path = OpenApiPathConstants.OPEN_API_AGENT_CONVERSATION_MESSAGES, method = OpenApiMapping.HttpMethod.GET)
     Result<List<OpenApiMessageVO>> getMessages(OpenApiConversationIdentityRequest request);

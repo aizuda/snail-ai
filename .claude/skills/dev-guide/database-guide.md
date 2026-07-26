@@ -475,9 +475,26 @@ public PageResult<List<UserInfoVO>> getPageUserList(UserQueryVO queryVO) {
 1. **使用索引**: 为常用查询字段创建索引
 2. **避免 SELECT ***: 只查询需要的字段
 3. **合理分页**: 不要一次查询太多数据
-4. **批量操作**: 使用 `insertBatch()` 替代循环 `insert()`
-5. **缓存热点数据**: 使用 Redis 缓存常用数据
-6. **读写分离**: 读操作使用从库
+4. **批量写入**: 使用 `insertBatch()` 替代循环 `insert()`
+5. **禁止 N+1 查询**: **严禁在循环中逐条 `selectById` / 查询**；先收集 ID，用 `selectByIds()` / `IN` 一次性批量查询，再在内存中用 `Map` 关联。
+
+```java
+// ❌ N+1：循环里逐条查
+for (Long id : ids) {
+    map.put(id, mapper.selectById(id).getName());
+}
+
+// ✅ 批量查一次，再内存关联
+if (CollUtil.isNotEmpty(ids)) {
+    for (XxxPO po : mapper.selectByIds(ids)) {
+        map.put(po.getId(), po.getName());
+    }
+}
+```
+
+6. **集合判空用 Hutool**: 用 `CollUtil.isEmpty/isNotEmpty`、`MapUtil.isEmpty` 等替代手写 `== null || isEmpty()`。
+7. **缓存热点数据**: 使用 Redis 缓存常用数据
+8. **读写分离**: 读操作使用从库
 
 ## 总结
 

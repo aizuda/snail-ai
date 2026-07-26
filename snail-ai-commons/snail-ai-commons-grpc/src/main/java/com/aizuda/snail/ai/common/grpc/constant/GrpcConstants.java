@@ -2,6 +2,9 @@ package com.aizuda.snail.ai.common.grpc.constant;
 
 /**
  * gRPC 服务常量
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 public interface GrpcConstants {
 

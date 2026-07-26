@@ -1,23 +1,23 @@
 -- ============================================================
--- Snail AI ´ïÃÎÊı¾İ¿âDM8½¨±í½Å±¾
--- ×ª»»×Ô£ºsnail_ai_schema.sql (MySQL)
--- ´ïÃÎ°æ±¾£ºDM8 V8 (DB Version: 0x7000d)
--- ËµÃ÷£º
---   1. AUTO_INCREMENT ¡ú IDENTITY(1,1)
---   2. LONGTEXT ¡ú CLOB
---   3. ENGINE/CHARSET/COLLATE ¡ú ÒÆ³ı´ïÃÎ²»ÊÊÓÃ
---   4. ON UPDATE CURRENT_TIMESTAMP ¡ú BEFORE UPDATE ´¥·¢Æ÷ÊµÏÖ
---   5. COMMENT ¡ú COMMENT ON TABLE/COLUMN Óï¾ä
---   6. INSERT IGNORE ¡ú MERGE INTO Ìæ´ú
---   7. KEYË÷Òı¡ú CREATE INDEX Óï¾ä
+-- Snail AI ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İ¿ï¿½DM8ï¿½ï¿½ï¿½ï¿½Å±ï¿½
+-- ×ªï¿½ï¿½ï¿½Ô£ï¿½snail_ai_schema.sql (MySQL)
+-- ï¿½ï¿½ï¿½Î°æ±¾ï¿½ï¿½DM8 V8 (DB Version: 0x7000d)
+-- Ëµï¿½ï¿½ï¿½ï¿½
+--   1. AUTO_INCREMENT ï¿½ï¿½ IDENTITY(1,1)
+--   2. LONGTEXT ï¿½ï¿½ CLOB
+--   3. ENGINE/CHARSET/COLLATE ï¿½ï¿½ ï¿½Æ³ï¿½ï¿½ï¿½ï¿½Î²ï¿½ï¿½ï¿½ï¿½ï¿½
+--   4. ON UPDATE CURRENT_TIMESTAMP ï¿½ï¿½ BEFORE UPDATE ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½
+--   5. COMMENT ï¿½ï¿½ COMMENT ON TABLE/COLUMN ï¿½ï¿½ï¿½
+--   6. INSERT IGNORE ï¿½ï¿½ MERGE INTO ï¿½ï¿½ï¿½
+--   7. KEYï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ CREATE INDEX ï¿½ï¿½ï¿½
 -- ============================================================
 
 
 -- ============================================================
--- Ò»¡¢ÓÃ»§ÓëÈ¨ÏŞ
+-- Ò»ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½È¨ï¿½ï¿½
 -- ============================================================
 
--- 1.1 ÓÃ»§±í
+-- 1.1 ï¿½Ã»ï¿½ï¿½ï¿½
 CREATE TABLE IF NOT EXISTS sai_user
 (
     id             BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -33,10 +33,10 @@ CREATE TABLE IF NOT EXISTS sai_user
     CONSTRAINT uk_sai_user_username UNIQUE (username)
 );
 
-COMMENT ON COLUMN sai_user.nickname IS 'ÓÃ»§êÇ³Æ';
-COMMENT ON COLUMN sai_user.resource_id IS 'Í·Ïñ×ÊÔ´ID£¬¹ØÁª sai_resource.id';
+COMMENT ON COLUMN sai_user.nickname IS 'ï¿½Ã»ï¿½ï¿½Ç³ï¿½';
+COMMENT ON COLUMN sai_user.resource_id IS 'Í·ï¿½ï¿½ï¿½ï¿½Ô´IDï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ sai_resource.id';
 
--- 1.2 OpenAPI Íâ²¿ÓÃ»§Ó³Éä±í
+-- 1.2 OpenAPI ï¿½â²¿ï¿½Ã»ï¿½Ó³ï¿½ï¿½ï¿½
 CREATE TABLE IF NOT EXISTS sai_openapi_user
 (
     id               BIGINT       IDENTITY(1,1) PRIMARY KEY,
@@ -50,21 +50,21 @@ CREATE TABLE IF NOT EXISTS sai_openapi_user
     CONSTRAINT uk_sai_openapi_user_app_external UNIQUE (app_id, external_id)
 );
 
-COMMENT ON TABLE sai_openapi_user IS 'OpenAPI Íâ²¿ÓÃ»§Ó³Éä±í';
-COMMENT ON COLUMN sai_openapi_user.app_id IS '¹ØÁª sai_app.app_id';
-COMMENT ON COLUMN sai_openapi_user.open_id IS 'Æ½Ì¨·ÖÅäµÄÎ¨Ò»±êÊ¶UUID';
-COMMENT ON COLUMN sai_openapi_user.platform_user_id IS '¹ØÁª sai_user.id£¬×¢²áÊ±×Ô¶¯´´½¨';
-COMMENT ON COLUMN sai_openapi_user.external_id IS 'Íâ²¿ÏµÍ³µÄÓÃ»§±êÊ¶¿ÉÑ¡£¬ÃİµÈÓÃ';
+COMMENT ON TABLE sai_openapi_user IS 'OpenAPI ï¿½â²¿ï¿½Ã»ï¿½Ó³ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_openapi_user.app_id IS 'ï¿½ï¿½ï¿½ï¿½ sai_app.app_id';
+COMMENT ON COLUMN sai_openapi_user.open_id IS 'Æ½Ì¨ï¿½ï¿½ï¿½ï¿½ï¿½Î¨Ò»ï¿½ï¿½Ê¶UUID';
+COMMENT ON COLUMN sai_openapi_user.platform_user_id IS 'ï¿½ï¿½ï¿½ï¿½ sai_user.idï¿½ï¿½×¢ï¿½ï¿½Ê±ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_openapi_user.external_id IS 'ï¿½â²¿ÏµÍ³ï¿½ï¿½ï¿½Ã»ï¿½ï¿½ï¿½Ê¶ï¿½ï¿½Ñ¡ï¿½ï¿½ï¿½İµï¿½ï¿½ï¿½';
 
 CREATE INDEX idx_sai_openapi_user_open_id ON sai_openapi_user (open_id);
 CREATE INDEX idx_sai_openapi_user_platform_user ON sai_openapi_user (platform_user_id);
 
 
 -- ============================================================
--- ¶ş¡¢AI Ä£ĞÍ¹ÜÀí
+-- ï¿½ï¿½ï¿½ï¿½AI Ä£ï¿½Í¹ï¿½ï¿½ï¿½
 -- ============================================================
 
--- 2.1 AI Ä£ĞÍÌá¹©ÉÌ±í
+-- 2.1 AI Ä£ï¿½ï¿½ï¿½á¹©ï¿½Ì±ï¿½
 CREATE TABLE IF NOT EXISTS sai_model_provider
 (
     id            BIGINT       IDENTITY(1,1) PRIMARY KEY,
@@ -79,19 +79,19 @@ CREATE TABLE IF NOT EXISTS sai_model_provider
     CONSTRAINT uk_sai_model_provider_key UNIQUE (provider_key)
 );
 
-COMMENT ON TABLE sai_model_provider IS 'AIÄ£ĞÍÌá¹©ÉÌ±í';
-COMMENT ON COLUMN sai_model_provider.provider_name IS 'Ìá¹©ÉÌÃû³Æ';
-COMMENT ON COLUMN sai_model_provider.provider_key IS 'Ìá¹©ÉÌ±êÊ¶·û';
-COMMENT ON COLUMN sai_model_provider.description IS 'Ìá¹©ÉÌÃèÊö';
-COMMENT ON COLUMN sai_model_provider.icon_url IS 'LOGOÍ¼±êURL';
-COMMENT ON COLUMN sai_model_provider.is_enabled IS 'ÊÇ·ñÆôÓÃ';
-COMMENT ON COLUMN sai_model_provider.created_dt IS '´´½¨Ê±¼ä';
-COMMENT ON COLUMN sai_model_provider.updated_dt IS '¸üĞÂÊ±¼ä';
+COMMENT ON TABLE sai_model_provider IS 'AIÄ£ï¿½ï¿½ï¿½á¹©ï¿½Ì±ï¿½';
+COMMENT ON COLUMN sai_model_provider.provider_name IS 'ï¿½á¹©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_model_provider.provider_key IS 'ï¿½á¹©ï¿½Ì±ï¿½Ê¶ï¿½ï¿½';
+COMMENT ON COLUMN sai_model_provider.description IS 'ï¿½á¹©ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_model_provider.icon_url IS 'LOGOÍ¼ï¿½ï¿½URL';
+COMMENT ON COLUMN sai_model_provider.is_enabled IS 'ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_model_provider.created_dt IS 'ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½';
+COMMENT ON COLUMN sai_model_provider.updated_dt IS 'ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½';
 
 CREATE INDEX idx_sai_model_provider_key ON sai_model_provider (provider_key);
 CREATE INDEX idx_sai_model_provider_is_enabled ON sai_model_provider (is_enabled);
 
--- 2.2 AIÄ£ĞÍÅäÖÃ±í
+-- 2.2 AIÄ£ï¿½ï¿½ï¿½ï¿½ï¿½Ã±ï¿½
 CREATE TABLE IF NOT EXISTS sai_model_config
 (
     id           BIGINT       IDENTITY(1,1) PRIMARY KEY,
@@ -112,22 +112,22 @@ CREATE TABLE IF NOT EXISTS sai_model_config
     updated_dt   TIMESTAMP             DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE sai_model_config IS 'AIÄ£ĞÍÅäÖÃ±í';
-COMMENT ON COLUMN sai_model_config.provider_id IS 'Ìá¹©ÉÌID';
-COMMENT ON COLUMN sai_model_config.model_name IS 'Ä£ĞÍÃû³Æ';
-COMMENT ON COLUMN sai_model_config.model_key IS 'Ä£ĞÍ±êÊ¶·û';
-COMMENT ON COLUMN sai_model_config.model_type IS 'Ä£ĞÍÀàĞÍCHAT/EMBEDDING/RERANKER/IMAGE/SPEECH';
-COMMENT ON COLUMN sai_model_config.adapter_key IS 'µ×²ãĞ­ÒéÊÊÅäÆ÷±êÊ¶openai-compatible/httpµÈ';
-COMMENT ON COLUMN sai_model_config.description IS 'Ä£ĞÍÃèÊö';
-COMMENT ON COLUMN sai_model_config.api_key IS 'APIÃÜÔ¿¼ÓÃÜ´æ´¢';
-COMMENT ON COLUMN sai_model_config.api_endpoint IS 'API¶ËµãURL';
-COMMENT ON COLUMN sai_model_config.config_json IS 'Ä£ĞÍ²ÎÊıÅäÖÃJSON¸ñÊ½';
-COMMENT ON COLUMN sai_model_config.owner_id IS 'ËùÓĞÕßIDNULL=È«¾Ö,¾ßÌåÖµ=ÓÃ»§ID';
-COMMENT ON COLUMN sai_model_config.scope IS '×÷ÓÃÓòGLOBAL/PERSONAL';
-COMMENT ON COLUMN sai_model_config.is_default IS 'ÊÇ·ñÎªÄ¬ÈÏÄ£ĞÍ';
-COMMENT ON COLUMN sai_model_config.is_enabled IS 'ÊÇ·ñÆôÓÃ';
-COMMENT ON COLUMN sai_model_config.created_dt IS '´´½¨Ê±¼ä';
-COMMENT ON COLUMN sai_model_config.updated_dt IS '¸üĞÂÊ±¼ä';
+COMMENT ON TABLE sai_model_config IS 'AIÄ£ï¿½ï¿½ï¿½ï¿½ï¿½Ã±ï¿½';
+COMMENT ON COLUMN sai_model_config.provider_id IS 'ï¿½á¹©ï¿½ï¿½ID';
+COMMENT ON COLUMN sai_model_config.model_name IS 'Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_model_config.model_key IS 'Ä£ï¿½Í±ï¿½Ê¶ï¿½ï¿½';
+COMMENT ON COLUMN sai_model_config.model_type IS 'Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½CHAT/EMBEDDING/RERANKER/IMAGE/SPEECH';
+COMMENT ON COLUMN sai_model_config.adapter_key IS 'ï¿½×²ï¿½Ğ­ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¶openai-compatible/httpï¿½ï¿½';
+COMMENT ON COLUMN sai_model_config.description IS 'Ä£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_model_config.api_key IS 'APIï¿½ï¿½Ô¿ï¿½ï¿½ï¿½Ü´æ´¢';
+COMMENT ON COLUMN sai_model_config.api_endpoint IS 'APIï¿½Ëµï¿½URL';
+COMMENT ON COLUMN sai_model_config.config_json IS 'Ä£ï¿½Í²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½JSONï¿½ï¿½Ê½';
+COMMENT ON COLUMN sai_model_config.owner_id IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½IDNULL=È«ï¿½ï¿½,ï¿½ï¿½ï¿½ï¿½Öµ=ï¿½Ã»ï¿½ID';
+COMMENT ON COLUMN sai_model_config.scope IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½GLOBAL/PERSONAL';
+COMMENT ON COLUMN sai_model_config.is_default IS 'ï¿½Ç·ï¿½ÎªÄ¬ï¿½ï¿½Ä£ï¿½ï¿½';
+COMMENT ON COLUMN sai_model_config.is_enabled IS 'ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_model_config.created_dt IS 'ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½';
+COMMENT ON COLUMN sai_model_config.updated_dt IS 'ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½';
 
 CREATE INDEX idx_sai_model_config_provider_model_type ON sai_model_config (provider_id, model_type);
 CREATE INDEX idx_sai_model_config_model_type_enabled ON sai_model_config (model_type, is_enabled);
@@ -137,7 +137,7 @@ CREATE INDEX idx_sai_model_config_scope ON sai_model_config (scope);
 CREATE INDEX idx_sai_model_config_model_key ON sai_model_config (model_key);
 CREATE INDEX idx_sai_model_config_provider_id ON sai_model_config (provider_id);
 
--- 2.3 Ä£ĞÍÊ¹ÓÃÍ³¼Æ±í
+-- 2.3 Ä£ï¿½ï¿½Ê¹ï¿½ï¿½Í³ï¿½Æ±ï¿½
 CREATE TABLE IF NOT EXISTS sai_model_usage_stat
 (
     id                BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -155,18 +155,18 @@ CREATE TABLE IF NOT EXISTS sai_model_usage_stat
     CONSTRAINT uk_sai_model_usage_stat_model_user UNIQUE (model_id, user_id)
 );
 
-COMMENT ON TABLE sai_model_usage_stat IS 'Ä£ĞÍÊ¹ÓÃÍ³¼Æ±í';
-COMMENT ON COLUMN sai_model_usage_stat.model_id IS 'Ä£ĞÍID';
-COMMENT ON COLUMN sai_model_usage_stat.user_id IS 'ÓÃ»§ID';
-COMMENT ON COLUMN sai_model_usage_stat.total_calls IS '×Üµ÷ÓÃ´ÎÊı';
-COMMENT ON COLUMN sai_model_usage_stat.success_calls IS '³É¹¦µ÷ÓÃ´ÎÊı';
-COMMENT ON COLUMN sai_model_usage_stat.failed_calls IS 'Ê§°Üµ÷ÓÃ´ÎÊı';
-COMMENT ON COLUMN sai_model_usage_stat.total_tokens_used IS '×ÜTokenÊ¹ÓÃÁ¿';
-COMMENT ON COLUMN sai_model_usage_stat.total_cost IS '×Ü·ÑÓÃ';
-COMMENT ON COLUMN sai_model_usage_stat.avg_response_time IS 'Æ½¾ùÏìÓ¦Ê±¼äºÁÃë';
-COMMENT ON COLUMN sai_model_usage_stat.last_used_dt IS '×îºóÊ¹ÓÃÊ±¼ä';
-COMMENT ON COLUMN sai_model_usage_stat.created_dt IS '´´½¨Ê±¼ä';
-COMMENT ON COLUMN sai_model_usage_stat.updated_dt IS '¸üĞÂÊ±¼ä';
+COMMENT ON TABLE sai_model_usage_stat IS 'Ä£ï¿½ï¿½Ê¹ï¿½ï¿½Í³ï¿½Æ±ï¿½';
+COMMENT ON COLUMN sai_model_usage_stat.model_id IS 'Ä£ï¿½ï¿½ID';
+COMMENT ON COLUMN sai_model_usage_stat.user_id IS 'ï¿½Ã»ï¿½ID';
+COMMENT ON COLUMN sai_model_usage_stat.total_calls IS 'ï¿½Üµï¿½ï¿½Ã´ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_model_usage_stat.success_calls IS 'ï¿½É¹ï¿½ï¿½ï¿½ï¿½Ã´ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_model_usage_stat.failed_calls IS 'Ê§ï¿½Üµï¿½ï¿½Ã´ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_model_usage_stat.total_tokens_used IS 'ï¿½ï¿½TokenÊ¹ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_model_usage_stat.total_cost IS 'ï¿½Ü·ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_model_usage_stat.avg_response_time IS 'Æ½ï¿½ï¿½ï¿½ï¿½Ó¦Ê±ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_model_usage_stat.last_used_dt IS 'ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½Ê±ï¿½ï¿½';
+COMMENT ON COLUMN sai_model_usage_stat.created_dt IS 'ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½';
+COMMENT ON COLUMN sai_model_usage_stat.updated_dt IS 'ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½';
 
 CREATE INDEX idx_sai_model_usage_stat_model_id ON sai_model_usage_stat (model_id);
 CREATE INDEX idx_sai_model_usage_stat_user_id ON sai_model_usage_stat (user_id);
@@ -174,10 +174,10 @@ CREATE INDEX idx_sai_model_usage_stat_last_used_dt ON sai_model_usage_stat (last
 
 
 -- ============================================================
--- Èı¡¢ÖÇÄÜÌåAgent
+-- ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Agent
 -- ============================================================
 
--- 3.1 ÖÇÄÜÌåÖ÷±í
+-- 3.1 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 CREATE TABLE IF NOT EXISTS sai_agent
 (
     id                      BIGINT       IDENTITY(1,1) PRIMARY KEY,
@@ -206,33 +206,33 @@ CREATE TABLE IF NOT EXISTS sai_agent
     update_dt               TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE sai_agent IS 'ÖÇÄÜÌå±í';
-COMMENT ON COLUMN sai_agent.name IS 'ÖÇÄÜÌåÃû³Æ';
-COMMENT ON COLUMN sai_agent.description IS 'ÖÇÄÜÌåÃèÊö';
-COMMENT ON COLUMN sai_agent.avatar IS 'Í·ÏñURL';
-COMMENT ON COLUMN sai_agent.instruction IS 'ÏµÍ³Ö¸ÁîSystem Prompt';
-COMMENT ON COLUMN sai_agent.greeting IS '»¶Ó­Óï';
-COMMENT ON COLUMN sai_agent.preset_questions IS 'Ô¤ÉèÎÊÌâÁĞ±íJSONÊı×é×Ö·û´®';
-COMMENT ON COLUMN sai_agent.chat_model_id IS '¹ØÁªµÄ¶Ô»°Ä£ĞÍID';
-COMMENT ON COLUMN sai_agent.memory_enabled IS 'ÊÇ·ñÆôÓÃ¼ÇÒä¿â';
-COMMENT ON COLUMN sai_agent.mcp_enabled IS 'ÊÇ·ñÆôÓÃMCP';
-COMMENT ON COLUMN sai_agent.skill_enabled IS 'ÊÇ·ñÆôÓÃSkill';
-COMMENT ON COLUMN sai_agent.web_search_enabled IS 'ÊÇ·ñÆôÓÃÁªÍøËÑË÷';
-COMMENT ON COLUMN sai_agent.rag_enabled IS 'ÊÇ·ñÆôÓÃRAG';
-COMMENT ON COLUMN sai_agent.rag_ids IS '°ó¶¨µÄRAG IDÁĞ±í£¬¶ººÅ·Ö¸ô£¬×î¶à5¸ö';
-COMMENT ON COLUMN sai_agent.rag_call_mode IS 'RAGµ÷ÓÃ·½Ê½: 1=ÖÇÄÜµ÷ÓÃ 2=Ç¿ÖÆµ÷ÓÃ';
-COMMENT ON COLUMN sai_agent.short_term_memory_size IS '¶ÌÆÚ¼ÇÒä»¬¶¯´°¿Ú±£ÁôÌõÊı';
-COMMENT ON COLUMN sai_agent.creator_id IS '´´½¨ÕßÓÃ»§ID';
-COMMENT ON COLUMN sai_agent.is_featured IS 'ÊÇ·ñ¾«Ñ¡';
-COMMENT ON COLUMN sai_agent.view_count IS 'ä¯ÀÀ´ÎÊı';
-COMMENT ON COLUMN sai_agent.status IS '×´Ì¬: 1-»îÔ¾ 2-·Ç»îÔ¾ 3-ÒÑ·ÏÆú 4-ÒÑ½ûÓÃ';
-COMMENT ON COLUMN sai_agent.config IS 'À©Õ¹ÅäÖÃÔ¤Áô';
-COMMENT ON COLUMN sai_agent.app_id IS '¹ØÁªÓ¦ÓÃIDNULL=±¾µØÖ´ĞĞ';
+COMMENT ON TABLE sai_agent IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent.name IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent.description IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent.avatar IS 'Í·ï¿½ï¿½URL';
+COMMENT ON COLUMN sai_agent.instruction IS 'ÏµÍ³Ö¸ï¿½ï¿½System Prompt';
+COMMENT ON COLUMN sai_agent.greeting IS 'ï¿½ï¿½Ó­ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent.preset_questions IS 'Ô¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ğ±ï¿½JSONï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent.chat_model_id IS 'ï¿½ï¿½ï¿½ï¿½ï¿½Ä¶Ô»ï¿½Ä£ï¿½ï¿½ID';
+COMMENT ON COLUMN sai_agent.memory_enabled IS 'ï¿½Ç·ï¿½ï¿½ï¿½ï¿½Ã¼ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent.mcp_enabled IS 'ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½MCP';
+COMMENT ON COLUMN sai_agent.skill_enabled IS 'ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½Skill';
+COMMENT ON COLUMN sai_agent.web_search_enabled IS 'ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent.rag_enabled IS 'ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½RAG';
+COMMENT ON COLUMN sai_agent.rag_ids IS 'ï¿½ó¶¨µï¿½RAG IDï¿½Ğ±ï¿½ï¿½ï¿½ï¿½Å·Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½5ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent.rag_call_mode IS 'RAGï¿½ï¿½ï¿½Ã·ï¿½Ê½: 1=ï¿½ï¿½ï¿½Üµï¿½ï¿½ï¿½ 2=Ç¿ï¿½Æµï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent.short_term_memory_size IS 'ï¿½ï¿½ï¿½Ú¼ï¿½ï¿½ä»¬ï¿½ï¿½ï¿½ï¿½ï¿½Ú±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent.creator_id IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ID';
+COMMENT ON COLUMN sai_agent.is_featured IS 'ï¿½Ç·ï¿½Ñ¡';
+COMMENT ON COLUMN sai_agent.view_count IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent.status IS '×´Ì¬: 1-ï¿½ï¿½Ô¾ 2-ï¿½Ç»ï¿½Ô¾ 3-ï¿½Ñ·ï¿½ï¿½ï¿½ 4-ï¿½Ñ½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent.config IS 'ï¿½ï¿½Õ¹ï¿½ï¿½ï¿½ï¿½Ô¤ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent.app_id IS 'ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½IDNULL=ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ï¿½';
 
 CREATE INDEX idx_sai_agent_creator ON sai_agent (creator_id);
 CREATE INDEX idx_sai_agent_featured ON sai_agent (is_featured);
 
--- 3.2 ÖÇÄÜÌå¶Ô»°±í
+-- 3.2 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô»ï¿½ï¿½ï¿½
 CREATE TABLE IF NOT EXISTS sai_agent_conversation
 (
     id              BIGINT      IDENTITY(1,1) PRIMARY KEY,
@@ -245,16 +245,16 @@ CREATE TABLE IF NOT EXISTS sai_agent_conversation
     CONSTRAINT uk_sai_agent_conversation_conv_id UNIQUE (conversation_id)
 );
 
-COMMENT ON TABLE sai_agent_conversation IS 'ÖÇÄÜÌå¶Ô»°±í';
-COMMENT ON COLUMN sai_agent_conversation.agent_id IS 'ÖÇÄÜÌåID';
-COMMENT ON COLUMN sai_agent_conversation.user_id IS 'ÓÃ»§ID';
-COMMENT ON COLUMN sai_agent_conversation.conversation_id IS '¶Ô»°IDUUID';
-COMMENT ON COLUMN sai_agent_conversation.title IS '¶Ô»°±êÌâ';
+COMMENT ON TABLE sai_agent_conversation IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô»ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent_conversation.agent_id IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID';
+COMMENT ON COLUMN sai_agent_conversation.user_id IS 'ï¿½Ã»ï¿½ID';
+COMMENT ON COLUMN sai_agent_conversation.conversation_id IS 'ï¿½Ô»ï¿½IDUUID';
+COMMENT ON COLUMN sai_agent_conversation.title IS 'ï¿½Ô»ï¿½ï¿½ï¿½ï¿½ï¿½';
 
 CREATE INDEX idx_sai_agent_conversation_agent ON sai_agent_conversation (agent_id);
 CREATE INDEX idx_sai_agent_conversation_user ON sai_agent_conversation (user_id);
 
--- 3.3 ÖÇÄÜÌå¶Ô»°ÏûÏ¢¼ÇÂ¼±í
+-- 3.3 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô»ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½Â¼ï¿½ï¿½
 CREATE TABLE IF NOT EXISTS sai_agent_conversation_record
 (
     id              BIGINT      IDENTITY(1,1) PRIMARY KEY,
@@ -264,6 +264,7 @@ CREATE TABLE IF NOT EXISTS sai_agent_conversation_record
     role            VARCHAR(16) DEFAULT 'user',
     content         TEXT,
     thinking        TEXT,
+    metadata        TEXT        DEFAULT NULL,
     status          INT         DEFAULT 1,
     input_tokens    INT         DEFAULT 0,
     output_tokens   INT         DEFAULT 0,
@@ -271,21 +272,22 @@ CREATE TABLE IF NOT EXISTS sai_agent_conversation_record
     create_dt       TIMESTAMP   DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE sai_agent_conversation_record IS 'ÖÇÄÜÌå¶Ô»°ÏûÏ¢¼ÇÂ¼';
-COMMENT ON COLUMN sai_agent_conversation_record.agent_id IS 'ÖÇÄÜÌåID';
-COMMENT ON COLUMN sai_agent_conversation_record.conversation_id IS '¶Ô»°ID';
-COMMENT ON COLUMN sai_agent_conversation_record.user_id IS 'ÓÃ»§ID';
+COMMENT ON TABLE sai_agent_conversation_record IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô»ï¿½ï¿½ï¿½Ï¢ï¿½ï¿½Â¼';
+COMMENT ON COLUMN sai_agent_conversation_record.agent_id IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID';
+COMMENT ON COLUMN sai_agent_conversation_record.conversation_id IS 'ï¿½Ô»ï¿½ID';
+COMMENT ON COLUMN sai_agent_conversation_record.user_id IS 'ï¿½Ã»ï¿½ID';
 COMMENT ON COLUMN sai_agent_conversation_record.role IS 'user/assistant';
-COMMENT ON COLUMN sai_agent_conversation_record.content IS 'ÏûÏ¢ÄÚÈİ';
-COMMENT ON COLUMN sai_agent_conversation_record.thinking IS 'Ë¼¿¼¹ı³Ì½öassistant';
-COMMENT ON COLUMN sai_agent_conversation_record.status IS '1=³É¹¦,2=Ê§°Ü,3=½øĞĞÖĞ';
-COMMENT ON COLUMN sai_agent_conversation_record.input_tokens IS 'ÊäÈëTokenÊıprompt';
-COMMENT ON COLUMN sai_agent_conversation_record.output_tokens IS 'Êä³öTokenÊıcompletion';
-COMMENT ON COLUMN sai_agent_conversation_record.cache_tokens IS '»º´æÃüÖĞTokenÊı';
+COMMENT ON COLUMN sai_agent_conversation_record.content IS 'ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent_conversation_record.thinking IS 'Ë¼ï¿½ï¿½ï¿½ï¿½ï¿½Ì½ï¿½assistant';
+COMMENT ON COLUMN sai_agent_conversation_record.metadata IS 'æ¶ˆæ¯æ‰©å±•å…ƒæ•°æ®JSON';
+COMMENT ON COLUMN sai_agent_conversation_record.status IS '1=ï¿½É¹ï¿½,2=Ê§ï¿½ï¿½,3=ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent_conversation_record.input_tokens IS 'ï¿½ï¿½ï¿½ï¿½Tokenï¿½ï¿½prompt';
+COMMENT ON COLUMN sai_agent_conversation_record.output_tokens IS 'ï¿½ï¿½ï¿½Tokenï¿½ï¿½completion';
+COMMENT ON COLUMN sai_agent_conversation_record.cache_tokens IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Tokenï¿½ï¿½';
 
 CREATE INDEX idx_sai_agent_conversation_record_conv ON sai_agent_conversation_record (conversation_id);
 
--- 3.4 ÖÇÄÜÌåÊ¹ÓÃÍ³¼Æ±í
+-- 3.4 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½Í³ï¿½Æ±ï¿½
 CREATE TABLE IF NOT EXISTS sai_agent_usage_stat
 (
     id                 BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -299,17 +301,17 @@ CREATE TABLE IF NOT EXISTS sai_agent_usage_stat
     CONSTRAINT uk_sai_agent_usage_stat_agent_user_date UNIQUE (agent_id, user_id, stat_date)
 );
 
-COMMENT ON TABLE sai_agent_usage_stat IS 'ÖÇÄÜÌåÊ¹ÓÃÍ³¼Æ';
-COMMENT ON COLUMN sai_agent_usage_stat.agent_id IS 'ÖÇÄÜÌåID';
-COMMENT ON COLUMN sai_agent_usage_stat.user_id IS 'ÓÃ»§ID';
-COMMENT ON COLUMN sai_agent_usage_stat.message_count IS 'ÏûÏ¢ÌõÊı';
-COMMENT ON COLUMN sai_agent_usage_stat.conversation_count IS '¶Ô»°ÂÖ´Î';
-COMMENT ON COLUMN sai_agent_usage_stat.stat_date IS 'Í³¼ÆÈÕÆÚ';
+COMMENT ON TABLE sai_agent_usage_stat IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½Í³ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent_usage_stat.agent_id IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID';
+COMMENT ON COLUMN sai_agent_usage_stat.user_id IS 'ï¿½Ã»ï¿½ID';
+COMMENT ON COLUMN sai_agent_usage_stat.message_count IS 'ï¿½ï¿½Ï¢ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent_usage_stat.conversation_count IS 'ï¿½Ô»ï¿½ï¿½Ö´ï¿½';
+COMMENT ON COLUMN sai_agent_usage_stat.stat_date IS 'Í³ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
 
 CREATE INDEX idx_sai_agent_usage_stat_agent ON sai_agent_usage_stat (agent_id);
 CREATE INDEX idx_sai_agent_usage_stat_date ON sai_agent_usage_stat (stat_date);
 
--- 3.5 ÓÃ»§¶©ÔÄµÄÖÇÄÜÌå¶à¶Ô¶à
+-- 3.5 ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Äµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¶ï¿½
 CREATE TABLE IF NOT EXISTS sai_user_agent
 (
     id         BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -319,18 +321,18 @@ CREATE TABLE IF NOT EXISTS sai_user_agent
     CONSTRAINT uk_sai_user_agent_user_agent UNIQUE (user_id, agent_id)
 );
 
-COMMENT ON TABLE sai_user_agent IS 'ÓÃ»§¶©ÔÄµÄÖÇÄÜÌå';
-COMMENT ON COLUMN sai_user_agent.user_id IS 'ÓÃ»§ID';
-COMMENT ON COLUMN sai_user_agent.agent_id IS 'ÖÇÄÜÌåID';
+COMMENT ON TABLE sai_user_agent IS 'ï¿½Ã»ï¿½ï¿½ï¿½ï¿½Äµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_user_agent.user_id IS 'ï¿½Ã»ï¿½ID';
+COMMENT ON COLUMN sai_user_agent.agent_id IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID';
 
 CREATE INDEX idx_sai_user_agent_user ON sai_user_agent (user_id);
 
 
 -- ============================================================
--- ËÄ¡¢RAG ÖªÊ¶¿â
+-- ï¿½Ä¡ï¿½RAG ÖªÊ¶ï¿½ï¿½
 -- ============================================================
 
--- 4.1 ÖªÊ¶¿âÖ÷±í
+-- 4.1 ÖªÊ¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 CREATE TABLE IF NOT EXISTS sai_rag
 (
     id                        BIGINT       IDENTITY(1,1) PRIMARY KEY,
@@ -353,24 +355,24 @@ CREATE TABLE IF NOT EXISTS sai_rag
     update_dt                 TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE sai_rag IS 'RAGÖªÊ¶¿âÖ÷±í';
-COMMENT ON COLUMN sai_rag.name IS 'ÖªÊ¶¿âÃû³Æ';
-COMMENT ON COLUMN sai_rag.description IS 'ÖªÊ¶¿âÃèÊö';
-COMMENT ON COLUMN sai_rag.icon IS 'Í¼±êURL';
-COMMENT ON COLUMN sai_rag.embedding_model_id IS 'EmbeddingÄ£ĞÍID';
-COMMENT ON COLUMN sai_rag.dimension_of_vector_model IS 'ÏòÁ¿Î¬¶È';
-COMMENT ON COLUMN sai_rag.rerank_model_id IS 'RerankÄ£ĞÍID';
-COMMENT ON COLUMN sai_rag.search_engine_instance_id IS 'ËÑË÷ÒıÇæÊµÀıID';
-COMMENT ON COLUMN sai_rag.vector_store_instance_id IS 'ÏòÁ¿´æ´¢ÊµÀıID';
-COMMENT ON COLUMN sai_rag.search_engine_enable IS 'ÊÇ·ñÆôÓÃËÑË÷ÒıÇæ';
-COMMENT ON COLUMN sai_rag.delimiter IS 'ÎÄµµ·Ö¸ô·û';
-COMMENT ON COLUMN sai_rag.rag_enhancement IS 'RAGÔöÇ¿ÅäÖÃ';
-COMMENT ON COLUMN sai_rag.config IS 'RAG¼ìË÷ºÍÎÊ´ğµÄÒ³ÃæÅäÖÃ²ÎÊı';
-COMMENT ON COLUMN sai_rag.dedup_strategy IS 'È¥ÖØ²ßÂÔ: 0=NONE 1=BY_NAME 2=BY_CONTENT 3=BY_NAME_OR_CONTENT';
-COMMENT ON COLUMN sai_rag.dedup_action IS '³åÍ»¶¯×÷: 0=REJECT 1=SKIP 2=OVERWRITE';
-COMMENT ON COLUMN sai_rag.upload_confirm IS 'ÉÏ´«Ç°¶ş´ÎÈ·ÈÏ: 0-¹Ø 1-¿ª';
+COMMENT ON TABLE sai_rag IS 'RAGÖªÊ¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_rag.name IS 'ÖªÊ¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_rag.description IS 'ÖªÊ¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_rag.icon IS 'Í¼ï¿½ï¿½URL';
+COMMENT ON COLUMN sai_rag.embedding_model_id IS 'EmbeddingÄ£ï¿½ï¿½ID';
+COMMENT ON COLUMN sai_rag.dimension_of_vector_model IS 'ï¿½ï¿½ï¿½ï¿½Î¬ï¿½ï¿½';
+COMMENT ON COLUMN sai_rag.rerank_model_id IS 'RerankÄ£ï¿½ï¿½ID';
+COMMENT ON COLUMN sai_rag.search_engine_instance_id IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Êµï¿½ï¿½ID';
+COMMENT ON COLUMN sai_rag.vector_store_instance_id IS 'ï¿½ï¿½ï¿½ï¿½ï¿½æ´¢Êµï¿½ï¿½ID';
+COMMENT ON COLUMN sai_rag.search_engine_enable IS 'ï¿½Ç·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_rag.delimiter IS 'ï¿½Äµï¿½ï¿½Ö¸ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_rag.rag_enhancement IS 'RAGï¿½ï¿½Ç¿ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_rag.config IS 'RAGï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê´ï¿½ï¿½Ò³ï¿½ï¿½ï¿½ï¿½ï¿½Ã²ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_rag.dedup_strategy IS 'È¥ï¿½Ø²ï¿½ï¿½ï¿½: 0=NONE 1=BY_NAME 2=BY_CONTENT 3=BY_NAME_OR_CONTENT';
+COMMENT ON COLUMN sai_rag.dedup_action IS 'ï¿½ï¿½Í»ï¿½ï¿½ï¿½ï¿½: 0=REJECT 1=SKIP 2=OVERWRITE';
+COMMENT ON COLUMN sai_rag.upload_confirm IS 'ï¿½Ï´ï¿½Ç°ï¿½ï¿½ï¿½ï¿½È·ï¿½ï¿½: 0-ï¿½ï¿½ 1-ï¿½ï¿½';
 
--- 4.2 RAG ÎÄµµ±í
+-- 4.2 RAG ï¿½Äµï¿½ï¿½ï¿½
 CREATE TABLE IF NOT EXISTS sai_rag_document
 (
     id           BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -386,23 +388,58 @@ CREATE TABLE IF NOT EXISTS sai_rag_document
     status       TINYINT     DEFAULT 0,
     error_msg    TEXT,
     chunk_count  INT         DEFAULT 0,
+    page_count   INT         DEFAULT 0,
+    element_count INT        DEFAULT 0,
+    table_count  INT         DEFAULT 0,
+    image_count  INT         DEFAULT 0,
+    parse_time   INT         DEFAULT 0,
+    md_content   TEXT        DEFAULT NULL,
+    doc_metadata TEXT        DEFAULT NULL,
     content_hash VARCHAR(64) DEFAULT NULL,
     resource_id  BIGINT      DEFAULT NULL,
     create_dt    TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
     update_dt    TIMESTAMP   DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE sai_rag_document IS 'RAGÎÄµµ±í';
-COMMENT ON COLUMN sai_rag_document.status IS '×´Ì¬: 0-´ı´¦Àí 1-½âÎöÖĞ 2-´¦ÀíÖĞ 3-´¦ÀíÍê³É 4-´¦ÀíÊ§°Ü';
-COMMENT ON COLUMN sai_rag_document.content_hash IS 'ÎÄ¼şÄÚÈİSHA-256¹şÏ££¬ÓÃÓÚÈ¥ÖØ';
-COMMENT ON COLUMN sai_rag_document.resource_id IS '¹ØÁª×ÊÔ´¿â sai_resource.id';
+COMMENT ON TABLE sai_rag_document IS 'RAGï¿½Äµï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_rag_document.status IS '×´Ì¬: 0-ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1-ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 2-ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 3-ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 4-ï¿½ï¿½ï¿½ï¿½Ê§ï¿½ï¿½';
+COMMENT ON COLUMN sai_rag_document.content_hash IS 'ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½SHA-256ï¿½ï¿½Ï£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¥ï¿½ï¿½';
+COMMENT ON COLUMN sai_rag_document.resource_id IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô´ï¿½ï¿½ sai_resource.id';
 
 CREATE INDEX idx_sai_rag_document_rag ON sai_rag_document (rag_id);
 CREATE INDEX idx_sai_rag_document_content_hash ON sai_rag_document (rag_id, content_hash);
 CREATE INDEX idx_sai_rag_document_name ON sai_rag_document (rag_id, name);
 CREATE INDEX idx_sai_rag_document_resource ON sai_rag_document (resource_id);
 
--- 4.3 RAG ·Ö¿é±í
+CREATE TABLE IF NOT EXISTS sai_rag_document_image
+(
+    id          BIGINT IDENTITY(1,1) PRIMARY KEY,
+    rag_id      BIGINT NOT NULL,
+    document_id BIGINT NOT NULL,
+    chunk_id    BIGINT DEFAULT NULL,
+    resource_id BIGINT DEFAULT NULL,
+    image_index INT,
+    image_url   VARCHAR(1024),
+    caption     TEXT,
+    figure_no   VARCHAR(64),
+    figure_title VARCHAR(512),
+    section_title VARCHAR(512),
+    source_page INT,
+    document_name VARCHAR(255),
+    ocr_text    TEXT,
+    create_dt   TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_dt   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+COMMENT ON TABLE sai_rag_document_image IS 'RAG document parsed image table';
+COMMENT ON COLUMN sai_rag_document_image.resource_id IS 'Linked resource id in sai_resource';
+
+CREATE INDEX idx_sai_rag_doc_image_rag ON sai_rag_document_image (rag_id);
+CREATE INDEX idx_sai_rag_doc_image_document ON sai_rag_document_image (document_id);
+CREATE INDEX idx_sai_rag_doc_image_chunk ON sai_rag_document_image (chunk_id);
+CREATE INDEX idx_sai_rag_doc_image_resource ON sai_rag_document_image (resource_id);
+
+-- 4.3 RAG ï¿½Ö¿ï¿½ï¿½
 CREATE TABLE IF NOT EXISTS sai_rag_chunk
 (
     id              BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -414,23 +451,26 @@ CREATE TABLE IF NOT EXISTS sai_rag_chunk
     token_count     INT,
     vector_id       VARCHAR(128),
     content_hash    VARCHAR(64) DEFAULT NULL,
+    source_type     VARCHAR(20) NOT NULL DEFAULT 'TEXT',
     create_dt       TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
     update_dt       TIMESTAMP   DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE sai_rag_chunk IS 'RAG·Ö¿é±í';
-COMMENT ON COLUMN sai_rag_chunk.content_hash IS 'chunkÄÚÈİSHA-256£¬ÓÃÓÚÏòÁ¿È¥ÖØ';
+COMMENT ON TABLE sai_rag_chunk IS 'RAGï¿½Ö¿ï¿½ï¿½';
+COMMENT ON COLUMN sai_rag_chunk.content_hash IS 'chunkï¿½ï¿½ï¿½ï¿½SHA-256ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¥ï¿½ï¿½';
+COMMENT ON COLUMN sai_rag_chunk.source_type IS 'chunkæ¥æºç±»å‹ï¼šTEXTæ–‡æœ¬ã€IMAGEå›¾ç‰‡';
 
 CREATE INDEX idx_sai_rag_chunk_rag ON sai_rag_chunk (rag_id);
 CREATE INDEX idx_sai_rag_chunk_document ON sai_rag_chunk (document_id);
 CREATE INDEX idx_sai_rag_chunk_hash ON sai_rag_chunk (rag_id, content_hash);
+CREATE INDEX idx_sai_rag_chunk_source_type ON sai_rag_chunk (rag_id, source_type);
 
 
 -- ============================================================
--- Îå¡¢MCP ·şÎñ¹ÜÀí
+-- ï¿½å¡¢MCP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 -- ============================================================
 
--- 5.1 MCP ·şÎñÅäÖÃ±í
+-- 5.1 MCP ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã±ï¿½
 CREATE TABLE IF NOT EXISTS sai_mcp_server
 (
     id               BIGINT        IDENTITY(1,1) PRIMARY KEY,
@@ -442,35 +482,31 @@ CREATE TABLE IF NOT EXISTS sai_mcp_server
     command          VARCHAR(1024),
     args             TEXT,
     env_vars         TEXT,
-    version          VARCHAR(32)   DEFAULT '1.0.0',
-    auth_type        TINYINT       DEFAULT 0,
-    auth_config      TEXT,
-    capabilities     TEXT,
+    timeout         BIGINT        DEFAULT 60000,
+    headers          TEXT,
     last_connect_dt  TIMESTAMP     DEFAULT NULL,
     creator_id       BIGINT,
     create_dt        TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
     update_dt        TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE sai_mcp_server IS 'MCP·şÎñÅäÖÃ±í';
-COMMENT ON COLUMN sai_mcp_server.name IS 'MCP·şÎñÃû³Æ';
-COMMENT ON COLUMN sai_mcp_server.description IS 'MCP·şÎñÃèÊö';
-COMMENT ON COLUMN sai_mcp_server.transport_type IS '´«ÊäÀàĞÍ: 1-SSE 2-Streamable HTTP 3-Stdio';
-COMMENT ON COLUMN sai_mcp_server.base_uri IS '·şÎñ»ù´¡µØÖ·SSE/Streamable HTTPÊ±Ê¹ÓÃ';
-COMMENT ON COLUMN sai_mcp_server.endpoint IS '¶ËµãÂ·¾¶SSE/Streamable HTTPÊ±¿ÉÑ¡';
-COMMENT ON COLUMN sai_mcp_server.command IS 'StdioÃüÁîStdioÊ±±ØÌî';
-COMMENT ON COLUMN sai_mcp_server.args IS 'StdioÃüÁî²ÎÊıJSONÊı×é';
-COMMENT ON COLUMN sai_mcp_server.env_vars IS 'Stdio»·¾³±äÁ¿JSON¶ÔÏó';
-COMMENT ON COLUMN sai_mcp_server.version IS '°æ±¾';
-COMMENT ON COLUMN sai_mcp_server.auth_type IS 'ÈÏÖ¤·½Ê½: 0-ÎŞĞèÈÏÖ¤ 1-API Key 2-OAuth 3-Basic Auth';
-COMMENT ON COLUMN sai_mcp_server.auth_config IS 'ÈÏÖ¤ÅäÖÃJSON';
-COMMENT ON COLUMN sai_mcp_server.capabilities IS 'ÄÜÁ¦ÁĞ±íJSONÊı×é';
-COMMENT ON COLUMN sai_mcp_server.last_connect_dt IS '×îºóÁ¬½ÓÊ±¼ä';
-COMMENT ON COLUMN sai_mcp_server.creator_id IS '´´½¨ÕßÓÃ»§ID';
+COMMENT ON TABLE sai_mcp_server IS 'MCPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã±ï¿½';
+COMMENT ON COLUMN sai_mcp_server.name IS 'MCPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_mcp_server.description IS 'MCPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_mcp_server.transport_type IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: 1-SSE 2-Streamable HTTP 3-Stdio';
+COMMENT ON COLUMN sai_mcp_server.base_uri IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö·SSE/Streamable HTTPÊ±Ê¹ï¿½ï¿½';
+COMMENT ON COLUMN sai_mcp_server.endpoint IS 'ï¿½Ëµï¿½Â·ï¿½ï¿½SSE/Streamable HTTPÊ±ï¿½ï¿½Ñ¡';
+COMMENT ON COLUMN sai_mcp_server.command IS 'Stdioï¿½ï¿½ï¿½ï¿½StdioÊ±ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_mcp_server.args IS 'Stdioï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½JSONï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_mcp_server.env_vars IS 'Stdioï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½JSONï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_mcp_server.timeout IS 'MCP timeout milliseconds';
+COMMENT ON COLUMN sai_mcp_server.headers IS 'MCP HTTP headers JSON object';
+COMMENT ON COLUMN sai_mcp_server.last_connect_dt IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½';
+COMMENT ON COLUMN sai_mcp_server.creator_id IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ID';
 
 CREATE INDEX idx_sai_mcp_server_creator ON sai_mcp_server (creator_id);
 
--- 5.2 ÖÇÄÜÌåÓëMCP·şÎñ¹ØÁª±í¶à¶Ô¶à
+-- 5.2 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½MCPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¶ï¿½
 CREATE TABLE IF NOT EXISTS sai_agent_mcp_server
 (
     id            BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -480,19 +516,19 @@ CREATE TABLE IF NOT EXISTS sai_agent_mcp_server
     CONSTRAINT uk_sai_agent_mcp_server UNIQUE (agent_id, mcp_server_id)
 );
 
-COMMENT ON TABLE sai_agent_mcp_server IS 'ÖÇÄÜÌåMCP·şÎñ¹ØÁª±í';
-COMMENT ON COLUMN sai_agent_mcp_server.agent_id IS 'ÖÇÄÜÌåID';
-COMMENT ON COLUMN sai_agent_mcp_server.mcp_server_id IS 'MCP·şÎñID';
+COMMENT ON TABLE sai_agent_mcp_server IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½MCPï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent_mcp_server.agent_id IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID';
+COMMENT ON COLUMN sai_agent_mcp_server.mcp_server_id IS 'MCPï¿½ï¿½ï¿½ï¿½ID';
 
 CREATE INDEX idx_sai_agent_mcp_server_agent ON sai_agent_mcp_server (agent_id);
 CREATE INDEX idx_sai_agent_mcp_server_server ON sai_agent_mcp_server (mcp_server_id);
 
 
 -- ============================================================
--- Áù¡¢Skill ¼¼ÄÜ°ü¹ÜÀí
+-- ï¿½ï¿½ï¿½ï¿½Skill ï¿½ï¿½ï¿½Ü°ï¿½ï¿½ï¿½ï¿½ï¿½
 -- ============================================================
 
--- 6.1 Skill ¼¼ÄÜ°ü±í
+-- 6.1 Skill ï¿½ï¿½ï¿½Ü°ï¿½ï¿½ï¿½
 CREATE TABLE IF NOT EXISTS sai_skill
 (
     id            BIGINT        IDENTITY(1,1) PRIMARY KEY,
@@ -510,21 +546,21 @@ CREATE TABLE IF NOT EXISTS sai_skill
     update_dt     TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE sai_skill IS 'Skill¼¼ÄÜ°ü±í';
-COMMENT ON COLUMN sai_skill.name IS 'SkillÃû³Æ´ÓSKILL.md½âÎö';
-COMMENT ON COLUMN sai_skill.description IS 'SkillÃèÊö´ÓSKILL.md½âÎö';
-COMMENT ON COLUMN sai_skill.file_name IS 'ÉÏ´«µÄzipÎÄ¼şÃû';
-COMMENT ON COLUMN sai_skill.file_path IS '½âÑ¹ºó´æ´¢Â·¾¶';
-COMMENT ON COLUMN sai_skill.file_size IS 'ÎÄ¼ş´óĞ¡×Ö½Ú';
-COMMENT ON COLUMN sai_skill.skill_content IS 'SKILL.mdÕıÎÄÄÚÈİÈ¥³ıfrontmatter';
-COMMENT ON COLUMN sai_skill.storage_path IS '¶ÔÏó´æ´¢Ïà¶ÔÂ·¾¶Ç°×ºÈç skills/123/';
-COMMENT ON COLUMN sai_skill.version IS '°æ±¾ºÅ£¬ÎÄ¼ş±ä¸üÊ±×ÔÔö£¬ÓÃÓÚ»º´æÒ»ÖÂĞÔĞ£Ñé';
-COMMENT ON COLUMN sai_skill.has_files IS 'ÊÇ·ñ°üº¬Ö§³ÅÎÄ¼ş0=½öSKILL.md£¬1=ÓĞscripts/referencesµÈ';
-COMMENT ON COLUMN sai_skill.creator_id IS '´´½¨ÕßÓÃ»§ID';
+COMMENT ON TABLE sai_skill IS 'Skillï¿½ï¿½ï¿½Ü°ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_skill.name IS 'Skillï¿½ï¿½ï¿½Æ´ï¿½SKILL.mdï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_skill.description IS 'Skillï¿½ï¿½ï¿½ï¿½ï¿½ï¿½SKILL.mdï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_skill.file_name IS 'ï¿½Ï´ï¿½ï¿½ï¿½zipï¿½Ä¼ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_skill.file_path IS 'ï¿½ï¿½Ñ¹ï¿½ï¿½æ´¢Â·ï¿½ï¿½';
+COMMENT ON COLUMN sai_skill.file_size IS 'ï¿½Ä¼ï¿½ï¿½ï¿½Ğ¡ï¿½Ö½ï¿½';
+COMMENT ON COLUMN sai_skill.skill_content IS 'SKILL.mdï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¥ï¿½ï¿½frontmatter';
+COMMENT ON COLUMN sai_skill.storage_path IS 'ï¿½ï¿½ï¿½ï¿½æ´¢ï¿½ï¿½ï¿½Â·ï¿½ï¿½Ç°×ºï¿½ï¿½ skills/123/';
+COMMENT ON COLUMN sai_skill.version IS 'ï¿½æ±¾ï¿½Å£ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ú»ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½Ğ£ï¿½ï¿½';
+COMMENT ON COLUMN sai_skill.has_files IS 'ï¿½Ç·ï¿½ï¿½ï¿½ï¿½Ö§ï¿½ï¿½ï¿½Ä¼ï¿½0=ï¿½ï¿½SKILL.mdï¿½ï¿½1=ï¿½ï¿½scripts/referencesï¿½ï¿½';
+COMMENT ON COLUMN sai_skill.creator_id IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ã»ï¿½ID';
 
 CREATE INDEX idx_sai_skill_creator ON sai_skill (creator_id);
 
--- 6.2 Skill Ö§³ÅÎÄ¼şÄÚÈİ±í
+-- 6.2 Skill Ö§ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½İ±ï¿½
 CREATE TABLE IF NOT EXISTS sai_skill_file
 (
     id         BIGINT       IDENTITY(1,1) PRIMARY KEY,
@@ -538,18 +574,18 @@ CREATE TABLE IF NOT EXISTS sai_skill_file
     CONSTRAINT uk_sai_skill_file_path UNIQUE (skill_id, file_path)
 );
 
-COMMENT ON TABLE sai_skill_file IS 'SkillÖ§³ÅÎÄ¼şÄÚÈİ±í';
+COMMENT ON TABLE sai_skill_file IS 'SkillÖ§ï¿½ï¿½ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½İ±ï¿½';
 COMMENT ON COLUMN sai_skill_file.skill_id IS 'Skill ID';
-COMMENT ON COLUMN sai_skill_file.file_path IS 'ÎÄ¼şÏà¶ÔÂ·¾¶';
-COMMENT ON COLUMN sai_skill_file.content IS 'ÎÄ¼şÄÚÈİ';
-COMMENT ON COLUMN sai_skill_file.file_size IS 'ÎÄ¼ş´óĞ¡×Ö½Ú';
-COMMENT ON COLUMN sai_skill_file.encoding IS '±àÂë·½Ê½';
-COMMENT ON COLUMN sai_skill_file.created_at IS '´´½¨Ê±¼ä';
-COMMENT ON COLUMN sai_skill_file.updated_at IS '¸üĞÂÊ±¼ä';
+COMMENT ON COLUMN sai_skill_file.file_path IS 'ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½Â·ï¿½ï¿½';
+COMMENT ON COLUMN sai_skill_file.content IS 'ï¿½Ä¼ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_skill_file.file_size IS 'ï¿½Ä¼ï¿½ï¿½ï¿½Ğ¡ï¿½Ö½ï¿½';
+COMMENT ON COLUMN sai_skill_file.encoding IS 'ï¿½ï¿½ï¿½ë·½Ê½';
+COMMENT ON COLUMN sai_skill_file.created_at IS 'ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½';
+COMMENT ON COLUMN sai_skill_file.updated_at IS 'ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½';
 
 CREATE INDEX idx_sai_skill_file_skill_id ON sai_skill_file (skill_id);
 
--- 6.3 ÖÇÄÜÌåÓëSkill¹ØÁª±í¶à¶Ô¶à
+-- 6.3 ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Skillï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¶ï¿½
 CREATE TABLE IF NOT EXISTS sai_agent_skill
 (
     id         BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -559,8 +595,8 @@ CREATE TABLE IF NOT EXISTS sai_agent_skill
     CONSTRAINT uk_sai_agent_skill UNIQUE (agent_id, skill_id)
 );
 
-COMMENT ON TABLE sai_agent_skill IS 'ÖÇÄÜÌåSkill¹ØÁª±í';
-COMMENT ON COLUMN sai_agent_skill.agent_id IS 'ÖÇÄÜÌåID';
+COMMENT ON TABLE sai_agent_skill IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Skillï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_agent_skill.agent_id IS 'ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ID';
 COMMENT ON COLUMN sai_agent_skill.skill_id IS 'Skill ID';
 
 CREATE INDEX idx_sai_agent_skill_agent ON sai_agent_skill (agent_id);
@@ -568,10 +604,10 @@ CREATE INDEX idx_sai_agent_skill_skill ON sai_agent_skill (skill_id);
 
 
 -- ============================================================
--- Æß¡¢¿Í»§¶ËÓ¦ÓÃÓë½Úµã
+-- ï¿½ß¡ï¿½ï¿½Í»ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ï¿½ï¿½Úµï¿½
 -- ============================================================
 
--- 7.1 ¿Í»§¶ËÓ¦ÓÃ
+-- 7.1 ï¿½Í»ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½
 CREATE TABLE IF NOT EXISTS sai_app
 (
     id             BIGINT       IDENTITY(1,1) PRIMARY KEY,
@@ -586,15 +622,15 @@ CREATE TABLE IF NOT EXISTS sai_app
     CONSTRAINT uk_sai_app_app_id UNIQUE (app_id)
 );
 
-COMMENT ON TABLE sai_app IS '¿Í»§¶ËÓ¦ÓÃ';
-COMMENT ON COLUMN sai_app.app_id IS 'Ó¦ÓÃÎ¨Ò»±êÊ¶';
-COMMENT ON COLUMN sai_app.app_name IS 'Ó¦ÓÃÃû³Æ';
-COMMENT ON COLUMN sai_app.description IS 'Ó¦ÓÃÃèÊö';
-COMMENT ON COLUMN sai_app.token IS 'Í¨ĞÅÈÏÖ¤ÁîÅÆ';
-COMMENT ON COLUMN sai_app.route_strategy IS 'Â·ÓÉ²ßÂÔ';
-COMMENT ON COLUMN sai_app.status IS '1=ÆôÓÃ, 0=Í£ÓÃ';
+COMMENT ON TABLE sai_app IS 'ï¿½Í»ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½';
+COMMENT ON COLUMN sai_app.app_id IS 'Ó¦ï¿½ï¿½Î¨Ò»ï¿½ï¿½Ê¶';
+COMMENT ON COLUMN sai_app.app_name IS 'Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_app.description IS 'Ó¦ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_app.token IS 'Í¨ï¿½ï¿½ï¿½ï¿½Ö¤ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_app.route_strategy IS 'Â·ï¿½É²ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_app.status IS '1=ï¿½ï¿½ï¿½ï¿½, 0=Í£ï¿½ï¿½';
 
--- 7.2 AI¿Í»§¶ËÊµÀı½Úµã
+-- 7.2 AIï¿½Í»ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½Úµï¿½
 CREATE TABLE IF NOT EXISTS sai_client_node
 (
     id                  BIGINT       IDENTITY(1,1) PRIMARY KEY,
@@ -612,25 +648,25 @@ CREATE TABLE IF NOT EXISTS sai_client_node
     CONSTRAINT uk_sai_client_node UNIQUE (app_id, host_id)
 );
 
-COMMENT ON TABLE sai_client_node IS 'AI¿Í»§¶ËÊµÀı½Úµã';
-COMMENT ON COLUMN sai_client_node.app_id IS 'ËùÊôÓ¦ÓÃID';
-COMMENT ON COLUMN sai_client_node.host_id IS '¿Í»§¶ËÊµÀıÎ¨Ò»±êÊ¶';
-COMMENT ON COLUMN sai_client_node.host_ip IS '¿Í»§¶ËIP';
-COMMENT ON COLUMN sai_client_node.grpc_port IS '¿Í»§¶ËgRPC¶Ë¿Ú';
-COMMENT ON COLUMN sai_client_node.max_concurrent IS '×î´ó²¢·¢¶Ô»°Êı';
-COMMENT ON COLUMN sai_client_node.active_chats IS 'µ±Ç°»îÔ¾¶Ô»°Êı';
-COMMENT ON COLUMN sai_client_node.supported_providers IS 'Ö§³ÖµÄÄ£ĞÍÌá¹©ÉÌJSONÊı×é';
-COMMENT ON COLUMN sai_client_node.labels IS 'Â·ÓÉ±êÇ©';
-COMMENT ON COLUMN sai_client_node.expire_dt IS '¹ıÆÚÊ±¼äĞÄÌø¸üĞÂ';
+COMMENT ON TABLE sai_client_node IS 'AIï¿½Í»ï¿½ï¿½ï¿½Êµï¿½ï¿½ï¿½Úµï¿½';
+COMMENT ON COLUMN sai_client_node.app_id IS 'ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½ID';
+COMMENT ON COLUMN sai_client_node.host_id IS 'ï¿½Í»ï¿½ï¿½ï¿½Êµï¿½ï¿½Î¨Ò»ï¿½ï¿½Ê¶';
+COMMENT ON COLUMN sai_client_node.host_ip IS 'ï¿½Í»ï¿½ï¿½ï¿½IP';
+COMMENT ON COLUMN sai_client_node.grpc_port IS 'ï¿½Í»ï¿½ï¿½ï¿½gRPCï¿½Ë¿ï¿½';
+COMMENT ON COLUMN sai_client_node.max_concurrent IS 'ï¿½ï¿½ó²¢·ï¿½ï¿½Ô»ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_client_node.active_chats IS 'ï¿½ï¿½Ç°ï¿½ï¿½Ô¾ï¿½Ô»ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_client_node.supported_providers IS 'Ö§ï¿½Öµï¿½Ä£ï¿½ï¿½ï¿½á¹©ï¿½ï¿½JSONï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_client_node.labels IS 'Â·ï¿½É±ï¿½Ç©';
+COMMENT ON COLUMN sai_client_node.expire_dt IS 'ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
 
 CREATE INDEX idx_sai_client_node_app_expire ON sai_client_node (app_id, expire_dt);
 
 
 -- ============================================================
--- °Ë¡¢´æ´¢Óë×ÊÔ´
+-- ï¿½Ë¡ï¿½ï¿½æ´¢ï¿½ï¿½ï¿½ï¿½Ô´
 -- ============================================================
 
--- 8.1 ´æ´¢ÊµÀı
+-- 8.1 ï¿½æ´¢Êµï¿½ï¿½
 CREATE TABLE IF NOT EXISTS sai_store_instance
 (
     id         BIGINT       IDENTITY(1,1) PRIMARY KEY,
@@ -644,18 +680,18 @@ CREATE TABLE IF NOT EXISTS sai_store_instance
     update_dt  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE sai_store_instance IS '´æ´¢ÊµÀı';
-COMMENT ON COLUMN sai_store_instance.name IS 'ÊµÀıÃû³Æ';
-COMMENT ON COLUMN sai_store_instance.category IS '·ÖÀà: 1-ÏòÁ¿¿â 2-ËÑË÷ÒıÇæ';
-COMMENT ON COLUMN sai_store_instance.type IS 'ÀàĞÍ: 1-PG_VECTOR 2-MILVUS 3-ELASTICSEARCH 4-PG_FULLTEXT';
-COMMENT ON COLUMN sai_store_instance.config IS 'Á¬½Ó²ÎÊı JSON';
-COMMENT ON COLUMN sai_store_instance.status IS '×´Ì¬: 0-Í£ÓÃ 1-ÆôÓÃ';
-COMMENT ON COLUMN sai_store_instance.is_default IS 'ÊÇ·ñÎª¸Ã category ÏÂÄ¬ÈÏÊµÀı';
+COMMENT ON TABLE sai_store_instance IS 'ï¿½æ´¢Êµï¿½ï¿½';
+COMMENT ON COLUMN sai_store_instance.name IS 'Êµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_store_instance.category IS 'ï¿½ï¿½ï¿½ï¿½: 1-ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 2-ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_store_instance.type IS 'ï¿½ï¿½ï¿½ï¿½: 1-PG_VECTOR 2-MILVUS 3-ELASTICSEARCH 4-PG_FULLTEXT';
+COMMENT ON COLUMN sai_store_instance.config IS 'ï¿½ï¿½ï¿½Ó²ï¿½ï¿½ï¿½ JSON';
+COMMENT ON COLUMN sai_store_instance.status IS '×´Ì¬: 0-Í£ï¿½ï¿½ 1-ï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_store_instance.is_default IS 'ï¿½Ç·ï¿½Îªï¿½ï¿½ category ï¿½ï¿½Ä¬ï¿½ï¿½Êµï¿½ï¿½';
 
 CREATE INDEX idx_sai_store_instance_category ON sai_store_instance (category);
 CREATE INDEX idx_sai_store_instance_type ON sai_store_instance (type);
 
--- 8.2 Í¨ÓÃ×ÊÔ´´æ´¢
+-- 8.2 Í¨ï¿½ï¿½ï¿½ï¿½Ô´ï¿½æ´¢
 CREATE TABLE IF NOT EXISTS sai_resource
 (
     id            BIGINT        IDENTITY(1,1) PRIMARY KEY,
@@ -673,23 +709,23 @@ CREATE TABLE IF NOT EXISTS sai_resource
     CONSTRAINT uk_sai_resource_storage_key UNIQUE (storage_key)
 );
 
-COMMENT ON TABLE sai_resource IS 'Í¨ÓÃ×ÊÔ´´æ´¢';
-COMMENT ON COLUMN sai_resource.storage_key IS '´æ´¢¼üÏà¶ÔÂ·¾¶»ò¶ÔÏóKey';
-COMMENT ON COLUMN sai_resource.original_name IS 'Ô­Ê¼ÎÄ¼şÃû';
-COMMENT ON COLUMN sai_resource.file_size IS 'ÎÄ¼ş´óĞ¡bytes';
-COMMENT ON COLUMN sai_resource.mime_type IS 'MIMEÀàĞÍ';
-COMMENT ON COLUMN sai_resource.storage_type IS '´æ´¢ÀàĞÍ: LOCAL/MINIO';
-COMMENT ON COLUMN sai_resource.access_url IS '·ÃÎÊURL';
-COMMENT ON COLUMN sai_resource.biz_type IS 'ÒµÎñÀàĞÍ: AVATAR/ATTACHMENT/DOCUMENT/GENERAL';
-COMMENT ON COLUMN sai_resource.biz_id IS '¹ØÁªÒµÎñID';
-COMMENT ON COLUMN sai_resource.creator_id IS 'ÉÏ´«ÕßID';
+COMMENT ON TABLE sai_resource IS 'Í¨ï¿½ï¿½ï¿½ï¿½Ô´ï¿½æ´¢';
+COMMENT ON COLUMN sai_resource.storage_key IS 'ï¿½æ´¢ï¿½ï¿½ï¿½ï¿½ï¿½Â·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Key';
+COMMENT ON COLUMN sai_resource.original_name IS 'Ô­Ê¼ï¿½Ä¼ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_resource.file_size IS 'ï¿½Ä¼ï¿½ï¿½ï¿½Ğ¡bytes';
+COMMENT ON COLUMN sai_resource.mime_type IS 'MIMEï¿½ï¿½ï¿½ï¿½';
+COMMENT ON COLUMN sai_resource.storage_type IS 'ï¿½æ´¢ï¿½ï¿½ï¿½ï¿½: LOCAL/MINIO';
+COMMENT ON COLUMN sai_resource.access_url IS 'ï¿½ï¿½ï¿½ï¿½URL';
+COMMENT ON COLUMN sai_resource.biz_type IS 'Òµï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: AVATAR/ATTACHMENT/DOCUMENT/GENERAL';
+COMMENT ON COLUMN sai_resource.biz_id IS 'ï¿½ï¿½ï¿½ï¿½Òµï¿½ï¿½ID';
+COMMENT ON COLUMN sai_resource.creator_id IS 'ï¿½Ï´ï¿½ï¿½ï¿½ID';
 
 CREATE INDEX idx_sai_resource_biz ON sai_resource (biz_type, biz_id);
 CREATE INDEX idx_sai_resource_creator ON sai_resource (creator_id);
 
 
 -- ============================================================
--- ¾Å¡¢´¥·¢Æ÷Ìæ´ú MySQL µÄ ON UPDATE CURRENT_TIMESTAMP
+-- ï¿½Å¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ MySQL ï¿½ï¿½ ON UPDATE CURRENT_TIMESTAMP
 -- ============================================================
 
 -- sai_user.update_dt
@@ -782,6 +818,15 @@ BEGIN
 END;
 /
 
+-- sai_rag_document_image.update_dt
+CREATE OR REPLACE TRIGGER trg_sai_rag_document_image_update_dt
+    BEFORE UPDATE ON sai_rag_document_image
+    FOR EACH ROW
+BEGIN
+    :NEW.update_dt = CURRENT_TIMESTAMP;
+END;
+/
+
 -- sai_rag_chunk.update_dt
 CREATE OR REPLACE TRIGGER trg_sai_rag_chunk_update_dt
     BEFORE UPDATE ON sai_rag_chunk
@@ -856,52 +901,52 @@ END;
 
 
 -- ============================================================
--- Ê®¡¢³õÊ¼»¯Êı¾İ
+-- Ê®ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 -- ============================================================
 
--- 10.1 Ä¬ÈÏ¹ÜÀíÔ±£ºadmin / admin123
+-- 10.1 Ä¬ï¿½Ï¹ï¿½ï¿½ï¿½Ô±ï¿½ï¿½admin / admin123
 SET IDENTITY_INSERT sai_user ON;
 INSERT INTO sai_user (id, role, username, email, password, create_dt, update_dt)
 VALUES (1, 2, 'admin', '', 'pbkdf2$120000$c25haWwtYWktYWRtaW4tMQ==$kakglT/wYKOgv/77Ah1stie58d/JbY2nGgq5DwgUBw4=',
         TIMESTAMP '2026-02-11 13:56:48.210429', TIMESTAMP '2026-02-11 13:56:48.210429');
 SET IDENTITY_INSERT sai_user OFF;
 
--- 10.2 ²åÈë³£¼ûµÄAIÌá¹©ÉÌÊ¹ÓÃ MERGE INTO Ä£Äâ INSERT IGNORE
--- 10.2 ²åÈë³£¼ûµÄAIÌá¹©ÉÌ
+-- 10.2 ï¿½ï¿½ï¿½ë³£ï¿½ï¿½ï¿½ï¿½AIï¿½á¹©ï¿½ï¿½Ê¹ï¿½ï¿½ MERGE INTO Ä£ï¿½ï¿½ INSERT IGNORE
+-- 10.2 ï¿½ï¿½ï¿½ë³£ï¿½ï¿½ï¿½ï¿½AIï¿½á¹©ï¿½ï¿½
 INSERT INTO sai_model_provider (provider_name, provider_key, description, is_enabled)
-SELECT 'OpenAI', 'openai', 'OpenAI¹Ù·½Ä£ĞÍ GPT-4 GPT-3.5µÈ', 1
+SELECT 'OpenAI', 'openai', 'OpenAIï¿½Ù·ï¿½Ä£ï¿½ï¿½ GPT-4 GPT-3.5ï¿½ï¿½', 1
 WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = 'OpenAI');
 
 INSERT INTO sai_model_provider (provider_name, provider_key, description, is_enabled)
-SELECT 'Claude', 'claude', 'Anthropic ClaudeÄ£ĞÍ', 1
+SELECT 'Claude', 'claude', 'Anthropic ClaudeÄ£ï¿½ï¿½', 1
 WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = 'Claude');
 
 INSERT INTO sai_model_provider (provider_name, provider_key, description, is_enabled)
-SELECT 'Ollama', 'ollama', '±¾µØ¿ªÔ´Ä£ĞÍ Llama MistralµÈ', 1
+SELECT 'Ollama', 'ollama', 'ï¿½ï¿½ï¿½Ø¿ï¿½Ô´Ä£ï¿½ï¿½ Llama Mistralï¿½ï¿½', 1
 WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = 'Ollama');
 
 INSERT INTO sai_model_provider (provider_name, provider_key, description, is_enabled)
-SELECT 'Google Gemini', 'gemini', 'Google GeminiÄ£ĞÍ', 1
+SELECT 'Google Gemini', 'gemini', 'Google GeminiÄ£ï¿½ï¿½', 1
 WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = 'Google Gemini');
 
 INSERT INTO sai_model_provider (provider_name, provider_key, description, is_enabled)
-SELECT '°¢ÀïÔÆ°ÙÁ¶', 'qwen', '°¢ÀïÔÆ°ÙÁ¶ OpenAI ¼æÈİÄ£ĞÍ QwenµÈ', 1
-WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = '°¢ÀïÔÆ°ÙÁ¶');
+SELECT 'ï¿½ï¿½ï¿½ï¿½ï¿½Æ°ï¿½ï¿½ï¿½', 'qwen', 'ï¿½ï¿½ï¿½ï¿½ï¿½Æ°ï¿½ï¿½ï¿½ OpenAI ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ Qwenï¿½ï¿½', 1
+WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = 'ï¿½ï¿½ï¿½ï¿½ï¿½Æ°ï¿½ï¿½ï¿½');
 
 INSERT INTO sai_model_provider (provider_name, provider_key, description, is_enabled)
-SELECT 'DeepSeek', 'deepseek', 'DeepSeek OpenAI ¼æÈİÄ£ĞÍ', 1
+SELECT 'DeepSeek', 'deepseek', 'DeepSeek OpenAI ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½', 1
 WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = 'DeepSeek');
 
 INSERT INTO sai_model_provider (provider_name, provider_key, description, is_enabled)
-SELECT 'ÖÇÆ×AI', 'zhipu', 'ÖÇÆ×AI OpenAI ¼æÈİÄ£ĞÍ GLMµÈ', 1
-WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = 'ÖÇÆ×AI');
--- 10.3 ³õÊ¼»¯²âÊÔÓ¦ÓÃ
+SELECT 'ï¿½ï¿½ï¿½ï¿½AI', 'zhipu', 'ï¿½ï¿½ï¿½ï¿½AI OpenAI ï¿½ï¿½ï¿½ï¿½Ä£ï¿½ï¿½ GLMï¿½ï¿½', 1
+WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = 'ï¿½ï¿½ï¿½ï¿½AI');
+-- 10.3 ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ó¦ï¿½ï¿½
 SET IDENTITY_INSERT sai_app ON;
 INSERT INTO sai_app (id, app_id, app_name, description, token, route_strategy, status, create_dt, update_dt)
 VALUES (1, 'snail-ai-agent-demo', 'snail-ai-agent-demo', '', 'SAI_3ce13fa4e56a43c2b42e380c649629a5', 'LEAST_LOAD', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 SET IDENTITY_INSERT sai_app OFF;
 
--- 10.4 ³õÊ¼»¯²âÊÔµÄopenid
+-- 10.4 ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½Ôµï¿½openid
 SET IDENTITY_INSERT sai_openapi_user ON;
 INSERT INTO sai_openapi_user (id, app_id, open_id, platform_user_id, external_id, create_dt, update_dt)
 VALUES (1, 'snail-ai-agent-demo', '46ed53c6a20044c7bbd870848e80f92f', 1, '1', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
@@ -910,7 +955,7 @@ SET IDENTITY_INSERT sai_openapi_user OFF;
 COMMIT;
 
 -- ============================================================
--- ½Å±¾½áÊø
--- Ê¹ÓÃ·½Ê½£ºÔÚ´ïÃÎ¹ÜÀí¹¤¾ßDM Manager/DISQLÖĞÖ´ĞĞ´Ë½Å±¾¼´¿É
+-- ï¿½Å±ï¿½ï¿½ï¿½ï¿½ï¿½
+-- Ê¹ï¿½Ã·ï¿½Ê½ï¿½ï¿½ï¿½Ú´ï¿½ï¿½Î¹ï¿½ï¿½ï¿½ï¿½ï¿½DM Manager/DISQLï¿½ï¿½Ö´ï¿½Ğ´Ë½Å±ï¿½ï¿½ï¿½ï¿½ï¿½
 -- disql SYSDBA/SYSDBA@localhost:5236 -f snail_ai_schema_dameng.sql
 -- ============================================================

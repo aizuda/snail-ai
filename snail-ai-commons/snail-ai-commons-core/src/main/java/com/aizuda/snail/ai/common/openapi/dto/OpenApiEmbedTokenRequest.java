@@ -7,6 +7,9 @@ import lombok.Data;
 
 /**
  * OpenAPI 嵌入式对话 token 请求。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Data
 public class OpenApiEmbedTokenRequest {

@@ -13,6 +13,12 @@ import org.springframework.stereotype.Component;
 import java.io.InputStream;
 import java.util.StringJoiner;
 
+/**
+ * Excel（.xlsx/.xls）文档解析器，基于 Apache POI 将各工作表的行列转为「表头: 值」的文本。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Component
 public class ExcelParser implements DocumentParser {
@@ -47,14 +53,18 @@ public class ExcelParser implements DocumentParser {
 
                 for (int r = 1; r <= sheet.getLastRowNum(); r++) {
                     Row row = sheet.getRow(r);
-                    if (row == null) continue;
+                    if (row == null) {
+                        continue;
+                    }
 
                     StringJoiner joiner = new StringJoiner(", ");
                     boolean hasContent = false;
                     for (int c = 0; c < row.getLastCellNum(); c++) {
                         Cell cell = row.getCell(c);
                         String value = cell != null ? formatter.formatCellValue(cell).trim() : "";
-                        if (!value.isEmpty()) hasContent = true;
+                        if (!value.isEmpty()) {
+                            hasContent = true;
+                        }
 
                         String header = (headers != null && c < headers.length) ? headers[c] : "col" + c;
                         if (!value.isEmpty()) {

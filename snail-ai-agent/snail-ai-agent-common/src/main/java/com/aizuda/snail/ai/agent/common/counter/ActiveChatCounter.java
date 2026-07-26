@@ -6,7 +6,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 活跃对话计数器（Agent 实例级别共享）
  *
  * @author opensnail
- * @date 2025-04-08
+ * @since 2025-04-08
  */
 public class ActiveChatCounter {
 

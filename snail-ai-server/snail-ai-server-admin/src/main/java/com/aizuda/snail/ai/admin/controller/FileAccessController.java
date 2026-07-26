@@ -33,6 +33,9 @@ import java.util.regex.Pattern;
 
 /**
  * 公开资源访问入口。访问凭证是包含 UUID 的 storageKey，不使用自增资源 ID。
+ *
+ * @author opensnail
+ * @since 2026-06-20
  */
 @RestController
 @RequestMapping("/files")
@@ -67,6 +70,13 @@ public class FileAccessController {
     private final ResourceService resourceService;
     private final ResourceStorageFactory storageFactory;
 
+    /**
+     * 按 storageKey 读取并返回资源内容（公开访问；仅代理 LOCAL/MINIO 存储，并校验 key 合法性）
+     *
+     * @param request  原始请求，用于解析 {@code /files/} 之后的 storageKey
+     * @param download 为 {@code true} 时强制以附件下载，否则按 MIME 类型决定内联展示或下载
+     * @return 资源内容流响应；资源不存在或不可代理时返回 404
+     */
     @GetMapping("/**")
     @OriginalControllerReturnValue
     public ResponseEntity<InputStreamResource> access(HttpServletRequest request,

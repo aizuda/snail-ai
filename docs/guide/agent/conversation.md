@@ -160,6 +160,31 @@ curl -X POST 'http://localhost:8900/snail-ai/openapi/v1/user/register' \
 
 ![智能体对话页面](/images/client-chat/conversation-page.png)
 
+## 图片对话
+
+独立聊天页支持上传图片并随消息发送。前端先通过 `/api/snail/chat/resource/upload` 上传图片资源，再在 `/api/snail/chat/completions` 请求中传入：
+
+```json
+{
+  "agentId": 1,
+  "conversationId": "conv-abc123",
+  "content": "这张图里说了什么？",
+  "attachments": [
+    {"type": "IMAGE", "resourceId": 88}
+  ]
+}
+```
+
+选择图片后，输入框会展示缩略图并随本次消息发送：
+
+![图片对话上传预览](/images/client-chat/conversation-image-upload.png)
+
+模型识别图片后会在对话区返回分析结果：
+
+![图片对话识别结果](/images/client-chat/conversation-image-result.png)
+
+图片对话要求智能体绑定的 CHAT 模型在模型配置中开启“支持图片输入”，即 `configJson.capabilities` 包含 `vision`。目前图片附件支持 JPG、PNG、WEBP，每次最多 3 张，单张不超过 10MB。
+
 ## 网关接口
 
 | 接口 | 方法与路径 | 说明 |
@@ -175,7 +200,8 @@ curl -X POST 'http://localhost:8900/snail-ai/openapi/v1/user/register' \
 | 创建会话 | `POST /api/snail/chat/conversations` | 创建智能体会话 |
 | 删除/清空会话 | `DELETE /api/snail/chat/conversations` | 删除指定会话或清空智能体会话 |
 | 会话消息 | `GET /api/snail/chat/messages` | 查询会话消息 |
-| 流式对话 | `POST /api/snail/chat/completions` | SSE 流式对话 |
+| 上传对话资源 | `POST /api/snail/chat/resource/upload` | 上传图片等对话附件资源 |
+| 流式对话 | `POST /api/snail/chat/completions` | SSE 流式对话，支持携带图片附件 |
 
 除 `/config` 与 `/session` 外，网关接口通过 `Snail-Ai-Auth` 携带会话 Token。该 Header 只用于 Admin API 或智能体对话会话，不是 OpenAPI 外部集成的应用凭证。
 

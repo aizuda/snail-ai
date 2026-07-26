@@ -4,12 +4,10 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /**
- * <p>
- *
- * </p>
+ * 发送邮件请求：目标邮箱地址。
  *
  * @author opensnail
- * @date 2025-07-12
+ * @since 2025-07-12
  */
 @Data
 public class SentEmailRequestVO {

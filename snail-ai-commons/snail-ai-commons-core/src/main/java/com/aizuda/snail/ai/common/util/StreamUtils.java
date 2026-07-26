@@ -14,6 +14,9 @@ import java.util.stream.Stream;
 
 /**
  * stream 流工具类 (复制自 snail-job，使用 "" 替代 StringUtils.EMPTY)
+ *
+ * @author opensnail
+ * @since 2026-05-05
  */
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class StreamUtils {

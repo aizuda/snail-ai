@@ -12,6 +12,12 @@ import org.springframework.context.annotation.Bean;
 
 import java.util.List;
 
+/**
+ * 重排模型自动配置，装配重排模型运行时、Qwen 重排适配器及其描述符。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @AutoConfiguration
 public class SnailAiRerankModelAutoConfiguration {
 

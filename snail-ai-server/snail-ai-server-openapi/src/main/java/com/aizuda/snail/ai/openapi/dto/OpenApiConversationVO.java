@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
  * OpenAPI 会话信息
  *
  * @author opensnail
- * @date 2026-04-24
+ * @since 2026-04-24
  */
 @Data
 @Builder
@@ -19,13 +19,28 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class OpenApiConversationVO {
 
+    /**
+     * 会话 ID
+     */
     private String conversationId;
 
+    /**
+     * 智能体 ID
+     */
     private Long agentId;
 
+    /**
+     * 会话标题
+     */
     private String title;
 
+    /**
+     * 创建时间
+     */
     private LocalDateTime createDt;
 
+    /**
+     * 更新时间
+     */
     private LocalDateTime updateDt;
 }

@@ -19,6 +19,9 @@ import java.util.function.Supplier;
 
 /**
  * 客户端工具运行时，统一解析一次对话所需的工具集合。
+ *
+ * @author opensnail
+ * @since 2026-06-14
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -33,6 +36,12 @@ public class ToolRuntime {
     private final BaseToolResolver baseToolResolver;
     private final CustomToolCallbackProvider customToolCallbackProvider;
 
+    /**
+     * 解析一次对话所需的全部工具（MCP / 基础 / RAG / 技能 / 自定义）。
+     *
+     * @param dispatchRequest 对话分发请求
+     * @return 工具解析结果（含工具列表与 MCP 解析器，使用后需关闭释放）
+     */
     public ToolResolution resolve(ChatDispatchRequest dispatchRequest) {
         if (dispatchRequest == null) {
             throw new IllegalArgumentException("ChatDispatchRequest is required");

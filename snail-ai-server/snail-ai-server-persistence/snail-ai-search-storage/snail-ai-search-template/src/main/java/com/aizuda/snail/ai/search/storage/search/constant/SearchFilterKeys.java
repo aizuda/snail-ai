@@ -1,5 +1,11 @@
 package com.aizuda.snail.ai.search.storage.search.constant;
 
+/**
+ * 全文检索过滤字段名常量，用于构造检索过滤表达式时引用的元数据键名。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 public final class SearchFilterKeys {
 
     private SearchFilterKeys() {

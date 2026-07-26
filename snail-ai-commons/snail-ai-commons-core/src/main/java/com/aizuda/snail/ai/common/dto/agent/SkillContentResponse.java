@@ -10,7 +10,7 @@ import java.util.List;
  * Skill 内容回调响应
  *
  * @author opensnail
- * @date 2025-04-12
+ * @since 2025-04-12
  */
 @Data
 @AllArgsConstructor

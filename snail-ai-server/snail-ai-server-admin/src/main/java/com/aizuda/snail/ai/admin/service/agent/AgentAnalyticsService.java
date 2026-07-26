@@ -19,6 +19,12 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+/**
+ * 智能体分析服务，统计智能体的用量概览与明细（按时间范围聚合）。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -27,7 +33,11 @@ public class AgentAnalyticsService {
     private final AgentUsageStatMapper usageStatMapper;
     private final UserMapper userMapper;
     /**
-     * 获取分析概览
+     * 获取智能体用量分析概览（按 range 或自定义起止日期聚合活跃用户/会话/消息趋势）
+     *
+     * @param agentId 智能体 ID
+     * @param queryVO 时间范围参数（range 或 start/end）
+     * @return 用量分析概览
      */
     public AgentAnalyticsVO getAnalytics(Long agentId, AgentAnalyticsQueryVO queryVO) {
         String range = queryVO.getRange();
@@ -117,7 +127,11 @@ public class AgentAnalyticsService {
     }
 
     /**
-     * 获取使用明细
+     * 分页获取智能体用量明细（按用户聚合消息数）
+     *
+     * @param agentId 智能体 ID
+     * @param queryVO 时间范围与分页参数
+     * @return 用量明细分页结果
      */
     public PageResult<List<AgentUsageDetailVO>> getUsageDetail(Long agentId, AgentUsageDetailQueryVO queryVO) {
         LambdaQueryWrapper<AgentUsageStatPO> wrapper = new LambdaQueryWrapper<AgentUsageStatPO>()

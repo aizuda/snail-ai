@@ -1,7 +1,9 @@
 package com.aizuda.snail.ai.features.rag.search.pipeline.handler;
 
+import cn.hutool.core.collection.CollUtil;
 import com.aizuda.snail.ai.common.dto.rag.SearchResult;
 import com.aizuda.snail.ai.common.util.RagResultReorderUtil;
+import com.aizuda.snail.ai.features.rag.enums.RagChunkSourceTypeEnum;
 import com.aizuda.snail.ai.features.rag.search.pipeline.RagSearchContext;
 import com.aizuda.snail.ai.features.rag.search.pipeline.RagSearchHandler;
 import com.aizuda.snail.ai.persistence.rag.mapper.RagChunkMapper;
@@ -17,6 +19,12 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * 收尾节点：截断 TopK、回填切片正文与文档名、按需扩展相邻切片，并做「迷失中间」重排。
+ *
+ * @author opensnail
+ * @since 2026-06-14
+ */
 @Slf4j
 @Component
 @Order(70)
@@ -25,6 +33,7 @@ public class FinalizeHandler implements RagSearchHandler {
 
     private final RagChunkMapper ragChunkMapper;
     private final RagDocumentMapper ragDocumentMapper;
+    private final SearchResultImageEnricher searchResultImageEnricher;
 
     @Override
     public void handle(RagSearchContext ctx) {
@@ -37,6 +46,7 @@ public class FinalizeHandler implements RagSearchHandler {
         if (Objects.nonNull(nearbySliceCount) && nearbySliceCount > 0) {
             results = expandNearbySlices(results, nearbySliceCount);
         }
+        searchResultImageEnricher.enrich(results, ctx.getQuery());
 
         results = RagResultReorderUtil.reorderForLostInTheMiddle(results);
         ctx.setResults(results);
@@ -53,6 +63,9 @@ public class FinalizeHandler implements RagSearchHandler {
                 ctx.getMetrics() != null ? ctx.getMetrics().getTotalMs() : 0);
     }
 
+    /**
+     * 为每条结果扩展前后相邻切片，拼接为更完整的上下文内容。
+     */
     private List<SearchResult> expandNearbySlices(List<SearchResult> results, int nearbyCount) {
         List<SearchResult> expanded = new ArrayList<>();
         for (SearchResult result : results) {
@@ -62,6 +75,10 @@ public class FinalizeHandler implements RagSearchHandler {
             }
             RagChunkPO currentChunk = ragChunkMapper.selectById(result.getChunkId());
             if (currentChunk == null) {
+                expanded.add(result);
+                continue;
+            }
+            if (RagChunkSourceTypeEnum.isImage(currentChunk.getSourceType())) {
                 expanded.add(result);
                 continue;
             }
@@ -82,6 +99,9 @@ public class FinalizeHandler implements RagSearchHandler {
     }
 
 
+    /**
+     * 批量回填结果的切片正文、文档 ID 与文档名（仅填充缺失字段）。
+     */
     private void enrichWithContent(List<SearchResult> results) {
         List<Long> chunkIds = results.stream()
                 .map(SearchResult::getChunkId)
@@ -98,19 +118,21 @@ public class FinalizeHandler implements RagSearchHandler {
                 .map(RagChunkPO::getDocumentId)
                 .collect(Collectors.toSet());
         Map<Long, String> docNameMap = new HashMap<>();
-        if (!docIds.isEmpty()) {
-            for (Long docId : docIds) {
-                RagDocumentPO doc = ragDocumentMapper.selectById(docId);
-                if (doc != null) {
-                    docNameMap.put(docId, doc.getName());
-                }
+        if (CollUtil.isNotEmpty(docIds)) {
+            // 批量查询文档名，避免在循环中逐条 selectById 造成 N+1
+            for (RagDocumentPO doc : ragDocumentMapper.selectByIds(docIds)) {
+                docNameMap.put(doc.getId(), doc.getName());
             }
         }
 
         for (SearchResult result : results) {
-            if (result.getChunkId() == null) continue;
+            if (result.getChunkId() == null) {
+                continue;
+            }
             RagChunkPO chunk = chunkMap.get(result.getChunkId());
-            if (chunk == null) continue;
+            if (chunk == null) {
+                continue;
+            }
             if (result.getContent() == null) {
                 result.setContent(chunk.getContent());
             }

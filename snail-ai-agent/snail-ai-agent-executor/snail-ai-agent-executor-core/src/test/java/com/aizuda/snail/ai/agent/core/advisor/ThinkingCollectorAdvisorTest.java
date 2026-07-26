@@ -17,6 +17,12 @@ import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+/**
+ * {@code ThinkingCollectorAdvisor} 单元测试，验证从助手消息元数据中收集思考（reasoning）内容。
+ *
+ * @author opensnail
+ * @since 2026-06-21
+ */
 class ThinkingCollectorAdvisorTest {
 
     @Test
