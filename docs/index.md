@@ -10,7 +10,7 @@ hero:
     alt: Snail AI
   actions:
     - theme: brand
-      text: v1.0.0 正式版本 全新发布
+      text: v1.1.0 正式版本 全新发布
       link: /guide/quick-start
     - theme: alt
       text: Gitee 仓库
