@@ -17,7 +17,6 @@
         <module>snail-ai-models</module>
         <module>snail-ai-server</module>
         <module>snail-ai-agent</module>
-        <module>snail-ai-agent-example</module>
         <module>snail-ai-starter</module>
     </modules>
 
