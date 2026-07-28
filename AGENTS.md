@@ -50,15 +50,15 @@
 - 提交信息格式：`<type>(<version>): <中文描述>`，如 `feat(1.1.0): 新增用户管理`
 - 不要修改不相关的代码，保持变更最小化
 - 新增 API 端点时同步更新前端 service 层类型定义
-- 提交代码时使用 `git-submit` skill 或 `@agents/git-submit.md` 自动生成 commit message 和更新 changelog
+- 提交代码时使用 `git-submit` skill 或 `.agents/skills/git-submit/SKILL.md` 自动生成 commit message 和更新 changelog
 
 ## 开发规范 Skill
 
-- 每次编写或修改代码前，必须先阅读 `.claude/skills/dev-guide/SKILL.md`。
+- 每次编写或修改代码前，必须先阅读 `.agents/skills/dev-guide/SKILL.md`。
 - 按任务类型继续阅读对应细则：架构调整读 `architecture.md`，Java/编码风格读 `coding-standards.md`，数据库/Mapper/PO 调整读 `database-guide.md`，接口调整读 `api-design.md`，命名不确定时读 `naming-conventions.md`。
-- `.claude/skills/dev-guide/` 中的规范与本文件同时生效；如与当前开源版实际模块结构冲突，以当前代码结构和本文件的开源版约束为准。
-- **前端开发**：涉及前端变更时使用 `frontend-dev` skill 或 `@agents/frontend-dev.md`，遵循其中的 Vue 3/Naive UI 编码规范。
-- **Git 提交**：提交代码时使用 `git-submit` skill 或 `@agents/git-submit.md`，自动更新 changelog、生成规范 commit message、创建 Gitee PR。
+- `.agents/skills/dev-guide/` 中的规范与本文件同时生效；如与当前开源版实际模块结构冲突，以当前代码结构和本文件的开源版约束为准。
+- **前端开发**：涉及前端变更时使用 `frontend-dev` skill 或 `.agents/skills/frontend-dev/SKILL.md`，遵循其中的 Vue 3/Naive UI 编码规范。
+- **Git 提交**：提交代码时使用 `git-submit` skill 或 `.agents/skills/git-submit/SKILL.md`，自动更新 changelog、生成规范 commit message、创建 Gitee PR。
 - **环境配置**：`.env` 配置缺失时使用 `env-config` skill 引导用户完成配置。
 
 <!-- gitnexus:start -->
@@ -97,11 +97,11 @@ This project is indexed by GitNexus as **snail-ai** (16191 symbols, 34312 relati
 
 | Task | Read this skill file |
 |------|---------------------|
-| Understand architecture / "How does X work?" | `.claude/skills/gitnexus/gitnexus-exploring/SKILL.md` |
-| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
-| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus/gitnexus-debugging/SKILL.md` |
-| Rename / extract / split / refactor | `.claude/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
-| Tools, resources, schema reference | `.claude/skills/gitnexus/gitnexus-guide/SKILL.md` |
-| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus/gitnexus-cli/SKILL.md` |
+| Understand architecture / "How does X work?" | `.agents/skills/gitnexus/gitnexus-exploring/SKILL.md` |
+| Blast radius / "What breaks if I change X?" | `.agents/skills/gitnexus/gitnexus-impact-analysis/SKILL.md` |
+| Trace bugs / "Why is X failing?" | `.agents/skills/gitnexus/gitnexus-debugging/SKILL.md` |
+| Rename / extract / split / refactor | `.agents/skills/gitnexus/gitnexus-refactoring/SKILL.md` |
+| Tools, resources, schema reference | `.agents/skills/gitnexus/gitnexus-guide/SKILL.md` |
+| Index, status, clean, wiki CLI commands | `.agents/skills/gitnexus/gitnexus-cli/SKILL.md` |
 
 <!-- gitnexus:end -->
