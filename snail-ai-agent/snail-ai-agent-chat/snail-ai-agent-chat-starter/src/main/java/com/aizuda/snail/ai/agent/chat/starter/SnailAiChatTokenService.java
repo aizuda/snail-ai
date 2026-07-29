@@ -61,6 +61,9 @@ public class SnailAiChatTokenService {
             }
 
             String appId = claimAsString(jwt, CLAIM_APP_ID);
+            if (StrUtil.isBlank(appId)) {
+                appId = agentProperties.getAppId();
+            }
             if (StrUtil.isNotBlank(agentProperties.getAppId())
                     && StrUtil.isNotBlank(appId)
                     && !Objects.equals(agentProperties.getAppId(), appId)) {

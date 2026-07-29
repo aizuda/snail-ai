@@ -72,8 +72,9 @@ public class OpenApiAgentService {
                 .eq(AgentPO::getStatus, AgentStatusEnum.ACTIVE.getStatus())
                 .orderByDesc(AgentPO::getUpdateDt);
 
-        if (StrUtil.isNotBlank(request.getAppId())) {
-            wrapper.eq(AgentPO::getAppId, request.getAppId());
+        String appId = OpenApiSessionUtils.current().getAppId();
+        if (StrUtil.isNotBlank(appId)) {
+            wrapper.and(w -> w.isNull(AgentPO::getAppId).or().eq(AgentPO::getAppId, appId));
         }
 
         Page<AgentPO> page = agentMapper.selectPage(pageParam, wrapper);

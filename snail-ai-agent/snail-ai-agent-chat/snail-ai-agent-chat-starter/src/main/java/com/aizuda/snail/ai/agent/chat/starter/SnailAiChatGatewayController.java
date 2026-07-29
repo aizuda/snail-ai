@@ -128,7 +128,6 @@ public class SnailAiChatGatewayController {
     @SnailAiChatAuthorize
     @GetMapping("/agents")
     public PageResult<List<OpenApiAgentVO>> listAgents(@Valid OpenApiAgentQueryRequest request) {
-        request.setAppId(currentAppId());
         PageResult<List<OpenApiAgentVO>> agentPage = openApiAgentClient.listAgents(request);
         List<OpenApiAgentVO> agents = requirePageData(agentPage);
         if (agents == null || agents.isEmpty()) {
@@ -273,11 +272,6 @@ public class SnailAiChatGatewayController {
             throw new SnailAiException("Token 缺少 openId");
         }
         return openId;
-    }
-
-    /** 从会话上下文取当前应用 appId，用于智能体列表过滤 */
-    private String currentAppId() {
-        return SnailAiChatSessionContext.current().getAppId();
     }
 
     private String trimToNull(String value) {
