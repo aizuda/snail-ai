@@ -3,24 +3,14 @@
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
           xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.2.0 https://maven.apache.org/xsd/settings-1.2.0.xsd">
 
-    <!-- 本地仓库路径 -->
     <localRepository>${user.home}/.m2/repository</localRepository>
 
     <mirrors>
-        <!-- 阿里云 Maven 镜像 -->
-        <mirror>
-            <id>aliyunmaven</id>
-            <mirrorOf>central</mirrorOf>
-            <name>阿里云公共仓库</name>
-            <url>https://maven.aliyun.com/repository/public</url>
-        </mirror>
-
-        <!-- 华为云 Maven 镜像（备用） -->
         <mirror>
             <id>huaweicloud</id>
             <mirrorOf>central</mirrorOf>
             <name>华为云 Maven 镜像</name>
-            <url>https://repo.huaweicloud.com/repository/maven</url>
+            <url>https://mirrors.huaweicloud.com/repository/maven/</url>
         </mirror>
     </mirrors>
 
@@ -28,7 +18,7 @@
         <profile>
             <id>snail-ai</id>
             <repositories>
-                <!-- Spring 仓库 -->
+                <!-- Spring 里程碑仓库（Spring AI 2.0.0-M4 等依赖） -->
                 <repository>
                     <id>spring-milestones</id>
                     <name>Spring Milestones</name>
@@ -36,26 +26,12 @@
                     <releases><enabled>true</enabled></releases>
                     <snapshots><enabled>false</enabled></snapshots>
                 </repository>
-                <repository>
-                    <id>spring-snapshots</id>
-                    <name>Spring Snapshots</name>
-                    <url>https://repo.spring.io/snapshot</url>
-                    <releases><enabled>false</enabled></releases>
-                    <snapshots><enabled>true</enabled></snapshots>
-                </repository>
             </repositories>
             <pluginRepositories>
                 <pluginRepository>
-                    <id>aliyun-plugin</id>
-                    <name>阿里云插件仓库</name>
-                    <url>https://maven.aliyun.com/repository/public</url>
-                    <releases><enabled>true</enabled></releases>
-                    <snapshots><enabled>false</enabled></snapshots>
-                </pluginRepository>
-                <pluginRepository>
                     <id>huaweicloud-plugin</id>
                     <name>华为云插件仓库</name>
-                    <url>https://repo.huaweicloud.com/repository/maven</url>
+                    <url>https://mirrors.huaweicloud.com/repository/maven/</url>
                     <releases><enabled>true</enabled></releases>
                     <snapshots><enabled>false</enabled></snapshots>
                 </pluginRepository>
