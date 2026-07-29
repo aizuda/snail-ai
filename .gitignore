@@ -52,6 +52,10 @@ nbdist/
 .gitignore
 .flattened-pom.xml
 
+# 部署本地配置
+script/deploy.env
+script/docker/.env
+
 # 临时目录
 /upload/
 /temp/
@@ -67,22 +71,19 @@ tools/paddle-ocr-api/server/.paddlex-cache/
 tools/paddle-ocr-api/server/.pycache-local/
 tools/paddle-ocr-api/server/__pycache__/
 
-# Claude 智能体目录（关键修正顺序）
-# 先反向保留skills目录，再忽略其他claude内容
-!.claude/
-!.claude/skills/
-!.claude/skills/**
-.claude/*
-# 排除临时PR json文件（你的Agent生成的 .claude/tmp_pr_body.json）
-.claude/tmp_pr_body.json
+# Agent 智能体目录
+# 先忽略全部，再反向保留skills目录
+.agents/*
+!.agents/skills/
+!.agents/skills/**
+# 排除临时PR json文件
+.agents/tmp_pr_body.json
 
 # IDE
 .vscode
 .gitnexus
-/.agents/
 /.cursor/mcp.json
 /.cursor/rules/qingtian-mcp.mdc
 /.playwright-cli/
 
 /docs/superpowers/
-/.claude/
