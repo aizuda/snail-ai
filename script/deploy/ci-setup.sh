@@ -57,7 +57,7 @@ install_jdk() {
       apt-get update -qq
       apt-get install -y -qq bellsoft-java21
       ;;
-    centos|rhel|fedora|rocky|almalinux)
+    centos|rhel|fedora|rocky|almalinux|alinux)
       rpm --import https://packages.bell-sw.com/pgp/GPG-KEY-bellsoft
       cat > /etc/yum.repos.d/bellsoft.repo <<'REPO'
 [BellSoft]
@@ -92,7 +92,7 @@ install_maven() {
       apt-get update -qq
       apt-get install -y -qq maven
       ;;
-    centos|rhel|fedora|rocky|almalinux)
+    centos|rhel|fedora|rocky|almalinux|alinux)
       yum install -y maven 2>/dev/null || dnf install -y maven
       ;;
     *)
@@ -124,7 +124,7 @@ install_git() {
       apt-get update -qq
       apt-get install -y -qq git
       ;;
-    centos|rhel|fedora|rocky|almalinux)
+    centos|rhel|fedora|rocky|almalinux|alinux)
       yum install -y git 2>/dev/null || dnf install -y git
       ;;
     *)
@@ -150,7 +150,7 @@ install_node() {
         curl -fsSL https://deb.nodesource.com/setup_24.x | bash -
         apt-get install -y -qq nodejs
         ;;
-      centos|rhel|fedora|rocky|almalinux)
+      centos|rhel|fedora|rocky|almalinux|alinux)
         curl -fsSL https://rpm.nodesource.com/setup_24.x | bash -
         yum install -y nodejs 2>/dev/null || dnf install -y nodejs
         ;;
