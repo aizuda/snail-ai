@@ -83,7 +83,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 32M
+          memory: 64M
 
   ### 模型部署（演示环境可选）
   ollama:
@@ -103,18 +103,20 @@ services:
   ### Snail AI 应用服务
   snail-ai-server:
     build:
-      context: ../../snail-ai-starter
+      context: ${SNAIL_AI_STARTER_PATH}
       dockerfile: Dockerfile
     image: snail-ai-server:latest
     container_name: snail-ai-server
     environment:
       TZ: Asia/Shanghai
-      JAVA_OPTS: -Xms64m -Xmx256m -XX:+UseZGC -XX:+ZGenerational
-      SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/snail_ai?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&useUnicode=true
-      SPRING_DATASOURCE_USERNAME: root
-      SPRING_DATASOURCE_PASSWORD: 123456
-      SNAIL_AI_CRYPTO_KEY: 0123456789abcdef0123456789abcdef
-      SNAIL_AI_CRYPTO_IV: fedcba9876543210fedcba9876543210
+      JAVA_OPTS: >-
+        -Xms64m -Xmx256m -XX:+UseZGC -XX:+ZGenerational
+        -Dspring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+        -Dspring.datasource.url=jdbc:mysql://localhost:3306/snail_ai?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=utf8&useUnicode=true
+        -Dspring.datasource.username=root
+        -Dspring.datasource.password=123456
+        -Dsnail-ai.crypto.secret-key=0123456789abcdef0123456789abcdef
+        -Dsnail-ai.crypto.iv=fedcba9876543210fedcba9876543210
     ports:
       - "8900:8900"
       - "18888:18888"
@@ -123,8 +125,6 @@ services:
       - ${SNAIL_AI_SERVER_HOME:-./snail-ai-server}/upload:/snailai/server/upload
     network_mode: "host"
     restart: unless-stopped
-    depends_on:
-      - mysql
     deploy:
       resources:
         limits:
@@ -132,19 +132,20 @@ services:
 
   snail-ai-agent-example:
     build:
-      context: ../../snail-ai-agent-example
+      context: ${SNAIL_AI_AGENT_EXAMPLE_PATH}
       dockerfile: Dockerfile
     image: snail-ai-agent-example:latest
     container_name: snail-ai-agent-example
     environment:
       TZ: Asia/Shanghai
-      JAVA_OPTS: -Xms32m -Xmx128m -XX:+UseZGC -XX:+ZGenerational
-      SNAIL_AI_SERVER_HOST: 127.0.0.1
-      SNAIL_AI_SERVER_PORT: 18888
-      SNAIL_AI_APP_ID: snail-ai-agent-demo
-      SNAIL_AI_TOKEN: SAI_ad27bd9de937499c8387336c8deb4cf0
-      SNAIL_AI_PORT: 18889
-      SNAIL_AI_HOST: 127.0.0.1
+      JAVA_OPTS: >-
+        -Xms32m -Xmx128m -XX:+UseZGC -XX:+ZGenerational
+        -Dsnail-ai.server.host=127.0.0.1
+        -Dsnail-ai.server.port=18888
+        -Dsnail-ai.app-id=snail-ai-agent-demo
+        -Dsnail-ai.token=SAI_ad27bd9de937499c8387336c8deb4cf0
+        -Dsnail-ai.port=18889
+        -Dsnail-ai.host=127.0.0.1
     ports:
       - "8081:8081"
       - "18889:18889"

@@ -12,7 +12,6 @@
 #   bash script/deploy/deploy.sh restart      # 重启后端服务
 #   bash script/deploy/deploy.sh status       # 查看服务状态
 #   bash script/deploy/deploy.sh logs         # 查看后端日志
-#   bash script/deploy/deploy.sh init-db      # 初始化数据库
 #   bash script/deploy/deploy.sh --help       # 显示帮助
 # ============================================================
 set -euo pipefail
@@ -59,7 +58,6 @@ Snail AI CI/CD 部署脚本
   status         查看所有服务运行状态
   logs           查看后端日志
   health         执行健康检查
-  init-db        初始化数据库（首次部署后执行）
   --help         显示此帮助
 
 环境变量（可写入 script/deploy/deploy.env）:
@@ -162,12 +160,6 @@ restart() {
   log_info "后端服务已重启"
 }
 
-# ----- 数据库初始化 -----
-init_db() {
-  log_step "初始化数据库"
-  bash "${SCRIPT_DIR}/init-db.sh"
-}
-
 # ----- 状态 -----
 status() {
   log_step "服务状态"
@@ -229,8 +221,7 @@ case "${1:-}" in
   status)    status ;;
   logs)      logs ;;
   health)    health_check ;;
-  init-db)   init_db ;;
-  "")        full_deploy ;;
+  \"\")        full_deploy ;;
   *)
     log_error "未知命令: $1"
     show_help

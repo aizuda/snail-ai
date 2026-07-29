@@ -77,6 +77,29 @@ mysql -u root -p snail_ai < docs/sql/snail_ai_schema.sql
 psql -U postgres -d snail_ai -f docs/sql/snail_ai_schema_pgsql.sql
 ```
 
+## 初始化数据库（Docker 容器内）
+
+如果 MySQL 通过 `script/docker/docker-compose.yml` 启动，可以直接在容器内执行：
+
+```bash
+docker exec -i mysql mysql -uroot -p123456 snail_ai < docs/sql/snail_ai_schema.sql
+```
+
+## 拉取 Ollama 模型（演示环境）
+
+`script/docker/docker-compose.yml` 中包含 Ollama 服务，启动后需手动拉取模型：
+
+```bash
+# 拉取 Embedding 模型（约 274MB）
+docker exec ollama ollama pull nomic-embed-text
+
+# 可选：拉取轻量聊天模型（约 352MB）
+docker exec ollama ollama pull qwen2:0.5b
+
+# 查看已安装模型
+docker exec ollama ollama list
+```
+
 ## 启动 Snail AI Server
 
 Compose 文件已包含 Snail AI Server 镜像。也可在本机用 Maven 启动：

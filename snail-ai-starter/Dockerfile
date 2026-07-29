@@ -17,4 +17,4 @@ VOLUME /snailai/server/data/log
 VOLUME /snailai/server/upload
 
 # https://docs.docker.com/reference/build-checks/json-args-recommended/
-CMD [ "java", "-Djava.security.egd=file:/dev/./urandom", "-XX:+HeapDumpOnOutOfMemoryError", "-XX:+UseZGC", "-jar", "app.jar" ]
+CMD java -Djava.security.egd=file:/dev/./urandom -XX:+HeapDumpOnOutOfMemoryError $JAVA_OPTS -jar app.jar

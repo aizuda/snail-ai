@@ -15,5 +15,5 @@ EXPOSE 18889
 VOLUME /snailai/agent/data/log
 
 #开机启动
-ENTRYPOINT ["sh","-c","java -jar $JAVA_OPTS /snail-ai-agent-example.jar $PARAMS"]
+ENTRYPOINT ["sh","-c","java $JAVA_OPTS -jar /snail-ai-agent-example.jar $PARAMS"]
 
