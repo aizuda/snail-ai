@@ -75,6 +75,18 @@ public class SnailAiChatProperties {
          * 是否锁定当前智能体，锁定后不允许切换智能体或打开智能体市场。
          */
         private Boolean lockAgent;
+
+        /**
+         * 嵌入模式下默认选中的智能体 ID；为空时前端按默认逻辑选择。
+         * 当 lockAgent=true 时，前端锁定到此智能体并禁止切换。
+         */
+        private Long defaultAgentId;
+
+        /**
+         * 嵌入模式下是否显示"我的智能体"入口。
+         * 当 lockAgent=true 时，前端强制隐藏，忽略此配置。
+         */
+        private Boolean showMyAgents;
     }
 
     /**

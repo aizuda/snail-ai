@@ -68,10 +68,15 @@ public class OpenApiAgentService {
      */
     public PageResult<List<OpenApiAgentVO>> listAgents(OpenApiAgentQueryRequest request) {
         Page<AgentPO> pageParam = new Page<>(request.getPage(), request.getSize());
-        Page<AgentPO> page = agentMapper.selectPage(pageParam,
-                new LambdaQueryWrapper<AgentPO>()
-                        .eq(AgentPO::getStatus, AgentStatusEnum.ACTIVE.getStatus())
-                        .orderByDesc(AgentPO::getUpdateDt));
+        LambdaQueryWrapper<AgentPO> wrapper = new LambdaQueryWrapper<AgentPO>()
+                .eq(AgentPO::getStatus, AgentStatusEnum.ACTIVE.getStatus())
+                .orderByDesc(AgentPO::getUpdateDt);
+
+        if (StrUtil.isNotBlank(request.getAppId())) {
+            wrapper.eq(AgentPO::getAppId, request.getAppId());
+        }
+
+        Page<AgentPO> page = agentMapper.selectPage(pageParam, wrapper);
 
         List<OpenApiAgentVO> agents = page.getRecords().stream()
                 .map(agent -> toVO(agent, null))

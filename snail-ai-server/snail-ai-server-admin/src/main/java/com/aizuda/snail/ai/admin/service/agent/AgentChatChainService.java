@@ -35,6 +35,9 @@ public class AgentChatChainService {
     public void proceed(AgentChatContext ctx) {
         log.debug("对话责任链执行 handler数={}", handlers.size());
         for (AgentChatHandler handler : handlers) {
+            if (ctx.isTerminated()) {
+                break;
+            }
             handler.handle(ctx);
         }
     }

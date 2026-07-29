@@ -82,6 +82,8 @@ public class SnailAiChatGatewayController {
     private static final String CONFIG_KEY_SHOW_AGENT_MARKET = "showAgentMarket";
     private static final String CONFIG_KEY_COMPACT_INPUT = "compactInput";
     private static final String CONFIG_KEY_LOCK_AGENT = "lockAgent";
+    private static final String CONFIG_KEY_DEFAULT_AGENT_ID = "defaultAgentId";
+    private static final String CONFIG_KEY_SHOW_MY_AGENTS = "showMyAgents";
     private static final String DEFAULT_LOGO = "";
     private static final String HTTP_PROTOCOL = "http";
     private static final String HTTPS_PROTOCOL = "https";
@@ -126,6 +128,7 @@ public class SnailAiChatGatewayController {
     @SnailAiChatAuthorize
     @GetMapping("/agents")
     public PageResult<List<OpenApiAgentVO>> listAgents(@Valid OpenApiAgentQueryRequest request) {
+        request.setAppId(currentAppId());
         PageResult<List<OpenApiAgentVO>> agentPage = openApiAgentClient.listAgents(request);
         List<OpenApiAgentVO> agents = requirePageData(agentPage);
         if (agents == null || agents.isEmpty()) {
@@ -272,6 +275,11 @@ public class SnailAiChatGatewayController {
         return openId;
     }
 
+    /** 从会话上下文取当前应用 appId，用于智能体列表过滤 */
+    private String currentAppId() {
+        return SnailAiChatSessionContext.current().getAppId();
+    }
+
     private String trimToNull(String value) {
         return StrUtil.isBlank(value) ? null : value.trim();
     }
@@ -289,12 +297,20 @@ public class SnailAiChatGatewayController {
         putIfNotNull(embed, CONFIG_KEY_SHOW_AGENT_MARKET, embedProperties.getShowAgentMarket());
         putIfNotNull(embed, CONFIG_KEY_COMPACT_INPUT, embedProperties.getCompactInput());
         putIfNotNull(embed, CONFIG_KEY_LOCK_AGENT, embedProperties.getLockAgent());
+        putIfNotNull(embed, CONFIG_KEY_DEFAULT_AGENT_ID, embedProperties.getDefaultAgentId());
+        putIfNotNull(embed, CONFIG_KEY_SHOW_MY_AGENTS, embedProperties.getShowMyAgents());
         if (!embed.isEmpty()) {
             config.put(CONFIG_KEY_EMBED, embed);
         }
     }
 
     private void putIfNotNull(Map<String, Object> config, String key, Boolean value) {
+        if (value != null) {
+            config.put(key, value);
+        }
+    }
+
+    private void putIfNotNull(Map<String, Object> config, String key, Long value) {
         if (value != null) {
             config.put(key, value);
         }
