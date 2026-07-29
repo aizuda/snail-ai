@@ -54,6 +54,7 @@ nbdist/
 
 # 部署本地配置
 scripts/deploy.env
+scripts/docker/.env
 
 # 临时目录
 /upload/

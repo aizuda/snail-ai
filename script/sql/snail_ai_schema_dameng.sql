@@ -1,23 +1,23 @@
 -- ============================================================
--- Snail AI �������ݿ�DM8����ű�
--- ת���ԣ�snail_ai_schema.sql (MySQL)
--- ���ΰ汾��DM8 V8 (DB Version: 0x7000d)
--- ˵����
---   1. AUTO_INCREMENT �� IDENTITY(1,1)
---   2. LONGTEXT �� CLOB
---   3. ENGINE/CHARSET/COLLATE �� �Ƴ����β�����
---   4. ON UPDATE CURRENT_TIMESTAMP �� BEFORE UPDATE ������ʵ��
---   5. COMMENT �� COMMENT ON TABLE/COLUMN ���
---   6. INSERT IGNORE �� MERGE INTO ���
---   7. KEY������ CREATE INDEX ���
+-- Snail AI 达梦数据库 DM8 建表脚本
+-- 转换自：snail_ai_schema.sql (MySQL)
+-- 适配版本：DM8 V8
+-- 说明：
+--   1. AUTO_INCREMENT → IDENTITY(1,1)
+--   2. LONGTEXT → CLOB
+--   3. ENGINE/CHARSET/COLLATE → 移除（达梦不支持）
+--   4. ON UPDATE CURRENT_TIMESTAMP → BEFORE UPDATE 触发器实现
+--   5. COMMENT → COMMENT ON TABLE/COLUMN 语法
+--   6. INSERT IGNORE → INSERT ... SELECT ... WHERE NOT EXISTS 模拟
+--   7. KEY → CREATE INDEX 语法
 -- ============================================================
 
 
 -- ============================================================
--- һ���û���Ȩ��
+-- 一、用户与权限
 -- ============================================================
 
--- 1.1 �û���
+-- 1.1 用户表
 CREATE TABLE IF NOT EXISTS sai_user
 (
     id             BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -33,10 +33,11 @@ CREATE TABLE IF NOT EXISTS sai_user
     CONSTRAINT uk_sai_user_username UNIQUE (username)
 );
 
-COMMENT ON COLUMN sai_user.nickname IS '�û��ǳ�';
-COMMENT ON COLUMN sai_user.resource_id IS 'ͷ����ԴID������ sai_resource.id';
+COMMENT ON TABLE sai_user IS '用户表';
+COMMENT ON COLUMN sai_user.nickname IS '用户昵称';
+COMMENT ON COLUMN sai_user.resource_id IS '头像资源ID，关联 sai_resource.id';
 
--- 1.2 OpenAPI �ⲿ�û�ӳ���
+-- 1.2 OpenAPI 外部用户映射表
 CREATE TABLE IF NOT EXISTS sai_openapi_user
 (
     id               BIGINT       IDENTITY(1,1) PRIMARY KEY,
@@ -50,21 +51,21 @@ CREATE TABLE IF NOT EXISTS sai_openapi_user
     CONSTRAINT uk_sai_openapi_user_app_external UNIQUE (app_id, external_id)
 );
 
-COMMENT ON TABLE sai_openapi_user IS 'OpenAPI �ⲿ�û�ӳ���';
-COMMENT ON COLUMN sai_openapi_user.app_id IS '���� sai_app.app_id';
-COMMENT ON COLUMN sai_openapi_user.open_id IS 'ƽ̨�����Ψһ��ʶUUID';
-COMMENT ON COLUMN sai_openapi_user.platform_user_id IS '���� sai_user.id��ע��ʱ�Զ�����';
-COMMENT ON COLUMN sai_openapi_user.external_id IS '�ⲿϵͳ���û���ʶ��ѡ���ݵ���';
+COMMENT ON TABLE sai_openapi_user IS 'OpenAPI 外部用户映射表';
+COMMENT ON COLUMN sai_openapi_user.app_id IS '关联 sai_app.app_id';
+COMMENT ON COLUMN sai_openapi_user.open_id IS '平台分配的唯一标识（UUID）';
+COMMENT ON COLUMN sai_openapi_user.platform_user_id IS '关联 sai_user.id，注册时自动创建';
+COMMENT ON COLUMN sai_openapi_user.external_id IS '外部系统的用户标识（可选，幂等用）';
 
 CREATE INDEX idx_sai_openapi_user_open_id ON sai_openapi_user (open_id);
 CREATE INDEX idx_sai_openapi_user_platform_user ON sai_openapi_user (platform_user_id);
 
 
 -- ============================================================
--- ����AI ģ�͹���
+-- 二、AI 模型管理
 -- ============================================================
 
--- 2.1 AI ģ���ṩ�̱�
+-- 2.1 AI 模型提供商表
 CREATE TABLE IF NOT EXISTS sai_model_provider
 (
     id            BIGINT       IDENTITY(1,1) PRIMARY KEY,
@@ -79,19 +80,19 @@ CREATE TABLE IF NOT EXISTS sai_model_provider
     CONSTRAINT uk_sai_model_provider_key UNIQUE (provider_key)
 );
 
-COMMENT ON TABLE sai_model_provider IS 'AIģ���ṩ�̱�';
-COMMENT ON COLUMN sai_model_provider.provider_name IS '�ṩ������';
-COMMENT ON COLUMN sai_model_provider.provider_key IS '�ṩ�̱�ʶ��';
-COMMENT ON COLUMN sai_model_provider.description IS '�ṩ������';
-COMMENT ON COLUMN sai_model_provider.icon_url IS 'LOGOͼ��URL';
-COMMENT ON COLUMN sai_model_provider.is_enabled IS '�Ƿ�����';
-COMMENT ON COLUMN sai_model_provider.created_dt IS '����ʱ��';
-COMMENT ON COLUMN sai_model_provider.updated_dt IS '����ʱ��';
+COMMENT ON TABLE sai_model_provider IS 'AI模型提供商表';
+COMMENT ON COLUMN sai_model_provider.provider_name IS '提供商名称';
+COMMENT ON COLUMN sai_model_provider.provider_key IS '提供商标识符';
+COMMENT ON COLUMN sai_model_provider.description IS '提供商描述';
+COMMENT ON COLUMN sai_model_provider.icon_url IS 'LOGO图标URL';
+COMMENT ON COLUMN sai_model_provider.is_enabled IS '是否启用';
+COMMENT ON COLUMN sai_model_provider.created_dt IS '创建时间';
+COMMENT ON COLUMN sai_model_provider.updated_dt IS '更新时间';
 
 CREATE INDEX idx_sai_model_provider_key ON sai_model_provider (provider_key);
 CREATE INDEX idx_sai_model_provider_is_enabled ON sai_model_provider (is_enabled);
 
--- 2.2 AIģ�����ñ�
+-- 2.2 AI模型配置表
 CREATE TABLE IF NOT EXISTS sai_model_config
 (
     id           BIGINT       IDENTITY(1,1) PRIMARY KEY,
@@ -112,22 +113,22 @@ CREATE TABLE IF NOT EXISTS sai_model_config
     updated_dt   TIMESTAMP             DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE sai_model_config IS 'AIģ�����ñ�';
-COMMENT ON COLUMN sai_model_config.provider_id IS '�ṩ��ID';
-COMMENT ON COLUMN sai_model_config.model_name IS 'ģ������';
-COMMENT ON COLUMN sai_model_config.model_key IS 'ģ�ͱ�ʶ��';
-COMMENT ON COLUMN sai_model_config.model_type IS 'ģ������CHAT/EMBEDDING/RERANKER/IMAGE/SPEECH';
-COMMENT ON COLUMN sai_model_config.adapter_key IS '�ײ�Э����������ʶopenai-compatible/http��';
-COMMENT ON COLUMN sai_model_config.description IS 'ģ������';
-COMMENT ON COLUMN sai_model_config.api_key IS 'API��Կ���ܴ洢';
-COMMENT ON COLUMN sai_model_config.api_endpoint IS 'API�˵�URL';
-COMMENT ON COLUMN sai_model_config.config_json IS 'ģ�Ͳ�������JSON��ʽ';
-COMMENT ON COLUMN sai_model_config.owner_id IS '������IDNULL=ȫ��,����ֵ=�û�ID';
-COMMENT ON COLUMN sai_model_config.scope IS '������GLOBAL/PERSONAL';
-COMMENT ON COLUMN sai_model_config.is_default IS '�Ƿ�ΪĬ��ģ��';
-COMMENT ON COLUMN sai_model_config.is_enabled IS '�Ƿ�����';
-COMMENT ON COLUMN sai_model_config.created_dt IS '����ʱ��';
-COMMENT ON COLUMN sai_model_config.updated_dt IS '����ʱ��';
+COMMENT ON TABLE sai_model_config IS 'AI模型配置表';
+COMMENT ON COLUMN sai_model_config.provider_id IS '提供商ID';
+COMMENT ON COLUMN sai_model_config.model_name IS '模型名称';
+COMMENT ON COLUMN sai_model_config.model_key IS '模型标识符';
+COMMENT ON COLUMN sai_model_config.model_type IS '模型类型(CHAT/EMBEDDING/RERANKER/IMAGE/SPEECH)';
+COMMENT ON COLUMN sai_model_config.adapter_key IS '底层协议适配器标识(openai-compatible/http等)';
+COMMENT ON COLUMN sai_model_config.description IS '模型描述';
+COMMENT ON COLUMN sai_model_config.api_key IS 'API密钥(加密存储)';
+COMMENT ON COLUMN sai_model_config.api_endpoint IS 'API端点URL';
+COMMENT ON COLUMN sai_model_config.config_json IS '模型参数配置(JSON格式)';
+COMMENT ON COLUMN sai_model_config.owner_id IS '所有者ID(NULL=全局,具体值=用户ID)';
+COMMENT ON COLUMN sai_model_config.scope IS '作用域(GLOBAL/PERSONAL)';
+COMMENT ON COLUMN sai_model_config.is_default IS '是否为默认模型';
+COMMENT ON COLUMN sai_model_config.is_enabled IS '是否启用';
+COMMENT ON COLUMN sai_model_config.created_dt IS '创建时间';
+COMMENT ON COLUMN sai_model_config.updated_dt IS '更新时间';
 
 CREATE INDEX idx_sai_model_config_provider_model_type ON sai_model_config (provider_id, model_type);
 CREATE INDEX idx_sai_model_config_model_type_enabled ON sai_model_config (model_type, is_enabled);
@@ -137,7 +138,7 @@ CREATE INDEX idx_sai_model_config_scope ON sai_model_config (scope);
 CREATE INDEX idx_sai_model_config_model_key ON sai_model_config (model_key);
 CREATE INDEX idx_sai_model_config_provider_id ON sai_model_config (provider_id);
 
--- 2.3 ģ��ʹ��ͳ�Ʊ�
+-- 2.3 模型使用统计表
 CREATE TABLE IF NOT EXISTS sai_model_usage_stat
 (
     id                BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -155,18 +156,18 @@ CREATE TABLE IF NOT EXISTS sai_model_usage_stat
     CONSTRAINT uk_sai_model_usage_stat_model_user UNIQUE (model_id, user_id)
 );
 
-COMMENT ON TABLE sai_model_usage_stat IS 'ģ��ʹ��ͳ�Ʊ�';
-COMMENT ON COLUMN sai_model_usage_stat.model_id IS 'ģ��ID';
-COMMENT ON COLUMN sai_model_usage_stat.user_id IS '�û�ID';
-COMMENT ON COLUMN sai_model_usage_stat.total_calls IS '�ܵ��ô���';
-COMMENT ON COLUMN sai_model_usage_stat.success_calls IS '�ɹ����ô���';
-COMMENT ON COLUMN sai_model_usage_stat.failed_calls IS 'ʧ�ܵ��ô���';
-COMMENT ON COLUMN sai_model_usage_stat.total_tokens_used IS '��Tokenʹ����';
-COMMENT ON COLUMN sai_model_usage_stat.total_cost IS '�ܷ���';
-COMMENT ON COLUMN sai_model_usage_stat.avg_response_time IS 'ƽ����Ӧʱ�����';
-COMMENT ON COLUMN sai_model_usage_stat.last_used_dt IS '���ʹ��ʱ��';
-COMMENT ON COLUMN sai_model_usage_stat.created_dt IS '����ʱ��';
-COMMENT ON COLUMN sai_model_usage_stat.updated_dt IS '����ʱ��';
+COMMENT ON TABLE sai_model_usage_stat IS '模型使用统计表';
+COMMENT ON COLUMN sai_model_usage_stat.model_id IS '模型ID';
+COMMENT ON COLUMN sai_model_usage_stat.user_id IS '用户ID';
+COMMENT ON COLUMN sai_model_usage_stat.total_calls IS '总调用次数';
+COMMENT ON COLUMN sai_model_usage_stat.success_calls IS '成功调用次数';
+COMMENT ON COLUMN sai_model_usage_stat.failed_calls IS '失败调用次数';
+COMMENT ON COLUMN sai_model_usage_stat.total_tokens_used IS '总Token使用量';
+COMMENT ON COLUMN sai_model_usage_stat.total_cost IS '总费用';
+COMMENT ON COLUMN sai_model_usage_stat.avg_response_time IS '平均响应时间(毫秒)';
+COMMENT ON COLUMN sai_model_usage_stat.last_used_dt IS '最后使用时间';
+COMMENT ON COLUMN sai_model_usage_stat.created_dt IS '创建时间';
+COMMENT ON COLUMN sai_model_usage_stat.updated_dt IS '更新时间';
 
 CREATE INDEX idx_sai_model_usage_stat_model_id ON sai_model_usage_stat (model_id);
 CREATE INDEX idx_sai_model_usage_stat_user_id ON sai_model_usage_stat (user_id);
@@ -174,10 +175,10 @@ CREATE INDEX idx_sai_model_usage_stat_last_used_dt ON sai_model_usage_stat (last
 
 
 -- ============================================================
--- ����������Agent
+-- 三、智能体（Agent）
 -- ============================================================
 
--- 3.1 ����������
+-- 3.1 智能体主表
 CREATE TABLE IF NOT EXISTS sai_agent
 (
     id                      BIGINT       IDENTITY(1,1) PRIMARY KEY,
@@ -206,33 +207,33 @@ CREATE TABLE IF NOT EXISTS sai_agent
     update_dt               TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE sai_agent IS '�������';
-COMMENT ON COLUMN sai_agent.name IS '����������';
-COMMENT ON COLUMN sai_agent.description IS '����������';
-COMMENT ON COLUMN sai_agent.avatar IS 'ͷ��URL';
-COMMENT ON COLUMN sai_agent.instruction IS 'ϵͳָ��System Prompt';
-COMMENT ON COLUMN sai_agent.greeting IS '��ӭ��';
-COMMENT ON COLUMN sai_agent.preset_questions IS 'Ԥ�������б�JSON�����ַ���';
-COMMENT ON COLUMN sai_agent.chat_model_id IS '�����ĶԻ�ģ��ID';
-COMMENT ON COLUMN sai_agent.memory_enabled IS '�Ƿ����ü����';
-COMMENT ON COLUMN sai_agent.mcp_enabled IS '�Ƿ�����MCP';
-COMMENT ON COLUMN sai_agent.skill_enabled IS '�Ƿ�����Skill';
-COMMENT ON COLUMN sai_agent.web_search_enabled IS '�Ƿ�������������';
-COMMENT ON COLUMN sai_agent.rag_enabled IS '�Ƿ�����RAG';
-COMMENT ON COLUMN sai_agent.rag_ids IS '�󶨵�RAG ID�б����ŷָ������5��';
-COMMENT ON COLUMN sai_agent.rag_call_mode IS 'RAG���÷�ʽ: 1=���ܵ��� 2=ǿ�Ƶ���';
-COMMENT ON COLUMN sai_agent.short_term_memory_size IS '���ڼ��们�����ڱ�������';
-COMMENT ON COLUMN sai_agent.creator_id IS '�������û�ID';
-COMMENT ON COLUMN sai_agent.is_featured IS '�Ƿ�ѡ';
-COMMENT ON COLUMN sai_agent.view_count IS '�������';
-COMMENT ON COLUMN sai_agent.status IS '״̬: 1-��Ծ 2-�ǻ�Ծ 3-�ѷ��� 4-�ѽ���';
-COMMENT ON COLUMN sai_agent.config IS '��չ����Ԥ��';
-COMMENT ON COLUMN sai_agent.app_id IS '����Ӧ��IDNULL=����ִ��';
+COMMENT ON TABLE sai_agent IS '智能体表';
+COMMENT ON COLUMN sai_agent.name IS '智能体名称';
+COMMENT ON COLUMN sai_agent.description IS '智能体描述';
+COMMENT ON COLUMN sai_agent.avatar IS '头像URL';
+COMMENT ON COLUMN sai_agent.instruction IS '系统指令(System Prompt)';
+COMMENT ON COLUMN sai_agent.greeting IS '欢迎语';
+COMMENT ON COLUMN sai_agent.preset_questions IS '预设问题列表（JSON数组字符串）';
+COMMENT ON COLUMN sai_agent.chat_model_id IS '关联的对话模型ID';
+COMMENT ON COLUMN sai_agent.memory_enabled IS '是否启用记忆库';
+COMMENT ON COLUMN sai_agent.mcp_enabled IS '是否启用MCP';
+COMMENT ON COLUMN sai_agent.skill_enabled IS '是否启用Skill';
+COMMENT ON COLUMN sai_agent.web_search_enabled IS '是否启用联网搜索';
+COMMENT ON COLUMN sai_agent.rag_enabled IS '是否启用RAG';
+COMMENT ON COLUMN sai_agent.rag_ids IS '绑定的RAG ID列表，逗号分隔，最多5个';
+COMMENT ON COLUMN sai_agent.rag_call_mode IS 'RAG调用方式: 1=智能调用 2=强制调用';
+COMMENT ON COLUMN sai_agent.short_term_memory_size IS '短期记忆滑动窗口保留条数';
+COMMENT ON COLUMN sai_agent.creator_id IS '创建者用户ID';
+COMMENT ON COLUMN sai_agent.is_featured IS '是否精选';
+COMMENT ON COLUMN sai_agent.view_count IS '浏览次数';
+COMMENT ON COLUMN sai_agent.status IS '状态: 1-活跃 2-非活跃 3-已废弃 4-已禁用';
+COMMENT ON COLUMN sai_agent.config IS '扩展配置(预留)';
+COMMENT ON COLUMN sai_agent.app_id IS '关联应用ID(NULL=本地执行)';
 
 CREATE INDEX idx_sai_agent_creator ON sai_agent (creator_id);
 CREATE INDEX idx_sai_agent_featured ON sai_agent (is_featured);
 
--- 3.2 ������Ի���
+-- 3.2 智能体对话表
 CREATE TABLE IF NOT EXISTS sai_agent_conversation
 (
     id              BIGINT      IDENTITY(1,1) PRIMARY KEY,
@@ -245,16 +246,16 @@ CREATE TABLE IF NOT EXISTS sai_agent_conversation
     CONSTRAINT uk_sai_agent_conversation_conv_id UNIQUE (conversation_id)
 );
 
-COMMENT ON TABLE sai_agent_conversation IS '������Ի���';
-COMMENT ON COLUMN sai_agent_conversation.agent_id IS '������ID';
-COMMENT ON COLUMN sai_agent_conversation.user_id IS '�û�ID';
-COMMENT ON COLUMN sai_agent_conversation.conversation_id IS '�Ի�IDUUID';
-COMMENT ON COLUMN sai_agent_conversation.title IS '�Ի�����';
+COMMENT ON TABLE sai_agent_conversation IS '智能体对话表';
+COMMENT ON COLUMN sai_agent_conversation.agent_id IS '智能体ID';
+COMMENT ON COLUMN sai_agent_conversation.user_id IS '用户ID';
+COMMENT ON COLUMN sai_agent_conversation.conversation_id IS '对话ID(UUID)';
+COMMENT ON COLUMN sai_agent_conversation.title IS '对话标题';
 
 CREATE INDEX idx_sai_agent_conversation_agent ON sai_agent_conversation (agent_id);
 CREATE INDEX idx_sai_agent_conversation_user ON sai_agent_conversation (user_id);
 
--- 3.3 ������Ի���Ϣ��¼��
+-- 3.3 智能体对话消息记录表
 CREATE TABLE IF NOT EXISTS sai_agent_conversation_record
 (
     id              BIGINT      IDENTITY(1,1) PRIMARY KEY,
@@ -272,22 +273,22 @@ CREATE TABLE IF NOT EXISTS sai_agent_conversation_record
     create_dt       TIMESTAMP   DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE sai_agent_conversation_record IS '������Ի���Ϣ��¼';
-COMMENT ON COLUMN sai_agent_conversation_record.agent_id IS '������ID';
-COMMENT ON COLUMN sai_agent_conversation_record.conversation_id IS '�Ի�ID';
-COMMENT ON COLUMN sai_agent_conversation_record.user_id IS '�û�ID';
+COMMENT ON TABLE sai_agent_conversation_record IS '智能体对话消息记录';
+COMMENT ON COLUMN sai_agent_conversation_record.agent_id IS '智能体ID';
+COMMENT ON COLUMN sai_agent_conversation_record.conversation_id IS '对话ID';
+COMMENT ON COLUMN sai_agent_conversation_record.user_id IS '用户ID';
 COMMENT ON COLUMN sai_agent_conversation_record.role IS 'user/assistant';
-COMMENT ON COLUMN sai_agent_conversation_record.content IS '��Ϣ����';
-COMMENT ON COLUMN sai_agent_conversation_record.thinking IS '˼�����̽�assistant';
+COMMENT ON COLUMN sai_agent_conversation_record.content IS '消息内容';
+COMMENT ON COLUMN sai_agent_conversation_record.thinking IS '思考过程（仅assistant）';
 COMMENT ON COLUMN sai_agent_conversation_record.metadata IS '消息扩展元数据JSON';
-COMMENT ON COLUMN sai_agent_conversation_record.status IS '1=�ɹ�,2=ʧ��,3=������';
-COMMENT ON COLUMN sai_agent_conversation_record.input_tokens IS '����Token��prompt';
-COMMENT ON COLUMN sai_agent_conversation_record.output_tokens IS '���Token��completion';
-COMMENT ON COLUMN sai_agent_conversation_record.cache_tokens IS '��������Token��';
+COMMENT ON COLUMN sai_agent_conversation_record.status IS '1=成功,2=失败,3=进行中';
+COMMENT ON COLUMN sai_agent_conversation_record.input_tokens IS '输入Token数（prompt）';
+COMMENT ON COLUMN sai_agent_conversation_record.output_tokens IS '输出Token数（completion）';
+COMMENT ON COLUMN sai_agent_conversation_record.cache_tokens IS '缓存命中Token数';
 
 CREATE INDEX idx_sai_agent_conversation_record_conv ON sai_agent_conversation_record (conversation_id);
 
--- 3.4 ������ʹ��ͳ�Ʊ�
+-- 3.4 智能体使用统计表
 CREATE TABLE IF NOT EXISTS sai_agent_usage_stat
 (
     id                 BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -301,17 +302,17 @@ CREATE TABLE IF NOT EXISTS sai_agent_usage_stat
     CONSTRAINT uk_sai_agent_usage_stat_agent_user_date UNIQUE (agent_id, user_id, stat_date)
 );
 
-COMMENT ON TABLE sai_agent_usage_stat IS '������ʹ��ͳ��';
-COMMENT ON COLUMN sai_agent_usage_stat.agent_id IS '������ID';
-COMMENT ON COLUMN sai_agent_usage_stat.user_id IS '�û�ID';
-COMMENT ON COLUMN sai_agent_usage_stat.message_count IS '��Ϣ����';
-COMMENT ON COLUMN sai_agent_usage_stat.conversation_count IS '�Ի��ִ�';
-COMMENT ON COLUMN sai_agent_usage_stat.stat_date IS 'ͳ������';
+COMMENT ON TABLE sai_agent_usage_stat IS '智能体使用统计';
+COMMENT ON COLUMN sai_agent_usage_stat.agent_id IS '智能体ID';
+COMMENT ON COLUMN sai_agent_usage_stat.user_id IS '用户ID';
+COMMENT ON COLUMN sai_agent_usage_stat.message_count IS '消息条数';
+COMMENT ON COLUMN sai_agent_usage_stat.conversation_count IS '对话轮次';
+COMMENT ON COLUMN sai_agent_usage_stat.stat_date IS '统计日期';
 
 CREATE INDEX idx_sai_agent_usage_stat_agent ON sai_agent_usage_stat (agent_id);
 CREATE INDEX idx_sai_agent_usage_stat_date ON sai_agent_usage_stat (stat_date);
 
--- 3.5 �û����ĵ��������Զ�
+-- 3.5 用户订阅的智能体（多对多）
 CREATE TABLE IF NOT EXISTS sai_user_agent
 (
     id         BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -321,18 +322,18 @@ CREATE TABLE IF NOT EXISTS sai_user_agent
     CONSTRAINT uk_sai_user_agent_user_agent UNIQUE (user_id, agent_id)
 );
 
-COMMENT ON TABLE sai_user_agent IS '�û����ĵ�������';
-COMMENT ON COLUMN sai_user_agent.user_id IS '�û�ID';
-COMMENT ON COLUMN sai_user_agent.agent_id IS '������ID';
+COMMENT ON TABLE sai_user_agent IS '用户订阅的智能体';
+COMMENT ON COLUMN sai_user_agent.user_id IS '用户ID';
+COMMENT ON COLUMN sai_user_agent.agent_id IS '智能体ID';
 
 CREATE INDEX idx_sai_user_agent_user ON sai_user_agent (user_id);
 
 
 -- ============================================================
--- �ġ�RAG ֪ʶ��
+-- 四、RAG 知识库
 -- ============================================================
 
--- 4.1 ֪ʶ������
+-- 4.1 知识库主表
 CREATE TABLE IF NOT EXISTS sai_rag
 (
     id                        BIGINT       IDENTITY(1,1) PRIMARY KEY,
@@ -355,24 +356,24 @@ CREATE TABLE IF NOT EXISTS sai_rag
     update_dt                 TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE sai_rag IS 'RAG֪ʶ������';
-COMMENT ON COLUMN sai_rag.name IS '֪ʶ������';
-COMMENT ON COLUMN sai_rag.description IS '֪ʶ������';
-COMMENT ON COLUMN sai_rag.icon IS 'ͼ��URL';
-COMMENT ON COLUMN sai_rag.embedding_model_id IS 'Embeddingģ��ID';
-COMMENT ON COLUMN sai_rag.dimension_of_vector_model IS '����ά��';
-COMMENT ON COLUMN sai_rag.rerank_model_id IS 'Rerankģ��ID';
-COMMENT ON COLUMN sai_rag.search_engine_instance_id IS '��������ʵ��ID';
-COMMENT ON COLUMN sai_rag.vector_store_instance_id IS '�����洢ʵ��ID';
-COMMENT ON COLUMN sai_rag.search_engine_enable IS '�Ƿ�������������';
-COMMENT ON COLUMN sai_rag.delimiter IS '�ĵ��ָ���';
-COMMENT ON COLUMN sai_rag.rag_enhancement IS 'RAG��ǿ����';
-COMMENT ON COLUMN sai_rag.config IS 'RAG�������ʴ��ҳ�����ò���';
-COMMENT ON COLUMN sai_rag.dedup_strategy IS 'ȥ�ز���: 0=NONE 1=BY_NAME 2=BY_CONTENT 3=BY_NAME_OR_CONTENT';
-COMMENT ON COLUMN sai_rag.dedup_action IS '��ͻ����: 0=REJECT 1=SKIP 2=OVERWRITE';
-COMMENT ON COLUMN sai_rag.upload_confirm IS '�ϴ�ǰ����ȷ��: 0-�� 1-��';
+COMMENT ON TABLE sai_rag IS 'RAG知识库主表';
+COMMENT ON COLUMN sai_rag.name IS '知识库名称';
+COMMENT ON COLUMN sai_rag.description IS '知识库描述';
+COMMENT ON COLUMN sai_rag.icon IS '图标URL';
+COMMENT ON COLUMN sai_rag.embedding_model_id IS 'Embedding模型ID';
+COMMENT ON COLUMN sai_rag.dimension_of_vector_model IS '向量维度';
+COMMENT ON COLUMN sai_rag.rerank_model_id IS 'Rerank模型ID';
+COMMENT ON COLUMN sai_rag.search_engine_instance_id IS '搜索引擎实例ID';
+COMMENT ON COLUMN sai_rag.vector_store_instance_id IS '向量存储实例ID';
+COMMENT ON COLUMN sai_rag.search_engine_enable IS '是否启用搜索引擎';
+COMMENT ON COLUMN sai_rag.delimiter IS '文档分隔符';
+COMMENT ON COLUMN sai_rag.rag_enhancement IS 'RAG增强策略';
+COMMENT ON COLUMN sai_rag.config IS 'RAG检索和问答的页面配置参数';
+COMMENT ON COLUMN sai_rag.dedup_strategy IS '去重策略: 0=NONE 1=BY_NAME 2=BY_CONTENT 3=BY_NAME_OR_CONTENT';
+COMMENT ON COLUMN sai_rag.dedup_action IS '冲突动作: 0=REJECT 1=SKIP 2=OVERWRITE';
+COMMENT ON COLUMN sai_rag.upload_confirm IS '上传前二次确认: 0-关 1-开';
 
--- 4.2 RAG �ĵ���
+-- 4.2 RAG 文档表
 CREATE TABLE IF NOT EXISTS sai_rag_document
 (
     id           BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -401,16 +402,24 @@ CREATE TABLE IF NOT EXISTS sai_rag_document
     update_dt    TIMESTAMP   DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE sai_rag_document IS 'RAG�ĵ���';
-COMMENT ON COLUMN sai_rag_document.status IS '״̬: 0-������ 1-������ 2-������ 3-������� 4-����ʧ��';
-COMMENT ON COLUMN sai_rag_document.content_hash IS '�ļ�����SHA-256��ϣ������ȥ��';
-COMMENT ON COLUMN sai_rag_document.resource_id IS '������Դ�� sai_resource.id';
+COMMENT ON TABLE sai_rag_document IS 'RAG文档表';
+COMMENT ON COLUMN sai_rag_document.page_count IS 'Docling解析页数';
+COMMENT ON COLUMN sai_rag_document.element_count IS 'Docling解析元素数';
+COMMENT ON COLUMN sai_rag_document.table_count IS 'Docling解析表格数';
+COMMENT ON COLUMN sai_rag_document.image_count IS 'Docling解析图片数';
+COMMENT ON COLUMN sai_rag_document.parse_time IS '解析耗时(毫秒)';
+COMMENT ON COLUMN sai_rag_document.md_content IS 'Docling Markdown内容';
+COMMENT ON COLUMN sai_rag_document.doc_metadata IS 'Docling文档元数据JSON';
+COMMENT ON COLUMN sai_rag_document.status IS '状态: 0-待处理 1-解析中 2-处理中 3-处理完成 4-处理失败';
+COMMENT ON COLUMN sai_rag_document.content_hash IS '文件内容SHA-256哈希，用于去重';
+COMMENT ON COLUMN sai_rag_document.resource_id IS '关联资源库 sai_resource.id';
 
 CREATE INDEX idx_sai_rag_document_rag ON sai_rag_document (rag_id);
 CREATE INDEX idx_sai_rag_document_content_hash ON sai_rag_document (rag_id, content_hash);
 CREATE INDEX idx_sai_rag_document_name ON sai_rag_document (rag_id, name);
 CREATE INDEX idx_sai_rag_document_resource ON sai_rag_document (resource_id);
 
+-- 4.2.1 RAG 文档图片解析表
 CREATE TABLE IF NOT EXISTS sai_rag_document_image
 (
     id          BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -431,15 +440,15 @@ CREATE TABLE IF NOT EXISTS sai_rag_document_image
     update_dt   TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE sai_rag_document_image IS 'RAG document parsed image table';
-COMMENT ON COLUMN sai_rag_document_image.resource_id IS 'Linked resource id in sai_resource';
+COMMENT ON TABLE sai_rag_document_image IS 'RAG文档解析图片表';
+COMMENT ON COLUMN sai_rag_document_image.resource_id IS '关联资源ID sai_resource.id';
 
 CREATE INDEX idx_sai_rag_doc_image_rag ON sai_rag_document_image (rag_id);
 CREATE INDEX idx_sai_rag_doc_image_document ON sai_rag_document_image (document_id);
 CREATE INDEX idx_sai_rag_doc_image_chunk ON sai_rag_document_image (chunk_id);
 CREATE INDEX idx_sai_rag_doc_image_resource ON sai_rag_document_image (resource_id);
 
--- 4.3 RAG �ֿ��
+-- 4.3 RAG 分块表
 CREATE TABLE IF NOT EXISTS sai_rag_chunk
 (
     id              BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -456,8 +465,8 @@ CREATE TABLE IF NOT EXISTS sai_rag_chunk
     update_dt       TIMESTAMP   DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE sai_rag_chunk IS 'RAG�ֿ��';
-COMMENT ON COLUMN sai_rag_chunk.content_hash IS 'chunk����SHA-256����������ȥ��';
+COMMENT ON TABLE sai_rag_chunk IS 'RAG分块表';
+COMMENT ON COLUMN sai_rag_chunk.content_hash IS 'chunk内容SHA-256，用于向量去重';
 COMMENT ON COLUMN sai_rag_chunk.source_type IS 'chunk来源类型：TEXT文本、IMAGE图片';
 
 CREATE INDEX idx_sai_rag_chunk_rag ON sai_rag_chunk (rag_id);
@@ -467,10 +476,10 @@ CREATE INDEX idx_sai_rag_chunk_source_type ON sai_rag_chunk (rag_id, source_type
 
 
 -- ============================================================
--- �塢MCP �������
+-- 五、MCP 服务管理
 -- ============================================================
 
--- 5.1 MCP �������ñ�
+-- 5.1 MCP 服务配置表
 CREATE TABLE IF NOT EXISTS sai_mcp_server
 (
     id               BIGINT        IDENTITY(1,1) PRIMARY KEY,
@@ -490,23 +499,23 @@ CREATE TABLE IF NOT EXISTS sai_mcp_server
     update_dt        TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE sai_mcp_server IS 'MCP�������ñ�';
-COMMENT ON COLUMN sai_mcp_server.name IS 'MCP��������';
-COMMENT ON COLUMN sai_mcp_server.description IS 'MCP��������';
-COMMENT ON COLUMN sai_mcp_server.transport_type IS '��������: 1-SSE 2-Streamable HTTP 3-Stdio';
-COMMENT ON COLUMN sai_mcp_server.base_uri IS '���������ַSSE/Streamable HTTPʱʹ��';
-COMMENT ON COLUMN sai_mcp_server.endpoint IS '�˵�·��SSE/Streamable HTTPʱ��ѡ';
-COMMENT ON COLUMN sai_mcp_server.command IS 'Stdio����Stdioʱ����';
-COMMENT ON COLUMN sai_mcp_server.args IS 'Stdio�������JSON����';
-COMMENT ON COLUMN sai_mcp_server.env_vars IS 'Stdio��������JSON����';
-COMMENT ON COLUMN sai_mcp_server.timeout IS 'MCP timeout milliseconds';
-COMMENT ON COLUMN sai_mcp_server.headers IS 'MCP HTTP headers JSON object';
-COMMENT ON COLUMN sai_mcp_server.last_connect_dt IS '�������ʱ��';
-COMMENT ON COLUMN sai_mcp_server.creator_id IS '�������û�ID';
+COMMENT ON TABLE sai_mcp_server IS 'MCP服务配置表';
+COMMENT ON COLUMN sai_mcp_server.name IS 'MCP服务名称';
+COMMENT ON COLUMN sai_mcp_server.description IS 'MCP服务描述';
+COMMENT ON COLUMN sai_mcp_server.transport_type IS '传输类型: 1-SSE 2-Streamable HTTP 3-Stdio';
+COMMENT ON COLUMN sai_mcp_server.base_uri IS '服务基础地址(SSE/Streamable HTTP时使用)';
+COMMENT ON COLUMN sai_mcp_server.endpoint IS '端点路径(SSE/Streamable HTTP时可选)';
+COMMENT ON COLUMN sai_mcp_server.command IS 'Stdio命令(Stdio时必填)';
+COMMENT ON COLUMN sai_mcp_server.args IS 'Stdio命令参数(JSON数组)';
+COMMENT ON COLUMN sai_mcp_server.env_vars IS 'Stdio环境变量(JSON对象)';
+COMMENT ON COLUMN sai_mcp_server.timeout IS '超时时间(毫秒)';
+COMMENT ON COLUMN sai_mcp_server.headers IS '请求头(JSON对象)';
+COMMENT ON COLUMN sai_mcp_server.last_connect_dt IS '最后连接时间';
+COMMENT ON COLUMN sai_mcp_server.creator_id IS '创建者用户ID';
 
 CREATE INDEX idx_sai_mcp_server_creator ON sai_mcp_server (creator_id);
 
--- 5.2 ��������MCP����������Զ�
+-- 5.2 智能体与MCP服务关联表（多对多）
 CREATE TABLE IF NOT EXISTS sai_agent_mcp_server
 (
     id            BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -516,19 +525,19 @@ CREATE TABLE IF NOT EXISTS sai_agent_mcp_server
     CONSTRAINT uk_sai_agent_mcp_server UNIQUE (agent_id, mcp_server_id)
 );
 
-COMMENT ON TABLE sai_agent_mcp_server IS '������MCP���������';
-COMMENT ON COLUMN sai_agent_mcp_server.agent_id IS '������ID';
-COMMENT ON COLUMN sai_agent_mcp_server.mcp_server_id IS 'MCP����ID';
+COMMENT ON TABLE sai_agent_mcp_server IS '智能体MCP服务关联表';
+COMMENT ON COLUMN sai_agent_mcp_server.agent_id IS '智能体ID';
+COMMENT ON COLUMN sai_agent_mcp_server.mcp_server_id IS 'MCP服务ID';
 
 CREATE INDEX idx_sai_agent_mcp_server_agent ON sai_agent_mcp_server (agent_id);
 CREATE INDEX idx_sai_agent_mcp_server_server ON sai_agent_mcp_server (mcp_server_id);
 
 
 -- ============================================================
--- ����Skill ���ܰ�����
+-- 六、Skill 技能包管理
 -- ============================================================
 
--- 6.1 Skill ���ܰ���
+-- 6.1 Skill 技能包表
 CREATE TABLE IF NOT EXISTS sai_skill
 (
     id            BIGINT        IDENTITY(1,1) PRIMARY KEY,
@@ -546,21 +555,21 @@ CREATE TABLE IF NOT EXISTS sai_skill
     update_dt     TIMESTAMP     DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE sai_skill IS 'Skill���ܰ���';
-COMMENT ON COLUMN sai_skill.name IS 'Skill���ƴ�SKILL.md����';
-COMMENT ON COLUMN sai_skill.description IS 'Skill������SKILL.md����';
-COMMENT ON COLUMN sai_skill.file_name IS '�ϴ���zip�ļ���';
-COMMENT ON COLUMN sai_skill.file_path IS '��ѹ��洢·��';
-COMMENT ON COLUMN sai_skill.file_size IS '�ļ���С�ֽ�';
-COMMENT ON COLUMN sai_skill.skill_content IS 'SKILL.md��������ȥ��frontmatter';
-COMMENT ON COLUMN sai_skill.storage_path IS '����洢���·��ǰ׺�� skills/123/';
-COMMENT ON COLUMN sai_skill.version IS '�汾�ţ��ļ����ʱ���������ڻ���һ����У��';
-COMMENT ON COLUMN sai_skill.has_files IS '�Ƿ����֧���ļ�0=��SKILL.md��1=��scripts/references��';
-COMMENT ON COLUMN sai_skill.creator_id IS '�������û�ID';
+COMMENT ON TABLE sai_skill IS 'Skill技能包表';
+COMMENT ON COLUMN sai_skill.name IS 'Skill名称(从SKILL.md解析)';
+COMMENT ON COLUMN sai_skill.description IS 'Skill描述(从SKILL.md解析)';
+COMMENT ON COLUMN sai_skill.file_name IS '上传的zip文件名';
+COMMENT ON COLUMN sai_skill.file_path IS '解压后存储路径';
+COMMENT ON COLUMN sai_skill.file_size IS '文件大小(字节)';
+COMMENT ON COLUMN sai_skill.skill_content IS 'SKILL.md正文内容(去除frontmatter)';
+COMMENT ON COLUMN sai_skill.storage_path IS '对象存储相对路径前缀（如 skills/123/）';
+COMMENT ON COLUMN sai_skill.version IS '版本号，文件变更时自增，用于缓存一致性校验';
+COMMENT ON COLUMN sai_skill.has_files IS '是否包含支撑文件（0=仅SKILL.md，1=有scripts/references等）';
+COMMENT ON COLUMN sai_skill.creator_id IS '创建者用户ID';
 
 CREATE INDEX idx_sai_skill_creator ON sai_skill (creator_id);
 
--- 6.2 Skill ֧���ļ����ݱ�
+-- 6.2 Skill 支撑文件内容表
 CREATE TABLE IF NOT EXISTS sai_skill_file
 (
     id         BIGINT       IDENTITY(1,1) PRIMARY KEY,
@@ -574,18 +583,18 @@ CREATE TABLE IF NOT EXISTS sai_skill_file
     CONSTRAINT uk_sai_skill_file_path UNIQUE (skill_id, file_path)
 );
 
-COMMENT ON TABLE sai_skill_file IS 'Skill֧���ļ����ݱ�';
+COMMENT ON TABLE sai_skill_file IS 'Skill支撑文件内容表';
 COMMENT ON COLUMN sai_skill_file.skill_id IS 'Skill ID';
-COMMENT ON COLUMN sai_skill_file.file_path IS '�ļ����·��';
-COMMENT ON COLUMN sai_skill_file.content IS '�ļ�����';
-COMMENT ON COLUMN sai_skill_file.file_size IS '�ļ���С�ֽ�';
-COMMENT ON COLUMN sai_skill_file.encoding IS '���뷽ʽ';
-COMMENT ON COLUMN sai_skill_file.created_at IS '����ʱ��';
-COMMENT ON COLUMN sai_skill_file.updated_at IS '����ʱ��';
+COMMENT ON COLUMN sai_skill_file.file_path IS '文件相对路径';
+COMMENT ON COLUMN sai_skill_file.content IS '文件内容';
+COMMENT ON COLUMN sai_skill_file.file_size IS '文件大小(字节)';
+COMMENT ON COLUMN sai_skill_file.encoding IS '编码方式';
+COMMENT ON COLUMN sai_skill_file.created_at IS '创建时间';
+COMMENT ON COLUMN sai_skill_file.updated_at IS '更新时间';
 
 CREATE INDEX idx_sai_skill_file_skill_id ON sai_skill_file (skill_id);
 
--- 6.3 ��������Skill�������Զ�
+-- 6.3 智能体与Skill关联表（多对多）
 CREATE TABLE IF NOT EXISTS sai_agent_skill
 (
     id         BIGINT IDENTITY(1,1) PRIMARY KEY,
@@ -595,8 +604,8 @@ CREATE TABLE IF NOT EXISTS sai_agent_skill
     CONSTRAINT uk_sai_agent_skill UNIQUE (agent_id, skill_id)
 );
 
-COMMENT ON TABLE sai_agent_skill IS '������Skill������';
-COMMENT ON COLUMN sai_agent_skill.agent_id IS '������ID';
+COMMENT ON TABLE sai_agent_skill IS '智能体Skill关联表';
+COMMENT ON COLUMN sai_agent_skill.agent_id IS '智能体ID';
 COMMENT ON COLUMN sai_agent_skill.skill_id IS 'Skill ID';
 
 CREATE INDEX idx_sai_agent_skill_agent ON sai_agent_skill (agent_id);
@@ -604,10 +613,10 @@ CREATE INDEX idx_sai_agent_skill_skill ON sai_agent_skill (skill_id);
 
 
 -- ============================================================
--- �ߡ��ͻ���Ӧ����ڵ�
+-- 七、客户端应用与节点
 -- ============================================================
 
--- 7.1 �ͻ���Ӧ��
+-- 7.1 客户端应用
 CREATE TABLE IF NOT EXISTS sai_app
 (
     id             BIGINT       IDENTITY(1,1) PRIMARY KEY,
@@ -622,15 +631,15 @@ CREATE TABLE IF NOT EXISTS sai_app
     CONSTRAINT uk_sai_app_app_id UNIQUE (app_id)
 );
 
-COMMENT ON TABLE sai_app IS '�ͻ���Ӧ��';
-COMMENT ON COLUMN sai_app.app_id IS 'Ӧ��Ψһ��ʶ';
-COMMENT ON COLUMN sai_app.app_name IS 'Ӧ������';
-COMMENT ON COLUMN sai_app.description IS 'Ӧ������';
-COMMENT ON COLUMN sai_app.token IS 'ͨ����֤����';
-COMMENT ON COLUMN sai_app.route_strategy IS '·�ɲ���';
-COMMENT ON COLUMN sai_app.status IS '1=����, 0=ͣ��';
+COMMENT ON TABLE sai_app IS '客户端应用';
+COMMENT ON COLUMN sai_app.app_id IS '应用唯一标识';
+COMMENT ON COLUMN sai_app.app_name IS '应用名称';
+COMMENT ON COLUMN sai_app.description IS '应用描述';
+COMMENT ON COLUMN sai_app.token IS '通信认证令牌';
+COMMENT ON COLUMN sai_app.route_strategy IS '路由策略';
+COMMENT ON COLUMN sai_app.status IS '1=启用, 0=停用';
 
--- 7.2 AI�ͻ���ʵ���ڵ�
+-- 7.2 AI客户端实例节点
 CREATE TABLE IF NOT EXISTS sai_client_node
 (
     id                  BIGINT       IDENTITY(1,1) PRIMARY KEY,
@@ -648,25 +657,25 @@ CREATE TABLE IF NOT EXISTS sai_client_node
     CONSTRAINT uk_sai_client_node UNIQUE (app_id, host_id)
 );
 
-COMMENT ON TABLE sai_client_node IS 'AI�ͻ���ʵ���ڵ�';
-COMMENT ON COLUMN sai_client_node.app_id IS '����Ӧ��ID';
-COMMENT ON COLUMN sai_client_node.host_id IS '�ͻ���ʵ��Ψһ��ʶ';
-COMMENT ON COLUMN sai_client_node.host_ip IS '�ͻ���IP';
-COMMENT ON COLUMN sai_client_node.grpc_port IS '�ͻ���gRPC�˿�';
-COMMENT ON COLUMN sai_client_node.max_concurrent IS '��󲢷��Ի���';
-COMMENT ON COLUMN sai_client_node.active_chats IS '��ǰ��Ծ�Ի���';
-COMMENT ON COLUMN sai_client_node.supported_providers IS '֧�ֵ�ģ���ṩ��JSON����';
-COMMENT ON COLUMN sai_client_node.labels IS '·�ɱ�ǩ';
-COMMENT ON COLUMN sai_client_node.expire_dt IS '����ʱ����������';
+COMMENT ON TABLE sai_client_node IS 'AI客户端实例节点';
+COMMENT ON COLUMN sai_client_node.app_id IS '所属应用ID';
+COMMENT ON COLUMN sai_client_node.host_id IS '客户端实例唯一标识';
+COMMENT ON COLUMN sai_client_node.host_ip IS '客户端IP';
+COMMENT ON COLUMN sai_client_node.grpc_port IS '客户端gRPC端口';
+COMMENT ON COLUMN sai_client_node.max_concurrent IS '最大并发对话数';
+COMMENT ON COLUMN sai_client_node.active_chats IS '当前活跃对话数';
+COMMENT ON COLUMN sai_client_node.supported_providers IS '支持的模型提供商(JSON数组)';
+COMMENT ON COLUMN sai_client_node.labels IS '路由标签';
+COMMENT ON COLUMN sai_client_node.expire_dt IS '过期时间(心跳更新)';
 
 CREATE INDEX idx_sai_client_node_app_expire ON sai_client_node (app_id, expire_dt);
 
 
 -- ============================================================
--- �ˡ��洢����Դ
+-- 八、存储与资源
 -- ============================================================
 
--- 8.1 �洢ʵ��
+-- 8.1 存储实例
 CREATE TABLE IF NOT EXISTS sai_store_instance
 (
     id         BIGINT       IDENTITY(1,1) PRIMARY KEY,
@@ -680,18 +689,18 @@ CREATE TABLE IF NOT EXISTS sai_store_instance
     update_dt  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 );
 
-COMMENT ON TABLE sai_store_instance IS '�洢ʵ��';
-COMMENT ON COLUMN sai_store_instance.name IS 'ʵ������';
-COMMENT ON COLUMN sai_store_instance.category IS '����: 1-������ 2-��������';
-COMMENT ON COLUMN sai_store_instance.type IS '����: 1-PG_VECTOR 2-MILVUS 3-ELASTICSEARCH 4-PG_FULLTEXT';
-COMMENT ON COLUMN sai_store_instance.config IS '���Ӳ��� JSON';
-COMMENT ON COLUMN sai_store_instance.status IS '״̬: 0-ͣ�� 1-����';
-COMMENT ON COLUMN sai_store_instance.is_default IS '�Ƿ�Ϊ�� category ��Ĭ��ʵ��';
+COMMENT ON TABLE sai_store_instance IS '存储实例';
+COMMENT ON COLUMN sai_store_instance.name IS '实例名称';
+COMMENT ON COLUMN sai_store_instance.category IS '分类: 1-向量库 2-搜索引擎';
+COMMENT ON COLUMN sai_store_instance.type IS '类型: 1-PG_VECTOR 2-MILVUS 3-ELASTICSEARCH 4-PG_FULLTEXT';
+COMMENT ON COLUMN sai_store_instance.config IS '连接参数 JSON';
+COMMENT ON COLUMN sai_store_instance.status IS '状态: 0-停用 1-启用';
+COMMENT ON COLUMN sai_store_instance.is_default IS '是否为该 category 下默认实例';
 
 CREATE INDEX idx_sai_store_instance_category ON sai_store_instance (category);
 CREATE INDEX idx_sai_store_instance_type ON sai_store_instance (type);
 
--- 8.2 ͨ����Դ�洢
+-- 8.2 通用资源存储
 CREATE TABLE IF NOT EXISTS sai_resource
 (
     id            BIGINT        IDENTITY(1,1) PRIMARY KEY,
@@ -709,23 +718,23 @@ CREATE TABLE IF NOT EXISTS sai_resource
     CONSTRAINT uk_sai_resource_storage_key UNIQUE (storage_key)
 );
 
-COMMENT ON TABLE sai_resource IS 'ͨ����Դ�洢';
-COMMENT ON COLUMN sai_resource.storage_key IS '�洢�����·�������Key';
-COMMENT ON COLUMN sai_resource.original_name IS 'ԭʼ�ļ���';
-COMMENT ON COLUMN sai_resource.file_size IS '�ļ���Сbytes';
-COMMENT ON COLUMN sai_resource.mime_type IS 'MIME����';
-COMMENT ON COLUMN sai_resource.storage_type IS '�洢����: LOCAL/MINIO';
-COMMENT ON COLUMN sai_resource.access_url IS '����URL';
-COMMENT ON COLUMN sai_resource.biz_type IS 'ҵ������: AVATAR/ATTACHMENT/DOCUMENT/GENERAL';
-COMMENT ON COLUMN sai_resource.biz_id IS '����ҵ��ID';
-COMMENT ON COLUMN sai_resource.creator_id IS '�ϴ���ID';
+COMMENT ON TABLE sai_resource IS '通用资源存储';
+COMMENT ON COLUMN sai_resource.storage_key IS '存储键（相对路径或对象Key）';
+COMMENT ON COLUMN sai_resource.original_name IS '原始文件名';
+COMMENT ON COLUMN sai_resource.file_size IS '文件大小(bytes)';
+COMMENT ON COLUMN sai_resource.mime_type IS 'MIME类型';
+COMMENT ON COLUMN sai_resource.storage_type IS '存储类型: LOCAL/MINIO';
+COMMENT ON COLUMN sai_resource.access_url IS '访问URL';
+COMMENT ON COLUMN sai_resource.biz_type IS '业务类型: AVATAR/ATTACHMENT/DOCUMENT/GENERAL';
+COMMENT ON COLUMN sai_resource.biz_id IS '关联业务ID';
+COMMENT ON COLUMN sai_resource.creator_id IS '上传者ID';
 
 CREATE INDEX idx_sai_resource_biz ON sai_resource (biz_type, biz_id);
 CREATE INDEX idx_sai_resource_creator ON sai_resource (creator_id);
 
 
 -- ============================================================
--- �š���������� MySQL �� ON UPDATE CURRENT_TIMESTAMP
+-- 九、替代 MySQL 的 ON UPDATE CURRENT_TIMESTAMP（触发器）
 -- ============================================================
 
 -- sai_user.update_dt
@@ -901,52 +910,52 @@ END;
 
 
 -- ============================================================
--- ʮ����ʼ������
+-- 十、初始化数据
 -- ============================================================
 
--- 10.1 Ĭ�Ϲ���Ա��admin / admin123
+-- 10.1 默认管理员：admin / admin123
 SET IDENTITY_INSERT sai_user ON;
 INSERT INTO sai_user (id, role, username, email, password, create_dt, update_dt)
 VALUES (1, 2, 'admin', '', 'pbkdf2$120000$c25haWwtYWktYWRtaW4tMQ==$kakglT/wYKOgv/77Ah1stie58d/JbY2nGgq5DwgUBw4=',
         TIMESTAMP '2026-02-11 13:56:48.210429', TIMESTAMP '2026-02-11 13:56:48.210429');
 SET IDENTITY_INSERT sai_user OFF;
 
--- 10.2 ���볣����AI�ṩ��ʹ�� MERGE INTO ģ�� INSERT IGNORE
--- 10.2 ���볣����AI�ṩ��
+-- 10.2 插入常见的AI提供商
 INSERT INTO sai_model_provider (provider_name, provider_key, description, is_enabled)
-SELECT 'OpenAI', 'openai', 'OpenAI�ٷ�ģ�� GPT-4 GPT-3.5��', 1
+SELECT 'OpenAI', 'openai', 'OpenAI官方模型 (GPT-4, GPT-3.5等)', 1
 WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = 'OpenAI');
 
 INSERT INTO sai_model_provider (provider_name, provider_key, description, is_enabled)
-SELECT 'Claude', 'claude', 'Anthropic Claudeģ��', 1
+SELECT 'Claude', 'claude', 'Anthropic Claude模型', 1
 WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = 'Claude');
 
 INSERT INTO sai_model_provider (provider_name, provider_key, description, is_enabled)
-SELECT 'Ollama', 'ollama', '���ؿ�Դģ�� Llama Mistral��', 1
+SELECT 'Ollama', 'ollama', '本地开源模型 (Llama, Mistral等)', 1
 WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = 'Ollama');
 
 INSERT INTO sai_model_provider (provider_name, provider_key, description, is_enabled)
-SELECT 'Google Gemini', 'gemini', 'Google Geminiģ��', 1
+SELECT 'Google Gemini', 'gemini', 'Google Gemini模型', 1
 WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = 'Google Gemini');
 
 INSERT INTO sai_model_provider (provider_name, provider_key, description, is_enabled)
-SELECT '�����ư���', 'qwen', '�����ư��� OpenAI ����ģ�� Qwen��', 1
-WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = '�����ư���');
+SELECT '阿里云百炼', 'qwen', '阿里云百炼 OpenAI 兼容模型 (Qwen等)', 1
+WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = '阿里云百炼');
 
 INSERT INTO sai_model_provider (provider_name, provider_key, description, is_enabled)
-SELECT 'DeepSeek', 'deepseek', 'DeepSeek OpenAI ����ģ��', 1
+SELECT 'DeepSeek', 'deepseek', 'DeepSeek OpenAI 兼容模型', 1
 WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = 'DeepSeek');
 
 INSERT INTO sai_model_provider (provider_name, provider_key, description, is_enabled)
-SELECT '����AI', 'zhipu', '����AI OpenAI ����ģ�� GLM��', 1
-WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = '����AI');
--- 10.3 ��ʼ������Ӧ��
+SELECT '智谱AI', 'zhipu', '智谱AI OpenAI 兼容模型 (GLM等)', 1
+WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = '智谱AI');
+
+-- 10.3 初始化测试应用
 SET IDENTITY_INSERT sai_app ON;
 INSERT INTO sai_app (id, app_id, app_name, description, token, route_strategy, status, create_dt, update_dt)
 VALUES (1, 'snail-ai-agent-demo', 'snail-ai-agent-demo', '', 'SAI_3ce13fa4e56a43c2b42e380c649629a5', 'LEAST_LOAD', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 SET IDENTITY_INSERT sai_app OFF;
 
--- 10.4 ��ʼ�����Ե�openid
+-- 10.4 初始化测试的openid
 SET IDENTITY_INSERT sai_openapi_user ON;
 INSERT INTO sai_openapi_user (id, app_id, open_id, platform_user_id, external_id, create_dt, update_dt)
 VALUES (1, 'snail-ai-agent-demo', '46ed53c6a20044c7bbd870848e80f92f', 1, '1', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
@@ -955,7 +964,7 @@ SET IDENTITY_INSERT sai_openapi_user OFF;
 COMMIT;
 
 -- ============================================================
--- �ű�����
--- ʹ�÷�ʽ���ڴ��ι�����DM Manager/DISQL��ִ�д˽ű�����
+-- 脚本结束
+-- 使用方式：在达梦数据库 Manager/DISQL 中执行此建表脚本即可
 -- disql SYSDBA/SYSDBA@localhost:5236 -f snail_ai_schema_dameng.sql
 -- ============================================================
