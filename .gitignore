@@ -53,8 +53,8 @@ nbdist/
 .flattened-pom.xml
 
 # 部署本地配置
-scripts/deploy.env
-scripts/docker/.env
+script/deploy.env
+script/docker/.env
 
 # 临时目录
 /upload/

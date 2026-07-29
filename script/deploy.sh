@@ -6,13 +6,13 @@
 #       通过 Docker Compose 一键启动。
 #
 # 使用方式：
-#   bash scripts/deploy.sh              # 完整流程：构建 + 部署
-#   bash scripts/deploy.sh build        # 仅 Maven 构建 + Docker 镜像构建
-#   bash scripts/deploy.sh deploy       # 仅 docker compose up -d
-#   bash scripts/deploy.sh restart      # 重启后端服务
-#   bash scripts/deploy.sh status       # 查看服务状态
-#   bash scripts/deploy.sh logs         # 查看后端日志
-#   bash scripts/deploy.sh --help       # 显示帮助
+#   bash script/deploy.sh              # 完整流程：构建 + 部署
+#   bash script/deploy.sh build        # 仅 Maven 构建 + Docker 镜像构建
+#   bash script/deploy.sh deploy       # 仅 docker compose up -d
+#   bash script/deploy.sh restart      # 重启后端服务
+#   bash script/deploy.sh status       # 查看服务状态
+#   bash script/deploy.sh logs         # 查看后端日志
+#   bash script/deploy.sh --help       # 显示帮助
 # ============================================================
 set -euo pipefail
 
@@ -34,10 +34,8 @@ REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 # ----- 可覆盖配置 -----
 PROJECT_DIR="${SNAIL_AI_PROJECT_DIR:-${REPO_ROOT}}"
-COMPOSE_DIR="${SNAIL_AI_COMPOSE_DIR:-${PROJECT_DIR}/scripts/docker}"
+COMPOSE_DIR="${SNAIL_AI_COMPOSE_DIR:-${PROJECT_DIR}/script/docker}"
 COMPOSE_FILE="${COMPOSE_DIR}/docker-compose.yml"
-COMPOSE_ENV="${COMPOSE_DIR}/.env"
-DOCKER_IMAGE="${SNAIL_AI_DOCKER_IMAGE:-opensnail/snail-ai:latest}"
 HEALTH_URL="${SNAIL_AI_HEALTH_URL:-http://localhost:8900/snail-ai/actuator/health}"
 HEALTH_RETRIES="${SNAIL_AI_HEALTH_RETRIES:-30}"
 HEALTH_INTERVAL="${SNAIL_AI_HEALTH_INTERVAL:-3}"
@@ -49,7 +47,7 @@ show_help() {
   cat <<EOF
 Snail AI CI/CD 部署脚本
 
-用法: bash scripts/deploy.sh [命令]
+用法: bash script/deploy.sh [命令]
 
 命令:
   (无参数)       完整流程：Git 拉取 → Maven 构建 → Docker 构建 → 部署
@@ -58,14 +56,14 @@ Snail AI CI/CD 部署脚本
   restart        重启 Snail AI Server + Agent Example
   update         拉取最新代码并重新构建部署
   status         查看所有服务运行状态
-  logs           查看 Snail AI Server 日志
+  logs           查看后端日志
   health         执行健康检查
+  init-db        初始化数据库（首次部署后执行）
   --help         显示此帮助
 
-环境变量（可写入 scripts/deploy.env）:
+环境变量（可写入 script/deploy.env）:
   SNAIL_AI_PROJECT_DIR    项目源码目录（默认: 脚本所在仓库根目录）
   SNAIL_AI_COMPOSE_DIR    docker-compose.yml 所在目录
-  SNAIL_AI_DOCKER_IMAGE   Docker 镜像名
   SNAIL_AI_GIT_BRANCH     Git 分支（默认: main）
   SNAIL_AI_MVN_OPTS       Maven 构建参数
   SNAIL_AI_HEALTH_URL     健康检查地址
@@ -75,9 +73,8 @@ EOF
 
 # ----- 加载本地配置 -----
 load_env() {
-  local env_file="${PROJECT_DIR}/scripts/deploy.env"
+  local env_file="${PROJECT_DIR}/script/deploy.env"
   if [ -f "$env_file" ]; then
-    # shellcheck source=/dev/null
     set -a; source "$env_file"; set +a
     log_info "已加载: $env_file"
   fi
@@ -96,20 +93,13 @@ check_env() {
 
   if [ ${#missing[@]} -gt 0 ]; then
     log_error "缺少依赖: ${missing[*]}"
-    log_info "请先运行: bash scripts/ci-setup.sh"
+    log_info "请先运行: sudo bash script/ci-setup.sh"
     exit 1
   fi
 
-  # 检查 Docker Compose 可用
   if ! docker compose version >/dev/null 2>&1; then
     log_error "需要 Docker Compose V2 (docker compose)"
     exit 1
-  fi
-
-  # 检查 compose .env
-  if [ ! -f "$COMPOSE_ENV" ]; then
-    log_warn "未找到 ${COMPOSE_ENV}，将使用默认值"
-    log_info "建议: cp ${COMPOSE_ENV}.example ${COMPOSE_ENV}"
   fi
 
   log_info "环境检查通过"
@@ -169,6 +159,12 @@ restart() {
     snail-ai-agent-example
 
   log_info "后端服务已重启"
+}
+
+# ----- 数据库初始化 -----
+init_db() {
+  log_step "初始化数据库"
+  bash "${SCRIPT_DIR}/init-db.sh"
 }
 
 # ----- 状态 -----
@@ -232,6 +228,7 @@ case "${1:-}" in
   status)    status ;;
   logs)      logs ;;
   health)    health_check ;;
+  init-db)   init_db ;;
   "")        full_deploy ;;
   *)
     log_error "未知命令: $1"
