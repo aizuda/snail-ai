@@ -6,13 +6,14 @@
 #       通过 Docker Compose 一键启动。
 #
 # 使用方式：
-#   bash script/deploy.sh              # 完整流程：构建 + 部署
-#   bash script/deploy.sh build        # 仅 Maven 构建 + Docker 镜像构建
-#   bash script/deploy.sh deploy       # 仅 docker compose up -d
-#   bash script/deploy.sh restart      # 重启后端服务
-#   bash script/deploy.sh status       # 查看服务状态
-#   bash script/deploy.sh logs         # 查看后端日志
-#   bash script/deploy.sh --help       # 显示帮助
+#   bash script/deploy/deploy.sh              # 完整流程：构建 + 部署
+#   bash script/deploy/deploy.sh build        # 仅 Maven 构建 + Docker 镜像构建
+#   bash script/deploy/deploy.sh deploy       # 仅 docker compose up -d
+#   bash script/deploy/deploy.sh restart      # 重启后端服务
+#   bash script/deploy/deploy.sh status       # 查看服务状态
+#   bash script/deploy/deploy.sh logs         # 查看后端日志
+#   bash script/deploy/deploy.sh init-db      # 初始化数据库
+#   bash script/deploy/deploy.sh --help       # 显示帮助
 # ============================================================
 set -euo pipefail
 
@@ -30,7 +31,7 @@ log_step()  { echo -e "\n${BLUE}==>${NC} ${BLUE}$*${NC}"; }
 
 # ----- 路径 -----
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 
 # ----- 可覆盖配置 -----
 PROJECT_DIR="${SNAIL_AI_PROJECT_DIR:-${REPO_ROOT}}"
@@ -47,7 +48,7 @@ show_help() {
   cat <<EOF
 Snail AI CI/CD 部署脚本
 
-用法: bash script/deploy.sh [命令]
+用法: bash script/deploy/deploy.sh [命令]
 
 命令:
   (无参数)       完整流程：Git 拉取 → Maven 构建 → Docker 构建 → 部署
@@ -61,7 +62,7 @@ Snail AI CI/CD 部署脚本
   init-db        初始化数据库（首次部署后执行）
   --help         显示此帮助
 
-环境变量（可写入 script/deploy.env）:
+环境变量（可写入 script/deploy/deploy.env）:
   SNAIL_AI_PROJECT_DIR    项目源码目录（默认: 脚本所在仓库根目录）
   SNAIL_AI_COMPOSE_DIR    docker-compose.yml 所在目录
   SNAIL_AI_GIT_BRANCH     Git 分支（默认: main）
@@ -73,7 +74,7 @@ EOF
 
 # ----- 加载本地配置 -----
 load_env() {
-  local env_file="${PROJECT_DIR}/script/deploy.env"
+  local env_file="${PROJECT_DIR}/script/deploy/deploy.env"
   if [ -f "$env_file" ]; then
     set -a; source "$env_file"; set +a
     log_info "已加载: $env_file"

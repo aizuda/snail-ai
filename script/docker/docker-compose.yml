@@ -45,6 +45,23 @@ services:
         limits:
           memory: 200M
 
+  ### 数据库管理（Web 端）
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    container_name: cloudbeaver
+    environment:
+      TZ: Asia/Shanghai
+    ports:
+      - "8978:8978"
+    volumes:
+      - ${CLOUDBEAVER_HOME:-./cloudbeaver}/workspace:/opt/cloudbeaver/workspace
+    network_mode: "host"
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
   ### 反向代理
   nginx:
     image: nginx:1.23.4
@@ -59,7 +76,6 @@ services:
       - ${NGINX_HOME:-./nginx}/conf/nginx.conf:/etc/nginx/nginx.conf
       - ${NGINX_HOME:-./nginx}/conf/vhost:/etc/nginx/vhost
       - ${NGINX_HOME:-./nginx}/html:/usr/share/nginx/html
-      - ${NGINX_HOME:-./nginx}/resource:/usr/share/nginx/resource
       - ${NGINX_HOME:-./nginx}/log:/var/log/nginx
     privileged: true
     network_mode: "host"

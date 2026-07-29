@@ -7,12 +7,12 @@
 # 前提：docker compose up -d mysql 已运行且 healthy
 #
 # 使用方式：
-#   bash script/init-db.sh
+#   bash script/deploy/init-db.sh
 # ============================================================
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SQL_DIR="${SCRIPT_DIR}/sql"
+SQL_DIR="${SCRIPT_DIR}/../sql"
 
 MYSQL_CONTAINER="${MYSQL_CONTAINER:-mysql}"
 MYSQL_USER="${MYSQL_USER:-root}"

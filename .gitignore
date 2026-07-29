@@ -53,7 +53,7 @@ nbdist/
 .flattened-pom.xml
 
 # 部署本地配置
-script/deploy.env
+script/deploy/deploy.env
 script/docker/.env
 
 # 临时目录
@@ -87,3 +87,4 @@ tools/paddle-ocr-api/server/__pycache__/
 /.playwright-cli/
 
 /docs/superpowers/
+/.tmp/
