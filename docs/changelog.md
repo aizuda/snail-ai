@@ -10,7 +10,40 @@
 
 ---
 
-## [1.1.0] - 未发布
+## [1.1.1] - 2026-07-29
+
+### 版本亮点
+- 升级内嵌智能体对话前端，补充空状态提示和智能体市场入口，优化用户进入对话与切换智能体的体验。
+- 优化 OpenAPI 智能体列表过滤逻辑，统一从当前 OpenAPI 会话上下文获取 `appId`，避免客户端透传过滤条件带来的不一致。
+- 梳理 Docker Compose 与 CI 初始化链路，提升演示环境、源码构建和 Alibaba Cloud Linux 部署兼容性。
+
+### 新增功能
+- 内嵌聊天页静态资源升级到 1.1.1，对话模块新增空状态展示和智能体市场入口。
+- `.env.example` 补充 Docker Compose 源码构建路径、数据源、加密密钥和 Agent 连接配置示例。
+
+### 功能优化
+- 智能体列表查询改为服务端基于 `OpenApiSessionUtils.current().getAppId()` 过滤，并同时返回当前应用绑定智能体和公共智能体。
+- 会话 Token 解析在 JWT 缺少 `appId` 时回退到 Agent 本地配置，提升旧 Token 或简化配置场景的兼容性。
+- Docker Compose 构建上下文改为通过 `SNAIL_AI_STARTER_PATH`、`SNAIL_AI_AGENT_EXAMPLE_PATH` 配置，便于不同目录结构下复用部署脚本。
+- Server 与 Agent 示例容器启动命令统一支持 `JAVA_OPTS` 注入，便于通过 JVM 参数覆盖数据源、加密密钥和 Agent 连接配置。
+- Maven 构建配置切换为华为云 Maven 镜像，并保留 Spring Milestones 仓库，减少不必要的快照仓库配置。
+
+### 问题修复
+- `ci-setup.sh` 新增 `alinux` 发行版识别，JDK、Maven、Git、Node.js 安装流程适配 Alibaba Cloud Linux。
+- 新增 `.gitattributes` 强制 Shell 脚本使用 LF 换行，修复 CRLF 导致 Linux 环境脚本无法直接执行的问题。
+
+### 部署与文档
+- Docker 部署文档补充容器内初始化 MySQL 数据库的命令示例。
+- Docker 部署文档补充 Ollama 演示模型手动拉取说明，包含 Embedding 模型和轻量聊天模型示例。
+- 部署脚本移除内置 `init-db` 命令，数据库初始化改为按文档手动执行。
+- 移除冗余的 `script/deploy/init-db.sh` 与 `script/pull-models.sh`，简化部署脚本职责。
+
+### 升级说明
+- 使用 Docker Compose 部署时，请检查 `.env` 或运行环境中的源码构建路径、数据库连接、加密密钥和 Agent 连接参数是否与 1.1.1 模板一致。
+- 如果此前依赖 `script/deploy/init-db.sh` 或 `script/pull-models.sh`，升级后请改用 `docs/deploy/docker.md` 中的数据库初始化和 Ollama 模型拉取命令。
+- 如果在 Alibaba Cloud Linux 或 Windows 编辑后上传脚本的环境中部署，建议更新到新版 `script/deploy/ci-setup.sh`，并确保 Shell 脚本保持 LF 换行。
+
+## [1.1.0] - 2026-07-28
 
 ### 新增功能
 - 智能体对话支持图片附件链路，独立聊天页、OpenAPI 和 Agent SDK 可上传图片并随消息发送，支持图片消息预览、附件校验与会话记录元数据持久化。
