@@ -52,20 +52,20 @@ install_jdk() {
     ubuntu|debian)
       apt-get update -qq
       apt-get install -y -qq wget gnupg
-      wget -qO - https://packages.bell-sw.com/pgp/GPG-KEY-bellsoft | gpg --dearmor > /etc/apt/trusted.gpg.d/bellsoft.gpg
+      wget -qO - https://download.bell-sw.com/pki/GPG-KEY-bellsoft | gpg --dearmor > /etc/apt/trusted.gpg.d/bellsoft.gpg
       echo "deb [arch=$(dpkg --print-architecture)] https://apt.bell-sw.com/ stable main" > /etc/apt/sources.list.d/bellsoft.list
       apt-get update -qq
       apt-get install -y -qq bellsoft-java21
       ;;
     centos|rhel|fedora|rocky|almalinux|alinux)
-      rpm --import https://packages.bell-sw.com/pgp/GPG-KEY-bellsoft
+      rpm --import https://download.bell-sw.com/pki/GPG-KEY-bellsoft
       cat > /etc/yum.repos.d/bellsoft.repo <<'REPO'
 [BellSoft]
 name=BellSoft Repository
 baseurl=https://yum.bell-sw.com
 enabled=1
 gpgcheck=1
-gpgkey=https://packages.bell-sw.com/pgp/GPG-KEY-bellsoft
+gpgkey=https://download.bell-sw.com/pki/GPG-KEY-bellsoft
 REPO
       yum install -y bellsoft-java21 2>/dev/null || dnf install -y bellsoft-java21
       ;;
