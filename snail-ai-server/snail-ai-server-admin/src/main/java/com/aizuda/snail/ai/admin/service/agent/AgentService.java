@@ -52,6 +52,7 @@ public class AgentService {
     private final SkillService skillService;
     private final AgentValidator agentValidator;
     private final AgentAssembler agentAssembler;
+    private final AgentMcpServerMapper agentMcpServerMapper;
 
     /**
      * 分页查询智能体（支持关键字、是否精选、排序）
@@ -190,6 +191,8 @@ public class AgentService {
                 new LambdaQueryWrapper<AgentConversationPO>().eq(AgentConversationPO::getAgentId, id));
         agentUsageStatMapper.delete(
                 new LambdaQueryWrapper<AgentUsageStatPO>().eq(AgentUsageStatPO::getAgentId, id));
+        agentMcpServerMapper.delete(
+                new LambdaQueryWrapper<AgentMcpServerPO>().eq(AgentMcpServerPO::getAgentId, id));
         agentMapper.deleteById(id);
         log.info("删除智能体成功 id={} name={}", id, po.getName());
     }
