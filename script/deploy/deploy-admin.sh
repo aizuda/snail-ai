@@ -19,7 +19,7 @@ DEPLOY_TARGET="/docker/nginx/html/snailai-admin"
 NGINX_DIR="/docker"
 
 # 后端地址配置（修改前端 .env.deploy 中的 VITE_SERVICE_BASE_URL）
-# 例：http://172.29.46.234:8900/snail-ai
+# 例：https://snailai-server.opensnail.com/snail-ai
 
 # 构建命令（--mode deploy 读取 .env.deploy，使用绝对后端地址）
 BUILD_CMD="pnpm build:deploy"
