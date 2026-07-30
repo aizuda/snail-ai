@@ -3,7 +3,7 @@
 # Snail AI — CI/CD 构建环境安装脚本
 # ============================================================
 # 用途：在 Linux 宿主机上安装 JDK 21 + Maven + Git + Node.js 24 + pnpm
-#       为 deploy.sh 提供编译构建环境。
+#       为 update-*.sh 提供编译构建环境。
 #
 # 支持：Ubuntu 20.04+ / Debian 11+ / CentOS 7+ / RHEL 8+
 #
