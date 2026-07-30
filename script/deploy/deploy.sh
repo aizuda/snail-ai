@@ -7,7 +7,9 @@
 #
 # 使用方式：
 #   bash script/deploy/deploy.sh              # 完整流程：构建 + 部署
-#   bash script/deploy/deploy.sh build        # 仅 Maven 构建 + Docker 镜像构建
+#   bash script/deploy/deploy.sh build        # Maven 构建 + Docker 镜像构建（全部）
+#   bash script/deploy/deploy.sh build server # 仅构建 Snail AI Server
+#   bash script/deploy/deploy.sh build agent  # 仅构建 Snail AI Agent Example
 #   bash script/deploy/deploy.sh deploy       # 仅 docker compose up -d
 #   bash script/deploy/deploy.sh restart      # 重启后端服务
 #   bash script/deploy/deploy.sh status       # 查看服务状态
@@ -51,7 +53,8 @@ Snail AI CI/CD 部署脚本
 
 命令:
   (无参数)       完整流程：Git 拉取 → Maven 构建 → Docker 构建 → 部署
-  build          仅 Maven 构建 + Docker 镜像构建
+  build [目标]   仅 Maven 构建 + Docker 镜像构建
+                 目标: all(默认) | server | agent
   deploy         仅 docker compose up -d
   restart        重启 Snail AI Server + Agent Example
   update         拉取最新代码并重新构建部署
@@ -117,23 +120,42 @@ git_pull() {
 }
 
 # ----- Maven 构建 -----
+# 参数: all(默认) | server | agent
 maven_build() {
+  local target="${1:-all}"
   log_step "Maven 构建"
   cd "$PROJECT_DIR"
 
-  mvn clean package $MVN_OPTS
+  if [ "$target" = "all" ] || [ "$target" = "server" ]; then
+    log_info "构建 Snail AI Server ..."
+    mvn clean package $MVN_OPTS
+    log_info "Snail AI Server 构建完成"
+  fi
 
-  log_info "Maven 构建完成"
+  if [ "$target" = "all" ] || [ "$target" = "agent" ]; then
+    log_info "构建 Snail AI Agent Example ..."
+    cd "$PROJECT_DIR/snail-ai-agent-example"
+    mvn clean package $MVN_OPTS
+    log_info "Snail AI Agent Example 构建完成"
+  fi
 }
 
 # ----- Docker 构建 -----
+# 参数: all(默认) | server | agent
 docker_build() {
+  local target="${1:-all}"
   log_step "Docker 镜像构建"
   cd "$COMPOSE_DIR"
 
-  docker compose -f "$COMPOSE_FILE" build \
-    snail-ai-server \
-    snail-ai-agent-example
+  local services=""
+  if [ "$target" = "all" ] || [ "$target" = "server" ]; then
+    services="$services snail-ai-server"
+  fi
+  if [ "$target" = "all" ] || [ "$target" = "agent" ]; then
+    services="$services snail-ai-agent-example"
+  fi
+
+  docker compose -f "$COMPOSE_FILE" build $services
 
   log_info "Docker 镜像构建完成"
 }
@@ -191,8 +213,8 @@ health_check() {
 full_deploy() {
   check_env
   git_pull
-  maven_build
-  docker_build
+  maven_build all
+  docker_build all
   deploy
   health_check
 }
@@ -201,8 +223,8 @@ full_deploy() {
 update() {
   check_env
   git_pull
-  maven_build
-  docker_build
+  maven_build all
+  docker_build all
   restart
   health_check
 }
@@ -214,7 +236,11 @@ load_env
 
 case "${1:-}" in
   --help|-h) show_help ;;
-  build)     check_env && maven_build && docker_build ;;
+  build)
+    check_env
+    maven_build "${2:-all}"
+    docker_build "${2:-all}"
+    ;;
   deploy)    deploy ;;
   restart)   restart ;;
   update)    update ;;
