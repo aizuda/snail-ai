@@ -123,7 +123,7 @@ install_maven() {
       local mvn_ver="3.9.16"
       local mvn_url="https://dlcdn.apache.org/maven/maven-3/${mvn_ver}/binaries/apache-maven-${mvn_ver}-bin.tar.gz"
       log_info "下载 Maven ${mvn_ver} ..."
-      curl -fsSL "$mvn_url" -o /tmp/maven.tar.gz
+      curl -fSL "$mvn_url" -o /tmp/maven.tar.gz
       tar -xzf /tmp/maven.tar.gz -C /usr/local/
       ln -sf /usr/local/apache-maven-${mvn_ver}/bin/mvn /usr/local/bin/mvn
       rm -f /tmp/maven.tar.gz
@@ -133,7 +133,7 @@ install_maven() {
       local mvn_ver="3.9.16"
       local mvn_url="https://dlcdn.apache.org/maven/maven-3/${mvn_ver}/binaries/apache-maven-${mvn_ver}-bin.tar.gz"
       log_info "下载 Maven ${mvn_ver} ..."
-      curl -fsSL "$mvn_url" -o /tmp/maven.tar.gz
+      curl -fSL "$mvn_url" -o /tmp/maven.tar.gz
       tar -xzf /tmp/maven.tar.gz -C /usr/local/
       ln -sf /usr/local/apache-maven-${mvn_ver}/bin/mvn /usr/local/bin/mvn
       rm -f /tmp/maven.tar.gz
