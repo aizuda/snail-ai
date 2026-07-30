@@ -120,7 +120,7 @@ install_maven() {
       ;;
     centos|rhel|fedora|rocky|almalinux|alinux)
       # 不通过系统仓库安装 Maven，会拖入旧版 JDK 依赖
-      local mvn_ver="3.9.9"
+      local mvn_ver="3.9.16"
       local mvn_url="https://dlcdn.apache.org/maven/maven-3/${mvn_ver}/binaries/apache-maven-${mvn_ver}-bin.tar.gz"
       log_info "下载 Maven ${mvn_ver} ..."
       curl -fsSL "$mvn_url" -o /tmp/maven.tar.gz
@@ -130,7 +130,7 @@ install_maven() {
       ;;
     *)
       # 通用：手动下载解压
-      local mvn_ver="3.9.9"
+      local mvn_ver="3.9.16"
       local mvn_url="https://dlcdn.apache.org/maven/maven-3/${mvn_ver}/binaries/apache-maven-${mvn_ver}-bin.tar.gz"
       log_info "下载 Maven ${mvn_ver} ..."
       curl -fsSL "$mvn_url" -o /tmp/maven.tar.gz
