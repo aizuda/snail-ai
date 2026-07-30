@@ -18,7 +18,10 @@ DEPLOY_TARGET="/docker/nginx/html/snailai-admin"
 # Docker nginx 目录（用于提示重启命令）
 NGINX_DIR="/docker"
 
-# 构建命令（仅构建前端 dist/，不涉及 Java 后端）
+# 后端地址配置（修改前端 .env.deploy 中的 VITE_SERVICE_BASE_URL）
+# 例：http://172.29.46.234:8900/snail-ai
+
+# 构建命令（--mode deploy 读取 .env.deploy，使用绝对后端地址）
 BUILD_CMD="pnpm build:deploy"
 
 # 包管理器安装命令
