@@ -1,158 +1,278 @@
 # Docker 部署
 
-本文介绍仓库当前提供的 Docker Compose 脚本。当前 Compose 文件可启动 Snail AI Server、基础依赖组件和 RAG 工具服务。
+本文介绍如何基于 `script/docker/docker-compose.yml` 部署 Snail AI 完整服务，包括 Server、Agent、nginx 反向代理和前端。
 
-## 当前支持状态
+## 目录结构
 
-| 组件 | 状态 | 脚本/来源 |
-|------|------|-----------|
-| Elasticsearch | 已提供 Compose 服务 | `docs/docker/docker-compose.yaml` |
-| MinIO | 已提供 Compose 服务 | `docs/docker/docker-compose.yaml` |
-| Milvus | 已提供 Compose 服务 | `docs/docker/docker-compose.yaml` |
-| PgVector | 已提供 Compose 服务 | `docs/docker/docker-compose.yaml` |
-| Docling API | 已提供 Compose 服务 | `docs/docker/docker-compose.yaml` |
-| PaddleOCR API | 已提供 Compose 服务 | `docs/docker/docker-compose.yaml` |
-| Snail AI Server 镜像 | 已提供 Compose 服务 | `docs/docker/docker-compose.yaml` |
-| MySQL 初始化脚本 | 已提供 | `docs/sql/snail_ai_schema.sql` |
-| PostgreSQL 初始化脚本 | 已提供 | `docs/sql/snail_ai_schema_pgsql.sql` |
+```
+script/docker/
+├── docker-compose.yml          # 生产环境 Compose 文件
+├── .env                        # 构建路径变量（本地配置，不提交）
+├── .env.example                # 构建路径变量模板
+└── nginx/
+    ├── conf/
+    │   ├── nginx.conf
+    │   └── vhost/
+    │       ├── snailai-admin.opensnail.com.conf   # 管理端前端
+    │       ├── snailai-server.opensnail.com.conf  # 后端 API
+    │       ├── snailai-chat.opensnail.com.conf    # 对话页面
+    │       └── snailai.opensnail.com.conf         # 主站
+    ├── cert/                   # SSL 证书目录（需自行放入）
+    └── html/                   # 前端静态文件目录
+```
 
 ## 前提条件
 
-| 软件 | 最低版本 | 说明 |
-|------|----------|------|
-| Docker | 20.10+ | 容器运行时 |
-| Docker Compose | v2.0+ | 推荐使用 `docker compose` V2 命令 |
+| 软件 | 最低版本 |
+|------|----------|
+| JDK | 21+ |
+| Maven | 3.8+ |
+| Docker | 20.10+ |
+| Docker Compose | v2+ |
+| Node.js | 20+（仅前端构建需要） |
+| pnpm | 10+（仅前端构建需要） |
 
-## 启动 Compose 服务
+## 快速开始（无脑操作）
 
-在仓库根目录执行：
+适用于新服务器，从头到尾一键部署。
 
-```bash
-docker compose -f docs/docker/docker-compose.yaml up -d
-```
-
-或进入脚本目录执行：
-
-```bash
-cd docs/docker
-docker compose up -d
-```
-
-默认会启动以下服务：
-
-| 服务 | 端口 | 说明 |
-|------|------|------|
-| Snail AI Server | `8900`、`18888` | 后端 HTTP 与 Agent Client gRPC |
-| MySQL | `13306 -> 3306` | 默认业务库 |
-| Elasticsearch | `9200`、`9300` | 向量/检索存储可选项 |
-| MinIO | `9000`、`9001` | 对象存储 |
-| Milvus | `19530`、`9091` | 向量数据库 |
-| PgVector | `15432 -> 5432` | PostgreSQL + pgvector 镜像 |
-| Docling API | `5100` | 文档转换 REST 服务 |
-| PaddleOCR API | `8866` | 图片 OCR REST 服务 |
-
-如果只启动 RAG 工具服务：
+### 1. 安装环境
 
 ```bash
-docker compose -f docs/docker/docker-compose.yaml up -d --build docling-api paddle-ocr-api
+sudo bash script/deploy/ci-setup.sh
 ```
 
-Docling 首次需要下载 PDF/OCR 模型时：
+安装 JDK 21 + Maven + Git + Node.js + pnpm。已有环境可跳过。
+
+### 2. 拉取源码
 
 ```bash
-DOCLING_DOWNLOAD_MODELS=true docker compose -f docs/docker/docker-compose.yaml up -d docling-api
+mkdir -p /workspace
+cd /workspace
+git clone https://gitee.com/opensnail/snail-ai.git
+cd snail-ai
 ```
 
-## 初始化数据库
-
-Compose 中的 PgVector 容器可用于 PostgreSQL/PgVector 场景。业务库使用 MySQL 时请自行启动 MySQL 8.0+，并导入：
+### 3. 复制 docker 目录到 /docker
 
 ```bash
-mysql -u root -p snail_ai < docs/sql/snail_ai_schema.sql
+cp -r script/docker /docker
 ```
 
-业务库使用 PostgreSQL 时导入：
+此后所有 docker 命令都在 `/docker` 下执行，简洁直观。
+
+### 4. 配置 .env（构建路径）
+
+编辑 `/docker/.env`：
+
+```env
+SNAIL_AI_STARTER_PATH=/workspace/snail-ai/snail-ai-starter
+SNAIL_AI_AGENT_EXAMPLE_PATH=/workspace/snail-ai/snail-ai-agent-example
+```
+
+这是 Docker 构建时的上下文路径，指向你的源码目录。
+
+### 5. 配置 docker-compose.yml
+
+编辑 `/docker/docker-compose.yml`，按需修改：
+
+**数据库连接**（`snail-ai-server` 服务的 `JAVA_OPTS`）：
+
+```yaml
+-Dspring.datasource.driver-class-name=org.postgresql.Driver
+-Dspring.datasource.url=jdbc:postgresql://localhost:5432/snail_ai
+-Dspring.datasource.username=root
+-Dspring.datasource.password=你的密码
+```
+
+**Agent 凭证**（`snail-ai-agent-example` 服务的 `JAVA_OPTS`）：
+
+```yaml
+-Dsnail-ai.app-id=snail-ai-agent-demo
+-Dsnail-ai.token=你的token
+```
+
+> token 需与数据库 `sai_app` 表中一致。默认数据见 SQL 初始化脚本。
+
+### 6. 配置 nginx 域名
+
+编辑 `/docker/nginx/conf/vhost/` 下的配置文件，将 `opensnail.com` 替换为你自己的域名。
+
+将 SSL 证书放入 `/docker/nginx/cert/`：
+
+```
+/docker/nginx/cert/你的域名.pem
+/docker/nginx/cert/你的域名.key
+```
+
+修改配置中的 `ssl_certificate` 和 `ssl_certificate_key` 路径。
+
+### 7. 构建源码
 
 ```bash
-psql -U postgres -d snail_ai -f docs/sql/snail_ai_schema_pgsql.sql
+# 构建 Server
+cd /workspace/snail-ai
+mvn clean package -DskipTests -T 1C
+
+# 构建 Agent
+cd /workspace/snail-ai/snail-ai-agent-example
+mvn clean package -DskipTests -T 1C
 ```
 
-## 初始化数据库（Docker 容器内）
+### 8. 初始化数据库
 
-如果 MySQL 通过 `script/docker/docker-compose.yml` 启动，可以直接在容器内执行：
+#### PostgreSQL
 
 ```bash
-docker exec -i mysql mysql -uroot -p123456 snail_ai < docs/sql/snail_ai_schema.sql
+# 创建数据库
+docker exec -i postgres psql -U root -c "CREATE DATABASE snail_ai;"
+
+# 导入表结构（含默认管理员和演示应用）
+docker exec -i postgres psql -U root -d snail_ai < /workspace/snail-ai/docs/sql/snail_ai_schema_pgsql.sql
 ```
 
-## 拉取 Ollama 模型（演示环境）
-
-`script/docker/docker-compose.yml` 中包含 Ollama 服务，启动后需手动拉取模型：
+#### MySQL
 
 ```bash
-# 拉取 Embedding 模型（约 274MB）
-docker exec ollama ollama pull nomic-embed-text
-
-# 可选：拉取轻量聊天模型（约 352MB）
-docker exec ollama ollama pull qwen2:0.5b
-
-# 查看已安装模型
-docker exec ollama ollama list
+docker exec -i mysql mysql -uroot -p123456 -e "CREATE DATABASE snail_ai DEFAULT CHARACTER SET utf8mb4;"
+docker exec -i mysql mysql -uroot -p123456 snail_ai < /workspace/snail-ai/docs/sql/snail_ai_schema.sql
 ```
 
-## 启动 Snail AI Server
-
-Compose 文件已包含 Snail AI Server 镜像。也可在本机用 Maven 启动：
+### 9. 依次启动服务
 
 ```bash
-mvn spring-boot:run -pl snail-ai-starter
+cd /docker
+
+# 1. 先启动数据库
+docker compose up -d postgres
+
+# 2. 启动 Server
+docker compose up -d --build snail-ai-server
+
+# 3. 启动 Agent
+docker compose up -d --build snail-ai-agent-example
+
+# 4. 最后启动 nginx
+docker compose up -d nginx
 ```
 
-服务默认地址：
+### 10. 部署前端
 
-```text
-http://localhost:8900/snail-ai
+```bash
+cd /workspace/snail-ai-admin
+
+# 安装依赖
+pnpm install --frozen-lockfile
+
+# 构建（读取 .env.deploy，使用绝对后端地址）
+pnpm build:deploy
+
+# 拷贝到 nginx 静态文件目录
+rm -rf /docker/nginx/html/snailai-admin
+mkdir -p /docker/nginx/html/snailai-admin
+cp -r dist/* /docker/nginx/html/snailai-admin/
 ```
 
-gRPC 默认端口：
+> 前端源码独立仓库，需单独 clone。`.env.deploy` 中的 `VITE_SERVICE_BASE_URL` 配置后端完整地址。
 
-```text
-18888
+## 更新服务
+
+三种更新脚本位于 `script/deploy/`，每个脚本顶部有配置区，修改路径后即可使用。
+
+### update-server.sh
+
+```bash
+bash script/deploy/update-server.sh
 ```
+
+流程：Maven 构建 → 停容器 → 删镜像 → 重建启动。
+
+### update-agent.sh
+
+```bash
+bash script/deploy/update-agent.sh
+```
+
+流程同上。
+
+### update-admin.sh
+
+```bash
+bash script/deploy/update-admin.sh
+```
+
+流程：pnpm install → build:deploy → 清 nginx 旧包 → 拷贝新包。
+
+### 脚本配置
+
+每个脚本顶部有配置区，复制到任意位置，修改后直接执行：
+
+```bash
+# update-server.sh / update-agent.sh
+PROJECT_DIR="/workspace/snail-ai"                  # 源码目录
+COMPOSE_DIR="/docker"                              # docker-compose.yml 所在目录
+SERVICE_NAME="snail-ai-server"                     # 服务名
+MVN_OPTS="-DskipTests -T 1C"                       # Maven 参数
+
+# update-admin.sh
+FRONTEND_DIR="/workspace/snail-ai-admin"           # 前端源码目录
+NGINX_HTML_DIR="/docker/nginx/html/snailai-admin"  # nginx 静态文件目录
+BUILD_CMD="pnpm build:deploy"                      # 构建命令
+```
+
+> 已有 Docker 环境但不需要完整构建链的用户，可以跳过 Maven/Node.js 安装，直接使用预编译的 JAR 或镜像。
+
+## 演示模式
+
+编辑 `/docker/nginx/conf/vhost/snailai-server.opensnail.com.conf`，取消注释：
+
+```nginx
+# if ($request_method !~ ^(GET|HEAD|OPTIONS)$) {
+#     return 403;
+# }
+```
+
+改为：
+
+```nginx
+if ($request_method !~ ^(GET|HEAD|OPTIONS)$) {
+    return 403;
+}
+```
+
+重启 nginx 后，所有 POST/PUT/DELETE 请求返回 `{"status":0,"message":"演示模式不允许操作"}`。
 
 ## 常用运维命令
 
 ```bash
-# 查看依赖组件状态
-docker compose -f docs/docker/docker-compose.yaml ps
+cd /docker
+
+# 查看所有服务状态
+docker compose ps
 
 # 查看日志
-docker compose -f docs/docker/docker-compose.yaml logs -f
+docker compose logs -f snail-ai-server
 
-# 重启依赖组件
-docker compose -f docs/docker/docker-compose.yaml restart
+# 重启某个服务
+docker compose restart nginx
 
-# 停止依赖组件
-docker compose -f docs/docker/docker-compose.yaml down
-
-# 停止并删除依赖组件数据卷（慎用）
-docker compose -f docs/docker/docker-compose.yaml down -v
+# 停止所有服务
+docker compose down
 ```
 
-## 配置对应关系
+## 默认账号
 
-| 配置项 | 默认值 | 说明 |
-|--------|--------|------|
-| `server.port` | `8900` | HTTP 服务端口 |
-| `server.servlet.context-path` | `/snail-ai` | HTTP 上下文路径 |
-| `snail-ai.server.grpc-port` | `18888` | Agent Client gRPC 端口 |
-| `snail-ai.resource.storage-type` | `LOCAL` | 可选 `LOCAL` / `MINIO` |
-| `snail-ai.memory.short-term.store-type` | `memory` | 可选 `memory` / `db` |
+| 账号 | 用户名 | 密码 |
+|------|--------|------|
+| 管理员 | `admin` | `admin123` |
 
-## 相关源码与脚本
+## 相关文件
 
-- `docs/docker/docker-compose.yaml`
-- `docs/docker/elasticsearch/Dockerfile`
+- `script/docker/docker-compose.yml`
+- `script/docker/nginx/conf/vhost/`
+- `script/deploy/ci-setup.sh`
+- `script/deploy/update-server.sh`
+- `script/deploy/update-agent.sh`
+- `script/deploy/update-admin.sh`
 - `docs/sql/snail_ai_schema.sql`
 - `docs/sql/snail_ai_schema_pgsql.sql`
-- `snail-ai-starter/src/main/resources/application.yml`

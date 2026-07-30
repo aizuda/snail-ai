@@ -3,7 +3,7 @@
 # Snail AI — CI/CD 构建环境安装脚本
 # ============================================================
 # 用途：在 Linux 宿主机上安装 JDK 21 + Maven + Git + Node.js 24 + pnpm
-#       为 deploy.sh 提供编译构建环境。
+#       为 update-*.sh 提供编译构建环境。
 #
 # 支持：Ubuntu 20.04+ / Debian 11+ / CentOS 7+ / RHEL 8+
 #
@@ -45,6 +45,19 @@ install_jdk() {
     local jver
     jver=$(java -version 2>&1 | head -1)
     log_info "已安装 Java: $jver"
+    # 即使已安装，也确保 JAVA_HOME 已设置
+    if [ -z "${JAVA_HOME:-}" ]; then
+      local java_home
+      java_home=$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")
+      cat > /etc/profile.d/snail-java.sh <<EOF
+export JAVA_HOME=${java_home}
+export PATH=\$JAVA_HOME/bin:\$PATH
+EOF
+      chmod 644 /etc/profile.d/snail-java.sh
+      export JAVA_HOME="${java_home}"
+      export PATH="${java_home}/bin:${PATH}"
+      log_info "JAVA_HOME=${java_home}"
+    fi
     return 0
   fi
 
@@ -52,20 +65,20 @@ install_jdk() {
     ubuntu|debian)
       apt-get update -qq
       apt-get install -y -qq wget gnupg
-      wget -qO - https://packages.bell-sw.com/pgp/GPG-KEY-bellsoft | gpg --dearmor > /etc/apt/trusted.gpg.d/bellsoft.gpg
+      wget -qO - https://download.bell-sw.com/pki/GPG-KEY-bellsoft | gpg --dearmor > /etc/apt/trusted.gpg.d/bellsoft.gpg
       echo "deb [arch=$(dpkg --print-architecture)] https://apt.bell-sw.com/ stable main" > /etc/apt/sources.list.d/bellsoft.list
       apt-get update -qq
       apt-get install -y -qq bellsoft-java21
       ;;
     centos|rhel|fedora|rocky|almalinux|alinux)
-      rpm --import https://packages.bell-sw.com/pgp/GPG-KEY-bellsoft
+      rpm --import https://download.bell-sw.com/pki/GPG-KEY-bellsoft
       cat > /etc/yum.repos.d/bellsoft.repo <<'REPO'
 [BellSoft]
 name=BellSoft Repository
 baseurl=https://yum.bell-sw.com
 enabled=1
 gpgcheck=1
-gpgkey=https://packages.bell-sw.com/pgp/GPG-KEY-bellsoft
+gpgkey=https://download.bell-sw.com/pki/GPG-KEY-bellsoft
 REPO
       yum install -y bellsoft-java21 2>/dev/null || dnf install -y bellsoft-java21
       ;;
@@ -75,7 +88,20 @@ REPO
       ;;
   esac
 
+  # 设置 JAVA_HOME 到系统环境，确保 Maven 等工具使用正确的 JDK
+  local java_home
+  java_home=$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")
+  cat > /etc/profile.d/snail-java.sh <<EOF
+export JAVA_HOME=${java_home}
+export PATH=\$JAVA_HOME/bin:\$PATH
+EOF
+  chmod 644 /etc/profile.d/snail-java.sh
+  # 立即生效
+  export JAVA_HOME="${java_home}"
+  export PATH="${java_home}/bin:${PATH}"
+
   log_info "JDK 21 安装完成: $(java -version 2>&1 | head -1)"
+  log_info "JAVA_HOME=${java_home}"
 }
 
 # ----- 安装 Maven -----
@@ -93,19 +119,29 @@ install_maven() {
       apt-get install -y -qq maven
       ;;
     centos|rhel|fedora|rocky|almalinux|alinux)
-      yum install -y maven 2>/dev/null || dnf install -y maven
+      # 不通过系统仓库安装 Maven，会拖入旧版 JDK 依赖
+      local mvn_ver="3.9.16"
+      local mvn_url="https://dlcdn.apache.org/maven/maven-3/${mvn_ver}/binaries/apache-maven-${mvn_ver}-bin.tar.gz"
+      log_info "下载 Maven ${mvn_ver} ..."
+      curl -fSL "$mvn_url" -o /tmp/maven.tar.gz
+      tar -xzf /tmp/maven.tar.gz -C /usr/local/
+      ln -sf /usr/local/apache-maven-${mvn_ver}/bin/mvn /usr/local/bin/mvn
+      rm -f /tmp/maven.tar.gz
       ;;
     *)
       # 通用：手动下载解压
-      local mvn_ver="3.9.9"
+      local mvn_ver="3.9.16"
       local mvn_url="https://dlcdn.apache.org/maven/maven-3/${mvn_ver}/binaries/apache-maven-${mvn_ver}-bin.tar.gz"
       log_info "下载 Maven ${mvn_ver} ..."
-      curl -fsSL "$mvn_url" -o /tmp/maven.tar.gz
+      curl -fSL "$mvn_url" -o /tmp/maven.tar.gz
       tar -xzf /tmp/maven.tar.gz -C /usr/local/
       ln -sf /usr/local/apache-maven-${mvn_ver}/bin/mvn /usr/local/bin/mvn
       rm -f /tmp/maven.tar.gz
       ;;
   esac
+
+  # 清除 bash 命令缓存，避免旧 /usr/bin/mvn 路径残留
+  hash -r 2>/dev/null || true
 
   log_info "Maven 安装完成: $(mvn --version 2>&1 | head -1)"
 }

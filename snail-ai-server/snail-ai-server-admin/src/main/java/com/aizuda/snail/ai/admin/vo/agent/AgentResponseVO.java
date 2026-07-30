@@ -101,6 +101,12 @@ public class AgentResponseVO {
     /** 关联应用ID（NULL=本地执行） */
     private String appId;
 
+    /** 关联应用当前是否有可用客户端实例（市场接口用于订阅可用性提示） */
+    private Boolean clientAvailable;
+
+    /** 关联应用当前在线客户端实例数（市场接口返回） */
+    private Integer onlineClientCount;
+
     /** 创建时间 */
     private LocalDateTime createDt;
 
