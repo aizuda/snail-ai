@@ -45,6 +45,19 @@ install_jdk() {
     local jver
     jver=$(java -version 2>&1 | head -1)
     log_info "已安装 Java: $jver"
+    # 即使已安装，也确保 JAVA_HOME 已设置
+    if [ -z "${JAVA_HOME:-}" ]; then
+      local java_home
+      java_home=$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")
+      cat > /etc/profile.d/snail-java.sh <<EOF
+export JAVA_HOME=${java_home}
+export PATH=\$JAVA_HOME/bin:\$PATH
+EOF
+      chmod 644 /etc/profile.d/snail-java.sh
+      export JAVA_HOME="${java_home}"
+      export PATH="${java_home}/bin:${PATH}"
+      log_info "JAVA_HOME=${java_home}"
+    fi
     return 0
   fi
 
@@ -75,7 +88,20 @@ REPO
       ;;
   esac
 
+  # 设置 JAVA_HOME 到系统环境，确保 Maven 等工具使用正确的 JDK
+  local java_home
+  java_home=$(dirname "$(dirname "$(readlink -f "$(command -v java)")")")
+  cat > /etc/profile.d/snail-java.sh <<EOF
+export JAVA_HOME=${java_home}
+export PATH=\$JAVA_HOME/bin:\$PATH
+EOF
+  chmod 644 /etc/profile.d/snail-java.sh
+  # 立即生效
+  export JAVA_HOME="${java_home}"
+  export PATH="${java_home}/bin:${PATH}"
+
   log_info "JDK 21 安装完成: $(java -version 2>&1 | head -1)"
+  log_info "JAVA_HOME=${java_home}"
 }
 
 # ----- 安装 Maven -----
@@ -93,7 +119,14 @@ install_maven() {
       apt-get install -y -qq maven
       ;;
     centos|rhel|fedora|rocky|almalinux|alinux)
-      yum install -y maven 2>/dev/null || dnf install -y maven
+      # 不通过系统仓库安装 Maven，会拖入旧版 JDK 依赖
+      local mvn_ver="3.9.9"
+      local mvn_url="https://dlcdn.apache.org/maven/maven-3/${mvn_ver}/binaries/apache-maven-${mvn_ver}-bin.tar.gz"
+      log_info "下载 Maven ${mvn_ver} ..."
+      curl -fsSL "$mvn_url" -o /tmp/maven.tar.gz
+      tar -xzf /tmp/maven.tar.gz -C /usr/local/
+      ln -sf /usr/local/apache-maven-${mvn_ver}/bin/mvn /usr/local/bin/mvn
+      rm -f /tmp/maven.tar.gz
       ;;
     *)
       # 通用：手动下载解压
