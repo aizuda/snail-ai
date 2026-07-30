@@ -18,8 +18,8 @@ DEPLOY_TARGET="/docker/nginx/html/snailai-admin"
 # Docker nginx 目录（用于提示重启命令）
 NGINX_DIR="/docker"
 
-# 构建命令
-BUILD_CMD="pnpm build"
+# 构建命令（仅构建前端 dist/，不涉及 Java 后端）
+BUILD_CMD="pnpm build:deploy"
 
 # 包管理器安装命令
 INSTALL_CMD="pnpm install --frozen-lockfile"
