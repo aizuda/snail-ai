@@ -140,6 +140,9 @@ install_maven() {
       ;;
   esac
 
+  # 清除 bash 命令缓存，避免旧 /usr/bin/mvn 路径残留
+  hash -r 2>/dev/null || true
+
   log_info "Maven 安装完成: $(mvn --version 2>&1 | head -1)"
 }
 
