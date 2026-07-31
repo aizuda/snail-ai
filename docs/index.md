@@ -13,6 +13,9 @@ hero:
       text: v1.1.1 正式版本 全新发布
       link: /guide/quick-start
     - theme: alt
+      text: 在线体验
+      link: /guide/preview
+    - theme: alt
       text: Gitee 仓库
       link: https://gitee.com/aizuda/snail-ai
 

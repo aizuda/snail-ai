@@ -1,5 +1,16 @@
 # 快速开始
 
+## 在线体验
+
+不想本地部署？直接访问体验版管理后台：
+
+- 地址：[https://snailai-admin.opensnail.com/](https://snailai-admin.opensnail.com/)
+- 账号：`admin` / `admin123`
+
+体验版已预置示例模型和智能体，登录后即可体验对话、RAG、MCP 等核心功能。详见 [在线体验](/guide/preview)。
+
+## 本地部署
+
 本指南用于在本地启动 Snail AI 0.0.6。当前仓库包含后端、Agent、OpenAPI、内置管理端静态资源和文档站；Docker 与 SQL 脚本位于根目录 `script/`。
 
 ## 当前支持状态

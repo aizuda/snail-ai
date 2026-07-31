@@ -5,6 +5,7 @@ export const sidebar = {
       items: [
         { text: '项目介绍', link: '/guide/introduction' },
         { text: '快速开始', link: '/guide/quick-start' },
+        { text: '在线体验', link: '/guide/preview' },
         { text: '核心概念', link: '/guide/concepts' },
       ],
     },
