@@ -1,6 +1,6 @@
 # 生产环境部署
 
-本文介绍 Snail AI 0.0.6 的生产环境部署建议，内容以当前源码、`application.yml` 和 `script/` 目录为准。
+本文介绍 Snail AI 1.1.1 的生产环境部署建议，内容以当前源码、`application.yml` 和 `script/` 目录为准。
 
 ## 概览
 
@@ -12,8 +12,8 @@
 |------|------|----------------|
 | Server HTTP 服务 | 已支持，默认 `8900` + `/snail-ai` | `snail-ai-starter/src/main/resources/application.yml` |
 | Server gRPC | 已支持，默认 `18888` | `snail-ai-starter/src/main/resources/application.yml` |
-| MySQL | 已支持 | `docs/sql/snail_ai_schema.sql` |
-| PostgreSQL | 已支持 | `docs/sql/snail_ai_schema_pgsql.sql` |
+| MySQL | 已支持 | `script/sql/snail_ai_schema.sql` |
+| PostgreSQL | 已支持 | `script/sql/snail_ai_schema_pgsql.sql` |
 | PgVector | 已支持 | `docs/docker/docker-compose.yaml` |
 | Milvus | 已支持 | `docs/docker/docker-compose.yaml` |
 | Elasticsearch | 已支持 | `docs/docker/docker-compose.yaml` |
@@ -266,8 +266,8 @@ journalctl -u snail-ai-server -f
 
 - `snail-ai-starter/src/main/resources/application.yml`
 - `docs/docker/docker-compose.yaml`
-- `docs/sql/snail_ai_schema.sql`
-- `docs/sql/snail_ai_schema_pgsql.sql`
+- `script/sql/snail_ai_schema.sql`
+- `script/sql/snail_ai_schema_pgsql.sql`
 - `pom.xml`
 
 ## 下一步

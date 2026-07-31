@@ -128,14 +128,14 @@ mvn clean package -DskipTests -T 1C
 docker exec -i postgres psql -U root -c "CREATE DATABASE snail_ai;"
 
 # 导入表结构（含默认管理员和演示应用）
-docker exec -i postgres psql -U root -d snail_ai < /workspace/snail-ai/docs/sql/snail_ai_schema_pgsql.sql
+docker exec -i postgres psql -U root -d snail_ai < /workspace/snail-ai/script/sql/snail_ai_schema_pgsql.sql
 ```
 
 #### MySQL
 
 ```bash
 docker exec -i mysql mysql -uroot -p123456 -e "CREATE DATABASE snail_ai DEFAULT CHARACTER SET utf8mb4;"
-docker exec -i mysql mysql -uroot -p123456 snail_ai < /workspace/snail-ai/docs/sql/snail_ai_schema.sql
+docker exec -i mysql mysql -uroot -p123456 snail_ai < /workspace/snail-ai/script/sql/snail_ai_schema.sql
 ```
 
 ### 9. 依次启动服务
@@ -274,5 +274,5 @@ docker compose down
 - `script/deploy/update-server.sh`
 - `script/deploy/update-agent.sh`
 - `script/deploy/update-admin.sh`
-- `docs/sql/snail_ai_schema.sql`
-- `docs/sql/snail_ai_schema_pgsql.sql`
+- `script/sql/snail_ai_schema.sql`
+- `script/sql/snail_ai_schema_pgsql.sql`

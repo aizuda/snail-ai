@@ -8,7 +8,7 @@
 - 开发中：已有方向或部分实现，使用前需要按源码验证。
 - 已规划：规划方向，不应写入部署主流程。
 
-## v0.0.6 -- 当前版本能力
+## v1.1.1 -- 当前版本能力
 
 | 能力 | 状态 | 说明 |
 |------|------|------|
@@ -22,7 +22,7 @@
 | MCP 工具集成 | 已完成 | 支持 SSE、Streamable HTTP、Stdio 等接入方式 |
 | Skill 技能系统 | 已完成 | 支持 Skill 定义和资源加载 |
 | 短期记忆 | 已完成 | 支持 `memory` / `db` 存储模式 |
-| MySQL / PostgreSQL | 已完成 | 初始化脚本位于 `docs/sql/` |
+| MySQL / PostgreSQL | 已完成 | 初始化脚本位于 `script/sql/` |
 | PgVector / Milvus / Elasticsearch | 已完成 | Compose 依赖位于 `docs/docker/docker-compose.yaml` |
 | 文件存储 | 已完成 | 支持本地资源目录和 MinIO |
 | 统计分析与客户端日志 | 已完成 | 支持智能体统计分析、客户端日志、Token 用量和思维内容采集 |
@@ -130,5 +130,5 @@
 - `snail-ai-server/`
 - `snail-ai-agent/`
 - `snail-ai-models/`
-- `docs/sql/`
+- `script/sql/`
 - `docs/docker/docker-compose.yaml`

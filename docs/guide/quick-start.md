@@ -11,7 +11,7 @@
 
 ## 本地部署
 
-本指南用于在本地启动 Snail AI 0.0.6。当前仓库包含后端、Agent、OpenAPI、内置管理端静态资源和文档站；Docker 与 SQL 脚本位于根目录 `script/`。
+本指南用于在本地启动 Snail AI 1.1.1。当前仓库包含后端、Agent、OpenAPI、内置管理端静态资源和文档站；Docker 与 SQL 脚本位于根目录 `script/`。
 
 ## 当前支持状态
 
@@ -23,8 +23,8 @@
 | HTTP 端口 | `8900` | `snail-ai-starter/src/main/resources/application.yml` |
 | Context Path | `/snail-ai` | `snail-ai-starter/src/main/resources/application.yml` |
 | gRPC 端口 | `18888` | `snail-ai-starter/src/main/resources/application.yml` |
-| MySQL 初始化脚本 | `docs/sql/snail_ai_schema.sql` | 仓库脚本 |
-| PostgreSQL 初始化脚本 | `docs/sql/snail_ai_schema_pgsql.sql` | 仓库脚本 |
+| MySQL 初始化脚本 | `script/sql/snail_ai_schema.sql` | 仓库脚本 |
+| PostgreSQL 初始化脚本 | `script/sql/snail_ai_schema_pgsql.sql` | 仓库脚本 |
 | 依赖组件 Docker Compose | `docs/docker/docker-compose.yaml` | 仓库脚本 |
 
 ## 环境准备
@@ -63,14 +63,14 @@ CREATE DATABASE snail_ai DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_c
 ```
 
 ```bash
-mysql -u root -p snail_ai < docs/sql/snail_ai_schema.sql
+mysql -u root -p snail_ai < script/sql/snail_ai_schema.sql
 ```
 
 ### PostgreSQL
 
 ```bash
 createdb -U postgres snail_ai
-psql -U postgres -d snail_ai -f docs/sql/snail_ai_schema_pgsql.sql
+psql -U postgres -d snail_ai -f script/sql/snail_ai_schema_pgsql.sql
 ```
 
 如果同时使用 PgVector，请确保目标 PostgreSQL 实例安装了 `vector` 扩展。

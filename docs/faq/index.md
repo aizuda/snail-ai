@@ -1,12 +1,12 @@
 # 常见问题
 
-本页整理 Snail AI 0.0.6 使用过程中的常见问题。回答以当前源码、`pom.xml`、`application.yml` 和 `script/` 目录为准。
+本页整理 Snail AI 1.1.1 使用过程中的常见问题。回答以当前源码、`pom.xml`、`application.yml` 和 `script/` 目录为准。
 
 ## 安装与环境
 
 ### Q：Snail AI 需要什么版本的 Java？
 
-Snail AI 0.0.6 要求 **Java 21** 或更高版本。根 `pom.xml` 中的 `java.version` 为 `21`。
+Snail AI 1.1.1 要求 **Java 21** 或更高版本。根 `pom.xml` 中的 `java.version` 为 `21`。
 
 ```bash
 java -version
@@ -27,7 +27,7 @@ gRPC 默认端口是 `18888`。
 | 场景 | 推荐数据库 | 状态 |
 |------|------------|------|
 | 默认体验和常规部署 | MySQL 8.0+ | 已支持 |
-| 希望业务库兼容 PostgreSQL | PostgreSQL | 已支持，脚本为 `docs/sql/snail_ai_schema_pgsql.sql` |
+| 希望业务库兼容 PostgreSQL | PostgreSQL | 已支持，脚本为 `script/sql/snail_ai_schema_pgsql.sql` |
 | 希望关系库和向量库复用 PostgreSQL | PostgreSQL + PgVector | 已支持，需安装 pgvector 扩展 |
 | SQL Server / 达梦 / MariaDB | 仅作为规划或适配方向 | 不建议按当前文档直接部署 |
 
@@ -121,8 +121,8 @@ docker compose -f docs/docker/docker-compose.yaml up -d
 
 | 数据库 | 脚本 |
 |--------|------|
-| MySQL | `docs/sql/snail_ai_schema.sql` |
-| PostgreSQL | `docs/sql/snail_ai_schema_pgsql.sql` |
+| MySQL | `script/sql/snail_ai_schema.sql` |
+| PostgreSQL | `script/sql/snail_ai_schema_pgsql.sql` |
 
 ### Q：如何备份数据？
 
@@ -148,5 +148,5 @@ Snail AI 可以私有化部署。是否完全离线取决于你选择的模型�
 - `pom.xml`
 - `snail-ai-starter/src/main/resources/application.yml`
 - `docs/docker/docker-compose.yaml`
-- `docs/sql/snail_ai_schema.sql`
-- `docs/sql/snail_ai_schema_pgsql.sql`
+- `script/sql/snail_ai_schema.sql`
+- `script/sql/snail_ai_schema_pgsql.sql`

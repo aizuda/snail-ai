@@ -43,7 +43,7 @@ python main.py
 
 ### 2.2 数据库准备
 
-SQL 脚本位于 `docs/sql/snail_ai_schema.sql`，涉及三张核心表：
+SQL 脚本位于 `script/sql/snail_ai_schema.sql`，涉及三张核心表：
 
 ```sql
 -- sai_rag_document: 文档表（含 Docling 扩展字段）

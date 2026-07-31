@@ -1,6 +1,6 @@
 # 配置参考
 
-本文档以当前源码中的 `snail-ai-starter/src/main/resources/application.yml` 为准，整理 Snail AI 0.0.6 后端服务的主要配置项。
+本文档以当前源码中的 `snail-ai-starter/src/main/resources/application.yml` 为准，整理 Snail AI 1.1.1 后端服务的主要配置项。
 
 ## 概览
 
@@ -16,8 +16,8 @@ http://localhost:8900/snail-ai
 |------|------|----------------|
 | HTTP 服务 | 已支持，默认 `8900` + `/snail-ai` | `snail-ai-starter/src/main/resources/application.yml` |
 | gRPC Server | 已支持，默认 `18888` | `snail-ai-starter/src/main/resources/application.yml` |
-| MySQL | 已支持 | `docs/sql/snail_ai_schema.sql` |
-| PostgreSQL | 已支持 | `docs/sql/snail_ai_schema_pgsql.sql` |
+| MySQL | 已支持 | `script/sql/snail_ai_schema.sql` |
+| PostgreSQL | 已支持 | `script/sql/snail_ai_schema_pgsql.sql` |
 | PgVector | 已支持 | `docs/docker/docker-compose.yaml`、Spring AI PgVector 配置 |
 | Milvus | 已支持 | `docs/docker/docker-compose.yaml` |
 | Elasticsearch | 已支持 | `docs/docker/docker-compose.yaml` |
@@ -85,7 +85,7 @@ spring:
 初始化脚本：
 
 ```bash
-mysql -u root -p snail_ai < docs/sql/snail_ai_schema.sql
+mysql -u root -p snail_ai < script/sql/snail_ai_schema.sql
 ```
 
 ### PostgreSQL
@@ -102,7 +102,7 @@ spring:
 初始化脚本：
 
 ```bash
-psql -U postgres -d snail_ai -f docs/sql/snail_ai_schema_pgsql.sql
+psql -U postgres -d snail_ai -f script/sql/snail_ai_schema_pgsql.sql
 ```
 
 ## 向量与检索存储
@@ -262,5 +262,5 @@ logging:
 - `snail-ai-starter/src/main/resources/application.yml`
 - `pom.xml`
 - `docs/docker/docker-compose.yaml`
-- `docs/sql/snail_ai_schema.sql`
-- `docs/sql/snail_ai_schema_pgsql.sql`
+- `script/sql/snail_ai_schema.sql`
+- `script/sql/snail_ai_schema_pgsql.sql`

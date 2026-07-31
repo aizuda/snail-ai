@@ -28,10 +28,10 @@ http://localhost:8900/snail-ai
 | OpenAI-compatible Chat | 已支持 | `snail-ai-models` |
 | OpenAI-compatible Embedding | 已支持 | `snail-ai-models` |
 | Qwen/HTTP Rerank | 已支持 | `snail-ai-models` |
-| MySQL / PostgreSQL | 已支持 | `docs/sql/` |
+| MySQL / PostgreSQL | 已支持 | `script/sql/` |
 | PgVector / Milvus / Elasticsearch | 已支持 | `docs/docker/docker-compose.yaml` |
 | MinIO / 本地资源存储 | 已支持 | `snail-ai.resource.*` |
-| 达梦 | 已支持 | `docs/sql/snail_ai_schema_dameng.sql` |
+| 达梦 | 已支持 | `script/sql/snail_ai_schema_dameng.sql` |
 | SQL Server / MariaDB | 规划或适配方向 | 不建议按当前版本直接部署 |
 
 ## 设计理念
@@ -41,7 +41,7 @@ http://localhost:8900/snail-ai
 | 企业级 | 面向生产环境，关注认证、密钥加密、存储、统计分析和部署运维 |
 | 可扩展 | 通过责任链、Agent Client、MCP 和 Skill 扩展智能体能力 |
 | 自主可控 | 模型调用和工具执行可下发到 Agent Client，便于接入内网资源和本地工具 |
-| 源码优先 | 文档描述以当前源码、`pom.xml`、`application.yml`、`docs/docker/` 和 `docs/sql/` 为准 |
+| 源码优先 | 文档描述以当前源码、`pom.xml`、`application.yml`、`docs/docker/` 和 `script/sql/` 为准 |
 
 ## 核心优势
 
@@ -105,7 +105,7 @@ docker compose -f docs/docker/docker-compose.yaml up -d
 初始化 MySQL：
 
 ```bash
-mysql -u root -p snail_ai < docs/sql/snail_ai_schema.sql
+mysql -u root -p snail_ai < script/sql/snail_ai_schema.sql
 ```
 
 启动 Server：
@@ -139,8 +139,8 @@ Snail AI 采用 Apache License 2.0 开源协议，可免费用于商业项目。
 - `snail-ai-agent/`
 - `snail-ai-models/`
 - `docs/docker/docker-compose.yaml`
-- `docs/sql/snail_ai_schema.sql`
-- `docs/sql/snail_ai_schema_pgsql.sql`
+- `script/sql/snail_ai_schema.sql`
+- `script/sql/snail_ai_schema_pgsql.sql`
 
 ## 下一步
 

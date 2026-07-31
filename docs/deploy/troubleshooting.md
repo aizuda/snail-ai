@@ -1,18 +1,18 @@
 # 故障排除
 
-本文档按类别整理 Snail AI 0.0.6 使用过程中的常见问题。排查时请优先以当前源码、`application.yml` 和 `script/` 目录为准。
+本文档按类别整理 Snail AI 1.1.1 使用过程中的常见问题。排查时请优先以当前源码、`application.yml` 和 `script/` 目录为准。
 
 ## 概览
 
-默认 HTTP 访问地址为 `http://localhost:8900/snail-ai`，Server gRPC 端口为 `18888`。当前可直接使用的初始化脚本位于 `docs/sql/`，Docker Compose 依赖组件文件位于 `docs/docker/docker-compose.yaml`。
+默认 HTTP 访问地址为 `http://localhost:8900/snail-ai`，Server gRPC 端口为 `18888`。当前可直接使用的初始化脚本位于 `script/sql/`，Docker Compose 依赖组件文件位于 `docs/docker/docker-compose.yaml`。
 
 ## 当前支持状态
 
 | 能力 | 状态 | 对应源码或脚本 |
 |------|------|----------------|
 | Java 运行环境 | Java 21+ | `pom.xml` |
-| MySQL | 已支持 | `docs/sql/snail_ai_schema.sql` |
-| PostgreSQL | 已支持 | `docs/sql/snail_ai_schema_pgsql.sql` |
+| MySQL | 已支持 | `script/sql/snail_ai_schema.sql` |
+| PostgreSQL | 已支持 | `script/sql/snail_ai_schema_pgsql.sql` |
 | PgVector / Milvus / Elasticsearch | 已支持 | `docs/docker/docker-compose.yaml` |
 | OpenAPI 认证 | `Snail-Ai-App-Id` + `Snail-Ai-Token` | `OpenApiAuthInterceptor` |
 | Admin 认证 | `Snail-Ai-Auth` | Admin API 登录态 |
@@ -24,7 +24,7 @@
 
 **现象：** 启动时报 `UnsupportedClassVersionError` 或 `class file has wrong version`。
 
-**原因：** Snail AI 0.0.6 要求 Java 21 或更高版本。
+**原因：** Snail AI 1.1.1 要求 Java 21 或更高版本。
 
 **解决：**
 
@@ -102,8 +102,8 @@ psql -h localhost -p 5432 -U postgres -d snail_ai
 
 **解决：**
 
-- MySQL 使用 `docs/sql/snail_ai_schema.sql`。
-- PostgreSQL 使用 `docs/sql/snail_ai_schema_pgsql.sql`。
+- MySQL 使用 `script/sql/snail_ai_schema.sql`。
+- PostgreSQL 使用 `script/sql/snail_ai_schema_pgsql.sql`。
 - 不要把 MySQL 脚本导入 PostgreSQL，也不要反向导入。
 - 重复导入前请确认是否需要清空数据库。
 
