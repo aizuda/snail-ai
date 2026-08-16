@@ -1,6 +1,7 @@
 export const nav = [
   { text: '首页', link: '/' },
   { text: '快速开始', link: '/guide/quick-start' },
+  { text: '企业版', link: 'https://pro.snailai.opensnail.com/' },
   {
     text: '使用指南',
     items: [
