@@ -13,6 +13,9 @@ hero:
       text: v1.1.1 正式版本 全新发布
       link: /guide/quick-start
     - theme: alt
+      text: 🔥🔥🔥企业版
+      link: https://pro.snailai.opensnail.com/
+    - theme: alt
       text: 在线体验
       link: /guide/preview
     - theme: alt
