@@ -27,7 +27,7 @@ LLM response: finishReason=STOP
 
 `TokenUsageCollectorAdvisor` 从流式响应的最终 chunk 中提取 Token 使用量，并写入客户端流式执行上下文。
 
-它依赖模型返回 usage 数据；OpenAI-compatible 流式调用通常需要启用 `streamUsage(true)` 才能在最终 chunk 中返回统计信息。
+它依赖模型返回 usage 数据；OpenAI-compatible 流式调用通常需要启用 `streamUsage(true)` 才能在最终 chunk 中返回统计信息，Responses 则使用其原生 usage 事件。
 
 采集字段包括：
 
@@ -35,7 +35,9 @@ LLM response: finishReason=STOP
 |------|------|
 | `promptTokens` | 输入 Token 数 |
 | `completionTokens` | 输出 Token 数 |
-| `cacheTokens` | 缓存命中 Token 数，当前通过兼容性反射提取 |
+| `cacheTokens` | 缓存读取/命中 Token 数 |
+
+缓存用量优先读取 Spring AI 通用 `Usage.getCacheReadInputTokens()`。如果旧 OpenAI-compatible 响应没有提供通用字段，再从 native usage 的 `promptTokensDetails.cachedTokens` 兼容性反射提取。负数按 0 处理，超出整数范围时截断为 `Integer.MAX_VALUE`。
 
 相关源码：
 
@@ -43,7 +45,9 @@ LLM response: finishReason=STOP
 
 ## ThinkingCollectorAdvisor
 
-`ThinkingCollectorAdvisor` 用于从流式响应 metadata 中累积模型的思维内容，并在流结束后写入 `AgentChatContextHolder.ChatContext` 和客户端流式执行上下文。
+`ThinkingCollectorAdvisor` 用于从流式响应中累积模型的思维内容，并在流结束后写入 `AgentChatContextHolder.ChatContext` 和客户端流式执行上下文。Responses 优先读取 Spring AI `ReasoningPart`：先取 `text()` 增量，没有 text 时再取 `summary()`。
+
+当响应没有 `ReasoningPart` 时，才回退到原有 metadata 和附加属性提取逻辑：
 
 它会兼容以下 metadata key：
 
@@ -53,6 +57,8 @@ LLM response: finishReason=STOP
 | `thinking` | 思维内容 |
 | `reasoning` | 推理内容 |
 | `reasoning_content` | OpenAI-compatible 响应中的推理字段 |
+
+部分兼容服务会在每个流式 chunk 中返回从开头累计的 `reasoningContent`。Advisor 只追加相对已收集内容的新后缀，避免思考内容重复。原有思考回调、`fullThinking` 返回值、上下文桥接和对话记录持久化行为保持不变。
 
 相关源码：
 

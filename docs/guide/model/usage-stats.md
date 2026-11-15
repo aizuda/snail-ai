@@ -45,6 +45,18 @@ type UsageStatVO = {
 };
 ```
 
+## 对话明细 Token
+
+Agent Client 在流结束时同时返回并持久化以下明细：
+
+| 字段 | 说明 |
+|------|------|
+| `promptTokens` | 输入 Token 数 |
+| `completionTokens` | 输出 Token 数 |
+| `cacheTokens` | 输入缓存读取/命中 Token 数 |
+
+OpenAI Responses 优先从 Spring AI 通用 `Usage.getCacheReadInputTokens()` 读取 `cacheTokens`；旧 OpenAI-compatible 响应仍兼容 native usage 的缓存明细。`cacheTokens` 的字段语义和数据库结构没有变化。
+
 ## 单模型统计
 
 查看某个具体模型的使用统计数据：

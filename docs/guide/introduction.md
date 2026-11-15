@@ -2,7 +2,7 @@
 
 ## 什么是 Snail AI？
 
-Snail AI 是一款开源 AI Agent 平台，基于 Java 21、Spring Boot 4.1.0 和 Spring AI 2.0 构建，采用 Server-Agent 分布式架构，为企业提供智能体创建、对话、RAG、MCP、Skill 和 OpenAPI 集成能力。
+Snail AI 是一款开源 AI Agent 平台，基于 Java 21、Spring Boot 4.1.0 和 Spring AI 2.1.0-RC1 构建，采用 Server-Agent 分布式架构，为企业提供智能体创建、对话、RAG、MCP、Skill 和 OpenAPI 集成能力。
 
 ## 概览
 
@@ -61,7 +61,7 @@ http://localhost:8900/snail-ai
 |------|----------------|
 | Java | 21+ |
 | Spring Boot | 4.1.0 |
-| Spring AI | 2.0.0 |
+| Spring AI | 2.1.0-RC1 |
 | gRPC | Server-Agent 双向流通信 |
 | MyBatis-Plus | ORM 框架 |
 | 自定义 Admin 认证 | `AuthenticationInterceptor`、`@LoginRequired`、`Snail-Ai-Auth` |

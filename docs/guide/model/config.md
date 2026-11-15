@@ -8,7 +8,7 @@
 
 | 能力 | 支持方式 | 典型用途 |
 |------|----------|----------|
-| Chat | OpenAI-compatible Chat | 智能体对话、图片输入识别、工具调用后的回答生成 |
+| Chat | OpenAI-compatible Chat Completions、OpenAI Responses | 智能体对话、图片输入识别、reasoning、工具调用后的回答生成 |
 | Embedding | OpenAI-compatible Embedding | RAG 文档向量化、语义检索 |
 | Rerank | Qwen/HTTP Rerank | 检索结果重排 |
 
@@ -43,7 +43,7 @@ Claude、Gemini、Ollama、火山引擎等服务如果提供 OpenAI-compatible �
   "modelType": "CHAT",
   "adapterKey": "openai-compatible",
   "apiKey": "sk-xxxxxxxxxxxxxxxxxxxxxxxx",
-  "apiEndpoint": "https://api.openai.com",
+  "apiEndpoint": "https://api.openai.com/v1",
   "description": "OpenAI-compatible Chat 模型",
   "configJson": {
     "temperature": 0.7,
@@ -70,6 +70,122 @@ Claude、Gemini、Ollama、火山引擎等服务如果提供 OpenAI-compatible �
 ```
 
 填写兼容端点前，请确认目标服务是否兼容 OpenAI Chat Completions 或当前源码使用的请求格式。
+
+## OpenAI Responses Chat
+
+选择 `openai-responses` 适配器后，Snail AI 使用 Spring AI `OpenAiResponsesChatModel` 调用提供商的 Responses API。该适配器是显式选择项，`openai-compatible` 仍是 CHAT 默认值。
+
+```json
+{
+  "providerId": 1,
+  "modelName": "OpenAI Responses",
+  "modelKey": "gpt-5",
+  "modelType": "CHAT",
+  "adapterKey": "openai-responses",
+  "apiKey": "sk-xxxxxxxxxxxxxxxxxxxxxxxx",
+  "apiEndpoint": "https://api.openai.com/v1",
+  "configJson": {
+    "timeoutMs": 300000,
+    "maxRetries": 2,
+    "temperature": 0.7,
+    "topP": 1.0,
+    "maxTokens": 8192,
+    "responseFormat": "text",
+    "reasoningEffort": "medium",
+    "reasoningSummary": "auto",
+    "verbosity": "medium",
+    "toolChoice": "auto",
+    "parallelToolCalls": true,
+    "maxToolCalls": 8,
+    "hostedTools": []
+  }
+}
+```
+
+Responses 参数契约：
+
+| `configJson` 字段 | 可选值/类型 | Responses 映射 |
+|-------------------|-------------|----------------|
+| `timeoutMs` | 正整数 | 请求超时，默认 300000 ms |
+| `maxRetries` | 非负整数 | 最大重试次数 |
+| `temperature` | `number` | `temperature` |
+| `topP` | `number` | `top_p` |
+| `maxTokens` | 正整数 | `max_output_tokens` |
+| `responseFormat` | `text`、`json_object` | 输出格式 |
+| `reasoningEffort` | `none`、`minimal`、`low`、`medium`、`high`、`xhigh` | 推理强度 |
+| `reasoningSummary` | `auto`、`concise`、`detailed` | 推理摘要模式 |
+| `verbosity` | `low`、`medium`、`high` | 回答详细程度 |
+| `toolChoice` | `auto`、`none`、`required` | 工具选择策略 |
+| `parallelToolCalls` | `boolean` | 是否允许并行工具调用 |
+| `maxToolCalls` | 正整数 | 单次 Responses 调用允许的最大工具调用数 |
+| `hostedTools` | `object[]` | 提供商侧 Hosted Tools |
+| `extraBody` | `object` | 提供商扩展请求体 |
+
+`topK`、`frequencyPenalty`、`presencePenalty`、`stopSequences` 和 `seed` 不会发送给 Responses API，管理端在选择 `openai-responses` 时也会隐藏这些字段。已知枚举值、数值范围或 Hosted Tool 结构错误会在模型创建阶段直接报错。
+
+Responses 调用失败时不会回退到 Chat Completions。这个适配器只扩展内部模型调用链路，不提供 Snail AI 对外的 `/v1/responses` API。
+
+### Hosted Tools
+
+`hostedTools` 是带 `type` 的结构化数组。Hosted Tool 由模型提供商执行，不经过 Snail AI 的本地 `ToolCallback`：
+
+| `type` | 字段 | 约束 |
+|--------|------|------|
+| `web_search` | `searchContextSize`、`allowedDomains` | 上下文规模可选 `low/medium/high` |
+| `file_search` | `vectorStoreIds`、`maxNumResults` | `vectorStoreIds` 必填且不能为空 |
+| `code_interpreter` | `containerId` | 容器 ID 可选 |
+| `image_generation` | `model`、`size` | 尺寸可选 `auto/1024x1024/1536x1024/1024x1536` |
+| `raw` | `tool` | `tool` 必须是包含 `type` 的对象 |
+
+```json
+{
+  "hostedTools": [
+    {
+      "type": "web_search",
+      "searchContextSize": "medium",
+      "allowedDomains": ["spring.io", "platform.openai.com"]
+    },
+    {
+      "type": "file_search",
+      "vectorStoreIds": ["vs_123"],
+      "maxNumResults": 10
+    },
+    {
+      "type": "code_interpreter",
+      "containerId": "cntr_123"
+    },
+    {
+      "type": "image_generation",
+      "model": "gpt-image-1",
+      "size": "1024x1024"
+    },
+    {
+      "type": "raw",
+      "tool": {
+        "type": "provider_extension"
+      }
+    }
+  ]
+}
+```
+
+当前版本明确拒绝 `raw.tool.type=mcp`，也会拒绝 `extraBody.tools` 中的 `type=mcp`，防止通过 Raw 或扩展请求体绕过范围限制并向提供商提交 MCP URL 或凭据。
+
+### 本地 MCP 与 Hosted MCP
+
+本地函数、Skill 和 MCP 继续注册为 Spring AI `ToolCallback`，由 Snail AI 所在网络内执行：
+
+```text
+OpenAI Responses 返回工具调用
+        ↓
+Snail AI 执行本地函数 / Skill / MCP ToolCallback
+        ↓
+Snail AI 将工具结果提交给 Responses 模型
+        ↓
+模型生成最终回复
+```
+
+Hosted MCP 则要求模型提供商从公网或可路由网络访问 MCP 服务，通常还涉及凭据转发。Snail AI 的常见部署不会把 MCP 暴露到公网，因此首期不支持 Hosted MCP，也不修改现有 MCP headers、存储接口或凭据体系。
 
 ## 图片输入识别
 
@@ -110,10 +226,12 @@ Claude、Gemini、Ollama、火山引擎等服务如果提供 OpenAI-compatible �
   "modelType": "EMBEDDING",
   "adapterKey": "openai-compatible",
   "apiKey": "sk-xxxxxxxxxxxxxxxxxxxxxxxx",
-  "apiEndpoint": "https://api.openai.com",
+  "apiEndpoint": "https://api.openai.com/v1",
   "configJson": {
-    "dimensions": 1536,
-    "batchSize": 64
+    "embeddingDimension": 1536,
+    "encodingFormat": "float",
+    "timeoutMs": 60000,
+    "maxRetries": 2
   }
 }
 ```
@@ -131,7 +249,11 @@ Embedding 维度必须与向量库配置一致。例如 PgVector 配置了 `dime
   "adapterKey": "qwen-rerank",
   "apiKey": "your-api-key",
   "apiEndpoint": "https://dashscope.aliyuncs.com",
-  "description": "用于 RAG 检索结果重排"
+  "description": "用于 RAG 检索结果重排",
+  "configJson": {
+    "rerankPath": "/rerank",
+    "timeoutMs": 60000
+  }
 }
 ```
 
@@ -186,8 +308,11 @@ curl -X POST 'http://localhost:8900/snail-ai/ai-model/config/{id}/test' \
 | `topP` | `number` | 核采样概率 |
 | `maxTokens` | `number` | 最大输出 Token 数 |
 | `timeoutMs` | `number` | 请求超时时间，单位毫秒 |
+| `maxRetries` | `number` | 最大重试次数；必须为非负整数 |
+| `responseFormat` | `string` | 输出格式；适配器支持范围以对应协议为准 |
 | `capabilities` | `string[]` | 模型能力标记；包含 `vision` 时表示支持图片输入 |
 | `defaultVisionModel` | `boolean` | 是否作为 RAG Docling 图片 OCR 的默认视觉兜底模型 |
+| `extraBody` | `object` | 提供商扩展请求体；不要放置 API Key 等凭据 |
 
 示例：
 
@@ -206,14 +331,16 @@ curl -X POST 'http://localhost:8900/snail-ai/ai-model/config/{id}/test' \
 
 | 参数 | 类型 | 说明 |
 |------|------|------|
-| `dimensions` | `number` | 向量维度 |
-| `batchSize` | `number` | 批量处理大小 |
+| `embeddingDimension` | `number` | 向量维度 |
+| `encodingFormat` | `string` | `float` 或 `base64`；未知值回退提供商默认值 |
+| `timeoutMs` | `number` | 请求超时时间，单位毫秒 |
+| `maxRetries` | `number` | 最大重试次数 |
 
 ### Rerank 参数
 
 | 参数 | 类型 | 说明 |
 |------|------|------|
-| `topN` | `number` | 重排后保留的结果数量 |
+| `rerankPath` | `string` | Rerank 请求路径，默认 `/rerank` |
 | `timeoutMs` | `number` | 请求超时时间，单位毫秒 |
 
 ## 默认模型管理
@@ -267,6 +394,8 @@ export SNAIL_AI_CRYPTO_IV=your_32_char_initial_vector
 | `EMBEDDING` | `openai-compatible` |
 | `RERANKER` | `qwen-rerank` |
 
+需要使用 OpenAI Responses 时，为 CHAT 模型显式选择 `openai-responses`。该选择不会改变其他模型配置，也不会修改默认适配器。
+
 ### modelKey 和 modelName 有什么区别？
 
 - `modelKey` 是发送给模型服务的真实模型标识。
@@ -279,6 +408,7 @@ export SNAIL_AI_CRYPTO_IV=your_32_char_initial_vector
 ## 相关源码
 
 - `snail-ai-models/`
+- `snail-ai-models/snail-ai-model-chat/snail-ai-model-chat-provider-openai-responses`
 - `snail-ai-server/snail-ai-server-admin/src/main/java/com/aizuda/snail/ai/admin/controller/`
 - `snail-ai-starter/src/main/resources/application.yml`
 - `docs/guide/model/index.md`

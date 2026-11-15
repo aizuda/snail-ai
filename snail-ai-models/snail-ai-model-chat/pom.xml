@@ -19,6 +19,7 @@
     <modules>
         <module>snail-ai-model-chat-core</module>
         <module>snail-ai-model-chat-provider-openai-compatible</module>
+        <module>snail-ai-model-chat-provider-openai-responses</module>
         <module>snail-ai-model-chat-starter</module>
     </modules>
 </project>

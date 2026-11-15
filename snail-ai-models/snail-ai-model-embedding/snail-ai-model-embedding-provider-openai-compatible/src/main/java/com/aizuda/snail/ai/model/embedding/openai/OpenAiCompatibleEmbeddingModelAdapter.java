@@ -2,6 +2,7 @@ package com.aizuda.snail.ai.model.embedding.openai;
 
 import com.aizuda.snail.ai.common.model.ConfigExtAttrsDTO;
 import com.aizuda.snail.ai.model.common.ModelAdapterDefaults;
+import com.aizuda.snail.ai.model.common.http.NewApiProviderRequestInterceptor;
 import com.aizuda.snail.ai.model.embedding.EmbeddingModelAdapter;
 import com.aizuda.snail.ai.model.embedding.EmbeddingModelSpec;
 import lombok.extern.slf4j.Slf4j;
@@ -38,10 +39,14 @@ public class OpenAiCompatibleEmbeddingModelAdapter implements EmbeddingModelAdap
     public EmbeddingModel create(EmbeddingModelSpec spec) {
         log.debug("Creating OpenAI-compatible EmbeddingModel, provider={}, model={}",
                 spec.providerKey(), spec.modelKey());
-        return OpenAiEmbeddingModel.builder()
+        OpenAiEmbeddingModel.Builder builder = OpenAiEmbeddingModel.builder()
                 .metadataMode(MetadataMode.EMBED)
-                .options(buildOptions(spec))
-                .build();
+                .options(buildOptions(spec));
+        if (NewApiProviderRequestInterceptor.supports(spec.providerKey())) {
+            builder.httpClientBuilderCustomizer(httpClientBuilder ->
+                    httpClientBuilder.interceptor(NewApiProviderRequestInterceptor.instance()));
+        }
+        return builder.build();
     }
 
     @Override

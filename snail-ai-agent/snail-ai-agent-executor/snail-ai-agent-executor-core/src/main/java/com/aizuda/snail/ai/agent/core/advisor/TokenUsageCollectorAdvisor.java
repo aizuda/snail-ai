@@ -70,49 +70,50 @@ public class TokenUsageCollectorAdvisor implements StreamAdvisor {
     }
 
     /**
-     * 从原生 Usage 对象中通过反射提取缓存命中 Token 数。
-     * OpenAI 兼容模型的 nativeUsage 为 CompletionUsage，包含 promptTokensDetails.cachedTokens。
-     * 非 OpenAI 兼容模型不支持，返回 0。
+     * 优先读取 Spring AI 通用缓存用量，旧版 OpenAI 兼容响应再回退到原生 Usage 反射。
      */
     private int extractCacheTokens(Usage usage) {
+        Long cacheReadTokens = usage.getCacheReadInputTokens();
+        if (cacheReadTokens != null) {
+            long normalized = Math.max(0L, Math.min(cacheReadTokens, Integer.MAX_VALUE));
+            return Math.toIntExact(normalized);
+        }
         try {
             Object nativeUsage = usage.getNativeUsage();
             if (nativeUsage == null) {
-                log.info("extractCacheTokens: nativeUsage is null");
+                log.debug("extractCacheTokens: nativeUsage is null");
                 return 0;
             }
-            log.info("extractCacheTokens: nativeUsage type={}", nativeUsage.getClass().getName());
+            log.debug("extractCacheTokens: nativeUsage type={}", nativeUsage.getClass().getName());
             Method ptdMethod = findMethod(nativeUsage.getClass(), "promptTokensDetails");
             if (ptdMethod == null) {
-                log.info("extractCacheTokens: promptTokensDetails method not found");
+                log.debug("extractCacheTokens: promptTokensDetails method not found");
                 return 0;
             }
             Object ptdOptional = ptdMethod.invoke(nativeUsage);
-            log.info("extractCacheTokens: promptTokensDetails result={}", ptdOptional);
+            log.debug("extractCacheTokens: promptTokensDetails result={}", ptdOptional);
             if (!(ptdOptional instanceof Optional<?> opt) || opt.isEmpty()) {
-                log.info("extractCacheTokens: promptTokensDetails is empty");
+                log.debug("extractCacheTokens: promptTokensDetails is empty");
                 return 0;
             }
             Object ptd = opt.get();
-            log.info("extractCacheTokens: PromptTokensDetails type={}", ptd.getClass().getName());
+            log.debug("extractCacheTokens: PromptTokensDetails type={}", ptd.getClass().getName());
             Method ctMethod = findMethod(ptd.getClass(), "cachedTokens");
             if (ctMethod == null) {
-                log.info("extractCacheTokens: cachedTokens method not found");
+                log.debug("extractCacheTokens: cachedTokens method not found");
                 return 0;
             }
             Object ctOptional = ctMethod.invoke(ptd);
-            log.info("extractCacheTokens: cachedTokens result={}", ctOptional);
+            log.debug("extractCacheTokens: cachedTokens result={}", ctOptional);
             if (!(ctOptional instanceof Optional<?> ctOpt) || ctOpt.isEmpty()) {
-                log.info("extractCacheTokens: cachedTokens is empty");
+                log.debug("extractCacheTokens: cachedTokens is empty");
                 return 0;
             }
             Object val = ctOpt.get();
-            log.info("extractCacheTokens: cachedTokens value={}", val);
-            if (val instanceof Long l) {
-                return l.intValue();
-            }
-            if (val instanceof Integer i) {
-                return i;
+            log.debug("extractCacheTokens: cachedTokens value={}", val);
+            if (val instanceof Number number) {
+                long normalized = Math.max(0L, Math.min(number.longValue(), Integer.MAX_VALUE));
+                return Math.toIntExact(normalized);
             }
         } catch (Exception e) {
             log.warn("extractCacheTokens: exception={}", e.getMessage(), e);

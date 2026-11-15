@@ -10,7 +10,7 @@ import java.util.Map;
  * <p>
  * 按模型类型分组：
  * - 通用：timeoutMs, maxRetries
- * - CHAT：temperature, topP, topK, maxTokens, frequencyPenalty, presencePenalty, stopSequences, seed, responseFormat, stream, extraBody
+ * - CHAT：采样参数、Responses 推理参数、Hosted Tools、流式开关与扩展请求体
  * - EMBEDDING：embeddingDimension, encodingFormat
  * - RERANKER：rerankPath
  *
@@ -39,6 +39,13 @@ public class ConfigExtAttrsDTO {
     private Boolean stream;
     private List<String> capabilities;
     private Boolean defaultVisionModel;
+    private String reasoningEffort;
+    private String reasoningSummary;
+    private String verbosity;
+    private String toolChoice;
+    private Boolean parallelToolCalls;
+    private Integer maxToolCalls;
+    private List<HostedToolConfigDTO> hostedTools;
     private Map<String, Object> extraBody;
 
     // ==================== EMBEDDING 向量模型 ====================

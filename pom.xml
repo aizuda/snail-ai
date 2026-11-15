@@ -26,7 +26,7 @@
         <revision>1.1.1</revision>
         <skipTests>true</skipTests>
         <spring-boot.version>4.1.0</spring-boot.version>
-        <spring-ai.version>2.0.0</spring-ai.version>
+        <spring-ai.version>2.1.0-RC1</spring-ai.version>
         <hutool.version>5.8.46</hutool.version>
         <mybatis-plus.version>3.5.17</mybatis-plus.version>
         <lombok.version>1.18.42</lombok.version>
@@ -143,6 +143,11 @@
             <dependency>
                 <groupId>com.aizuda</groupId>
                 <artifactId>snail-ai-model-chat-provider-openai-compatible</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-model-chat-provider-openai-responses</artifactId>
                 <version>${revision}</version>
             </dependency>
             <dependency>

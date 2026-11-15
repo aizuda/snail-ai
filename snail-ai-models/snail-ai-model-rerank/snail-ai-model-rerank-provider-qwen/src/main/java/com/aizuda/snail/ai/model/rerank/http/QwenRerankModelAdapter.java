@@ -3,6 +3,7 @@ package com.aizuda.snail.ai.model.rerank.http;
 import com.aizuda.snail.ai.common.model.ConfigExtAttrsDTO;
 import com.aizuda.snail.ai.common.model.RerankApiClient;
 import com.aizuda.snail.ai.model.common.ModelAdapterDefaults;
+import com.aizuda.snail.ai.model.common.http.NewApiProviderRequestInterceptor;
 import com.aizuda.snail.ai.model.rerank.RerankModelAdapter;
 import com.aizuda.snail.ai.model.rerank.RerankModelSpec;
 import lombok.extern.slf4j.Slf4j;
@@ -37,7 +38,8 @@ public class QwenRerankModelAdapter implements RerankModelAdapter, Ordered {
     @Override
     public RerankApiClient create(RerankModelSpec spec) {
         ConfigExtAttrsDTO config = spec.configJson();
-        String fullUrl = spec.baseUrl().replaceAll("/+$", "") + rerankPath(config);
+        String requestUrl = spec.baseUrl().replaceAll("/+$", "") + rerankPath(config);
+        String fullUrl = NewApiProviderRequestInterceptor.mark(spec.providerKey(), requestUrl);
         log.debug("Creating Qwen RerankApiClient, url={}, model={}", fullUrl, spec.modelKey());
         return new HttpRerankApiClient(fullUrl, spec.apiKey(), spec.modelKey(), readTimeoutMs(config));
     }

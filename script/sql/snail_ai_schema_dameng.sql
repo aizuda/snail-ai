@@ -949,6 +949,10 @@ INSERT INTO sai_model_provider (provider_name, provider_key, description, is_ena
 SELECT '智谱AI', 'zhipu', '智谱AI OpenAI 兼容模型 (GLM等)', 1
 WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = '智谱AI');
 
+INSERT INTO sai_model_provider (provider_name, provider_key, description, is_enabled)
+SELECT 'New API', 'new-api', 'New API OpenAI 兼容中转服务', 1
+WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = 'New API');
+
 -- 10.3 初始化测试应用
 SET IDENTITY_INSERT sai_app ON;
 INSERT INTO sai_app (id, app_id, app_name, description, token, route_strategy, status, create_dt, update_dt)

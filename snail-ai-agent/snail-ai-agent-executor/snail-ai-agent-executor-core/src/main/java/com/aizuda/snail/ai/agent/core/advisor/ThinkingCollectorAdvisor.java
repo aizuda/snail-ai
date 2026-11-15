@@ -7,6 +7,8 @@ import org.springframework.ai.chat.client.ChatClientRequest;
 import org.springframework.ai.chat.client.ChatClientResponse;
 import org.springframework.ai.chat.client.advisor.api.StreamAdvisor;
 import org.springframework.ai.chat.client.advisor.api.StreamAdvisorChain;
+import org.springframework.ai.chat.messages.part.ReasoningPart;
+import org.springframework.ai.chat.metadata.ChatGenerationMetadata;
 import org.springframework.ai.chat.model.ChatResponse;
 import org.springframework.ai.chat.model.Generation;
 import reactor.core.publisher.Flux;
@@ -78,12 +80,56 @@ public class ThinkingCollectorAdvisor implements StreamAdvisor {
         if (cr == null || cr.getResult() == null) {
             return;
         }
-        extractThinkingText(cr.getResult()).ifPresent(text -> forward(text, state, thinkingConsumer));
+        extractThinkingText(cr.getResult()).ifPresent(chunk -> {
+            String text = chunk.cumulative() ? incrementalSuffix(chunk.text(), state) : chunk.text();
+            forward(text, state, thinkingConsumer);
+        });
     }
 
-    private Optional<String> extractThinkingText(Generation generation) {
-        return extractFromOutputMetadata(generation)
-                .or(() -> extractFromAdditionalProperties(generation));
+    private Optional<ThinkingChunk> extractThinkingText(Generation generation) {
+        return extractFromReasoningParts(generation)
+                .or(() -> extractFromGenerationMetadata(generation))
+                .or(() -> extractFromOutputMetadata(generation).map(ThinkingChunk::delta))
+                .or(() -> extractFromAdditionalProperties(generation).map(ThinkingChunk::delta));
+    }
+
+    private Optional<ThinkingChunk> extractFromReasoningParts(Generation generation) {
+        if (generation == null || generation.getOutput() == null) {
+            return Optional.empty();
+        }
+        String text = joinReasoningParts(generation, true);
+        if (text.isBlank()) {
+            text = joinReasoningParts(generation, false);
+        }
+        return text.isBlank() ? Optional.empty() : Optional.of(ThinkingChunk.delta(text));
+    }
+
+    private String joinReasoningParts(Generation generation, boolean useText) {
+        StringBuilder content = new StringBuilder();
+        for (ReasoningPart part : generation.getOutput().getReasoning()) {
+            String value = useText ? part.text() : part.summary();
+            if (value != null && !value.isBlank()) {
+                content.append(value);
+            }
+        }
+        return content.toString();
+    }
+
+    private Optional<ThinkingChunk> extractFromGenerationMetadata(Generation generation) {
+        if (generation == null) {
+            return Optional.empty();
+        }
+        ChatGenerationMetadata metadata = generation.getMetadata();
+        if (metadata == null || metadata.isEmpty()) {
+            return Optional.empty();
+        }
+        for (String key : THINKING_KEYS) {
+            String text = extractString(metadata.get(key));
+            if (text != null && !text.isBlank()) {
+                return Optional.of(ThinkingChunk.cumulative(text));
+            }
+        }
+        return Optional.empty();
     }
 
     private Optional<String> extractFromOutputMetadata(Generation generation) {
@@ -198,6 +244,20 @@ public class ThinkingCollectorAdvisor implements StreamAdvisor {
         }
     }
 
+    private String incrementalSuffix(String cumulativeText, ClientStreamExecutionContext state) {
+        String accumulated = state.thinkingText.toString();
+        if (accumulated.isEmpty()) {
+            return cumulativeText;
+        }
+        if (cumulativeText.startsWith(accumulated)) {
+            return cumulativeText.substring(accumulated.length());
+        }
+        if (accumulated.endsWith(cumulativeText)) {
+            return "";
+        }
+        return cumulativeText;
+    }
+
     /**
      * 流完成时将累积的思维链桥接到 ChatContext，供下游上下文读取。
      */
@@ -209,6 +269,17 @@ public class ThinkingCollectorAdvisor implements StreamAdvisor {
         AgentChatContextHolder.ChatContext ctx = AgentChatContextHolder.getContext();
         if (ctx != null) {
             ctx.setCurrentThinkingContent(thinking);
+        }
+    }
+
+    private record ThinkingChunk(String text, boolean cumulative) {
+
+        private static ThinkingChunk delta(String text) {
+            return new ThinkingChunk(text, false);
+        }
+
+        private static ThinkingChunk cumulative(String text) {
+            return new ThinkingChunk(text, true);
         }
     }
 }

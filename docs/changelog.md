@@ -10,6 +10,32 @@
 
 ---
 
+## [Unreleased]
+
+### 新增功能
+
+- 新增 `openai-responses` CHAT 适配器，基于 Spring AI `OpenAiResponsesChatModel` 支持同步/流式文本、多模态输入、reasoning 和 usage。
+- Responses 模型支持继续使用本地函数、Skill 和 MCP `ToolCallback`，工具结果可多轮回传给模型后生成最终回复。
+- 新增 Web Search、File Search、Code Interpreter、Image Generation 和 Raw Hosted Tools 结构化配置。
+- 管理端模型配置接入 `adapterKey`，选择 Responses 后展示专属 reasoning、工具调用和 Hosted Tools 字段，并隐藏不支持的 Chat Completions 参数。
+- 新增 `new-api` Provider，支持通过 New API 中转 Chat Completions、Responses、Embedding 和 Rerank 请求。
+
+### 功能优化
+
+- Spring AI 从 `2.0.0` 升级到 `2.1.0-RC1`。
+- 思考内容采集优先读取 `ReasoningPart.text()`，无文本时读取 `ReasoningPart.summary()`，并对累计型 reasoning metadata 去重。
+- Token 用量采集优先读取通用 `Usage.getCacheReadInputTokens()`，保留旧 OpenAI-compatible native usage 反射回退。
+- 刷新 `snail-ai-starter` 内嵌管理端静态资源，包含 Responses 模型配置界面。
+- New API 请求在传输层统一追加 `source=snail-ai`，已有 query 参数保持不变且不会重复添加标识。
+
+### 兼容性与边界
+
+- `openai-compatible` 继续作为 CHAT 默认适配器，已有模型配置行为不变。
+- Responses 失败不回退 Chat Completions，且不新增 Snail AI 对外的 `/v1/responses` API。
+- 本次不新增数据库结构，Responses 参数继续保存在模型扩展 JSON 中。
+- Hosted MCP 暂不支持；Raw 和 `extraBody.tools` 中的 `type=mcp` 会被拒绝。本地 MCP 调用和凭据流程保持不变。
+- New API 来源标识仅对 `providerKey=new-api` 生效，其他 OpenAI-compatible Provider 行为不变。
+
 ## [1.1.1] - 2026-07-29
 
 ### 版本亮点

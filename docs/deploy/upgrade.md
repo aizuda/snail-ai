@@ -4,7 +4,7 @@
 
 ## 概览
 
-Snail AI 0.0.6 当前提供初始化脚本：
+Snail AI 1.1.1 当前提供初始化脚本：
 
 | 数据库 | 初始化脚本 |
 |--------|------------|
@@ -12,6 +12,32 @@ Snail AI 0.0.6 当前提供初始化脚本：
 | PostgreSQL | `script/sql/snail_ai_schema_pgsql.sql` |
 
 如果某个版本发布了独立升级脚本，请以对应 Release Notes 为准；不要假设仓库中一定存在 `script/sql/migration/` 目录。
+
+## Spring AI 2.1.0-RC1 与 Responses
+
+当前源码将 Spring AI 基线升级到 `2.1.0-RC1`，并新增 CHAT 适配器 `openai-responses`。升级不新增数据库表或字段，Responses 专属参数继续保存在现有模型配置的 `configJson` 中。
+
+升级已有环境时注意：
+
+1. 已有 CHAT 模型仍使用默认 `openai-compatible`，不会自动迁移协议。
+2. 需要 Responses 时，在目标 CHAT 模型上显式选择 `openai-responses`，并确认提供商端点和模型支持 Responses API。
+3. `maxTokens` 在 Responses 请求中映射为 `max_output_tokens`；旧适配器语义不变。
+4. Responses 调用失败不会回退到 Chat Completions。
+5. 本地函数、Skill 和 MCP 仍由 Snail AI 执行；现有 MCP headers、存储和凭据配置无需迁移。
+6. Hosted MCP 当前不支持。常见 MCP 部署不具备公网可达性，且 Hosted MCP 会涉及向模型提供商转发 URL 或凭据。
+7. 新增的 Web Search、File Search、Code Interpreter、Image Generation 和 Raw Hosted Tools 由模型提供商执行，使用前应确认账号权限和计费策略。
+
+建议先在测试环境新建一条 Responses 模型配置，不要直接修改生产默认模型。验证同步、流式、多模态、reasoning、工具调用和 usage 后，再切换业务引用。
+
+## New API Provider
+
+新安装环境会从初始化脚本创建 `providerKey=new-api` 的 New API Provider。升级已有环境不会自动写入供应商数据，可在管理后台新增：
+
+- 提供商名称：`New API`
+- 提供商标识：`new-api`
+- 描述：`New API OpenAI 兼容中转服务`
+
+只有固定标识 `new-api` 会启用请求来源标记。Chat Completions、Responses、Embedding 和 Rerank 请求发出前会在最终 URL 上设置 `source=snail-ai`；其他 Provider 不受影响。该变更不新增数据库表或字段。
 
 ## 升级原则
 
@@ -196,6 +222,11 @@ curl http://localhost:8900/snail-ai/actuator/health/db
 
 - 管理后台可以登录。
 - 模型配置可以解密并调用。
+- 原有 `openai-compatible` 模型仍可同步和流式对话。
+- `openai-responses` 模型可完成同步、流式、多模态和 reasoning 对话。
+- 本地函数、Skill、MCP 工具调用可将结果回传给 Responses 并生成最终回复。
+- Hosted Tools 请求参数符合提供商要求，Hosted MCP 配置会被拒绝。
+- Token 统计可记录输入、输出和缓存读取 Token。
 - 智能体可以正常对话。
 - 流式 SSE 可以持续返回。
 - Agent Client 节点在线。
@@ -242,10 +273,13 @@ tar -xzf snail_ai_resource_YYYYMMDD_HHMMSS.tar.gz -C /opt/snail-ai/
 - [ ] 已准备回滚 JAR、数据库和文件资源。
 - [ ] 已确认 Server 与 Agent Client 版本兼容。
 - [ ] 已验证健康检查、登录、对话、RAG 和 OpenAPI。
+- [ ] 已回归 `openai-compatible`，并按需验证 `openai-responses`。
 
 ## 相关源码
 
 - `snail-ai-starter/src/main/resources/application.yml`
+- `snail-ai-models/snail-ai-model-chat/snail-ai-model-chat-provider-openai-responses`
+- `snail-ai-models/snail-ai-model-common/src/main/java/com/aizuda/snail/ai/model/common/http/NewApiProviderRequestInterceptor.java`
 - `script/sql/snail_ai_schema.sql`
 - `script/sql/snail_ai_schema_pgsql.sql`
 - `docs/docker/docker-compose.yaml`

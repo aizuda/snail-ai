@@ -4,6 +4,7 @@ import com.aizuda.snail.ai.common.model.ConfigExtAttrsDTO;
 import com.aizuda.snail.ai.model.chat.ChatModelAdapter;
 import com.aizuda.snail.ai.model.chat.ChatModelSpec;
 import com.aizuda.snail.ai.model.common.ModelAdapterDefaults;
+import com.aizuda.snail.ai.model.common.http.NewApiProviderRequestInterceptor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.openai.OpenAiChatModel;
@@ -36,9 +37,13 @@ public class OpenAiCompatibleChatModelAdapter implements ChatModelAdapter, Order
     public ChatModel create(ChatModelSpec spec) {
         log.debug("Creating OpenAI-compatible ChatModel, provider={}, model={}",
                 spec.providerKey(), spec.modelKey());
-        return OpenAiChatModel.builder()
-                .options(buildOptions(spec))
-                .build();
+        OpenAiChatModel.Builder builder = OpenAiChatModel.builder()
+                .options(buildOptions(spec));
+        if (NewApiProviderRequestInterceptor.supports(spec.providerKey())) {
+            builder.httpClientBuilderCustomizer(httpClientBuilder ->
+                    httpClientBuilder.interceptor(NewApiProviderRequestInterceptor.instance()));
+        }
+        return builder.build();
     }
 
     @Override

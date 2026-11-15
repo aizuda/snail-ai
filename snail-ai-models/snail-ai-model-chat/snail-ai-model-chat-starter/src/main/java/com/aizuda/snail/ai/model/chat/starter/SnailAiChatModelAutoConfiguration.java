@@ -3,6 +3,7 @@ package com.aizuda.snail.ai.model.chat.starter;
 import com.aizuda.snail.ai.model.chat.ChatModelAdapter;
 import com.aizuda.snail.ai.model.chat.ChatModelRuntime;
 import com.aizuda.snail.ai.model.chat.openai.OpenAiCompatibleChatModelAdapter;
+import com.aizuda.snail.ai.model.chat.openai.responses.OpenAiResponsesChatModelAdapter;
 import com.aizuda.snail.ai.model.common.ModelAdapterDefaults;
 import com.aizuda.snail.ai.model.common.ModelAdapterDescriptor;
 import com.aizuda.snail.ai.model.common.ModelCapability;
@@ -34,10 +35,24 @@ public class SnailAiChatModelAutoConfiguration {
     }
 
     @Bean
+    @ConditionalOnMissingBean
+    public OpenAiResponsesChatModelAdapter openAiResponsesChatModelAdapter() {
+        return new OpenAiResponsesChatModelAdapter();
+    }
+
+    @Bean
     public ModelAdapterDescriptor openAiCompatibleChatAdapterDescriptor() {
         return ModelAdapterDescriptor.of(
                 ModelAdapterDefaults.OPENAI_COMPATIBLE_ADAPTER,
                 "OpenAI Compatible",
+                ModelCapability.CHAT);
+    }
+
+    @Bean
+    public ModelAdapterDescriptor openAiResponsesChatAdapterDescriptor() {
+        return ModelAdapterDescriptor.of(
+                OpenAiResponsesChatModelAdapter.ADAPTER_KEY,
+                "OpenAI Responses",
                 ModelCapability.CHAT);
     }
 }

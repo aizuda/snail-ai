@@ -1,6 +1,6 @@
 # 模型管理
 
-Snail AI 提供统一的模型提供商与模型配置管理。当前源码已落地的模型调用规格主要包括 Chat、Embedding 和 Rerank；Provider 可以配置 OpenAI-compatible 端点来接入兼容 OpenAI API 的服务。CHAT 模型可通过模型配置标记 `vision` 能力，用于智能体对话图片输入和图片识别。
+Snail AI 提供统一的模型提供商与模型配置管理。当前源码已落地的模型调用规格主要包括 Chat、Embedding 和 Rerank。CHAT 模型可选择 OpenAI-compatible Chat Completions 或 OpenAI Responses 协议，并通过模型配置标记 `vision` 能力，用于智能体对话图片输入和图片识别。
 
 模型管理页上半部分展示模型提供商卡片，下半部分维护具体模型配置、启用状态、连通性验证和默认模型。
 
@@ -10,12 +10,21 @@ Snail AI 提供统一的模型提供商与模型配置管理。当前源码已�
 
 | 能力 | 状态 | 对应源码 |
 |------|------|----------|
-| Chat 模型 | 已支持，OpenAI-compatible；可配置 `vision` 图片输入能力 | `snail-ai-models/snail-ai-model-chat/snail-ai-model-chat-provider-openai-compatible` |
+| Chat 模型 | 已支持 `openai-compatible` 和 `openai-responses`；可配置 `vision` 图片输入能力 | `snail-ai-models/snail-ai-model-chat/` |
 | Embedding 模型 | 已支持，OpenAI-compatible | `snail-ai-models/snail-ai-model-embedding/snail-ai-model-embedding-provider-openai-compatible` |
 | Rerank 模型 | 已支持，Qwen/HTTP Rerank | `snail-ai-models/snail-ai-model-rerank/snail-ai-model-rerank-provider-qwen` |
 | 图片输入识别 | 已支持，作为 CHAT 模型的 `vision` 能力 | `ConfigExtAttrsDTO.capabilities`、`AgentChatAttachmentService` |
 | Image / Speech 类型 | 数据模型可表示；`IMAGE` 类型不等同于本次 CHAT 图片输入能力 | `snail-ai-commons/snail-ai-commons-core` 中模型类型定义 |
 | Claude / Gemini / Ollama / 火山引擎 | 可通过兼容接口或自定义 Provider 评估接入，不按当前源码描述为内置一等 Provider | 模型配置中的 `apiEndpoint` / `providerKey` |
+
+## Chat 协议适配器
+
+| `adapterKey` | 底层协议 | 默认 | 适用场景 |
+|--------------|----------|------|----------|
+| `openai-compatible` | Chat Completions 兼容协议 | 是 | 现有 OpenAI-compatible 服务及历史模型配置 |
+| `openai-responses` | OpenAI Responses API | 否 | reasoning、Hosted Tools、Responses 原生用量和多轮工具调用 |
+
+选择 `openai-responses` 只改变 Snail AI 向模型提供商发起请求的协议，不会新增 Snail AI 对外的 `/v1/responses` 接口。Responses 请求失败时不会自动回退到 Chat Completions，避免同一请求在两个协议间产生不同语义或重复执行工具。
 
 ## 模型管理三层结构
 
@@ -72,6 +81,8 @@ Snail AI 提供统一的模型提供商与模型配置管理。当前源码已�
 | `modelKey` | `deepseek-chat` | 实际模型名称 |
 | `modelType` | `CHAT` | 模型能力类型 |
 
+OpenAI Responses 使用同一套 Provider 和模型配置管理，只需把 CHAT 模型的 `adapterKey` 改为 `openai-responses`。具体参数和 Hosted Tools 配置见[模型配置](./config#openai-responses-chat)。
+
 ## 默认模型
 
 系统支持为同一类型配置默认模型：
@@ -92,5 +103,6 @@ Snail AI 提供统一的模型提供商与模型配置管理。当前源码已�
 
 - `snail-ai-server/snail-ai-server-admin/src/main/java/com/aizuda/snail/ai/admin/controller/AiModelController.java`
 - `snail-ai-models/snail-ai-model-chat/snail-ai-model-chat-provider-openai-compatible`
+- `snail-ai-models/snail-ai-model-chat/snail-ai-model-chat-provider-openai-responses`
 - `snail-ai-models/snail-ai-model-embedding/snail-ai-model-embedding-provider-openai-compatible`
 - `snail-ai-models/snail-ai-model-rerank/snail-ai-model-rerank-provider-qwen`
