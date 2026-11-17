@@ -29,15 +29,17 @@ Snail AI 1.1.1 当前提供初始化脚本：
 
 建议先在测试环境新建一条 Responses 模型配置，不要直接修改生产默认模型。验证同步、流式、多模态、reasoning、工具调用和 usage 后，再切换业务引用。
 
-## New API Provider
+## CodeLink Provider
 
-新安装环境会从初始化脚本创建 `providerKey=new-api` 的 New API Provider。升级已有环境不会自动写入供应商数据，可在管理后台新增：
+新安装环境会从初始化脚本创建 `providerKey=codelink` 的 CodeLink Provider。升级已有环境不会自动写入供应商数据，可在管理后台新增：
 
-- 提供商名称：`New API`
-- 提供商标识：`new-api`
-- 描述：`New API OpenAI 兼容中转服务`
+- 提供商名称：`CodeLink`
+- 提供商标识：`codelink`
+- 描述：`CodeLink OpenAI 兼容中转服务`
 
-只有固定标识 `new-api` 会启用请求来源标记。Chat Completions、Responses、Embedding 和 Rerank 请求发出前会在最终 URL 上设置 `source=snail-ai`；其他 Provider 不受影响。该变更不新增数据库表或字段。
+选中 CodeLink 后，管理端使用固定端点 `https://aicodelink.top/v1`，隐藏 API 端点输入框，并展示 [注册邀请链接](https://aicodelink.top/sign-up?aff=1Rfu)。
+
+Chat Completions、Responses、Embedding 和 Rerank 请求发出前会在最终 URL 上设置 `source=snail-ai`。规范 key `codelink`、现有数据别名 `aicodelink` 和历史 key `new-api` 均保持兼容；其他 Provider 不受影响。该变更不新增数据库表或字段。
 
 ## 升级原则
 

@@ -7,6 +7,8 @@ import com.aizuda.snail.ai.common.enums.CommonStatusEnum;
 import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.aizuda.snail.ai.common.enums.rag.StoreInstanceCategoryEnum;
 import com.aizuda.snail.ai.common.enums.rag.StoreInstanceTypeEnum;
+import com.aizuda.snail.ai.search.storage.search.SearchEngineFactory;
+import com.aizuda.snail.ai.search.storage.search.api.SearchEngine;
 import com.aizuda.snail.ai.vector.storage.enums.VectorStoreType;
 import com.aizuda.snail.ai.vector.storage.vector.VectorStoreConfigDTO;
 import com.aizuda.snail.ai.vector.storage.vector.VectorStoreFactory;
@@ -48,11 +50,14 @@ public class StoreInstanceService {
             StoreInstanceTypeEnum.PG_VECTOR.getType(),
             StoreInstanceTypeEnum.MILVUS.getType(),
             StoreInstanceTypeEnum.ELASTICSEARCH.getType());
-    private static final Set<Integer> SEARCH_TYPES = Set.of(StoreInstanceTypeEnum.ELASTICSEARCH.getType());
+    private static final Set<Integer> SEARCH_TYPES = Set.of(
+            StoreInstanceTypeEnum.ELASTICSEARCH.getType(),
+            StoreInstanceTypeEnum.PG_FULLTEXT.getType());
 
     private final StoreInstanceMapper mapper;
     private final RagMapper knowledgeMapper;
     private final VectorDimensionConstraintService vectorDimensionConstraintService;
+    private final SearchEngineFactory searchEngineFactory;
 
     /**
      * 按分类查询存储实例列表（默认实例优先）
@@ -228,6 +233,14 @@ public class StoreInstanceService {
      * @return 连通成功返回 true
      */
     public boolean testConnection(StoreInstanceTestRequestVO req) {
+        StoreInstanceCategoryEnum category = resolveTestCategory(req);
+        if (category == StoreInstanceCategoryEnum.SEARCH_ENGINE) {
+            SearchEngine searchEngine = searchEngineFactory.create(
+                    req.getType(), JsonUtil.toJsonString(req.getConfig()));
+            boolean ok = searchEngine.test();
+            log.info("搜索引擎实例连通性测试 type={} result={}", req.getType(), ok);
+            return ok;
+        }
         SnailAiVectorStore apply = VectorStoreFactory.REGISTER.get(VectorStoreType.valueOf(req.getType()))
                 .apply(VectorStoreConfigDTO
                         .builder()
@@ -236,6 +249,20 @@ public class StoreInstanceService {
         boolean ok = apply.test();
         log.info("存储实例连通性测试 type={} result={}", req.getType(), ok);
         return ok;
+    }
+
+    private StoreInstanceCategoryEnum resolveTestCategory(StoreInstanceTestRequestVO req) {
+        if (req.getCategory() != null) {
+            StoreInstanceCategoryEnum category = StoreInstanceCategoryEnum.fromCategory(req.getCategory());
+            if (category == null) {
+                throw new IllegalArgumentException("不支持的存储实例分类: " + req.getCategory());
+            }
+            return category;
+        }
+        if (StoreInstanceTypeEnum.PG_FULLTEXT.name().equalsIgnoreCase(req.getType())) {
+            return StoreInstanceCategoryEnum.SEARCH_ENGINE;
+        }
+        return StoreInstanceCategoryEnum.VECTOR_STORE;
     }
 
     private void clearDefaultInCategory(Integer category, Long excludeId) {

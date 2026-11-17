@@ -26,11 +26,11 @@ public class ClientStreamExecutionContext {
 
     /** 流式最终 chunk 中的 Token 使用量 */
     @Setter
-    private int promptTokens;
+    private Integer promptTokens;
     @Setter
-    private int completionTokens;
+    private Integer completionTokens;
     @Setter
-    private int cacheTokens;
+    private Integer cacheTokens;
 
     public void addToolCall(AssistantMessage.ToolCall toolCall) {
         if (toolCall != null && !containsToolCall(toolCall.id())) {

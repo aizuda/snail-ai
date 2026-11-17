@@ -10,7 +10,7 @@
 | OpenAI Responses Chat | 已支持 | 通过 `openai-responses` 适配器调用 Responses API |
 | OpenAI-compatible Embedding | 已支持 | 通过 OpenAI 兼容协议创建 Embedding 模型 |
 | Qwen/HTTP Rerank | 已支持 | 用于 RAG 检索结果重排序 |
-| New API 中转站 | 已支持 | 使用 `new-api` Provider，支持 Chat Completions、Responses、Embedding 和 Rerank |
+| CodeLink 中转站 | 已支持 | 内置 `codelink` Provider，支持 Chat Completions、Responses、Embedding 和 Rerank |
 | 自定义 Provider 元数据 | 已支持 | 可在管理后台维护名称、key、图标、启用状态 |
 | Claude / Gemini / Ollama / 火山引擎 | 不作为当前源码内置一等 Provider 描述 | 如服务兼容 OpenAI API，可按兼容端点方式验证接入 |
 
@@ -40,27 +40,29 @@ Provider 元数据不绑定具体 CHAT 协议。同一 Provider 下可以分别�
 
 `openai-compatible` 仍是 CHAT 默认适配器。已有配置不会自动迁移，也不会在 Responses 调用失败后回退到 Chat Completions。
 
-## New API 中转站
+## CodeLink 中转站
 
-New API 使用 OpenAI 兼容协议接入。新增或选择 Provider 时必须使用固定标识 `new-api`，模型配置示例如下：
+CodeLink 使用 OpenAI 兼容协议接入。新增或选择 Provider 时使用规范标识 `codelink`，模型配置如下：
 
 | 字段 | 示例 | 说明 |
 |------|------|------|
-| 提供商名称 | `New API` | 页面展示名 |
-| 提供商标识 | `new-api` | 用于启用 New API 请求标识，必须保持此值 |
-| API Endpoint | `https://new-api.example.com/v1` | 自建或已获授权的 New API 实例地址 |
+| 提供商名称 | `CodeLink` | 页面展示名 |
+| 提供商标识 | `codelink` | 用于启用 CodeLink 内置配置和请求标识 |
+| API Endpoint | `https://aicodelink.top/v1` | 管理端自动使用该固定端点，不展示端点输入框 |
 | Model Key | `gpt-5` | 实例中已配置的模型标识 |
 | 适配器 | `openai-compatible` 或 `openai-responses` | 按模型实际支持的接口选择 |
 
-调用 New API 时，Snail AI 会在最终请求 URL 上追加 `source=snail-ai`。例如：
+使用 CodeLink 前，请先通过 [CodeLink 专属邀请链接](https://aicodelink.top/sign-up?aff=1Rfu) 注册并创建 API Key。管理端在选中 CodeLink 时会直接展示该注册提示。
+
+调用 CodeLink 时，Snail AI 会在最终请求 URL 上追加 `source=snail-ai`。例如：
 
 ```text
-https://new-api.example.com/v1/responses?source=snail-ai
+https://aicodelink.top/v1/responses?source=snail-ai
 ```
 
-已有 query 参数会被保留；已有 `source` 会统一替换为 `snail-ai`，重复经过拦截器也只保留一个标识。该行为仅对 `providerKey=new-api` 生效，其他 OpenAI-compatible Provider 的请求 URL 不变。
+已有 query 参数会被保留；已有 `source` 会统一替换为 `snail-ai`，重复经过拦截器也只保留一个标识。规范 key `codelink`、现有数据别名 `aicodelink` 以及历史 key `new-api` 都会启用该标识，其他 OpenAI-compatible Provider 的请求 URL 不变。
 
-新安装环境会通过 MySQL、PostgreSQL 或达梦初始化脚本创建 New API Provider。已有环境可在管理后台手动新增，且无需修改数据库结构。
+新安装环境会通过 MySQL、PostgreSQL 或达梦初始化脚本创建 CodeLink Provider。已有环境可在管理后台手动新增，且无需修改数据库结构。
 
 ## 管理提供商
 
@@ -103,7 +105,7 @@ curl -X GET 'http://localhost:8900/snail-ai/ai-model/providers' \
 - 不要仅因为文档中出现某个厂商名称，就默认它是源码内置 Provider。
 - 只有 Chat、Embedding、Rerank 是当前源码已落地的调用规格；CHAT 当前包含两个协议适配器。
 - 接入新的非兼容协议时，需要新增对应模型 Provider 实现，而不只是新增 Provider 元数据。
-- New API 地址应指向自建或已确认上游授权与合规责任的实例，不要使用来源不明的公网中转地址。
+- CodeLink 为第三方服务，使用前请确认模型来源、计费和数据处理政策。
 
 ## 相关源码
 

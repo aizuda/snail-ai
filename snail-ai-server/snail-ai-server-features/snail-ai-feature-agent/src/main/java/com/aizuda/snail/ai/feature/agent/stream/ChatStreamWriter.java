@@ -1,5 +1,7 @@
 package com.aizuda.snail.ai.feature.agent.stream;
 
+import com.aizuda.snail.ai.common.dto.agent.ChatStreamResponse;
+
 /**
  * Chat stream output port used by the agent chain.
  *
@@ -14,6 +16,14 @@ public interface ChatStreamWriter {
      * @param data 待发送的数据块
      */
     void send(String data);
+
+    /**
+     * 接收结构化完成帧。默认忽略，保持现有文本流写出器兼容。
+     *
+     * @param completion Agent completion 帧
+     */
+    default void onCompletion(ChatStreamResponse completion) {
+    }
 
     /**
      * 正常结束流并关闭下游输出

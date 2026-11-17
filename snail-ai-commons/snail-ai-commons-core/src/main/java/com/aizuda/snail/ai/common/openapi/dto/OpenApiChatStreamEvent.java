@@ -5,8 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonInclude;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -46,14 +46,28 @@ public class OpenApiChatStreamEvent {
     }
 
     public static OpenApiChatStreamEvent done(String conversationId, String fullText) {
-        Map<String, Object> data = new LinkedHashMap<>();
-        data.put("conversationId", conversationId);
-        data.put("fullText", fullText);
-        return of(TYPE_DONE, JsonUtil.toJsonString(data));
+        return done(conversationId, fullText, null);
+    }
+
+    public static OpenApiChatStreamEvent done(String conversationId, String fullText, OpenApiChatUsage usage) {
+        return of(TYPE_DONE, JsonUtil.toJsonString(OpenApiChatDoneData.builder()
+                .conversationId(conversationId)
+                .fullText(fullText)
+                .usage(usage)
+                .build()));
     }
 
     public static OpenApiChatStreamEvent error(String message) {
         return of(TYPE_ERROR, JsonUtil.toJsonString(Map.of(
                 "message", message != null ? message : "Unknown error")));
+    }
+
+    @Data
+    @Builder
+    @JsonInclude(JsonInclude.Include.ALWAYS)
+    private static class OpenApiChatDoneData {
+        private String conversationId;
+        private String fullText;
+        private OpenApiChatUsage usage;
     }
 }

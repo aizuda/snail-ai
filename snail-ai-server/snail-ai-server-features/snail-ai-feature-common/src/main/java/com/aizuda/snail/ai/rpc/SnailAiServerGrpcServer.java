@@ -4,8 +4,8 @@ import com.aizuda.snail.ai.common.grpc.auto.GrpcSnailAiRequest;
 import com.aizuda.snail.ai.common.grpc.auto.GrpcSnailAiResult;
 import com.aizuda.snail.ai.common.grpc.handler.GrpcRequestDispatcher;
 import com.aizuda.snail.ai.common.grpc.server.GrpcServiceDefinitionBuilder;
+import com.aizuda.snail.ai.common.grpc.transport.GrpcNettyTransportFactory;
 import io.grpc.Server;
-import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -93,7 +93,7 @@ public class SnailAiServerGrpcServer implements SmartLifecycle {
     }
 
     private Server buildGrpcServer() {
-        return NettyServerBuilder.forPort(grpcPort)
+        return GrpcNettyTransportFactory.forPort(grpcPort)
                 .addService(GrpcServiceDefinitionBuilder.createUnaryServiceDefinition(
                         this::handleUnaryRequest))
                 .maxInboundMessageSize(GRPC_MAX_INBOUND_MESSAGE_SIZE)

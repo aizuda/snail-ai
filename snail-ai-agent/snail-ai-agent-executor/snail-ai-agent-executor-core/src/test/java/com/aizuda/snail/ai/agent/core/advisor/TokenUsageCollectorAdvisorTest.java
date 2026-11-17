@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 /**
  * {@link TokenUsageCollectorAdvisor} 缓存 Token 提取测试。
@@ -49,6 +50,15 @@ class TokenUsageCollectorAdvisorTest {
         ClientChatExecutorResult result = collect(usage);
 
         assertEquals(0, result.cacheTokens());
+    }
+
+    @Test
+    void shouldKeepUsageNullWhenModelDoesNotReportIt() {
+        var completion = new ClientStreamExecutionContext().toCompletionResult();
+
+        assertNull(completion.promptTokens());
+        assertNull(completion.completionTokens());
+        assertNull(completion.cacheTokens());
     }
 
     private ClientChatExecutorResult collect(Usage usage) {
@@ -129,6 +139,6 @@ class TokenUsageCollectorAdvisorTest {
         }
     }
 
-    private record ClientChatExecutorResult(int promptTokens, int completionTokens, int cacheTokens) {
+    private record ClientChatExecutorResult(Integer promptTokens, Integer completionTokens, Integer cacheTokens) {
     }
 }

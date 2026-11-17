@@ -155,6 +155,17 @@ public class ElasticsearchSearchEngine implements SearchEngine {
         }
     }
 
+    @Override
+    public boolean test() {
+        try {
+            client.info();
+            return true;
+        } catch (IOException e) {
+            log.warn("Elasticsearch 全文检索连接测试失败: {}", e.getMessage());
+            return false;
+        }
+    }
+
     private void batchInsert(String indexName, List<SearchDocument> documents) {
         ensureIndex(indexName);
         try {

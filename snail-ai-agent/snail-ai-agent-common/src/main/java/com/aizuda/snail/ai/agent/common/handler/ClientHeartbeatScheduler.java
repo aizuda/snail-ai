@@ -9,9 +9,9 @@ import com.aizuda.snail.ai.common.grpc.auto.GrpcSnailAiResult;
 import com.aizuda.snail.ai.common.grpc.client.GrpcChannelUtil;
 import com.aizuda.snail.ai.common.grpc.constant.HeaderConstants;
 import com.aizuda.snail.ai.common.grpc.constant.UriConstants;
+import com.aizuda.snail.ai.common.grpc.transport.GrpcNettyTransportFactory;
 import com.aizuda.snail.ai.common.util.JsonUtil;
 import io.grpc.ManagedChannel;
-import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import java.net.InetAddress;
@@ -113,7 +113,7 @@ public class ClientHeartbeatScheduler {
     }
 
     private ManagedChannel createServerChannel() {
-        return NettyChannelBuilder
+        return GrpcNettyTransportFactory
                 .forAddress(properties.getServer().getHost(), properties.getServer().getPort())
                 .usePlaintext()
                 .keepAliveTime(GRPC_KEEP_ALIVE_TIME_SECONDS, TimeUnit.SECONDS)

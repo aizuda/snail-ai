@@ -564,7 +564,7 @@ VALUES ('OpenAI', 'openai', 'OpenAI官方模型 (GPT-4, GPT-3.5等)', 1),
        ('阿里云百炼', 'qwen', '阿里云百炼 OpenAI 兼容模型 (Qwen等)', 1),
        ('DeepSeek', 'deepseek', 'DeepSeek OpenAI 兼容模型', 1),
        ('智谱AI', 'zhipu', '智谱AI OpenAI 兼容模型 (GLM等)', 1),
-       ('New API', 'new-api', 'New API OpenAI 兼容中转服务', 1);
+       ('Code Link', 'codelink', '特别赞助供应商 注册链接https://aicodelink.top/sign-up?aff=1Rfu', 1);
 
 -- 初始化测试应用
 INSERT INTO sai_app (id, app_id, app_name, description, token, route_strategy, status, create_dt, update_dt)

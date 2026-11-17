@@ -99,6 +99,10 @@
             <artifactId>snail-ai-search-elasticsearch-storage</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.aizuda</groupId>
+            <artifactId>snail-ai-search-postgresql-storage</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-compress</artifactId>
         </dependency>

@@ -9,14 +9,14 @@ import java.io.IOException;
 import java.util.Objects;
 
 /**
- * 为 New API 中转请求追加 Snail AI 来源标识。
+ * 为 CodeLink 中转请求追加 Snail AI 来源标识，并兼容历史 New API 配置。
  *
  * @author opensnail
  * @since 2026-11-15
  */
 public final class NewApiProviderRequestInterceptor implements Interceptor {
 
-    public static final String PROVIDER_KEY = "new-api";
+    public static final String PROVIDER_KEY = "codelink";
     public static final String SOURCE_QUERY_PARAMETER = "source";
     public static final String SOURCE_QUERY_VALUE = "snail-ai";
 
@@ -30,11 +30,15 @@ public final class NewApiProviderRequestInterceptor implements Interceptor {
     }
 
     public static boolean supports(String providerKey) {
-        return providerKey != null && PROVIDER_KEY.equalsIgnoreCase(providerKey.trim());
+        if (providerKey == null) {
+            return false;
+        }
+        String normalizedProviderKey = providerKey.trim();
+        return PROVIDER_KEY.equalsIgnoreCase(normalizedProviderKey);
     }
 
     /**
-     * 仅为 New API 供应商请求追加来源标识，其他供应商保持原 URL 不变。
+     * 仅为 CodeLink 和历史 New API 供应商请求追加来源标识，其他供应商保持原 URL 不变。
      *
      * @param providerKey 供应商标识
      * @param requestUrl  请求 URL

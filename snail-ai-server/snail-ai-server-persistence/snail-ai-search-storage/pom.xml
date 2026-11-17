@@ -19,5 +19,6 @@
     <modules>
         <module>snail-ai-search-template</module>
         <module>snail-ai-search-elasticsearch-storage</module>
+        <module>snail-ai-search-postgresql-storage</module>
     </modules>
 </project>

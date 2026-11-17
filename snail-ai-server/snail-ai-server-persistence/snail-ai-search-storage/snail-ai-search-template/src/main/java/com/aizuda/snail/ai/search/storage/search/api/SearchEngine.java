@@ -33,4 +33,11 @@ public interface SearchEngine {
      * @param request 删除请求（含索引名与文档 ID 列表）
      */
     void delete(SearchDeleteRequest request);
+
+    /**
+     * 测试搜索引擎连接是否可用。
+     *
+     * @return 连接可用返回 true
+     */
+    boolean test();
 }

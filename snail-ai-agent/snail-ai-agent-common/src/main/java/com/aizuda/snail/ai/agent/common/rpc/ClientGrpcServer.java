@@ -3,8 +3,8 @@ package com.aizuda.snail.ai.agent.common.rpc;
 import com.aizuda.snail.ai.common.grpc.auto.GrpcSnailAiRequest;
 import com.aizuda.snail.ai.common.grpc.auto.GrpcSnailAiResult;
 import com.aizuda.snail.ai.common.grpc.server.GrpcServiceDefinitionBuilder;
+import com.aizuda.snail.ai.common.grpc.transport.GrpcNettyTransportFactory;
 import io.grpc.Server;
-import io.grpc.netty.shaded.io.grpc.netty.NettyServerBuilder;
 import io.grpc.stub.ServerCalls;
 import lombok.extern.slf4j.Slf4j;
 
@@ -35,7 +35,7 @@ public class ClientGrpcServer {
     }
 
     public void start() throws Exception {
-        server = NettyServerBuilder.forPort(port)
+        server = GrpcNettyTransportFactory.forPort(port)
                 .addService(GrpcServiceDefinitionBuilder.createUnaryServiceDefinition(unaryHandler))
                 .addService(GrpcServiceDefinitionBuilder.createServerStreamingServiceDefinition(streamingHandler))
                 .maxInboundMessageSize(10 * 1024 * 1024)

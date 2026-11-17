@@ -50,6 +50,7 @@ public class AgentController {
     private final AgentConversationRecordMapper conversationRecordMapper;
     private final AgentChatService agentChatService;
     private final AgentAnalyticsService agentAnalyticsService;
+    private final AgentInstructionOptimizeService agentInstructionOptimizeService;
 
     // ==================== CRUD ====================
 
@@ -106,6 +107,14 @@ public class AgentController {
     @LoginRequired
     public Result<AgentResponseVO> create(@RequestBody @Validated AgentRequestVO request) {
         return Result.ok(agentService.create(request));
+    }
+
+    /** 使用默认 CHAT 模型生成系统提示词候选版本（管理员）。 */
+    @PostMapping("/instruction/optimize")
+    @LoginRequired
+    public Result<AgentInstructionOptimizeResponseVO> optimizeInstruction(
+            @RequestBody @Validated AgentInstructionOptimizeRequestVO request) {
+        return Result.ok(agentInstructionOptimizeService.optimize(request));
     }
 
     /** 与指定智能体进行流式对话（登录用户，SSE 流）。 */

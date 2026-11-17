@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import com.aizuda.snail.ai.common.grpc.auto.GrpcSnailAiResult;
 import com.aizuda.snail.ai.common.grpc.client.GrpcChannelUtil;
 import com.aizuda.snail.ai.common.grpc.constant.UriConstants;
+import com.aizuda.snail.ai.common.grpc.transport.GrpcNettyTransportFactory;
 import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.aizuda.snail.ai.persistence.app.mapper.AppMapper;
 import com.aizuda.snail.ai.persistence.app.mapper.ClientNodeMapper;
@@ -12,7 +13,6 @@ import com.aizuda.snail.ai.persistence.app.po.ClientNodePO;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import io.grpc.CallOptions;
 import io.grpc.ManagedChannel;
-import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
@@ -562,7 +562,7 @@ public class ClientInstanceManager {
     }
 
     private ManagedChannel createChannel(String hostIp, int grpcPort) {
-        return NettyChannelBuilder.forAddress(hostIp, grpcPort)
+        return GrpcNettyTransportFactory.forAddress(hostIp, grpcPort)
                 .usePlaintext()
                 .keepAliveTime(GRPC_KEEP_ALIVE_TIME_SECONDS, TimeUnit.SECONDS)
                 .keepAliveTimeout(GRPC_KEEP_ALIVE_TIMEOUT_SECONDS, TimeUnit.SECONDS)

@@ -16,7 +16,12 @@ public enum SearchEngineEnum {
     /**
      * Elasticsearch 全文检索引擎
      */
-    ELASTICSEARCH("ELASTICSEARCH");
+    ELASTICSEARCH("ELASTICSEARCH"),
+
+    /**
+     * PostgreSQL pg_trgm 全文检索引擎
+     */
+    PG_FULLTEXT("PG_FULLTEXT");
 
     /**
      * 类型标识，用于配置匹配与实例选择

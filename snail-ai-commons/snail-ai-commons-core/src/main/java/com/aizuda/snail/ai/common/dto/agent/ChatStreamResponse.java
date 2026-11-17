@@ -122,6 +122,21 @@ public class ChatStreamResponse {
                 .build();
     }
 
+    public static ChatStreamResponse completionWithUsage(String sid, String fullText, String fullThinking,
+                                                          Integer promptTokens, Integer completionTokens,
+                                                          Integer cacheTokens, long durationMs) {
+        return ChatStreamResponse.builder()
+                .type(TYPE_COMPLETION)
+                .sid(sid)
+                .fullText(fullText)
+                .fullThinking(fullThinking)
+                .promptTokens(promptTokens)
+                .completionTokens(completionTokens)
+                .cacheTokens(cacheTokens)
+                .durationMs(durationMs)
+                .build();
+    }
+
     public static ChatStreamResponse error(String errorCode, String errorMessage) {
         return ChatStreamResponse.builder()
                 .type(TYPE_ERROR)

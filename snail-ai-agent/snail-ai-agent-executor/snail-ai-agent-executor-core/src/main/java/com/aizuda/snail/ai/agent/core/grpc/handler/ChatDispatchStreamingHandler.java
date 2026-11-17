@@ -91,7 +91,7 @@ public class ChatDispatchStreamingHandler implements GrpcStreamingRequestHandler
             log.info("handleCompletion: promptTokens={}, completionTokens={}, cacheTokens={}, durationMs={}",
                     context.completion().promptTokens(), context.completion().completionTokens(),
                     context.completion().cacheTokens(), context.completion().durationMs());
-            ChatStreamResponse response = ChatStreamResponse.completion(
+            ChatStreamResponse response = ChatStreamResponse.completionWithUsage(
                     context.sid(),
                     context.completion().fullText(),
                     context.completion().fullThinking(),

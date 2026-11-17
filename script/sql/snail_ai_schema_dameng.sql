@@ -950,8 +950,8 @@ SELECT '智谱AI', 'zhipu', '智谱AI OpenAI 兼容模型 (GLM等)', 1
 WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = '智谱AI');
 
 INSERT INTO sai_model_provider (provider_name, provider_key, description, is_enabled)
-SELECT 'New API', 'new-api', 'New API OpenAI 兼容中转服务', 1
-WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = 'New API');
+SELECT 'Code Link', 'codelink', '特别赞助供应商 注册链接https://aicodelink.top/sign-up?aff=1Rfu', 1
+WHERE NOT EXISTS (SELECT 1 FROM sai_model_provider WHERE provider_name = 'Code Link');
 
 -- 10.3 初始化测试应用
 SET IDENTITY_INSERT sai_app ON;

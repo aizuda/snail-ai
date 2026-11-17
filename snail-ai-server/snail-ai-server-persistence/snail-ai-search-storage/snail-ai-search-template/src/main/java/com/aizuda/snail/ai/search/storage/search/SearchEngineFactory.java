@@ -56,14 +56,33 @@ public class SearchEngineFactory {
             throw new SearchEngineException("搜索引擎类型不存在 type:" + type);
         }
 
-        Function<SearchEngineConfigDTO, SearchEngine> constructor = REGISTER.get(engineType);
-        if (constructor == null) {
-            throw new SearchEngineException("搜索引擎类型未注册 type:" + type);
-        }
         log.debug("构建全文检索引擎 instanceId={} type={}", instanceId, type);
-        return constructor.apply(SearchEngineConfigDTO.builder()
+        return create(engineType, SearchEngineConfigDTO.builder()
                 .storeInstance(inst)
                 .config(inst.getConfig())
                 .build());
+    }
+
+    /**
+     * 按引擎类型与原始配置构建搜索引擎，供未持久化配置的连接测试使用。
+     *
+     * @param type   搜索引擎类型
+     * @param config 配置 JSON
+     * @return 搜索引擎实例
+     */
+    public SearchEngine create(String type, String config) {
+        SearchEngineEnum engineType = SearchEngineEnum.fromType(type);
+        if (engineType == null) {
+            throw new SearchEngineException("搜索引擎类型不存在 type:" + type);
+        }
+        return create(engineType, SearchEngineConfigDTO.builder().config(config).build());
+    }
+
+    private SearchEngine create(SearchEngineEnum engineType, SearchEngineConfigDTO config) {
+        Function<SearchEngineConfigDTO, SearchEngine> constructor = REGISTER.get(engineType);
+        if (constructor == null) {
+            throw new SearchEngineException("搜索引擎类型未注册 type:" + engineType.getType());
+        }
+        return constructor.apply(config);
     }
 }

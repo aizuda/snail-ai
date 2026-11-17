@@ -840,7 +840,7 @@ VALUES ('OpenAI', 'openai', 'OpenAI官方模型 (GPT-4, GPT-3.5等)', TRUE),
        ('阿里云百炼', 'qwen', '阿里云百炼 OpenAI 兼容模型 (Qwen等)', TRUE),
        ('DeepSeek', 'deepseek', 'DeepSeek OpenAI 兼容模型', TRUE),
        ('智谱AI', 'zhipu', '智谱AI OpenAI 兼容模型 (GLM等)', TRUE),
-       ('New API', 'new-api', 'New API OpenAI 兼容中转服务', TRUE)
+       ('Code Link', 'codelink', '特别赞助供应商 注册链接https://aicodelink.top/sign-up?aff=1Rfu', TRUE)
 ON CONFLICT (provider_key) DO NOTHING;
 
 -- 初始化测试应用

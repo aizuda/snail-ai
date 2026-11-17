@@ -19,9 +19,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class NewApiProviderRequestInterceptorTest {
 
     @Test
-    void shouldRecognizeCanonicalProviderKey() {
+    void shouldRecognizeCodeLinkAndLegacyProviderKeys() {
+        assertTrue(NewApiProviderRequestInterceptor.supports("codelink"));
+        assertTrue(NewApiProviderRequestInterceptor.supports(" CODELINK "));
+        assertTrue(NewApiProviderRequestInterceptor.supports("aicodelink"));
         assertTrue(NewApiProviderRequestInterceptor.supports("new-api"));
-        assertTrue(NewApiProviderRequestInterceptor.supports(" NEW-API "));
         assertFalse(NewApiProviderRequestInterceptor.supports("newapi"));
         assertFalse(NewApiProviderRequestInterceptor.supports("openai"));
         assertFalse(NewApiProviderRequestInterceptor.supports(null));
@@ -30,7 +32,7 @@ class NewApiProviderRequestInterceptorTest {
     @Test
     void shouldAppendMarkerAndPreserveExistingQueryAndFragment() {
         String marked = NewApiProviderRequestInterceptor.mark(
-                "new-api", "https://relay.example/v1/responses?tenant=demo#result");
+                "codelink", "https://relay.example/v1/responses?tenant=demo#result");
 
         assertEquals(
                 "https://relay.example/v1/responses?tenant=demo&source=snail-ai#result",
@@ -40,12 +42,12 @@ class NewApiProviderRequestInterceptorTest {
     @Test
     void shouldReplaceExistingSourceWithoutDuplicatingMarker() {
         String marked = NewApiProviderRequestInterceptor.mark(
-                "new-api", "https://relay.example/v1/chat/completions?source=legacy&source=snail-ai");
+                "codelink", "https://relay.example/v1/chat/completions?source=legacy&source=snail-ai");
 
         assertEquals(
                 "https://relay.example/v1/chat/completions?source=snail-ai",
                 marked);
-        assertEquals(marked, NewApiProviderRequestInterceptor.mark("new-api", marked));
+        assertEquals(marked, NewApiProviderRequestInterceptor.mark("codelink", marked));
     }
 
     @Test

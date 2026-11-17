@@ -332,6 +332,11 @@
             </dependency>
             <dependency>
                 <groupId>com.aizuda</groupId>
+                <artifactId>snail-ai-search-postgresql-storage</artifactId>
+                <version>${revision}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.aizuda</groupId>
                 <artifactId>snail-ai-feature-rag</artifactId>
                 <version>${revision}</version>
             </dependency>

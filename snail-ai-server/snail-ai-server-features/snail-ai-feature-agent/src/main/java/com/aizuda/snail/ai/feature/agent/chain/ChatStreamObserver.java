@@ -1,6 +1,7 @@
 package com.aizuda.snail.ai.feature.agent.chain;
 
 import com.aizuda.snail.ai.common.dto.agent.ChatStreamResponse;
+import com.aizuda.snail.ai.common.execption.SnailAiException;
 import com.aizuda.snail.ai.common.grpc.auto.GrpcSnailAiResult;
 import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.aizuda.snail.ai.feature.agent.persist.ChatResultPersistCommand;
@@ -55,7 +56,7 @@ public class ChatStreamObserver implements StreamObserver<GrpcSnailAiResult> {
     public void onError(Throwable t) {
         log.error("gRPC 流异常中断, conversationId={}", context.getConversationId(), t);
         context.getStreamWriter().send("[ERROR] Client disconnected: " + t.getMessage());
-        context.getStreamWriter().complete();
+        context.getStreamWriter().completeWithError(t);
     }
 
     @Override
@@ -88,6 +89,8 @@ public class ChatStreamObserver implements StreamObserver<GrpcSnailAiResult> {
                 context.getConversationId(), data.getDurationMs(),
                 data.getPromptTokens(), data.getCompletionTokens(), data.getCacheTokens());
 
+        context.getStreamWriter().onCompletion(data);
+
         persistService.persistAsync(ChatResultPersistCommand.builder()
                 .agentId(context.getAgent().getId())
                 .userId(context.getUser().getId())
@@ -103,10 +106,11 @@ public class ChatStreamObserver implements StreamObserver<GrpcSnailAiResult> {
                 .build());
     }
 
-    /** 处理错误帧：透传客户端上报的错误给前端，流本身不在此终止（由 onCompleted/onError 收尾） */
+    /** 处理错误帧：保留管理端错误文本，并向结构化写出器标记流执行失败 */
     private void handleError(ChatStreamResponse data) {
         log.error("客户端执行出错, conversationId={}, error={}", context.getConversationId(), data.getErrorMessage());
         context.getStreamWriter().send("[ERROR] " + data.getErrorMessage());
+        context.getStreamWriter().completeWithError(new SnailAiException(data.getErrorMessage()));
     }
 
 }

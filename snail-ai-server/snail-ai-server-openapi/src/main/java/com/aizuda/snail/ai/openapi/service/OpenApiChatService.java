@@ -10,6 +10,7 @@ import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatAttachmentRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatRequest;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatStreamEvent;
 import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatSyncResponse;
+import com.aizuda.snail.ai.common.openapi.dto.OpenApiChatUsage;
 import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.aizuda.snail.ai.feature.agent.stream.ChatStreamWriter;
 import com.aizuda.snail.ai.openapi.security.OpenApiSessionUtils;
@@ -116,7 +117,9 @@ public class OpenApiChatService {
                 .build());
 
         try {
-            String fullText = collector.awaitAndGetFullText(SYNC_CHAT_TIMEOUT_MS);
+            CollectingChatStreamWriter.CollectedChatResult result =
+                    collector.awaitAndGetResult(SYNC_CHAT_TIMEOUT_MS);
+            String fullText = result.fullText();
             log.info("OpenAPI 同步对话完成 conversationId={} 字数={} 耗时={}ms",
                     request.getConversationId(), fullText != null ? fullText.length() : 0,
                     System.currentTimeMillis() - start);
@@ -124,6 +127,7 @@ public class OpenApiChatService {
                     .conversationId(request.getConversationId())
                     .content(fullText)
                     .durationMs(System.currentTimeMillis() - start)
+                    .usage(OpenApiChatUsage.fromCompletion(result.completion()))
                     .build();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -164,7 +168,10 @@ public class OpenApiChatService {
             return;
         }
         state.doneSent = true;
-        emit(sink, OpenApiChatStreamEvent.done(state.conversationId, state.buffer.toString()));
+        emit(sink, OpenApiChatStreamEvent.done(
+                state.conversationId,
+                state.buffer.toString(),
+                OpenApiChatUsage.fromCompletion(state.completion)));
     }
 
     private void emit(FluxSink<OpenApiChatStreamEvent> sink, OpenApiChatStreamEvent event) {
@@ -184,6 +191,7 @@ public class OpenApiChatService {
     private static class ChatStreamState {
         private final String conversationId;
         private final StringBuilder buffer = new StringBuilder();
+        private ChatStreamResponse completion;
         private boolean doneSent;
 
         private ChatStreamState(String conversationId) {
@@ -222,6 +230,11 @@ public class OpenApiChatService {
                 default ->
                         emit(sink, OpenApiChatStreamEvent.of(response.getType(), data));
             }
+        }
+
+        @Override
+        public void onCompletion(ChatStreamResponse completion) {
+            state.completion = completion;
         }
 
         @Override

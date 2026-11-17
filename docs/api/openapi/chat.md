@@ -132,21 +132,19 @@ curl -X POST 'http://localhost:8900/snail-ai/openapi/v1/agent/chat' \
 
 ### 响应格式
 
-响应为 NDJSON（Newline Delimited JSON）流，每行是一个独立的 JSON 对象，通过 `type` 字段区分事件类型。
+响应为 SSE 事件流，通过事件名区分 `thinking`、`text`、`done` 和 `error`。其中 `text`、`thinking` 的 data 是对话分片 JSON，`done` 的 data 是包含完整回答和模型用量的 JSON。
 
 **流式输出示例：**
 
 ```json
-{"type":"thinking","content":"用户需要分析销售数据，我需要先检索相关的知识库文档..."}
-{"type":"thinking","content":"已找到上季度销售报告，开始生成分析结果..."}
-{"type":"text","content":"根据"}
-{"type":"text","content":"上季度的销售数据"}
-{"type":"text","content":"分析如下："}
-{"type":"text","content":"\n\n## 整体概览\n\n"}
-{"type":"text","content":"- 总销售额：1,250 万元，同比增长 15.3%\n"}
-{"type":"text","content":"- 订单量：8,560 笔，环比增长 8.2%\n"}
-{"type":"text","content":"- 客单价：1,460 元，基本持平\n\n"}
-{"type":"text","content":"## 区域分布\n\n华东区域贡献了 42% 的销售额..."}
+event: thinking
+data: {"type":"thinking","content":"用户需要分析销售数据，我需要先检索相关的知识库文档..."}
+
+event: text
+data: {"type":"text","content":"根据上季度的销售数据分析如下..."}
+
+event: done
+data: {"conversationId":"conv-sales-q3","fullText":"根据上季度的销售数据分析如下...","usage":{"promptTokens":120,"completionTokens":40,"cacheTokens":20,"totalTokens":160}}
 ```
 
 ### 事件类型
@@ -155,6 +153,39 @@ curl -X POST 'http://localhost:8900/snail-ai/openapi/v1/agent/chat' \
 |------------|-------------------------------------------------------|
 | `thinking` | 智能体的思考/推理过程，可选择性展示给用户             |
 | `text`     | 正式回答内容，客户端需将多个 text 事件拼接后显示      |
+| `done`     | 对话完成，包含完整回答和 Token Usage；未上报时 `usage` 为 `null` |
+| `error`    | 流式执行错误，data 中包含错误信息                     |
+
+`cacheTokens` 是 `promptTokens` 的子集，`totalTokens` 仅按 `promptTokens + completionTokens` 计算。
+
+---
+
+## 智能体同步对话
+
+```text
+POST /snail-ai/openapi/v1/agent/chat/sync
+```
+
+请求体与流式对话一致。成功响应示例：
+
+```json
+{
+  "code": 1,
+  "data": {
+    "conversationId": "conv-sales-q3",
+    "content": "根据上季度的销售数据分析如下...",
+    "durationMs": 1820,
+    "usage": {
+      "promptTokens": 120,
+      "completionTokens": 40,
+      "cacheTokens": 20,
+      "totalTokens": 160
+    }
+  }
+}
+```
+
+模型或旧版 Agent 未返回用量时，`usage` 明确为 `null`；`durationMs` 仍表示同步请求的端到端耗时。
 
 ### 客户端处理示例
 

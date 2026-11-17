@@ -31,6 +31,8 @@ public class CollectingChatStreamWriter implements ChatStreamWriter {
      * 执行过程中捕获的异常，非空表示对话失败
      */
     private volatile Throwable error;
+    /** Agent 返回的结构化完成帧 */
+    private volatile ChatStreamResponse completion;
 
     @Override
     public void send(String data) {
@@ -45,6 +47,11 @@ public class CollectingChatStreamWriter implements ChatStreamWriter {
     }
 
     @Override
+    public void onCompletion(ChatStreamResponse completion) {
+        this.completion = completion;
+    }
+
+    @Override
     public void complete() {
         latch.countDown();
     }
@@ -56,21 +63,24 @@ public class CollectingChatStreamWriter implements ChatStreamWriter {
     }
 
     /**
-     * 阻塞等待对话完成并返回累积的完整文本
+     * 阻塞等待对话完成并返回累积文本与结构化完成帧
      *
      * @param timeoutMs 最大等待毫秒数
-     * @return 累积的完整文本
+     * @return 收集到的对话结果
      * @throws InterruptedException 等待期间线程被中断
      * @throws TimeoutException     超时仍未完成
      */
-    public String awaitAndGetFullText(long timeoutMs) throws InterruptedException, TimeoutException {
+    public CollectedChatResult awaitAndGetResult(long timeoutMs) throws InterruptedException, TimeoutException {
         if (!latch.await(timeoutMs, TimeUnit.MILLISECONDS)) {
             throw new TimeoutException("对话响应超时");
         }
         if (error != null) {
             throw new SnailAiException("对话执行失败: " + error.getMessage(), error);
         }
-        return buffer.toString();
+        return new CollectedChatResult(buffer.toString(), completion);
+    }
+
+    public record CollectedChatResult(String fullText, ChatStreamResponse completion) {
     }
 
     private ChatStreamResponse parse(String data) {
