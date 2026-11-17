@@ -55,12 +55,10 @@ class OpenAiResponsesChatModelAdapterTest {
         assertNull(options.getPresencePenalty());
 
         List<HostedTool> hostedTools = options.getHostedTools();
-        assertEquals(5, hostedTools.size());
-        assertInstanceOf(HostedTool.WebSearch.class, hostedTools.get(0));
-        assertInstanceOf(HostedTool.FileSearch.class, hostedTools.get(1));
-        assertInstanceOf(HostedTool.CodeInterpreter.class, hostedTools.get(2));
-        assertInstanceOf(HostedTool.ImageGeneration.class, hostedTools.get(3));
-        assertInstanceOf(HostedTool.Raw.class, hostedTools.get(4));
+        assertEquals(3, hostedTools.size());
+        assertInstanceOf(HostedTool.CodeInterpreter.class, hostedTools.get(0));
+        assertInstanceOf(HostedTool.ImageGeneration.class, hostedTools.get(1));
+        assertInstanceOf(HostedTool.Raw.class, hostedTools.get(2));
     }
 
     @Test
@@ -70,31 +68,27 @@ class OpenAiResponsesChatModelAdapterTest {
         ConfigExtAttrsDTO restored = JsonUtil.parseObject(JsonUtil.toJsonString(original), ConfigExtAttrsDTO.class);
 
         assertEquals("HIGH", restored.getReasoningEffort());
-        assertEquals(5, restored.getHostedTools().size());
-        assertEquals(List.of("vs_123"), restored.getHostedTools().get(1).getVectorStoreIds());
-        assertEquals("computer_preview", restored.getHostedTools().get(4).getTool().get("type"));
+        assertEquals(3, restored.getHostedTools().size());
+        assertEquals("cntr_123", restored.getHostedTools().get(0).getContainerId());
+        assertEquals("computer_preview", restored.getHostedTools().get(2).getTool().get("type"));
     }
 
     @Test
-    void shouldRejectHostedMcpInRawTool() {
+    void shouldRejectProviderWebSearchFileSearchAndHostedMcp() {
+        assertRejected(hostedTool("web_search"));
+        assertRejected(hostedTool("file_search"));
+
         HostedToolConfigDTO raw = hostedTool("raw");
         raw.setTool(Map.of("type", "mcp", "server_url", "https://mcp.example.com"));
-        ConfigExtAttrsDTO config = new ConfigExtAttrsDTO();
-        config.setHostedTools(List.of(raw));
+        assertRejected(raw);
 
-        ModelAdapterException exception = assertThrows(ModelAdapterException.class, () -> adapter.create(spec(config)));
-
-        assertTrue(exception.getMessage().contains("does not support Hosted MCP"));
-    }
-
-    @Test
-    void shouldRejectHostedMcpInExtraBody() {
-        ConfigExtAttrsDTO config = new ConfigExtAttrsDTO();
-        config.setExtraBody(Map.of("tools", List.of(Map.of("type", "mcp"))));
-
-        ModelAdapterException exception = assertThrows(ModelAdapterException.class, () -> adapter.create(spec(config)));
-
-        assertTrue(exception.getMessage().contains("does not support Hosted MCP"));
+        ConfigExtAttrsDTO extraBody = new ConfigExtAttrsDTO();
+        extraBody.setExtraBody(Map.of("tools", List.of(
+                Map.of("type", "web_search_preview"),
+                Map.of("type", "file_search"))));
+        ModelAdapterException exception = assertThrows(
+                ModelAdapterException.class, () -> adapter.create(spec(extraBody)));
+        assertTrue(exception.getMessage().contains("is not supported"));
     }
 
     @Test
@@ -122,28 +116,20 @@ class OpenAiResponsesChatModelAdapterTest {
         config.setParallelToolCalls(true);
         config.setMaxToolCalls(6);
         config.setExtraBody(Map.of("custom_parameter", "value"));
-        config.setHostedTools(List.of(
-                webSearch(), fileSearch(), codeInterpreter(), imageGeneration(), rawTool()));
+        config.setHostedTools(List.of(codeInterpreter(), imageGeneration(), rawTool()));
         return config;
     }
 
-    private HostedToolConfigDTO webSearch() {
-        HostedToolConfigDTO config = hostedTool("web_search");
-        config.setSearchContextSize("medium");
-        config.setAllowedDomains(List.of("example.com"));
-        return config;
-    }
-
-    private HostedToolConfigDTO fileSearch() {
-        HostedToolConfigDTO config = hostedTool("file_search");
-        config.setVectorStoreIds(List.of("vs_123"));
-        config.setMaxNumResults(4);
-        return config;
+    private void assertRejected(HostedToolConfigDTO tool) {
+        ConfigExtAttrsDTO config = new ConfigExtAttrsDTO();
+        config.setHostedTools(List.of(tool));
+        ModelAdapterException exception = assertThrows(ModelAdapterException.class, () -> adapter.create(spec(config)));
+        assertTrue(exception.getMessage().contains("is not supported"));
     }
 
     private HostedToolConfigDTO codeInterpreter() {
         HostedToolConfigDTO config = hostedTool("code_interpreter");
-        config.setContainerId("container_123");
+        config.setContainerId("cntr_123");
         return config;
     }
 

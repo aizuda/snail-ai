@@ -37,7 +37,6 @@ public class OpenAiResponsesChatModelAdapter implements ChatModelAdapter, Ordere
     public static final String ADAPTER_KEY = "openai-responses";
 
     private static final long DEFAULT_TIMEOUT_MS = 300_000L;
-    private static final String HOSTED_MCP_TYPE = "mcp";
     private static final String RAW_TOOL_TYPE_KEY = "type";
     private static final String EXTRA_BODY_TOOLS_KEY = "tools";
     private static final String RESPONSE_FORMAT_TEXT = "text";
@@ -48,9 +47,13 @@ public class OpenAiResponsesChatModelAdapter implements ChatModelAdapter, Ordere
     private static final Set<String> REASONING_SUMMARY_VALUES = Set.of("auto", "concise", "detailed");
     private static final Set<String> VERBOSITY_VALUES = Set.of("low", "medium", "high");
     private static final Set<String> TOOL_CHOICE_VALUES = Set.of("auto", "none", "required");
-    private static final Set<String> SEARCH_CONTEXT_SIZE_VALUES = Set.of("low", "medium", "high");
     private static final Set<String> IMAGE_SIZE_VALUES = Set.of(
             "auto", "1024x1024", "1536x1024", "1024x1536");
+    /**
+     * 本期不接入的厂商托管工具。Raw 和 extraBody 也不能绕过。
+     */
+    private static final Set<String> UNSUPPORTED_PROVIDER_TOOL_TYPES = Set.of(
+            "mcp", "web_search", "web_search_preview", "file_search");
 
     @Override
     public String adapterKey() {
@@ -159,35 +162,16 @@ public class OpenAiResponsesChatModelAdapter implements ChatModelAdapter, Ordere
         if (config == null) {
             throw invalidConfig("hostedTools[" + index + "] is required");
         }
+        rejectUnsupportedProviderTool(config.getType(), "hostedTools[" + index + "].type");
         HostedToolTypeEnum type = HostedToolTypeEnum.fromValue(config.getType());
         if (type == null) {
             throw invalidConfig("Unsupported hostedTools[" + index + "].type=" + config.getType());
         }
         return switch (type) {
-            case WEB_SEARCH -> toWebSearch(config, index);
-            case FILE_SEARCH -> toFileSearch(config, index);
             case CODE_INTERPRETER -> new HostedTool.CodeInterpreter(trimToNull(config.getContainerId()));
             case IMAGE_GENERATION -> toImageGeneration(config, index);
             case RAW -> toRawTool(config, index);
         };
-    }
-
-    private HostedTool.WebSearch toWebSearch(HostedToolConfigDTO config, int index) {
-        String searchContextSize = optionalEnumValue(
-                config.getSearchContextSize(), SEARCH_CONTEXT_SIZE_VALUES,
-                "hostedTools[" + index + "].searchContextSize");
-        List<String> allowedDomains = normalizeStrings(
-                config.getAllowedDomains(), "hostedTools[" + index + "].allowedDomains", false);
-        return new HostedTool.WebSearch(searchContextSize, allowedDomains);
-    }
-
-    private HostedTool.FileSearch toFileSearch(HostedToolConfigDTO config, int index) {
-        List<String> vectorStoreIds = normalizeStrings(
-                config.getVectorStoreIds(), "hostedTools[" + index + "].vectorStoreIds", true);
-        if (config.getMaxNumResults() != null) {
-            requirePositive(config.getMaxNumResults(), "hostedTools[" + index + "].maxNumResults");
-        }
-        return new HostedTool.FileSearch(vectorStoreIds, config.getMaxNumResults());
     }
 
     private HostedTool.ImageGeneration toImageGeneration(HostedToolConfigDTO config, int index) {
@@ -205,7 +189,7 @@ public class OpenAiResponsesChatModelAdapter implements ChatModelAdapter, Ordere
         if (!(rawType instanceof String type) || type.isBlank()) {
             throw invalidConfig("hostedTools[" + index + "].tool.type is required");
         }
-        rejectHostedMcp(type, "hostedTools[" + index + "].tool.type");
+        rejectUnsupportedProviderTool(type, "hostedTools[" + index + "].tool.type");
         return new HostedTool.Raw(new LinkedHashMap<>(tool));
     }
 
@@ -213,11 +197,11 @@ public class OpenAiResponsesChatModelAdapter implements ChatModelAdapter, Ordere
         if (extraBody == null || extraBody.isEmpty()) {
             return;
         }
-        rejectHostedMcpFromExtraBody(extraBody.get(EXTRA_BODY_TOOLS_KEY));
+        rejectUnsupportedProviderTools(extraBody.get(EXTRA_BODY_TOOLS_KEY));
         builder.extraBody(extraBody);
     }
 
-    private void rejectHostedMcpFromExtraBody(Object tools) {
+    private void rejectUnsupportedProviderTools(Object tools) {
         if (!(tools instanceof Collection<?> collection)) {
             return;
         }
@@ -227,14 +211,17 @@ public class OpenAiResponsesChatModelAdapter implements ChatModelAdapter, Ordere
             }
             Object type = toolMap.get(RAW_TOOL_TYPE_KEY);
             if (type instanceof String typeValue) {
-                rejectHostedMcp(typeValue, "extraBody.tools[].type");
+                rejectUnsupportedProviderTool(typeValue, "extraBody.tools[].type");
             }
         }
     }
 
-    private void rejectHostedMcp(String type, String field) {
-        if (HOSTED_MCP_TYPE.equalsIgnoreCase(type.trim())) {
-            throw invalidConfig(field + " does not support Hosted MCP");
+    private void rejectUnsupportedProviderTool(String type, String field) {
+        if (type == null) {
+            return;
+        }
+        if (UNSUPPORTED_PROVIDER_TOOL_TYPES.contains(type.trim().toLowerCase(Locale.ROOT))) {
+            throw invalidConfig(field + " is not supported");
         }
     }
 
@@ -258,24 +245,6 @@ public class OpenAiResponsesChatModelAdapter implements ChatModelAdapter, Ordere
             throw invalidConfig("Unsupported " + field + "=" + value);
         }
         return normalized;
-    }
-
-    private List<String> normalizeStrings(List<String> values, String field, boolean required) {
-        if (values == null || values.isEmpty()) {
-            if (required) {
-                throw invalidConfig(field + " is required");
-            }
-            return null;
-        }
-        List<String> normalized = new ArrayList<>(values.size());
-        for (String value : values) {
-            String item = trimToNull(value);
-            if (item == null) {
-                throw invalidConfig(field + " cannot contain blank values");
-            }
-            normalized.add(item);
-        }
-        return List.copyOf(normalized);
     }
 
     private long readTimeoutMs(ConfigExtAttrsDTO config) {

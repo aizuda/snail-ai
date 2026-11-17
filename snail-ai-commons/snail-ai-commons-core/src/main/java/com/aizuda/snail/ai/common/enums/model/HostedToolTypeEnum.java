@@ -4,7 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Responses 首期支持的 Hosted Tool 类型。
+ * Responses 当前支持的 Hosted Tool 类型。
+ * <p>
+ * 厂商 Hosted MCP、Web Search 和 File Search 不在本期范围。
  *
  * @author opensnail
  * @since 2026-11-14
@@ -13,8 +15,6 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum HostedToolTypeEnum {
 
-    WEB_SEARCH("web_search"),
-    FILE_SEARCH("file_search"),
     CODE_INTERPRETER("code_interpreter"),
     IMAGE_GENERATION("image_generation"),
     RAW("raw");

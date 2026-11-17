@@ -6,7 +6,9 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 import java.io.IOException;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * 为 CodeLink 中转请求追加 Snail AI 来源标识，并兼容历史 New API 配置。
@@ -17,8 +19,13 @@ import java.util.Objects;
 public final class NewApiProviderRequestInterceptor implements Interceptor {
 
     public static final String PROVIDER_KEY = "codelink";
+    public static final String LEGACY_CODELINK_PROVIDER_KEY = "aicodelink";
+    public static final String LEGACY_NEW_API_PROVIDER_KEY = "new-api";
     public static final String SOURCE_QUERY_PARAMETER = "source";
     public static final String SOURCE_QUERY_VALUE = "snail-ai";
+
+    private static final Set<String> SUPPORTED_PROVIDER_KEYS = Set.of(
+            PROVIDER_KEY, LEGACY_CODELINK_PROVIDER_KEY, LEGACY_NEW_API_PROVIDER_KEY);
 
     private static final NewApiProviderRequestInterceptor INSTANCE = new NewApiProviderRequestInterceptor();
 
@@ -33,8 +40,7 @@ public final class NewApiProviderRequestInterceptor implements Interceptor {
         if (providerKey == null) {
             return false;
         }
-        String normalizedProviderKey = providerKey.trim();
-        return PROVIDER_KEY.equalsIgnoreCase(normalizedProviderKey);
+        return SUPPORTED_PROVIDER_KEYS.contains(providerKey.trim().toLowerCase(Locale.ROOT));
     }
 
     /**

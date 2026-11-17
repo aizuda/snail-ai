@@ -86,10 +86,17 @@ public class ThinkingCollectorAdvisor implements StreamAdvisor {
         });
     }
 
+    /**
+     * Spring AI 2.1 在 generation 或消息 metadata 上发布的是累计全文，ReasoningPart 才是增量。
+     * 同一分片两者都在时以累计全文为准，避免正文分片和多段 reasoning 结束块把思考内容再拼一遍。
+     */
     private Optional<ThinkingChunk> extractThinkingText(Generation generation) {
+        Optional<ThinkingChunk> cumulative = extractFromGenerationMetadata(generation)
+                .or(() -> extractFromOutputMetadata(generation).map(ThinkingChunk::cumulative));
+        if (cumulative.isPresent()) {
+            return cumulative;
+        }
         return extractFromReasoningParts(generation)
-                .or(() -> extractFromGenerationMetadata(generation))
-                .or(() -> extractFromOutputMetadata(generation).map(ThinkingChunk::delta))
                 .or(() -> extractFromAdditionalProperties(generation).map(ThinkingChunk::delta));
     }
 

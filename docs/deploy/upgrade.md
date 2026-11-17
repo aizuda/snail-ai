@@ -24,8 +24,8 @@ Snail AI 1.1.1 当前提供初始化脚本：
 3. `maxTokens` 在 Responses 请求中映射为 `max_output_tokens`；旧适配器语义不变。
 4. Responses 调用失败不会回退到 Chat Completions。
 5. 本地函数、Skill 和 MCP 仍由 Snail AI 执行；现有 MCP headers、存储和凭据配置无需迁移。
-6. Hosted MCP 当前不支持。常见 MCP 部署不具备公网可达性，且 Hosted MCP 会涉及向模型提供商转发 URL 或凭据。
-7. 新增的 Web Search、File Search、Code Interpreter、Image Generation 和 Raw Hosted Tools 由模型提供商执行，使用前应确认账号权限和计费策略。
+6. 本期不接入厂商 Hosted MCP、Web Search 和 File Search。这些类型出现在 Hosted Tools 或 `extraBody.tools` 中会被拒绝。
+7. 本期保留的 Code Interpreter、Image Generation 和 Raw Hosted Tools 由模型提供商执行，使用前应确认账号权限和计费策略。
 
 建议先在测试环境新建一条 Responses 模型配置，不要直接修改生产默认模型。验证同步、流式、多模态、reasoning、工具调用和 usage 后，再切换业务引用。
 
@@ -227,7 +227,7 @@ curl http://localhost:8900/snail-ai/actuator/health/db
 - 原有 `openai-compatible` 模型仍可同步和流式对话。
 - `openai-responses` 模型可完成同步、流式、多模态和 reasoning 对话。
 - 本地函数、Skill、MCP 工具调用可将结果回传给 Responses 并生成最终回复。
-- Hosted Tools 请求参数符合提供商要求，Hosted MCP 配置会被拒绝。
+- Hosted Tools 仅接受本期支持的类型；Hosted MCP、Web Search 和 File Search 配置会被拒绝。
 - Token 统计可记录输入、输出和缓存读取 Token。
 - 智能体可以正常对话。
 - 流式 SSE 可以持续返回。

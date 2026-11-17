@@ -91,6 +91,42 @@ class ThinkingCollectorAdvisorTest {
         assertEquals("first second", state.thinkingText.toString());
     }
 
+    @Test
+    void shouldNotRepeatCumulativeOutputMetadataAfterReasoningEnds() {
+        ClientStreamExecutionContext state = new ClientStreamExecutionContext();
+        StringBuilder received = new StringBuilder();
+        ChatClientRequest request = request(state, received);
+
+        new ThinkingCollectorAdvisor()
+                .adviseStream(request, new ResponseStreamAdvisorChain(List.of(
+                        buildOutputMetadataResponse("I"),
+                        buildOutputMetadataResponse("I think"),
+                        buildOutputMetadataResponse("I think"))))
+                .blockLast();
+
+        assertEquals("I think", received.toString());
+        assertEquals("I think", state.thinkingText.toString());
+    }
+
+    @Test
+    void shouldPreferCumulativeMetadataWhenReasoningPartIsAlsoPresent() {
+        ClientStreamExecutionContext state = new ClientStreamExecutionContext();
+        StringBuilder received = new StringBuilder();
+        ChatClientRequest request = request(state, received);
+        ReasoningPart first = new ReasoningPart(null, "Check facts", null, Map.of());
+        ReasoningPart second = new ReasoningPart(null, "Next", null, Map.of());
+
+        new ThinkingCollectorAdvisor()
+                .adviseStream(request, new ResponseStreamAdvisorChain(List.of(
+                        buildReasoningPartWithCumulativeMetadata(first, "Check facts"),
+                        buildReasoningPartWithCumulativeMetadata(second, "Check facts\nNext"),
+                        buildGenerationMetadataResponse("Check facts\nNext"))))
+                .blockLast();
+
+        assertEquals("Check facts\nNext", received.toString());
+        assertEquals("Check facts\nNext", state.thinkingText.toString());
+    }
+
     private ChatClientRequest request(ClientStreamExecutionContext state, StringBuilder received) {
         return new ChatClientRequest(new Prompt("test"), Map.of(
                 ClientAdvisorKeys.STREAM_STATE, state,
@@ -111,6 +147,17 @@ class ThinkingCollectorAdvisorTest {
                 .reasoning(reasoning)
                 .build();
         return new ChatClientResponse(new ChatResponse(List.of(new Generation(assistantMessage))), Map.of());
+    }
+
+    private ChatClientResponse buildReasoningPartWithCumulativeMetadata(ReasoningPart reasoning, String cumulative) {
+        AssistantMessage assistantMessage = AssistantMessage.builder()
+                .reasoning(reasoning)
+                .build();
+        ChatGenerationMetadata metadata = ChatGenerationMetadata.builder()
+                .metadata("reasoningContent", cumulative)
+                .build();
+        return new ChatClientResponse(
+                new ChatResponse(List.of(new Generation(assistantMessage, metadata))), Map.of());
     }
 
     private ChatClientResponse buildGenerationMetadataResponse(String thinking) {

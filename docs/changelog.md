@@ -16,7 +16,7 @@
 
 - 新增 `openai-responses` CHAT 适配器，基于 Spring AI `OpenAiResponsesChatModel` 支持同步/流式文本、多模态输入、reasoning 和 usage。
 - Responses 模型支持继续使用本地函数、Skill 和 MCP `ToolCallback`，工具结果可多轮回传给模型后生成最终回复。
-- 新增 Web Search、File Search、Code Interpreter、Image Generation 和 Raw Hosted Tools 结构化配置。
+- 新增 Code Interpreter、Image Generation 和 Raw Hosted Tools 结构化配置。厂商 Hosted MCP、Web Search 和 File Search 本期不接入。
 - 管理端模型配置接入 `adapterKey`，选择 Responses 后展示专属 reasoning、工具调用和 Hosted Tools 字段，并隐藏不支持的 Chat Completions 参数。
 - 新增内置 `codelink` Provider，固定使用 `https://aicodelink.top/v1` 中转 Chat Completions、Responses、Embedding 和 Rerank 请求。
 
@@ -34,7 +34,7 @@
 - `openai-compatible` 继续作为 CHAT 默认适配器，已有模型配置行为不变。
 - Responses 失败不回退 Chat Completions，且不新增 Snail AI 对外的 `/v1/responses` API。
 - 本次不新增数据库结构，Responses 参数继续保存在模型扩展 JSON 中。
-- Hosted MCP 暂不支持；Raw 和 `extraBody.tools` 中的 `type=mcp` 会被拒绝。本地 MCP 调用和凭据流程保持不变。
+- 厂商 Hosted MCP、Web Search、File Search 不接入。`hostedTools`、Raw 和 `extraBody.tools` 中的 `mcp`、`web_search`、`web_search_preview`、`file_search` 会被拒绝。本地 MCP 调用和凭据流程保持不变。
 - CodeLink 以 `providerKey=codelink` 为规范标识，兼容现有 `aicodelink` 数据和历史 `new-api` 请求标识；其他 OpenAI-compatible Provider 行为不变。
 
 ## [1.1.1] - 2026-07-29

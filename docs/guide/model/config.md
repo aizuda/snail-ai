@@ -118,7 +118,7 @@ Responses 参数契约：
 | `toolChoice` | `auto`、`none`、`required` | 工具选择策略 |
 | `parallelToolCalls` | `boolean` | 是否允许并行工具调用 |
 | `maxToolCalls` | 正整数 | 单次 Responses 调用允许的最大工具调用数 |
-| `hostedTools` | `object[]` | 提供商侧 Hosted Tools |
+| `hostedTools` | `object[]` | 提供商侧 Hosted Tools。本期仅 `code_interpreter`、`image_generation`、`raw` |
 | `extraBody` | `object` | 提供商扩展请求体 |
 
 `topK`、`frequencyPenalty`、`presencePenalty`、`stopSequences` 和 `seed` 不会发送给 Responses API，管理端在选择 `openai-responses` 时也会隐藏这些字段。已知枚举值、数值范围或 Hosted Tool 结构错误会在模型创建阶段直接报错。
@@ -131,8 +131,6 @@ Responses 调用失败时不会回退到 Chat Completions。这个适配器只�
 
 | `type` | 字段 | 约束 |
 |--------|------|------|
-| `web_search` | `searchContextSize`、`allowedDomains` | 上下文规模可选 `low/medium/high` |
-| `file_search` | `vectorStoreIds`、`maxNumResults` | `vectorStoreIds` 必填且不能为空 |
 | `code_interpreter` | `containerId` | 容器 ID 可选 |
 | `image_generation` | `model`、`size` | 尺寸可选 `auto/1024x1024/1536x1024/1024x1536` |
 | `raw` | `tool` | `tool` 必须是包含 `type` 的对象 |
@@ -140,16 +138,6 @@ Responses 调用失败时不会回退到 Chat Completions。这个适配器只�
 ```json
 {
   "hostedTools": [
-    {
-      "type": "web_search",
-      "searchContextSize": "medium",
-      "allowedDomains": ["spring.io", "platform.openai.com"]
-    },
-    {
-      "type": "file_search",
-      "vectorStoreIds": ["vs_123"],
-      "maxNumResults": 10
-    },
     {
       "type": "code_interpreter",
       "containerId": "cntr_123"
@@ -169,9 +157,9 @@ Responses 调用失败时不会回退到 Chat Completions。这个适配器只�
 }
 ```
 
-当前版本明确拒绝 `raw.tool.type=mcp`，也会拒绝 `extraBody.tools` 中的 `type=mcp`，防止通过 Raw 或扩展请求体绕过范围限制并向提供商提交 MCP URL 或凭据。
+本期不接入厂商 Hosted MCP、Web Search 和 File Search。`hostedTools`、`raw.tool.type` 和 `extraBody.tools[].type` 中出现 `mcp`、`web_search`、`web_search_preview` 或 `file_search` 时，模型创建阶段直接拒绝。
 
-### 本地 MCP 与 Hosted MCP
+### 本地 MCP
 
 本地函数、Skill 和 MCP 继续注册为 Spring AI `ToolCallback`，由 Snail AI 所在网络内执行：
 
@@ -185,7 +173,7 @@ Snail AI 将工具结果提交给 Responses 模型
 模型生成最终回复
 ```
 
-Hosted MCP 则要求模型提供商从公网或可路由网络访问 MCP 服务，通常还涉及凭据转发。Snail AI 的常见部署不会把 MCP 暴露到公网，因此首期不支持 Hosted MCP，也不修改现有 MCP headers、存储接口或凭据体系。
+厂商 Hosted MCP 不在本期范围，现有 MCP headers、存储和凭据配置保持不变。
 
 ## 图片输入识别
 

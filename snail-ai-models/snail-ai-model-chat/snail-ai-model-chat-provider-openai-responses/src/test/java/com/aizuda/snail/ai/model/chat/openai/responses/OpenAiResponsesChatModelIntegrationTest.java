@@ -99,8 +99,8 @@ class OpenAiResponsesChatModelIntegrationTest {
         assertTrue(request.body().contains("\"verbosity\":\"low\""));
         assertTrue(request.body().contains("\"type\":\"input_image\""));
         assertTrue(request.body().contains("data:image/png;base64,AQID"));
-        assertTrue(request.body().contains("\"type\":\"web_search\""));
-        assertTrue(request.body().contains("\"type\":\"file_search\""));
+        assertFalse(request.body().contains("\"type\":\"web_search\""));
+        assertFalse(request.body().contains("\"type\":\"file_search\""));
         assertTrue(request.body().contains("\"type\":\"code_interpreter\""));
         assertTrue(request.body().contains("\"type\":\"image_generation\""));
         assertTrue(request.body().contains("\"type\":\"local_shell\""));
@@ -244,18 +244,6 @@ class OpenAiResponsesChatModelIntegrationTest {
 
     private List<HostedToolConfigDTO> hostedTools() {
         List<HostedToolConfigDTO> tools = new ArrayList<>();
-
-        HostedToolConfigDTO webSearch = new HostedToolConfigDTO();
-        webSearch.setType("web_search");
-        webSearch.setSearchContextSize("medium");
-        webSearch.setAllowedDomains(List.of("example.com"));
-        tools.add(webSearch);
-
-        HostedToolConfigDTO fileSearch = new HostedToolConfigDTO();
-        fileSearch.setType("file_search");
-        fileSearch.setVectorStoreIds(List.of("vs_test"));
-        fileSearch.setMaxNumResults(3);
-        tools.add(fileSearch);
 
         HostedToolConfigDTO codeInterpreter = new HostedToolConfigDTO();
         codeInterpreter.setType("code_interpreter");

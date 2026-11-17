@@ -2,7 +2,6 @@ package com.aizuda.snail.ai.common.model;
 
 import lombok.Data;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -15,14 +14,6 @@ import java.util.Map;
 public class HostedToolConfigDTO {
 
     private String type;
-
-    // Web Search
-    private String searchContextSize;
-    private List<String> allowedDomains;
-
-    // File Search
-    private List<String> vectorStoreIds;
-    private Integer maxNumResults;
 
     // Code Interpreter
     private String containerId;

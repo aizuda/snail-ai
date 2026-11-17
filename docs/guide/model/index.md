@@ -22,7 +22,7 @@ Snail AI 提供统一的模型提供商与模型配置管理。当前源码已�
 | `adapterKey` | 底层协议 | 默认 | 适用场景 |
 |--------------|----------|------|----------|
 | `openai-compatible` | Chat Completions 兼容协议 | 是 | 现有 OpenAI-compatible 服务及历史模型配置 |
-| `openai-responses` | OpenAI Responses API | 否 | reasoning、Hosted Tools、Responses 原生用量和多轮工具调用 |
+| `openai-responses` | OpenAI Responses API | 否 | reasoning、Responses 原生用量和多轮工具调用。厂商 Hosted MCP、Web Search、File Search 本期不接入 |
 
 选择 `openai-responses` 只改变 Snail AI 向模型提供商发起请求的协议，不会新增 Snail AI 对外的 `/v1/responses` 接口。Responses 请求失败时不会自动回退到 Chat Completions，避免同一请求在两个协议间产生不同语义或重复执行工具。
 
