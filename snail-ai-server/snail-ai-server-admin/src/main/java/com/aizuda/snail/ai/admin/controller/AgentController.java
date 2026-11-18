@@ -158,14 +158,6 @@ public class AgentController {
 
         @Override
         public void onCompletion(ChatStreamResponse completion) {
-            if (sink.isCancelled()) {
-                return;
-            }
-            sink.next(JsonUtil.toJsonString(ChatStreamEvent.completion(completion)));
-        }
-
-        @Override
-        public void onCompletion(ChatStreamResponse completion) {
             if (sink.isCancelled() || completion == null) {
                 return;
             }
