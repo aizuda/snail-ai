@@ -159,6 +159,45 @@ class OpenAiResponsesChatModelIntegrationTest {
     }
 
     @Test
+    void shouldAcceptOutputTextWithoutAnnotations() {
+        server.enqueueJson(completedResponse(
+                "response_missing_annotations",
+                "[" + messageItemWithoutAnnotations("message_missing", "Plain text") + "]",
+                usage(8, 2, 10, 0)));
+
+        ChatResponse response = createModel(responsesConfig()).call(new Prompt("missing annotations"));
+
+        assertEquals("Plain text", response.getResult().getOutput().getText());
+    }
+
+    @Test
+    void shouldStreamOutputTextWhenAnnotationsAreNull() {
+        String output = "[" + messageItemWithNullAnnotations("message_null_annotations", "Streamed text") + "]";
+        String completed = completedResponse("response_null_annotations", output, usage(6, 2, 8, 0));
+        String events = sse("response.output_text.delta", "{\"type\":\"response.output_text.delta\","
+                + "\"sequence_number\":1,\"item_id\":\"message_null_annotations\","
+                + "\"output_index\":0,\"content_index\":0,\"delta\":\"Streamed text\"}")
+                + sse("response.completed", "{\"type\":\"response.completed\","
+                + "\"sequence_number\":2,\"response\":" + completed + "}");
+        server.enqueueSse(events);
+
+        List<ChatResponse> chunks = createModel(responsesConfig())
+                .stream(new Prompt("null annotations"))
+                .collectList()
+                .block();
+
+        assertNotNull(chunks);
+        StringBuilder text = new StringBuilder();
+        for (ChatResponse chunk : chunks) {
+            if (chunk.getResult() == null || chunk.getResult().getOutput().getText() == null) {
+                continue;
+            }
+            text.append(chunk.getResult().getOutput().getText());
+        }
+        assertEquals("Streamed text", text.toString());
+    }
+
+    @Test
     void shouldMarkNewApiRequestUrl() {
         server.enqueueJson(completedResponse(
                 "response_new_api",
@@ -306,6 +345,17 @@ class OpenAiResponsesChatModelIntegrationTest {
         return "{\"id\":\"" + id + "\",\"type\":\"message\",\"status\":\"completed\","
                 + "\"role\":\"assistant\",\"content\":[{\"type\":\"output_text\","
                 + "\"annotations\":[],\"text\":\"" + text + "\"}]}";
+    }
+
+    private static String messageItemWithoutAnnotations(String id, String text) {
+        return "{\"id\":\"" + id + "\",\"type\":\"message\",\"status\":\"completed\","
+                + "\"role\":\"assistant\",\"content\":[{\"type\":\"output_text\",\"text\":\"" + text + "\"}]}";
+    }
+
+    private static String messageItemWithNullAnnotations(String id, String text) {
+        return "{\"id\":\"" + id + "\",\"type\":\"message\",\"status\":\"completed\","
+                + "\"role\":\"assistant\",\"content\":[{\"type\":\"output_text\","
+                + "\"annotations\":null,\"text\":\"" + text + "\"}]}";
     }
 
     private static String functionCallItem(String name, String callId) {

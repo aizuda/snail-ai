@@ -1,9 +1,12 @@
 package com.aizuda.snail.ai.admin.controller;
 
 import com.aizuda.snail.ai.admin.dto.AgentChatCommand;
+import com.aizuda.snail.ai.admin.dto.ChatStreamEvent;
 import com.aizuda.snail.ai.admin.service.agent.*;
 import com.aizuda.snail.ai.admin.stream.AgentCreateStreamHttpAdapter;
+import com.aizuda.snail.ai.common.dto.agent.ChatStreamResponse;
 import com.aizuda.snail.ai.common.model.Result;
+import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.aizuda.snail.ai.admin.enums.RoleEnum;
 import com.aizuda.snail.ai.admin.security.annotation.LoginRequired;
 import com.aizuda.snail.ai.admin.vo.PageResult;
@@ -12,6 +15,8 @@ import com.aizuda.snail.ai.admin.vo.agent.*;
 import com.aizuda.snail.ai.admin.service.mcp.McpServerService;
 import com.aizuda.snail.ai.admin.vo.mcp.McpServerResponseVO;
 import com.aizuda.snail.ai.admin.vo.memory.ConversationSummaryVO;
+import com.aizuda.snail.ai.common.dto.agent.ChatStreamResponse;
+import com.aizuda.snail.ai.common.util.JsonUtil;
 import com.aizuda.snail.ai.feature.agent.stream.ChatStreamWriter;
 import com.aizuda.snail.ai.persistence.agent.mapper.AgentConversationRecordMapper;
 import com.aizuda.snail.ai.persistence.agent.po.AgentConversationRecordPO;
@@ -149,6 +154,22 @@ public class AgentController {
                 return;
             }
             sink.next(data);
+        }
+
+        @Override
+        public void onCompletion(ChatStreamResponse completion) {
+            if (sink.isCancelled()) {
+                return;
+            }
+            sink.next(JsonUtil.toJsonString(ChatStreamEvent.completion(completion)));
+        }
+
+        @Override
+        public void onCompletion(ChatStreamResponse completion) {
+            if (sink.isCancelled() || completion == null) {
+                return;
+            }
+            sink.next(JsonUtil.toJsonString(completion) + "\n");
         }
 
         @Override

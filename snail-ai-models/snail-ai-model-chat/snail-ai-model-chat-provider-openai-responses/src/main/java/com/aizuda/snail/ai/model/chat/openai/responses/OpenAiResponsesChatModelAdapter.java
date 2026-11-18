@@ -66,10 +66,12 @@ public class OpenAiResponsesChatModelAdapter implements ChatModelAdapter, Ordere
                 spec.providerKey(), spec.modelKey());
         OpenAiResponsesChatModel.Builder builder = OpenAiResponsesChatModel.builder()
                 .options(buildOptions(spec));
-        if (NewApiProviderRequestInterceptor.supports(spec.providerKey())) {
-            builder.httpClientBuilderCustomizer(httpClientBuilder ->
-                    httpClientBuilder.interceptor(NewApiProviderRequestInterceptor.instance()));
-        }
+        builder.httpClientBuilderCustomizer(httpClientBuilder -> {
+            httpClientBuilder.interceptor(ResponsesOutputTextCompatibilityInterceptor.instance());
+            if (NewApiProviderRequestInterceptor.supports(spec.providerKey())) {
+                httpClientBuilder.interceptor(NewApiProviderRequestInterceptor.instance());
+            }
+        });
         return builder.build();
     }
 
