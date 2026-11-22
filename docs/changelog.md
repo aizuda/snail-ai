@@ -22,6 +22,7 @@
 
 ### 功能优化
 
+- Spring Boot 从 `4.1.0` 升级到正式版 `4.2.0`，同步采用 Spring Framework 7.1、Spring Data 2026.1、Spring Security 7.2 和 Reactor 2026.0 依赖基线。
 - Spring AI 从 `2.0.0` 升级到正式版 `2.1.0`，包含现代 MCP、工具调用与 Advisor 兼容性修复。
 - 思考内容采集优先读取 `ReasoningPart.text()`，无文本时读取 `ReasoningPart.summary()`，并对累计型 reasoning metadata 去重。
 - Token 用量采集优先读取通用 `Usage.getCacheReadInputTokens()`，保留旧 OpenAI-compatible native usage 反射回退。

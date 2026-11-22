@@ -149,7 +149,7 @@ eventSource.addEventListener('error', (e) => {
 
 ## 技术栈
 
-- Spring Boot 3.4.1
+- Spring Boot 4.2.0
 - Snail AI OpenAPI Client
 - Springdoc OpenAPI (Swagger UI)
 - Lombok

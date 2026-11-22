@@ -20,7 +20,7 @@ metadata:
 ### 技术栈
 
 - **Java**: 17/21
-- **Spring Boot**: 4.0.1
+- **Spring Boot**: 4.2.0
 - **Spring AI**: 2.0.0-M4
 - **MyBatis-Plus**: 3.5.16
 - **数据库**: MySQL/PostgreSQL
