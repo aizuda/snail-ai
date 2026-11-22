@@ -12,13 +12,26 @@
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-11-22
+
+### 版本亮点
+
+- 新增基于 Spring AI 原生 `OpenAiResponsesChatModel` 的 `openai-responses` CHAT 适配器，完整覆盖同步、流式、多模态、reasoning、本地工具调用和 Token 用量采集。
+- 新增 PostgreSQL 全文检索存储实现和智能体指令 AI 优化能力，补齐 RAG 关键词检索与智能体配置工作流。
+- Spring AI 升级到正式版 `2.1.0`，Spring Boot 升级到 `4.2.0`，同步采用 Spring Framework 7.1、Spring Data 2026.1、Spring Security 7.2 和 Reactor 2026.0 依赖基线。
+- 管理端与独立聊天页完成重新构建并内嵌到对应 Starter，发布包不再依赖单独准备前端构建产物。
+
 ### 新增功能
 
 - 新增 `openai-responses` CHAT 适配器，基于 Spring AI `OpenAiResponsesChatModel` 支持同步/流式文本、多模态输入、reasoning 和 usage。
+- Responses 配置新增 `reasoningEffort`、`reasoningSummary`、`verbosity`、`toolChoice`、`parallelToolCalls`、`maxToolCalls` 和 `hostedTools`，原有 `maxTokens` 自动映射为 `max_output_tokens`。
 - Responses 模型支持继续使用本地函数、Skill 和 MCP `ToolCallback`，工具结果可多轮回传给模型后生成最终回复。
 - 新增 Code Interpreter、Image Generation 和 Raw Hosted Tools 结构化配置。厂商 Hosted MCP、Web Search 和 File Search 本期不接入。
 - 管理端模型配置接入 `adapterKey`，选择 Responses 后展示专属 reasoning、工具调用和 Hosted Tools 字段，并隐藏不支持的 Chat Completions 参数。
 - 新增内置 `codelink` Provider，固定使用 `https://aicodelink.top/v1` 中转 Chat Completions、Responses、Embedding 和 Rerank 请求。
+- 新增 PostgreSQL 全文检索引擎 `PG_FULLTEXT`，支持独立数据源、Schema 配置、索引隔离以及文档写入、检索和删除，可作为 RAG 关键词检索存储。
+- 新增智能体指令优化接口，使用默认 CHAT 模型生成系统提示词候选版本；模型不可用或返回异常时保留原始指令并返回警告。
+- 管理端、OpenAPI 和 Agent Chat 的完成事件新增 `promptTokens`、`completionTokens`、`cacheTokens` 与 `totalTokens` 用量数据。
 
 ### 功能优化
 
@@ -26,17 +39,37 @@
 - Spring AI 从 `2.0.0` 升级到正式版 `2.1.0`，包含现代 MCP、工具调用与 Advisor 兼容性修复。
 - 思考内容采集优先读取 `ReasoningPart.text()`，无文本时读取 `ReasoningPart.summary()`，并对累计型 reasoning metadata 去重。
 - Token 用量采集优先读取通用 `Usage.getCacheReadInputTokens()`，保留旧 OpenAI-compatible native usage 反射回退。
-- 刷新 `snail-ai-starter` 内嵌管理端静态资源，包含 Responses 模型配置界面。
+- 刷新 `snail-ai-starter` 内嵌管理端与 `snail-ai-agent-chat-starter` 独立聊天页静态资源，包含 Responses 模型配置、指令优化和用量展示界面。
 - CodeLink 请求在传输层统一追加 `source=snail-ai`，已有 query 参数保持不变且不会重复添加标识。
 - 管理端选中 CodeLink 时隐藏 API 端点输入框，并展示专属注册邀请链接。
+- 重构 `AgentController` 接口分组和流式完成事件处理，统一 Server、Agent Client、管理端与 OpenAPI 的完成状态和用量语义。
+- gRPC Server 与 Client 统一通过 Netty 传输工厂创建；JDK 25 及以上默认使用标准 NIO 路径，保留显式 Netty Unsafe 配置的覆盖能力。
+
+### 问题修复
+
+- 修复部分 OpenAI-compatible Responses 服务未返回 `output_text.annotations` 时 OpenAI Java SDK 校验失败的问题，同步兼容 JSON 与 SSE 响应。
+- 修复累计型 reasoning metadata 在流式输出中重复追加的问题，并保留旧 Chat Completions reasoning 行为。
+- 修复 JDK 25 及以上运行 gRPC shaded Netty 时触发 `sun.misc.Unsafe::allocateMemory` 终止弃用警告的问题。
+- 修复管理端重新构建后静态资源路径与哈希引用不一致导致的资源加载问题。
 
 ### 兼容性与边界
 
 - `openai-compatible` 继续作为 CHAT 默认适配器，已有模型配置行为不变。
 - Responses 失败不回退 Chat Completions，且不新增 Snail AI 对外的 `/v1/responses` API。
-- 本次不新增数据库结构，Responses 参数继续保存在模型扩展 JSON 中。
+- 本次不新增核心业务数据库表或字段；Responses 参数继续保存在模型扩展 JSON 中，初始化脚本仅新增 CodeLink Provider 预置数据。
 - 厂商 Hosted MCP、Web Search、File Search 不接入。`hostedTools`、Raw 和 `extraBody.tools` 中的 `mcp`、`web_search`、`web_search_preview`、`file_search` 会被拒绝。本地 MCP 调用和凭据流程保持不变。
 - CodeLink 以 `providerKey=codelink` 为规范标识，兼容现有 `aicodelink` 数据和历史 `new-api` 请求标识；其他 OpenAI-compatible Provider 行为不变。
+- 旧 Agent Client 未上报 Token 用量时仍按兼容模式处理；为获得完整 completion usage 和新版 gRPC 行为，建议 Server 与 Agent Client 同步升级。
+
+### 升级说明
+
+- 运行环境继续以 Java 21 为基线；升级前请备份业务数据库、向量/检索数据、资源文件以及 `SNAIL_AI_CRYPTO_KEY`、`SNAIL_AI_CRYPTO_IV`。
+- 已有 CHAT 模型不会自动切换到 Responses。需要使用 Responses 时，请新建或显式选择 `openai-responses`，并先验证端点是否支持同步、SSE、reasoning 和工具调用。
+- 已有数据库不会自动写入 CodeLink Provider。需要使用时可在管理端新增 `providerKey=codelink`，无需执行数据库结构迁移。
+- PostgreSQL 全文检索为可选存储实现，启用前需准备独立 PostgreSQL 连接信息并确认目标 Schema 的建表权限。
+- Code Interpreter、Image Generation 和 Raw Hosted Tools 由模型提供商执行，升级或启用前请确认提供商支持范围、网络策略和计费规则。
+- 管理端与聊天页已包含在 Starter 构件中；替换新版 JAR 后清理浏览器旧缓存，再回归模型配置、智能体对话、RAG、MCP、Skill 和 OpenAPI 链路。
+- 详细升级步骤见 [升级指南](/deploy/upgrade)，Responses 与 Provider 配置见 [模型配置](/guide/model/config) 和 [模型提供商](/guide/model/provider)。
 
 ## [1.1.1] - 2026-07-29
 
@@ -517,6 +550,7 @@ ALTER TABLE sai_mcp_server
 
 ---
 
-[未发布]: https://gitee.com/opensnail/snail-ai/compare/v0.0.2...HEAD
+[Unreleased]: https://github.com/aizuda/snail-ai/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/aizuda/snail-ai/releases/tag/v1.2.0
 [0.0.2]: https://gitee.com/aizuda/snail-ai/compare/v0.0.1...v0.0.2
 [0.0.1]: https://gitee.com/aizuda/snail-ai/releases/tag/v0.0.1
