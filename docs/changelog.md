@@ -22,7 +22,7 @@
 
 ### 功能优化
 
-- Spring AI 从 `2.0.0` 升级到 `2.1.0-RC1`。
+- Spring AI 从 `2.0.0` 升级到正式版 `2.1.0`，包含现代 MCP、工具调用与 Advisor 兼容性修复。
 - 思考内容采集优先读取 `ReasoningPart.text()`，无文本时读取 `ReasoningPart.summary()`，并对累计型 reasoning metadata 去重。
 - Token 用量采集优先读取通用 `Usage.getCacheReadInputTokens()`，保留旧 OpenAI-compatible native usage 反射回退。
 - 刷新 `snail-ai-starter` 内嵌管理端静态资源，包含 Responses 模型配置界面。

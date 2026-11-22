@@ -303,7 +303,7 @@ sequenceDiagram
 
 - [事实] 用户在北京的互联网公司工作，团队使用 Java 技术栈
 - [偏好] 用户喜欢简洁清晰的回答，偏好使用代码示例说明
-- [决策] 项目使用 Spring Boot 4 + Spring AI 2.1.0-RC1
+- [决策] 项目使用 Spring Boot 4 + Spring AI 2.1.0
 - [任务进度] 数据库迁移项目已完成 PostgreSQL 部分，下一步是达梦适配
 ```
 

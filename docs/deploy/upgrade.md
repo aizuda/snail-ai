@@ -13,9 +13,11 @@ Snail AI 1.1.1 当前提供初始化脚本：
 
 如果某个版本发布了独立升级脚本，请以对应 Release Notes 为准；不要假设仓库中一定存在 `script/sql/migration/` 目录。
 
-## Spring AI 2.1.0-RC1 与 Responses
+## Spring AI 2.1.0 与 Responses
 
-当前源码将 Spring AI 基线升级到 `2.1.0-RC1`，并新增 CHAT 适配器 `openai-responses`。升级不新增数据库表或字段，Responses 专属参数继续保存在现有模型配置的 `configJson` 中。
+当前源码使用 Spring AI 正式版 `2.1.0`，并提供 CHAT 适配器 `openai-responses`。升级不新增数据库表或字段，Responses 专属参数继续保存在现有模型配置的 `configJson` 中。
+
+Spring AI `2.1.0` 正式版相较 RC1 继续完善了现代 MCP 客户端与服务端连接、流式工具参数、未完成工具调用补偿、统一完成原因和 Chat Client Advisor 空上下文兼容，并将 OpenAI Java SDK 升级到 `4.101.0`。详见 [Spring AI v2.1.0 Release Notes](https://github.com/spring-projects/spring-ai/releases/tag/v2.1.0)。这些上游能力不会自动切换 Snail AI 的 MCP 配置或调用方式，现有本地 MCP `ToolCallback` 流程保持不变。
 
 升级已有环境时注意：
 

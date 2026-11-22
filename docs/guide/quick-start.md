@@ -19,7 +19,7 @@
 |------|---------------|------|
 | Java | 21+ | `pom.xml` |
 | Spring Boot | 4.1.0 | `pom.xml` |
-| Spring AI | 2.1.0-RC1 | `pom.xml` |
+| Spring AI | 2.1.0 | `pom.xml` |
 | HTTP 端口 | `8900` | `snail-ai-starter/src/main/resources/application.yml` |
 | Context Path | `/snail-ai` | `snail-ai-starter/src/main/resources/application.yml` |
 | gRPC 端口 | `18888` | `snail-ai-starter/src/main/resources/application.yml` |
